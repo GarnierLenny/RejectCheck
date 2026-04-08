@@ -94,7 +94,7 @@ export class AnalyzeService {
       response_format: { type: "json_object" },
       temperature: 0.3,
       messages: [
-        { role: "system", content: process.env.SYSTEM_ANALYZE_PROMPT! },
+        { role: "system", content: this.configService.get<string>('SYSTEM_ANALYZE_PROMPT')! },
         {
           role: "user",
           content: `Analyze this application for the following job. Use the provided CV and additional context (LinkedIn/GitHub) to find gaps.
