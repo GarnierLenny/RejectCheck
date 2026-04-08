@@ -1,0 +1,115 @@
+You are helping me build a SaaS MVP called "RejectCheck".
+
+## PRODUCT CONTEXT
+
+RejectCheck is a web app for developers that analyzes a CV against a job description and explains WHY the candidate would likely be rejected BEFORE applying.
+
+The goal is to deliver a fast, brutal, and actionable analysis in under 10 seconds.
+
+## CORE VALUE
+
+We are NOT just scoring.
+We are explaining:
+
+* why the CV will be rejected
+* what exactly is missing
+* what to fix immediately
+
+Tone should be:
+
+* direct
+* slightly brutal
+* very concrete
+* no generic advice
+
+## MVP SCOPE (STRICT)
+
+Build ONLY this:
+
+### Input:
+
+* Upload CV (PDF)
+* Paste job description (text)
+
+### Processing:
+
+* Extract text from PDF
+* Send both CV + job description to LLM
+
+### Output:
+
+Return a structured JSON with:
+
+{
+"score": number (0-100),
+"verdict": "Low / Medium / High rejection risk",
+"top_reasons": [
+"string",
+"string",
+"string"
+],
+"improvements": [
+"string",
+"string",
+"string"
+]
+}
+
+## ANALYSIS REQUIREMENTS
+
+The AI MUST:
+
+* Compare CV vs job requirements
+* Detect missing key skills
+* Detect lack of measurable impact
+* Detect seniority mismatch
+* Detect vague descriptions
+
+## IMPORTANT:
+
+* NO generic advice
+* NO fluff
+* Each reason must be specific to the CV
+* Each improvement must be actionable
+
+## EXAMPLE OUTPUT STYLE
+
+Top reasons:
+
+* "Missing React experience while it is required in the job"
+* "No measurable impact in past roles (no metrics or results)"
+* "Profile appears junior compared to job expectations"
+
+Improvements:
+
+* "Add metrics like 'Improved performance by 30%'"
+* "Highlight any React-related project or experience"
+* "Reframe your experience to show ownership and impact"
+
+## UX REQUIREMENTS
+
+* Single page app
+* No login
+* Show result immediately after analysis
+* Loading state: "Analyzing your CV..."
+
+## TECH STACK
+
+* Next.js frontend
+* API route backend
+* OpenAI API
+* PDF parsing library
+
+## GOAL
+
+Build a working MVP as fast as possible.
+Do not over-engineer.
+Do not add extra features.
+
+Focus on:
+
+* speed
+* clarity
+* usefulness
+
+Start by scaffolding the project and implementing the core flow.
