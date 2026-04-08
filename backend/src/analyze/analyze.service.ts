@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { PDFParse } from 'pdf-parse';
 
-const MAX_CV_CHARS = 12000;
+const MAX_TEXT_CHARS = 12000;
 
 @Injectable()
 export class AnalyzeService {
@@ -13,20 +13,76 @@ export class AnalyzeService {
     this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
   }
 
-  async analyzeCv(cvBuffer: Buffer, jobDescription: string) {
-    const jobText = jobDescription.trim().slice(0, 8000);
-    let cvText: string;
+  private async parsePdf(buffer: Buffer): Promise<string> {
     try {
-      const parser = new PDFParse({ data: cvBuffer });
+      const parser = new PDFParse({ data: buffer });
       try {
         const parsed = await parser.getText();
-        cvText = parsed.text.replace(/\s+/g, " ").trim().slice(0, MAX_CV_CHARS);
-        if (!cvText) throw new Error("Empty PDF");
+        const text = parsed.text.replace(/\s+/g, " ").trim().slice(0, MAX_TEXT_CHARS);
+        if (!text) throw new Error("Empty PDF");
+        return text;
       } finally {
         await parser.destroy();
       }
-    } catch {
+    } catch (err) {
       throw new UnprocessableEntityException("Failed to parse PDF. Make sure it is a valid, text-based PDF.");
+    }
+  }
+
+  private async fetchGithubData(username: string) {
+    try {
+      const headers = { 'User-Agent': 'RejectCheck-App' };
+      const profileRes = await fetch(`https://api.github.com/users/${username}`, { headers });
+      if (!profileRes.ok) return null;
+      const profile = await profileRes.json();
+
+      const reposRes = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=10`, { headers });
+      const repos = reposRes.ok ? await reposRes.json() : [];
+
+      return {
+        bio: profile.bio,
+        public_repos: profile.public_repos,
+        followers: profile.followers,
+        top_repos: repos.map((r: any) => ({
+          name: r.name,
+          description: r.description,
+          language: r.language,
+          stars: r.stargazers_count
+        }))
+      };
+    } catch (e) {
+      console.error('GitHub API error:', e);
+      return null;
+    }
+  }
+
+  async analyzeApplication(data: {
+    cvBuffer: Buffer;
+    jobDescription: string;
+    linkedinBuffer?: Buffer;
+    githubUsername?: string;
+  }) {
+    const { cvBuffer, jobDescription, linkedinBuffer, githubUsername } = data;
+    const jobText = jobDescription.trim().slice(0, 8000);
+
+    const cvText = await this.parsePdf(cvBuffer);
+    
+    let linkedinText = '';
+    if (linkedinBuffer) {
+      try {
+        linkedinText = await this.parsePdf(linkedinBuffer);
+      } catch {
+        // LinkedIn parsing error is non-fatal but we log it
+        console.warn('Failed to parse LinkedIn PDF');
+      }
+    }
+
+    let githubInfo = '';
+    if (githubUsername) {
+      const ghData = await this.fetchGithubData(githubUsername);
+      if (ghData) {
+        githubInfo = JSON.stringify(ghData, null, 2);
+      }
     }
 
     const completion = await this.openai.chat.completions.create({
@@ -51,7 +107,7 @@ export class AnalyzeService {
               },
               top_reasons: {
                 type: "array",
-                description: "Top 3 specific reasons why this CV would be rejected for this job",
+                description: "Top 3 specific reasons why this applicant would be rejected for this job",
                 items: {
                   type: "string",
                   minLength: 10,
@@ -81,53 +137,37 @@ export class AnalyzeService {
         { role: "system", content: process.env.SYSTEM_ANALYZE_PROMPT! },
         {
           role: "user",
-          content: `Here is a developer CV and a job description.
+          content: `Analyze this application for the following job. Use the provided CV and additional context (LinkedIn/GitHub) to find gaps.
 
-          Analyze why this candidate would be rejected.
-
-          CV:
-          ${cvText}
+          JOB DESCRIPTION:
+          ${jobText}
 
           ---
 
-          Job Description:
-          ${jobText.trim()}
-          Return only valid JSON. Do not include explanations.
-          Each reason must be brutally clear and impactful.
-          Avoid vague wording. Prefer strong statements.`,
+          CANDIDATE CV:
+          ${cvText}
+
+          ${linkedinText ? `---\nLINKEDIN PROFILE:\n${linkedinText}` : ''}
+          ${githubInfo ? `---\nGITHUB DATA:\n${githubInfo}` : ''}
+
+          Return only valid JSON. Be brutal and specific.`,
         },
       ],
     });
 
     const raw = completion.choices[0]?.message?.content;
+    if (!raw) throw new InternalServerErrorException("Empty response from AI");
 
-    if (!raw) {
-      throw new InternalServerErrorException("Empty response from AI");
-    }
-
-    
-
-    let parsed;
     try {
-      parsed = JSON.parse(raw);
-
-      if (
-        typeof parsed.score !== "number" ||
-        parsed.score < 0 ||
-        parsed.score > 100 ||
-        !["Low", "Medium", "High"].includes(parsed.verdict) ||
-        !Array.isArray(parsed.top_reasons) ||
-        parsed.top_reasons.length !== 3 ||
-        !Array.isArray(parsed.improvements) ||
-        parsed.improvements.length !== 3
-      ) {
-        throw new InternalServerErrorException("Invalid AI response structure");
+      const parsed = JSON.parse(raw);
+      // Basic validation
+      if (typeof parsed.score === 'number' && Array.isArray(parsed.top_reasons)) {
+        return parsed;
       }
+      throw new Error("Invalid structure");
     } catch (err) {
       console.error("Invalid JSON from AI:", raw);
       throw new InternalServerErrorException("Invalid AI response format");
     }
-
-    return parsed;
   }
 }
