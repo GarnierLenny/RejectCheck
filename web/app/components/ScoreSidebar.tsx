@@ -1,0 +1,91 @@
+import type { AnalysisResult } from "./types";
+import { Tooltip } from "./Tooltip";
+
+type Props = {
+  result: AnalysisResult;
+  onReset: () => void;
+};
+
+export function ScoreSidebar({ result, onReset }: Props) {
+  const scoreTextClass =
+    result.score >= 70 ? "text-rc-red"
+    : result.score >= 40 ? "text-rc-amber"
+    : "text-rc-green";
+
+  const scoreBgClass =
+    result.score >= 70 ? "bg-rc-red"
+    : result.score >= 40 ? "bg-rc-amber"
+    : "bg-rc-green";
+
+  return (
+    <div className="lg:col-span-4 sticky top-[40px] space-y-6">
+      {/* Score card */}
+      <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-muted">Overall Risk</span>
+            <Tooltip text="Aggregate rejection probability based on profile weaknesses, ATS flags, and seniority gaps.">
+              <div className="cursor-help opacity-40 hover:opacity-100 transition-opacity">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
+                  <path d="M7 9V7m0-2h.01" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+              </div>
+            </Tooltip>
+          </div>
+          <span className={`font-sans text-[14px] px-3 py-1 rounded bg-rc-bg border-[0.5px] ${scoreTextClass} border-current uppercase tracking-widest`}>
+            {result.verdict}
+          </span>
+        </div>
+
+        <div className={`font-mono text-[64px] font-medium leading-none mb-2 ${scoreTextClass}`}>
+          {result.score}<span className="text-[24px] opacity-60">%</span>
+        </div>
+
+        <div className="h-[2px] bg-rc-text/10 w-full rounded-full overflow-hidden mb-8">
+          <div className={`h-full ${scoreBgClass} transition-all duration-1000`} style={{ width: `${result.score}%` }} />
+        </div>
+
+        <div className="space-y-4">
+          {Object.entries(result.breakdown).map(([key, val]) => val !== null && (
+            <div key={key} className="space-y-1.5">
+              <div className="flex justify-between text-[11px] font-mono text-rc-muted uppercase tracking-tight">
+                <span>{key.replace('_', ' ')}</span>
+                <span>{val}%</span>
+              </div>
+              <div className="h-1 bg-rc-text/10 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${val >= 70 ? 'bg-rc-red' : val >= 40 ? 'bg-rc-amber' : 'bg-rc-green'} opacity-80`}
+                  style={{ width: `${val}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Confidence card */}
+      <div className="bg-rc-surface/50 border-[0.5px] border-rc-border rounded-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint">Model Confidence</span>
+          <span className="text-[12px] font-mono font-bold text-rc-text">{result.confidence.score}%</span>
+        </div>
+        <p className="text-[12px] text-rc-muted leading-relaxed font-sans">{result.confidence.reason}</p>
+        {result.confidence.score < 80 && (
+          <div className="mt-4 p-3 bg-rc-amber/5 border-[0.5px] border-rc-amber/20 rounded-lg text-[11px] text-rc-amber/80 leading-snug">
+            Tip: Provide more data (GitHub/LinkedIn) to reach 95%+ confidence.
+          </div>
+        )}
+      </div>
+
+      {/* Reset button */}
+      <button
+        type="button"
+        onClick={onReset}
+        className="w-full flex items-center justify-center gap-2 font-mono text-[11px] text-rc-muted hover:text-rc-text transition-colors py-4 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
+      >
+        &larr; Analyze New Profile
+      </button>
+    </div>
+  );
+}

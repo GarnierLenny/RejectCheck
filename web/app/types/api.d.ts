@@ -63,16 +63,21 @@ export interface components {
             ats_simulation: {
                 would_pass: boolean;
                 score: number;
+                threshold: number;
                 reason: string;
                 critical_missing_keywords: {
                     keyword: string;
                     jd_frequency: number;
+                    required: boolean;
+                    sections_missing: string[];
+                    score_impact: number;
                 }[];
             };
             seniority_analysis: {
                 expected: string;
                 detected: string;
                 gap: string;
+                strength: string;
                 fix: {
                     summary: string;
                     steps: string[];
@@ -138,6 +143,7 @@ export interface components {
                             time_required: string;
                         };
                     }[];
+                    strengths: string[];
                 };
                 github: {
                     score: number | null;
@@ -201,7 +207,6 @@ export interface components {
                         found: boolean;
                         evidence: string | null;
                     }[];
-                    missing_keywords: string[];
                     experience_gap: string | null;
                 };
             };
@@ -225,6 +230,10 @@ export interface components {
                     time_required: string;
                 };
             }[];
+            correlation: {
+                detected: boolean;
+                explanation: string;
+            };
         };
     };
     responses: never;

@@ -43,27 +43,33 @@ export const AnalyzeResponseSchema = z.object({
   ats_simulation: z.object({
     would_pass: z.boolean(),
     score: z.number().min(0).max(100),
+    threshold: z.number().min(0).max(100),
     reason: z.string(),
     critical_missing_keywords: z.array(z.object({
       keyword: z.string(),
       jd_frequency: z.number(),
+      required: z.boolean(),
+      sections_missing: z.array(z.string()),
+      score_impact: z.number(),
     })),
   }),
   seniority_analysis: z.object({
     expected: z.string(),
     detected: z.string(),
     gap: z.string(),
+    strength: z.string(),
     fix: FixSchema,
   }),
   cv_tone: z.object({
     detected: z.enum(['passive', 'active', 'mixed']),
-    examples: z.array(z.string()),
+    examples: z.array(z.string()).max(5),
     fix: FixSchema,
   }),
   audit: z.object({
     cv: z.object({
       score: z.number().min(0).max(100),
       issues: z.array(IssueSchema),
+      strengths: z.array(z.string()).min(1).max(5),
     }),
     github: z.object({
       score: z.number().min(0).max(100).nullable(),
@@ -81,7 +87,6 @@ export const AnalyzeResponseSchema = z.object({
         found: z.boolean(),
         evidence: z.string().nullable(),
       })),
-      missing_keywords: z.array(z.string()),
       experience_gap: z.string().nullable(),
     }),
   }),
@@ -90,6 +95,10 @@ export const AnalyzeResponseSchema = z.object({
     perception: z.string(),
     fix: FixSchema,
   })),
+  correlation: z.object({
+    detected: z.boolean(),
+    explanation: z.string(),
+  }),
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}
