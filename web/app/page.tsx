@@ -76,7 +76,7 @@ export default function Home() {
 
   // Helper for Fix rendering
   const FixBlock = ({ fix }: { fix: Fix }) => (
-    <div className="mt-4 p-4 bg-black/20 rounded-lg border-[0.5px] border-rc-border/40">
+    <div className="mt-4 p-4 bg-rc-bg rounded-lg border-[0.5px] border-rc-border/40">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-5 h-5 rounded-full bg-rc-green/20 flex items-center justify-center text-[10px] text-rc-green">✓</div>
         <p className="text-[13px] font-medium text-rc-text">{fix.summary}</p>
@@ -97,10 +97,8 @@ export default function Home() {
             <span className="text-[10px] uppercase tracking-wider text-rc-hint font-mono">Current:</span>
             <p className="text-[12px] text-rc-muted italic">"{fix.example.before}"</p>
           </div>
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-rc-green/70 font-mono italic">Reframed:</span>
+            <span className="text-[10px] uppercase tracking-wider text-rc-green font-mono italic">Reframed:</span>
             <p className="text-[12px] text-rc-text font-medium">{fix.example.after}</p>
-          </div>
         </div>
       )}
 
@@ -122,7 +120,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="mt-4 ml-7 inline-flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded text-[10px] text-rc-hint font-mono uppercase tracking-tighter">
+      <div className="mt-4 ml-7 inline-flex items-center gap-1.5 px-2 py-1 bg-rc-text/5 rounded text-[10px] text-rc-hint font-mono uppercase tracking-tighter">
         <svg width="10" height="10" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/><path d="M7 3.5v3.5h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
         Time: {fix.time_required}
       </div>
@@ -131,7 +129,7 @@ export default function Home() {
 
   // Helper for Issue rendering
   const IssueItem = ({ issue }: { issue: Issue }) => (
-    <div className="p-5 border-b-[0.5px] border-rc-border last:border-0 hover:bg-white/[0.02] transition-colors">
+    <div className="p-5 border-b-[0.5px] border-rc-border last:border-0 hover:bg-rc-text/[0.02] transition-colors">
       <div className="flex items-start justify-between gap-4 mb-2.5">
         <div className="flex flex-col gap-1.5">
           <h4 className="text-[14px] font-medium text-rc-text leading-snug">{issue.what}</h4>
@@ -152,7 +150,7 @@ export default function Home() {
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
       {/* NAV */}
       <nav className="flex items-center justify-between px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
-        <div className="font-display text-[22px] tracking-wide text-rc-red flex items-center gap-2.5">
+        <div className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5">
           <Image src="/RejectCheck.png" alt="RejectCheck Logo" width={44} height={44} className="rounded-[4px]" />
         </div>
       </nav>
@@ -161,7 +159,7 @@ export default function Home() {
         {!result ? (
           <div className="max-w-[780px] mx-auto">
             <div className="mb-8">
-              <h1 className="font-display text-[32px] tracking-[0.03em] text-rc-text mb-1.5 uppercase">
+              <h1 className="font-sans text-[32px] tracking-[0.03em] text-rc-text mb-1.5 uppercase">
                 Analyze your application
               </h1>
               <p className="text-[13px] text-rc-muted font-mono">
@@ -181,12 +179,12 @@ export default function Home() {
                   onClick={() => fileRef.current?.click()}
                   className="border-[0.5px] border-dashed border-rc-red/35 rounded-[10px] p-6 text-center cursor-pointer transition-all bg-rc-red-bg hover:border-rc-red hover:bg-[#e24b4a1f] group relative"
                 >
-                  <div className="opacity-55 flex items-center justify-center mb-2.5">
+                  <div className="opacity-70 flex items-center justify-center mb-2.5">
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                      <rect x="4" y="2" width="16" height="20" rx="2" stroke="rgba(226,75,74,0.6)" strokeWidth="1.5"/>
-                      <path d="M8 9h8M8 13h8M8 17h5" stroke="rgba(226,75,74,0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-                      <circle cx="21" cy="21" r="5" fill="#0a0a08" stroke="rgba(226,75,74,0.6)" strokeWidth="1.5"/>
-                      <path d="M21 18.5v5M18.5 21h5" stroke="rgba(226,75,74,0.6)" strokeWidth="1.2" strokeLinecap="round"/>
+                      <rect x="4" y="2" width="16" height="20" rx="2" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5"/>
+                      <path d="M8 9h8M8 13h8M8 17h5" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5" strokeLinecap="round"/>
+                      <circle cx="21" cy="21" r="5" fill="#0a0a08" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5"/>
+                      <path d="M21 18.5v5M18.5 21h5" stroke="rgba(226,75,74,0.8)" strokeWidth="1.2" strokeLinecap="round"/>
                     </svg>
                   </div>
                   <p className="text-[13px] text-rc-muted mb-[3px] group-hover:text-rc-text transition-colors">Drop your CV or click to browse</p>
@@ -261,9 +259,9 @@ export default function Home() {
                     </div>
                   </div>
                   {!liFile ? (
-                    <div onClick={() => liRef.current?.click()} className="border-[0.5px] border-dashed border-[#0a66c2]/25 rounded-[8px] p-3.5 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.04] hover:border-[#0a66c2]/50">
-                      <p className="text-[12px] text-[#5ba3d9]/70 mb-0.5">Drop your LinkedIn PDF export</p>
-                      <span className="font-mono text-[10px] text-rc-hint">Settings → Data Privacy → Get a copy</span>
+                    <div onClick={() => liRef.current?.click()} className="border-[0.5px] border-dashed border-[#0a66c2]/35 rounded-[8px] p-3.5 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.06] hover:border-[#0a66c2]/60">
+                      <p className="text-[12px] text-[#0a66c2] mb-0.5">Drop your LinkedIn PDF export</p>
+                      <span className="font-mono text-[10px] text-rc-hint font-medium">Settings → Data Privacy → Get a copy</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 p-[9px] px-[12px] bg-rc-bg border-[0.5px] border-rc-green-border rounded-[8px]">
@@ -293,7 +291,7 @@ export default function Home() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="font-display text-[20px] tracking-[0.05em] text-[#0a0a08] bg-rc-red px-8 py-[13px] rounded-[6px] border-none cursor-pointer transition-all hover:bg-[#f05c5c] hover:-translate-y-px hover:shadow-[0_0_20px_rgba(226,75,74,0.4)] flex items-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="font-sans text-[20px] tracking-[0.05em] text-white bg-rc-red px-8 py-[13px] rounded-[6px] border-none cursor-pointer transition-all hover:bg-[#a82e2d] hover:-translate-y-px hover:shadow-[0_0_20px_rgba(201,58,57,0.3)] flex items-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 {loading ? "ANALYZING..." : "ANALYZE"}
                 {!loading && (
@@ -313,16 +311,16 @@ export default function Home() {
               <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                   <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-muted">Overall Risk</span>
-                  <span className={`font-display text-[14px] px-3 py-1 rounded bg-rc-bg border-[0.5px] ${scoreTextClass} border-current opacity-80 uppercase tracking-widest`}>
+                  <span className={`font-sans text-[14px] px-3 py-1 rounded bg-rc-bg border-[0.5px] ${scoreTextClass} border-current uppercase tracking-widest`}>
                     {result.verdict}
                   </span>
                 </div>
                 
                 <div className={`font-mono text-[64px] font-medium leading-none mb-2 ${scoreTextClass}`}>
-                  {result.score}<span className="text-[24px] opacity-40">%</span>
+                  {result.score}<span className="text-[24px] opacity-60">%</span>
                 </div>
                 
-                <div className="h-[2px] bg-white/5 w-full rounded-full overflow-hidden mb-8">
+                <div className="h-[2px] bg-rc-text/10 w-full rounded-full overflow-hidden mb-8">
                   <div className={`h-full ${scoreBgClass} transition-all duration-1000`} style={{ width: `${result.score}%` }}></div>
                 </div>
 
@@ -333,8 +331,8 @@ export default function Home() {
                         <span>{key.replace('_', ' ')}</span>
                         <span>{val}%</span>
                       </div>
-                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                        <div className={`h-full ${val >= 70 ? 'bg-rc-red' : val >= 40 ? 'bg-rc-amber' : 'bg-rc-green'} opacity-60`} style={{ width: `${val}%` }}></div>
+                      <div className="h-1 bg-rc-text/10 rounded-full overflow-hidden">
+                        <div className={`h-full ${val >= 70 ? 'bg-rc-red' : val >= 40 ? 'bg-rc-amber' : 'bg-rc-green'} opacity-80`} style={{ width: `${val}%` }}></div>
                       </div>
                     </div>
                   ))}
@@ -401,7 +399,7 @@ export default function Home() {
                     <div className="flex items-center gap-3 mb-4">
                       <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint bg-rc-bg px-2 py-1 rounded">Module 01: Bot Filter Simulation</span>
                     </div>
-                    <h2 className={`font-display text-[32px] tracking-tight uppercase mb-2 ${result.ats_simulation.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
+                    <h2 className={`font-sans text-[32px] tracking-tight uppercase mb-2 ${result.ats_simulation.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
                       {result.ats_simulation.would_pass ? 'ATS PASS ESTIMATED' : 'ATS REJECTION LIKELY'}
                     </h2>
                     <p className="text-[14px] text-rc-text leading-relaxed mb-6 max-w-[500px]">{result.ats_simulation.reason}</p>
@@ -419,7 +417,7 @@ export default function Home() {
                       </div>
                       <div>
                         <span className="font-mono text-[10px] uppercase text-rc-hint mb-3 block">Simulated Score</span>
-                        <div className="text-[28px] font-mono text-rc-text">{result.ats_simulation.score}<span className="text-[14px] opacity-40">/100</span></div>
+                        <div className="text-[28px] font-mono text-rc-text">{result.ats_simulation.score}<span className="text-[14px] opacity-60">/100</span></div>
                       </div>
                     </div>
                   </div>
@@ -476,7 +474,7 @@ export default function Home() {
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                         </div>
                         <div>
-                          <h3 className="font-display text-[22px] uppercase">CV Forensic Audit</h3>
+                          <h3 className="font-sans text-[22px] uppercase">CV Forensic Audit</h3>
                           <p className="text-[11px] font-mono text-rc-hint uppercase tracking-tight">Status: {result.audit.cv.issues.length} technical vulnerabilities identified</p>
                         </div>
                       </div>
@@ -497,7 +495,7 @@ export default function Home() {
                     <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
                       <div className="p-5 border-b border-rc-border flex items-center justify-between bg-rc-bg/20">
                         <span className="font-mono text-[11px] uppercase tracking-widest text-rc-text flex items-center gap-2">
-                          <span className="w-6 h-6 rounded bg-black flex items-center justify-center text-[10px] text-white">GH</span> GitHub Signal
+                          <span className="w-6 h-6 rounded bg-rc-text flex items-center justify-center text-[10px] text-rc-bg">GH</span> GitHub Signal
                         </span>
                         <span className="font-mono text-[12px] text-rc-text">{result.audit.github.score ?? 'N/A'}%</span>
                       </div>
@@ -530,7 +528,7 @@ export default function Home() {
                     <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
                       <div className="p-5 border-b border-rc-border flex items-center justify-between bg-rc-bg/20">
                         <span className="font-mono text-[11px] uppercase tracking-widest text-rc-text flex items-center gap-2">
-                          <span className="w-6 h-6 rounded bg-[#0a66c2] flex items-center justify-center text-[10px] text-white">in</span> LinkedIn Signal
+                          <span className="w-6 h-6 rounded bg-[#0a66c2] flex items-center justify-center text-[10px] text-white font-bold">in</span> LinkedIn Signal
                         </span>
                         <span className="font-mono text-[12px] text-rc-text">{result.audit.linkedin.score ?? 'N/A'}%</span>
                       </div>
@@ -578,7 +576,7 @@ export default function Home() {
                               <div>
                                 <h4 className="text-[15px] font-bold text-rc-text mb-1 uppercase tracking-tight">{flag.flag}</h4>
                                 <div className="text-[13px] text-rc-muted leading-relaxed">
-                                  <span className="text-rc-amber/70 font-mono text-[10px] uppercase font-bold mr-2">Recruiter perception:</span>
+                                  <span className="text-rc-amber font-mono text-[10px] uppercase font-bold mr-2">Recruiter perception:</span>
                                   {flag.perception}
                                 </div>
                               </div>
@@ -592,7 +590,7 @@ export default function Home() {
 
                   {/* JD MATCH / SKILLS GRID */}
                   <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-8">
-                    <h3 className="font-display text-[22px] uppercase mb-8">Technical Requirement Matrix</h3>
+                    <h3 className="font-sans text-[22px] uppercase mb-8">Technical Requirement Matrix</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-8">
                       {result.audit.jd_match.required_skills.map((s, i) => (
                         <div key={i} className="flex items-center justify-between py-2 border-b border-rc-border/40">
