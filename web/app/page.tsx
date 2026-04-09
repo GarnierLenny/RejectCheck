@@ -16,6 +16,7 @@ export default function Home() {
   const [liFile, setLiFile] = useState<File | null>(null);
   const liRef = useRef<HTMLInputElement>(null);
   const [githubUsername, setGithubUsername] = useState("");
+  const [activeTab, setActiveTab] = useState<'ats' | 'profile' | 'audit' | 'flags'>('ats');
 
   const mutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -355,7 +356,7 @@ export default function Home() {
 
               <button 
                 type="button"
-                onClick={() => { mutation.reset(); setJobDescription(""); }} 
+                onClick={() => { mutation.reset(); setJobDescription(""); setActiveTab('ats'); }}
                 className="w-full flex items-center justify-center gap-2 font-mono text-[11px] text-rc-muted hover:text-rc-text transition-colors py-4 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
               >
                 &larr; Analyze New Profile
@@ -363,228 +364,259 @@ export default function Home() {
             </div>
 
             {/* MAIN CONTENT AREA */}
-            <div className="lg:col-span-8 space-y-8">
-              
-              {/* ATS SIMULATION CARD */}
-              <div className={`p-8 rounded-2xl border-[1px] ${result.ats_simulation.would_pass ? 'border-rc-green/30 bg-rc-green/5' : 'border-rc-red/30 bg-rc-red/5'} relative overflow-hidden group`}>
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.63 3 12"/><polyline points="21 12 16.5 14.63 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint bg-rc-bg px-2 py-1 rounded">Module 01: Bot Filter Simulation</span>
-                  </div>
-                  <h2 className={`font-display text-[32px] tracking-tight uppercase mb-2 ${result.ats_simulation.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
-                    {result.ats_simulation.would_pass ? 'ATS PASS ESTIMATED' : 'ATS REJECTION LIKELY'}
-                  </h2>
-                  <p className="text-[14px] text-rc-text leading-relaxed mb-6 max-w-[500px]">{result.ats_simulation.reason}</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
-                    <div>
-                      <span className="font-mono text-[10px] uppercase text-rc-hint mb-3 block">Critical Missing Keywords</span>
-                      <div className="flex flex-wrap gap-2">
-                        {result.ats_simulation.critical_missing_keywords.map((kw, i) => (
-                          <span key={i} className="flex items-center gap-1.5 px-2 py-1 bg-rc-bg border-[0.5px] border-rc-border rounded text-[11px]">
-                            <span className="text-rc-text">{kw.keyword}</span>
-                            <span className="text-rc-red font-mono text-[9px]">({kw.jd_frequency}x)</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <span className="font-mono text-[10px] uppercase text-rc-hint mb-3 block">Simulated Score</span>
-                      <div className="text-[28px] font-mono text-rc-text">{result.ats_simulation.score}<span className="text-[14px] opacity-40">/100</span></div>
-                    </div>
-                  </div>
-                </div>
+            <div className="lg:col-span-8">
+
+              {/* TAB NAV */}
+              <div className="flex border-b-[0.5px] border-rc-border mb-7 overflow-x-auto">
+                {([
+                  { id: 'ats', label: 'ATS Filter', badge: result.ats_simulation.would_pass ? '✓' : '✗', badgeClass: result.ats_simulation.would_pass ? 'text-rc-green' : 'text-rc-red' },
+                  { id: 'profile', label: 'Profile Analysis', badge: null, badgeClass: '' },
+                  { id: 'audit', label: 'Audit', badge: String(result.audit.cv.issues.length + result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: 'text-rc-amber' },
+                  { id: 'flags', label: 'Red Flags', badge: String(result.hidden_red_flags.length), badgeClass: 'text-rc-red' },
+                ] as const).map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
+                      activeTab === tab.id
+                        ? 'border-rc-red text-rc-text'
+                        : 'border-transparent text-rc-hint hover:text-rc-muted'
+                    }`}
+                  >
+                    {tab.label}
+                    {tab.badge && (
+                      <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>
+                    )}
+                  </button>
+                ))}
               </div>
 
-              {/* SENIORITY & TONE DUAL VIEW */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6 flex flex-col">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint mb-6">Seniority Gap Analysis</span>
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="flex-1 text-center p-3 bg-rc-bg rounded border border-rc-border">
-                      <span className="text-[10px] uppercase text-rc-hint block mb-1">Expected</span>
-                      <span className="text-[14px] font-medium text-rc-text">{result.seniority_analysis.expected}</span>
+              {/* TAB: ATS */}
+              {activeTab === 'ats' && (
+                <div className={`p-8 rounded-2xl border-[1px] ${result.ats_simulation.would_pass ? 'border-rc-green/30 bg-rc-green/5' : 'border-rc-red/30 bg-rc-red/5'} relative overflow-hidden group`}>
+                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.63 3 12"/><polyline points="21 12 16.5 14.63 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint bg-rc-bg px-2 py-1 rounded">Module 01: Bot Filter Simulation</span>
                     </div>
-                    <div className="text-rc-hint">→</div>
-                    <div className="flex-1 text-center p-3 bg-rc-bg rounded border border-rc-red/20 shadow-[0_0_15px_rgba(226,75,74,0.05)]">
-                      <span className="text-[10px] uppercase text-rc-hint block mb-1 font-bold text-rc-red">Detected</span>
-                      <span className="text-[14px] font-medium text-rc-text">{result.seniority_analysis.detected}</span>
-                    </div>
-                  </div>
-                  <p className="text-[13px] text-rc-muted leading-relaxed mb-6 italic">{result.seniority_analysis.gap}</p>
-                  <div className="mt-auto pt-4 border-t border-white/5 font-mono text-[10px] uppercase text-rc-red cursor-help group-fix">
-                    Fix required to meet senior benchmarks
-                  </div>
-                </div>
-
-                <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint mb-6 flex justify-between items-center">
-                    Tone Audit
-                    <span className={`px-2 py-0.5 rounded text-[9px] ${result.cv_tone.detected === 'active' ? 'text-rc-green bg-rc-green/10' : 'text-rc-amber bg-rc-amber/10'}`}>
-                      {result.cv_tone.detected.toUpperCase()}
-                    </span>
-                  </span>
-                  <div className="space-y-4 mb-6">
-                    {result.cv_tone.examples.map((ex, i) => (
-                      <div key={i} className="p-3 bg-rc-bg rounded border-l-2 border-rc-amber-border text-[12px] text-rc-muted leading-relaxed italic">
-                        "{ex}"
-                      </div>
-                    ))}
-                  </div>
-                  <div className="pt-4 border-t border-white/5 font-mono text-[10px] uppercase text-rc-hint">
-                    Reframing required to avoid "Executive/Junior" mismatch
-                  </div>
-                </div>
-              </div>
-
-              {/* THE AUDIT: CV */}
-              <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden shadow-2xl">
-                <div className="p-6 border-b border-rc-border bg-rc-surface/50 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-rc-red/10 border border-rc-red/20 flex items-center justify-center text-rc-red">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                    </div>
-                    <div>
-                      <h3 className="font-display text-[22px] uppercase">CV Forensic Audit</h3>
-                      <p className="text-[11px] font-mono text-rc-hint uppercase tracking-tight">Status: {result.audit.cv.issues.length} technical vulnerabilities identified</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="block font-mono text-[11px] text-rc-hint uppercase">Health Score</span>
-                    <span className="text-[24px] font-mono text-rc-text">{result.audit.cv.score}%</span>
-                  </div>
-                </div>
-                <div className="divide-y divide-rc-border">
-                  {result.audit.cv.issues.map((issue, idx) => (
-                    <IssueItem key={idx} issue={issue} />
-                  ))}
-                </div>
-              </div>
-
-              {/* GITHUB & LINKEDIN AUDIT CARDS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* GITHUB */}
-                <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
-                  <div className="p-5 border-b border-rc-border flex items-center justify-between bg-rc-bg/20">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-rc-text flex items-center gap-2">
-                       <span className="w-6 h-6 rounded bg-black flex items-center justify-center text-[10px] text-white">GH</span> GitHub Signal
-                    </span>
-                    <span className="font-mono text-[12px] text-rc-text">{result.audit.github.score ?? 'N/A'}%</span>
-                  </div>
-                  <div className="p-5 space-y-4">
-                    {result.audit.github.strengths.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {result.audit.github.strengths.map((s, i) => (
-                          <span key={i} className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-rc-green/10 text-rc-green border border-rc-green/20">Strength: {s}</span>
-                        ))}
-                      </div>
-                    )}
-                    {result.audit.github.issues.length > 0 ? (
-                      <div className="space-y-4">
-                        {result.audit.github.issues.map((issue, idx) => (
-                          <div key={idx} className="p-4 bg-rc-bg rounded border border-rc-border">
-                             <div className="flex items-center gap-2 mb-2">
-                               <span className={`text-[8px] uppercase font-mono px-1.5 py-0.5 rounded border ${getSeverityStyles(issue.severity)}`}>{issue.severity}</span>
-                               <span className="text-[11px] font-medium text-rc-text truncate">{issue.what}</span>
-                             </div>
-                             <p className="text-[11px] text-rc-muted leading-normal line-clamp-2">{issue.why}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[12px] text-rc-hint italic text-center py-6 border border-dashed border-rc-border rounded">No data provided for deep technical verification.</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* LINKEDIN */}
-                <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
-                  <div className="p-5 border-b border-rc-border flex items-center justify-between bg-rc-bg/20">
-                    <span className="font-mono text-[11px] uppercase tracking-widest text-rc-text flex items-center gap-2">
-                       <span className="w-6 h-6 rounded bg-[#0a66c2] flex items-center justify-center text-[10px] text-white">in</span> LinkedIn Signal
-                    </span>
-                    <span className="font-mono text-[12px] text-rc-text">{result.audit.linkedin.score ?? 'N/A'}%</span>
-                  </div>
-                  <div className="p-5 space-y-4">
-                    {result.audit.linkedin.strengths.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {result.audit.linkedin.strengths.map((s, i) => (
-                          <span key={i} className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-rc-green/10 text-rc-green border border-rc-green/20">Strength: {s}</span>
-                        ))}
-                      </div>
-                    )}
-                    {result.audit.linkedin.issues.length > 0 ? (
-                      <div className="space-y-4">
-                        {result.audit.linkedin.issues.map((issue, idx) => (
-                          <div key={idx} className="p-4 bg-rc-bg rounded border border-rc-border">
-                             <div className="flex items-center gap-2 mb-2">
-                               <span className={`text-[8px] uppercase font-mono px-1.5 py-0.5 rounded border ${getSeverityStyles(issue.severity)}`}>{issue.severity}</span>
-                               <span className="text-[11px] font-medium text-rc-text truncate">{issue.what}</span>
-                             </div>
-                             <p className="text-[11px] text-rc-muted leading-normal line-clamp-2">{issue.why}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[12px] text-rc-hint italic text-center py-6 border border-dashed border-rc-border rounded">LinkedIn profile missing from source data.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* HIDDEN RED FLAGS SECTION */}
-              <div className="space-y-4">
-                <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-rc-hint px-2">Experienced Recruiter Intuition</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {result.hidden_red_flags.map((flag, idx) => (
-                    <div key={idx} className="group bg-rc-bg border-[0.5px] border-rc-border rounded-xl p-6 transition-all hover:bg-white/[0.01]">
-                      <div className="flex items-start gap-5">
-                        <div className="w-1.5 h-1.5 bg-rc-red rounded-full mt-2 shrink-0"></div>
-                        <div className="space-y-4 w-full">
-                          <div>
-                            <h4 className="text-[15px] font-bold text-rc-text mb-1 uppercase tracking-tight">{flag.flag}</h4>
-                            <div className="text-[13px] text-rc-muted leading-relaxed">
-                              <span className="text-rc-amber/70 font-mono text-[10px] uppercase font-bold mr-2">Recruiter perception:</span>
-                              {flag.perception}
-                            </div>
-                          </div>
-                          <FixBlock fix={flag.fix} />
+                    <h2 className={`font-display text-[32px] tracking-tight uppercase mb-2 ${result.ats_simulation.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
+                      {result.ats_simulation.would_pass ? 'ATS PASS ESTIMATED' : 'ATS REJECTION LIKELY'}
+                    </h2>
+                    <p className="text-[14px] text-rc-text leading-relaxed mb-6 max-w-[500px]">{result.ats_simulation.reason}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+                      <div>
+                        <span className="font-mono text-[10px] uppercase text-rc-hint mb-3 block">Critical Missing Keywords</span>
+                        <div className="flex flex-wrap gap-2">
+                          {result.ats_simulation.critical_missing_keywords.map((kw, i) => (
+                            <span key={i} className="flex items-center gap-1.5 px-2 py-1 bg-rc-bg border-[0.5px] border-rc-border rounded text-[11px]">
+                              <span className="text-rc-text">{kw.keyword}</span>
+                              <span className="text-rc-red font-mono text-[9px]">({kw.jd_frequency}x)</span>
+                            </span>
+                          ))}
                         </div>
                       </div>
+                      <div>
+                        <span className="font-mono text-[10px] uppercase text-rc-hint mb-3 block">Simulated Score</span>
+                        <div className="text-[28px] font-mono text-rc-text">{result.ats_simulation.score}<span className="text-[14px] opacity-40">/100</span></div>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* JD MATCH / SKILLS GRID */}
-              <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-8">
-                <h3 className="font-display text-[22px] uppercase mb-8">Technical Requirement Matrix</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-8">
-                  {result.audit.jd_match.required_skills.map((s, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-rc-border/40">
-                      <span className="text-[13px] text-rc-text">{s.skill}</span>
-                      <div className="flex items-center gap-3">
-                        {s.evidence && <span className="text-[9px] font-mono text-rc-hint truncate max-w-[100px]">{s.evidence}</span>}
-                        {s.found ? (
-                          <span className="w-4 h-4 rounded-full bg-rc-green/20 text-rc-green flex items-center justify-center text-[10px]">✓</span>
+              {/* TAB: PROFILE ANALYSIS */}
+              {activeTab === 'profile' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6 flex flex-col">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint mb-6">Seniority Gap Analysis</span>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="flex-1 text-center p-3 bg-rc-bg rounded border border-rc-border">
+                        <span className="text-[10px] uppercase text-rc-hint block mb-1">Expected</span>
+                        <span className="text-[14px] font-medium text-rc-text">{result.seniority_analysis.expected}</span>
+                      </div>
+                      <div className="text-rc-hint">→</div>
+                      <div className="flex-1 text-center p-3 bg-rc-bg rounded border border-rc-red/20 shadow-[0_0_15px_rgba(226,75,74,0.05)]">
+                        <span className="text-[10px] uppercase text-rc-hint block mb-1 font-bold text-rc-red">Detected</span>
+                        <span className="text-[14px] font-medium text-rc-text">{result.seniority_analysis.detected}</span>
+                      </div>
+                    </div>
+                    <p className="text-[13px] text-rc-muted leading-relaxed mb-6 italic">{result.seniority_analysis.gap}</p>
+                    <FixBlock fix={result.seniority_analysis.fix} />
+                  </div>
+
+                  <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint mb-6 flex justify-between items-center">
+                      Tone Audit
+                      <span className={`px-2 py-0.5 rounded text-[9px] ${result.cv_tone.detected === 'active' ? 'text-rc-green bg-rc-green/10' : 'text-rc-amber bg-rc-amber/10'}`}>
+                        {result.cv_tone.detected.toUpperCase()}
+                      </span>
+                    </span>
+                    <div className="space-y-4 mb-6">
+                      {result.cv_tone.examples.map((ex, i) => (
+                        <div key={i} className="p-3 bg-rc-bg rounded border-l-2 border-rc-amber-border text-[12px] text-rc-muted leading-relaxed italic">
+                          "{ex}"
+                        </div>
+                      ))}
+                    </div>
+                    <FixBlock fix={result.cv_tone.fix} />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: AUDIT */}
+              {activeTab === 'audit' && (
+                <div className="space-y-8">
+                  {/* CV */}
+                  <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="p-6 border-b border-rc-border bg-rc-surface/50 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-rc-red/10 border border-rc-red/20 flex items-center justify-center text-rc-red">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        </div>
+                        <div>
+                          <h3 className="font-display text-[22px] uppercase">CV Forensic Audit</h3>
+                          <p className="text-[11px] font-mono text-rc-hint uppercase tracking-tight">Status: {result.audit.cv.issues.length} technical vulnerabilities identified</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="block font-mono text-[11px] text-rc-hint uppercase">Health Score</span>
+                        <span className="text-[24px] font-mono text-rc-text">{result.audit.cv.score}%</span>
+                      </div>
+                    </div>
+                    <div className="divide-y divide-rc-border">
+                      {result.audit.cv.issues.map((issue, idx) => (
+                        <IssueItem key={idx} issue={issue} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* GITHUB & LINKEDIN */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
+                      <div className="p-5 border-b border-rc-border flex items-center justify-between bg-rc-bg/20">
+                        <span className="font-mono text-[11px] uppercase tracking-widest text-rc-text flex items-center gap-2">
+                          <span className="w-6 h-6 rounded bg-black flex items-center justify-center text-[10px] text-white">GH</span> GitHub Signal
+                        </span>
+                        <span className="font-mono text-[12px] text-rc-text">{result.audit.github.score ?? 'N/A'}%</span>
+                      </div>
+                      <div className="p-5 space-y-4">
+                        {result.audit.github.strengths.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {result.audit.github.strengths.map((s, i) => (
+                              <span key={i} className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-rc-green/10 text-rc-green border border-rc-green/20">Strength: {s}</span>
+                            ))}
+                          </div>
+                        )}
+                        {result.audit.github.issues.length > 0 ? (
+                          <div className="space-y-4">
+                            {result.audit.github.issues.map((issue, idx) => (
+                              <div key={idx} className="p-4 bg-rc-bg rounded border border-rc-border">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className={`text-[8px] uppercase font-mono px-1.5 py-0.5 rounded border ${getSeverityStyles(issue.severity)}`}>{issue.severity}</span>
+                                  <span className="text-[11px] font-medium text-rc-text truncate">{issue.what}</span>
+                                </div>
+                                <p className="text-[11px] text-rc-muted leading-normal line-clamp-2">{issue.why}</p>
+                              </div>
+                            ))}
+                          </div>
                         ) : (
-                          <span className="w-4 h-4 rounded-full bg-rc-red/20 text-rc-red flex items-center justify-center text-[12px] leading-none">×</span>
+                          <p className="text-[12px] text-rc-hint italic text-center py-6 border border-dashed border-rc-border rounded">No data provided for deep technical verification.</p>
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
-                {result.audit.jd_match.experience_gap && (
-                  <div className="mt-8 p-4 bg-rc-red/5 border-l-4 border-rc-red rounded-r-lg">
-                    <span className="text-[11px] font-mono uppercase text-rc-red block mb-1">Crucial Experience Gap</span>
-                    <p className="text-[13px] text-rc-text italic leading-relaxed">{result.audit.jd_match.experience_gap}</p>
+
+                    <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
+                      <div className="p-5 border-b border-rc-border flex items-center justify-between bg-rc-bg/20">
+                        <span className="font-mono text-[11px] uppercase tracking-widest text-rc-text flex items-center gap-2">
+                          <span className="w-6 h-6 rounded bg-[#0a66c2] flex items-center justify-center text-[10px] text-white">in</span> LinkedIn Signal
+                        </span>
+                        <span className="font-mono text-[12px] text-rc-text">{result.audit.linkedin.score ?? 'N/A'}%</span>
+                      </div>
+                      <div className="p-5 space-y-4">
+                        {result.audit.linkedin.strengths.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {result.audit.linkedin.strengths.map((s, i) => (
+                              <span key={i} className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-rc-green/10 text-rc-green border border-rc-green/20">Strength: {s}</span>
+                            ))}
+                          </div>
+                        )}
+                        {result.audit.linkedin.issues.length > 0 ? (
+                          <div className="space-y-4">
+                            {result.audit.linkedin.issues.map((issue, idx) => (
+                              <div key={idx} className="p-4 bg-rc-bg rounded border border-rc-border">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className={`text-[8px] uppercase font-mono px-1.5 py-0.5 rounded border ${getSeverityStyles(issue.severity)}`}>{issue.severity}</span>
+                                  <span className="text-[11px] font-medium text-rc-text truncate">{issue.what}</span>
+                                </div>
+                                <p className="text-[11px] text-rc-muted leading-normal line-clamp-2">{issue.why}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-[12px] text-rc-hint italic text-center py-6 border border-dashed border-rc-border rounded">LinkedIn profile missing from source data.</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* TAB: RED FLAGS */}
+              {activeTab === 'flags' && (
+                <div className="space-y-8">
+                  {/* HIDDEN RED FLAGS */}
+                  <div className="space-y-4">
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-rc-hint px-2">Experienced Recruiter Intuition</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      {result.hidden_red_flags.map((flag, idx) => (
+                        <div key={idx} className="group bg-rc-bg border-[0.5px] border-rc-border rounded-xl p-6 transition-all hover:bg-white/[0.01]">
+                          <div className="flex items-start gap-5">
+                            <div className="w-1.5 h-1.5 bg-rc-red rounded-full mt-2 shrink-0"></div>
+                            <div className="space-y-4 w-full">
+                              <div>
+                                <h4 className="text-[15px] font-bold text-rc-text mb-1 uppercase tracking-tight">{flag.flag}</h4>
+                                <div className="text-[13px] text-rc-muted leading-relaxed">
+                                  <span className="text-rc-amber/70 font-mono text-[10px] uppercase font-bold mr-2">Recruiter perception:</span>
+                                  {flag.perception}
+                                </div>
+                              </div>
+                              <FixBlock fix={flag.fix} />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* JD MATCH / SKILLS GRID */}
+                  <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-8">
+                    <h3 className="font-display text-[22px] uppercase mb-8">Technical Requirement Matrix</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mb-8">
+                      {result.audit.jd_match.required_skills.map((s, i) => (
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-rc-border/40">
+                          <span className="text-[13px] text-rc-text">{s.skill}</span>
+                          <div className="flex items-center gap-3">
+                            {s.evidence && <span className="text-[9px] font-mono text-rc-hint truncate max-w-[100px]">{s.evidence}</span>}
+                            {s.found ? (
+                              <span className="w-4 h-4 rounded-full bg-rc-green/20 text-rc-green flex items-center justify-center text-[10px]">✓</span>
+                            ) : (
+                              <span className="w-4 h-4 rounded-full bg-rc-red/20 text-rc-red flex items-center justify-center text-[12px] leading-none">×</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {result.audit.jd_match.experience_gap && (
+                      <div className="mt-8 p-4 bg-rc-red/5 border-l-4 border-rc-red rounded-r-lg">
+                        <span className="text-[11px] font-mono uppercase text-rc-red block mb-1">Crucial Experience Gap</span>
+                        <p className="text-[13px] text-rc-text italic leading-relaxed">{result.audit.jd_match.experience_gap}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>
