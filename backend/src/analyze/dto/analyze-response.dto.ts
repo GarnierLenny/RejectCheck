@@ -1,3 +1,4 @@
+import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 export const FixSchema = z.object({
@@ -91,6 +92,7 @@ export const AnalyzeResponseSchema = z.object({
   })),
 });
 
+export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}
 export type AnalyzeResponse = z.infer<typeof AnalyzeResponseSchema>;
 export type Issue = z.infer<typeof IssueSchema>;
 export type Fix = z.infer<typeof FixSchema>;

@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --rc-bg: #0a0a08;
+  --rc-surface: #111110;
+  --rc-border: rgba(255,255,255,0.08);
+  --rc-text: #f0ede6;
+  --rc-muted: rgba(240,237,230,0.45);
+  --rc-hint: rgba(240,237,230,0.2);
+  --rc-red: #E24B4A;
+  --rc-red-bg: rgba(226,75,74,0.08);
+  --rc-red-border: rgba(226,75,74,0.25);
+  --rc-green: #639922;
+  --rc-green-bg: rgba(99,153,34,0.1);
+  --rc-green-border: rgba(99,153,34,0.3);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-rc-bg: var(--rc-bg);
+  --color-rc-surface: var(--rc-surface);
+  --color-rc-border: var(--rc-border);
+  --color-rc-text: var(--rc-text);
+  --color-rc-muted: var(--rc-muted);
+  --color-rc-hint: var(--rc-hint);
+  --color-rc-red: var(--rc-red);
+  --color-rc-red-bg: var(--rc-red-bg);
+  --color-rc-red-border: var(--rc-red-border);
+  --color-rc-green: var(--rc-green);
+  --color-rc-green-bg: var(--rc-green-bg);
+  --color-rc-green-border: var(--rc-green-border);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+  --font-display: var(--font-display);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--rc-bg);
+  color: var(--rc-text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s infinite;
 }
