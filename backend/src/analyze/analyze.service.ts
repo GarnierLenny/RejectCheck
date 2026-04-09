@@ -2,6 +2,7 @@ import { Injectable, UnprocessableEntityException, InternalServerErrorException,
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { PDFParse } from 'pdf-parse';
+import { z } from 'zod';
 import { AnalyzeResponseSchema, AnalyzeResponse } from './dto/analyze-response.dto';
 
 const MAX_TEXT_CHARS = 12000;
@@ -11,6 +12,9 @@ export class AnalyzeService {
   private openai: OpenAI;
 
   constructor(private configService: ConfigService) {
+    const prompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT');
+    console.log(`[AnalyzeService] Constructor: SYSTEM_ANALYZE_PROMPT loaded. Length: ${prompt?.length ?? 0}`);
+    if (prompt) console.log(`[AnalyzeService] Prompt Start: "${prompt.slice(0, 50)}..."`);
     this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
   }
 
@@ -89,12 +93,22 @@ export class AnalyzeService {
       }
     }
 
+    const systemPrompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT')!;
+    console.log(`[AnalyzeService] Sending request to OpenAI. System prompt length: ${systemPrompt.length}`);
+
     const completion = await this.openai.chat.completions.create({
       model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "analysis_response",
+          strict: true,
+          schema: z.toJSONSchema(AnalyzeResponseSchema),
+        },
+      },
       temperature: 0.3,
       messages: [
-        { role: "system", content: this.configService.get<string>('SYSTEM_ANALYZE_PROMPT')! },
+        { role: "system", content: systemPrompt },
         {
           role: "user",
           content: `Analyze this application for the following job. Use the provided CV and additional context (LinkedIn/GitHub) to find gaps.
@@ -110,7 +124,7 @@ export class AnalyzeService {
           ${linkedinText ? `---\nLINKEDIN PROFILE:\n${linkedinText}` : ''}
           ${githubInfo ? `---\nGITHUB DATA:\n${githubInfo}` : ''}
 
-          Return only valid JSON. Be brutal and specific.`,
+          Be brutal and specific.`,
         },
       ],
     });

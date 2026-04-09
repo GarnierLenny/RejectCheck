@@ -2,134 +2,49 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { useMutation } from "@tanstack/react-query";
+import type { components } from "./types/api";
 
-interface Fix {
-  summary: string;
-  steps: string[];
-  example?: { before: string; after: string } | null;
-  project_idea?: {
-    name: string;
-    description: string;
-    endpoints: string[];
-    bonus?: string;
-    proves: string;
-  } | null;
-  time_required: string;
-}
+type AnalysisResult = components["schemas"]["AnalyzeResponseDto_Output"];
+type Issue = AnalysisResult["audit"]["cv"]["issues"][number];
+type Fix = AnalysisResult["seniority_analysis"]["fix"];
 
-interface Issue {
-  severity: "critical" | "major" | "minor";
-  category: "keywords" | "impact" | "seniority" | "stack" | "format" | "tone" | "consistency";
-  what: string;
-  why: string;
-  fix: Fix;
-}
-
-interface AnalysisResult {
-  score: number;
-  verdict: string;
-  confidence: {
-    score: number;
-    reason: string;
-  };
-  breakdown: {
-    keyword_match: number;
-    tech_stack_fit: number;
-    experience_level: number;
-    github_signal: number | null;
-    linkedin_signal: number | null;
-  };
-  ats_simulation: {
-    would_pass: boolean;
-    score: number;
-    reason: string;
-    critical_missing_keywords: Array<{
-      keyword: string;
-      jd_frequency: number;
-    }>;
-  };
-  seniority_analysis: {
-    expected: string;
-    detected: string;
-    gap: string;
-    fix: Fix;
-  };
-  cv_tone: {
-    detected: "passive" | "active" | "mixed";
-    examples: string[];
-    fix: Fix;
-  };
-  audit: {
-    cv: {
-      score: number;
-      issues: Issue[];
-    };
-    github: {
-      score: number | null;
-      issues: Issue[];
-      strengths: string[];
-    };
-    linkedin: {
-      score: number | null;
-      issues: Issue[];
-      strengths: string[];
-    };
-    jd_match: {
-      required_skills: Array<{
-        skill: string;
-        found: boolean;
-        evidence: string | null;
-      }>;
-      missing_keywords: string[];
-      experience_gap: string | null;
-    };
-  };
-  hidden_red_flags: Array<{
-    flag: string;
-    perception: string;
-    fix: Fix;
-  }>;
-}
 export default function Home() {
   const [jobDescription, setJobDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [cvFile, setCvFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [liFile, setLiFile] = useState<File | null>(null);
   const liRef = useRef<HTMLInputElement>(null);
   const [githubUsername, setGithubUsername] = useState("");
 
+  const mutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const res = await fetch("http://localhost:8888/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Analysis failed");
+      return data as AnalysisResult;
+    },
+  });
+
+  const result = mutation.data;
+  const loading = mutation.isPending;
+  const error = mutation.error?.message ?? null;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setResult(null);
-
-    const file = cvFile;
-    if (!file) return setError("Please upload a PDF CV.");
-    if (!jobDescription.trim()) return setError("Please paste a job description.");
+    if (!cvFile) return;
+    if (!jobDescription.trim()) return;
 
     const formData = new FormData();
-    formData.append("cv", file);
+    formData.append("cv", cvFile);
     if (liFile) formData.append("linkedin", liFile);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
 
-    setLoading(true);
-    try {
-      const res = await fetch("http://localhost:8888/api/analyze", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        setError(data.error ?? "Something went wrong.");
-      } else {
-        setResult(data);
-      }
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    mutation.mutate(formData);
   }
 
   const scoreTextClass = result
@@ -440,7 +355,7 @@ export default function Home() {
 
               <button 
                 type="button"
-                onClick={() => { setResult(null); setJobDescription(""); }} 
+                onClick={() => { mutation.reset(); setJobDescription(""); }} 
                 className="w-full flex items-center justify-center gap-2 font-mono text-[11px] text-rc-muted hover:text-rc-text transition-colors py-4 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
               >
                 &larr; Analyze New Profile

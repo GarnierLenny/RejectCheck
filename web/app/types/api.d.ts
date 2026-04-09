@@ -76,15 +76,15 @@ export interface components {
                 fix: {
                     summary: string;
                     steps: string[];
-                    example?: {
+                    example: {
                         before: string;
                         after: string;
                     } | null;
-                    project_idea?: {
+                    project_idea: {
                         name: string;
                         description: string;
                         endpoints: string[];
-                        bonus?: string;
+                        bonus: string | null;
                         proves: string;
                     } | null;
                     time_required: string;
@@ -97,15 +97,15 @@ export interface components {
                 fix: {
                     summary: string;
                     steps: string[];
-                    example?: {
+                    example: {
                         before: string;
                         after: string;
                     } | null;
-                    project_idea?: {
+                    project_idea: {
                         name: string;
                         description: string;
                         endpoints: string[];
-                        bonus?: string;
+                        bonus: string | null;
                         proves: string;
                     } | null;
                     time_required: string;
@@ -124,15 +124,15 @@ export interface components {
                         fix: {
                             summary: string;
                             steps: string[];
-                            example?: {
+                            example: {
                                 before: string;
                                 after: string;
                             } | null;
-                            project_idea?: {
+                            project_idea: {
                                 name: string;
                                 description: string;
                                 endpoints: string[];
-                                bonus?: string;
+                                bonus: string | null;
                                 proves: string;
                             } | null;
                             time_required: string;
@@ -151,15 +151,15 @@ export interface components {
                         fix: {
                             summary: string;
                             steps: string[];
-                            example?: {
+                            example: {
                                 before: string;
                                 after: string;
                             } | null;
-                            project_idea?: {
+                            project_idea: {
                                 name: string;
                                 description: string;
                                 endpoints: string[];
-                                bonus?: string;
+                                bonus: string | null;
                                 proves: string;
                             } | null;
                             time_required: string;
@@ -179,15 +179,15 @@ export interface components {
                         fix: {
                             summary: string;
                             steps: string[];
-                            example?: {
+                            example: {
                                 before: string;
                                 after: string;
                             } | null;
-                            project_idea?: {
+                            project_idea: {
                                 name: string;
                                 description: string;
                                 endpoints: string[];
-                                bonus?: string;
+                                bonus: string | null;
                                 proves: string;
                             } | null;
                             time_required: string;
@@ -211,15 +211,15 @@ export interface components {
                 fix: {
                     summary: string;
                     steps: string[];
-                    example?: {
+                    example: {
                         before: string;
                         after: string;
                     } | null;
-                    project_idea?: {
+                    project_idea: {
                         name: string;
                         description: string;
                         endpoints: string[];
-                        bonus?: string;
+                        bonus: string | null;
                         proves: string;
                     } | null;
                     time_required: string;

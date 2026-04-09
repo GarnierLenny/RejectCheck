@@ -5,7 +5,13 @@ import { AnalyzeModule } from './analyze/analyze.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AnalyzeModule],
+  imports: [
+    ConfigModule.forRoot({ 
+      isGlobal: true,
+      envFilePath: ['.env', '.env.local']
+    }), 
+    AnalyzeModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

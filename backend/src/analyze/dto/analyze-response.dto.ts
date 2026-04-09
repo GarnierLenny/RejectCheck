@@ -7,14 +7,14 @@ export const FixSchema = z.object({
   example: z.object({
     before: z.string(),
     after: z.string(),
-  }).optional().nullable(),
+  }).nullable(),
   project_idea: z.object({
     name: z.string(),
     description: z.string(),
     endpoints: z.array(z.string()),
-    bonus: z.string().optional(),
+    bonus: z.string().nullable(),
     proves: z.string(),
-  }).optional().nullable(),
+  }).nullable(),
   time_required: z.string(),
 });
 
