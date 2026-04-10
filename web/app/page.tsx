@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useMutation } from "@tanstack/react-query";
 import type { AnalysisResult } from "./components/types";
 
 import { UploadForm } from "./components/UploadForm";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { ScoreSidebar } from "./components/ScoreSidebar";
 import { AtsTab } from "./components/tabs/AtsTab";
 import { ProfileTab } from "./components/tabs/ProfileTab";
@@ -23,32 +23,61 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("ats");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
-  const mutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const res = await fetch("http://localhost:8888/api/analyze", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Analysis failed");
-      return data as AnalysisResult;
-    },
-  });
+  const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string | null>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const result = mutation.data;
-  const loading = mutation.isPending;
-  const error = mutation.error?.message ?? null;
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!cvFile || !jobDescription.trim()) return;
+
     const formData = new FormData();
     formData.append("cv", cvFile);
     if (liFile) formData.append("linkedin", liFile);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
-    mutation.mutate(formData);
+
+    setLoading(true);
+    setError(null);
+    setCurrentStep(null);
+
+    try {
+      const res = await fetch("http://localhost:8888/api/analyze", { method: "POST", body: formData });
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = JSON.parse(line.slice(6));
+          if (payload.step === "done") {
+            setResult(payload.result);
+            setLoading(false);
+          } else if (payload.step === "error") {
+            throw new Error(payload.message);
+          } else {
+            setCurrentStep(payload.step);
+          }
+        }
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Analysis failed");
+      setLoading(false);
+      setCurrentStep(null);
+    }
   }
 
   function handleReset() {
-    mutation.reset();
+    setResult(null);
+    setError(null);
+    setCurrentStep(null);
     setJobDescription("");
     setActiveTab("ats");
     setCheckedKeywords(new Set());
@@ -80,13 +109,17 @@ export default function Home() {
 
       <div className={`${result ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
         {!result ? (
+          loading ? (
+            <LoadingScreen currentStep={currentStep} hasGithub={!!githubUsername} />
+          ) : (
           <UploadForm
             cvFile={cvFile} setCvFile={setCvFile}
             liFile={liFile} setLiFile={setLiFile}
             jobDescription={jobDescription} setJobDescription={setJobDescription}
             githubUsername={githubUsername} setGithubUsername={setGithubUsername}
-            onSubmit={handleSubmit} loading={loading} error={error}
+            onSubmit={handleSubmit} loading={false} error={error}
           />
+          )
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <ScoreSidebar result={result} onReset={handleReset} />
@@ -120,7 +153,7 @@ export default function Home() {
       </div>
 
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4 max-w-[100vw]">
-        <div className="font-mono text-[13px] text-rc-muted">RejectCheck © 2025</div>
+        <div className="font-mono text-[13px] text-rc-muted">RejectCheck © 2026</div>
         <div className="flex gap-6">
           <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">Privacy</a>
           <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">Terms</a>

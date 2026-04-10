@@ -66,16 +66,18 @@ export class AnalyzeService {
     jobDescription: string;
     linkedinBuffer?: Buffer;
     githubUsername?: string;
-  }): Promise<AnalyzeResponse> {
+  }, onStep?: (step: string) => void): Promise<AnalyzeResponse> {
     const { cvBuffer, jobDescription, linkedinBuffer, githubUsername } = data;
-    
+
     if (!cvBuffer) {
       throw new BadRequestException('CV is required');
     }
 
+    onStep?.('parsing_cv');
     const jobText = jobDescription.trim().slice(0, 8000);
     const cvText = await this.parsePdf(cvBuffer);
-    
+
+    onStep?.('matching_skills');
     let linkedinText = '';
     if (linkedinBuffer) {
       try {
@@ -87,11 +89,14 @@ export class AnalyzeService {
 
     let githubInfo = '';
     if (githubUsername) {
+      onStep?.('analyzing_github');
       const ghData = await this.fetchGithubData(githubUsername);
       if (ghData) {
         githubInfo = JSON.stringify(ghData, null, 2);
       }
     }
+
+    onStep?.('running_ats');
 
     const systemPrompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT')!;
     console.log(`[AnalyzeService] Sending request to OpenAI. System prompt length: ${systemPrompt.length}`);

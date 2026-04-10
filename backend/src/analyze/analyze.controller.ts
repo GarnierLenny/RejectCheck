@@ -1,10 +1,8 @@
-import { Controller, Post, UseInterceptors, UploadedFiles, Body, UsePipes } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFiles, Body, Res } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ZodValidationPipe, ZodResponse } from 'nestjs-zod';
 import { AnalyzeService } from './analyze.service';
-import { AnalyzeRequestDto } from './dto/analyze-request.dto';
-import { AnalyzeResponseDto } from './dto/analyze-response.dto';
+import { AnalyzeRequestSchema } from './dto/analyze-request.dto';
 
 @ApiTags('Analyze')
 @Controller('api/analyze')
@@ -14,25 +12,43 @@ export class AnalyzeController {
   @Post()
   @ApiOperation({ summary: 'Analyze a CV against a job description' })
   @ApiConsumes('multipart/form-data')
-  @ZodResponse({ status: 201, type: AnalyzeResponseDto })
-  @UsePipes(ZodValidationPipe)
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'cv', maxCount: 1 },
     { name: 'linkedin', maxCount: 1 },
   ]))
   async analyze(
     @UploadedFiles() files: { cv?: Express.Multer.File[], linkedin?: Express.Multer.File[] },
-    @Body() body: AnalyzeRequestDto,
+    @Body() body: unknown,
+    @Res() res: any,
   ) {
-    const { jobDescription, githubUsername } = body;
-    const cv = files.cv?.[0];
-    const linkedin = files.linkedin?.[0];
+    const parsed = AnalyzeRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+    const { jobDescription, githubUsername } = parsed.data;
 
-    return this.analyzeService.analyzeApplication({
-      cvBuffer: cv?.buffer,
-      jobDescription,
-      linkedinBuffer: linkedin?.buffer,
-      githubUsername,
-    });
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const write = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      const result = await this.analyzeService.analyzeApplication(
+        {
+          cvBuffer: files.cv?.[0]?.buffer,
+          jobDescription,
+          linkedinBuffer: files.linkedin?.[0]?.buffer,
+          githubUsername,
+        },
+        (step) => write({ step }),
+      );
+      write({ step: 'done', result });
+    } catch (err: any) {
+      write({ step: 'error', message: err.message || 'Analysis failed' });
+    } finally {
+      res.end();
+    }
   }
 }
