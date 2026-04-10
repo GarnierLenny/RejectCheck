@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { AnalysisResult } from "../components/types";
 
 import { UploadForm } from "../components/UploadForm";
@@ -90,6 +91,10 @@ export default function Home() {
   }
 
   function handleReset() {
+    if (localStorage.getItem('rc_free_used') === 'true') {
+      setPaywallReason('local');
+      return;
+    }
     setResult(null);
     setError(null);
     setCurrentStep(null);
@@ -117,9 +122,9 @@ export default function Home() {
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
       <nav className="flex items-center justify-between px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
-        <div className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5">
+        <Link href="/" className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
           <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
-        </div>
+        </Link>
       </nav>
 
       <div className={`${result ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
