@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { AnalysisResult } from "../components/types";
 
 import { UploadForm } from "../components/UploadForm";
 import { LoadingScreen } from "../components/LoadingScreen";
+import { PaywallScreen } from "../components/PaywallScreen";
 import { ScoreSidebar } from "../components/ScoreSidebar";
 import { AtsTab } from "../components/tabs/AtsTab";
 import { ProfileTab } from "../components/tabs/ProfileTab";
@@ -27,6 +28,13 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
+
+  useEffect(() => {
+    if (localStorage.getItem('rc_free_used') === 'true') {
+      setPaywallReason('local');
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +51,8 @@ export default function Home() {
     setCurrentStep(null);
 
     try {
-      const res = await fetch("http://localhost:8888/api/analyze", { method: "POST", body: formData });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
+      const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -60,7 +69,13 @@ export default function Home() {
           if (payload.step === "done") {
             setResult(payload.result);
             setLoading(false);
+            localStorage.setItem('rc_free_used', 'true');
           } else if (payload.step === "error") {
+            if (payload.code === 'GLOBAL_LIMIT_REACHED') {
+              setPaywallReason('global');
+              setLoading(false);
+              return;
+            }
             throw new Error(payload.message);
           } else {
             setCurrentStep(payload.step);
@@ -108,7 +123,9 @@ export default function Home() {
       </nav>
 
       <div className={`${result ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
-        {!result ? (
+        {paywallReason ? (
+          <PaywallScreen reason={paywallReason} />
+        ) : !result ? (
           loading ? (
             <LoadingScreen currentStep={currentStep} hasGithub={!!githubUsername} />
           ) : (

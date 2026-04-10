@@ -1,9 +1,10 @@
-import { Injectable, UnprocessableEntityException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException, InternalServerErrorException, BadRequestException, HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { PDFParse } from 'pdf-parse';
 import { z } from 'zod';
 import { AnalyzeResponseSchema, AnalyzeResponse } from './dto/analyze-response.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -11,11 +12,42 @@ const MAX_TEXT_CHARS = 12000;
 export class AnalyzeService {
   private openai: OpenAI;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private prisma: PrismaService,
+  ) {
     const prompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT');
     console.log(`[AnalyzeService] Constructor: SYSTEM_ANALYZE_PROMPT loaded. Length: ${prompt?.length ?? 0}`);
     if (prompt) console.log(`[AnalyzeService] Prompt Start: "${prompt.slice(0, 50)}..."`);
     this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
+  }
+
+  async checkGlobalLimit(): Promise<void> {
+    const limit = parseInt(this.configService.get<string>('GLOBAL_FREE_ANALYSIS_LIMIT') ?? '200', 10);
+    const counter = await this.prisma.analysisCounter.findUnique({ where: { id: 1 } });
+    if (counter && counter.total >= limit) {
+      throw new HttpException(
+        { message: 'Free tier capacity reached', code: 'GLOBAL_LIMIT_REACHED' },
+        429,
+      );
+    }
+  }
+
+  async incrementCounter(): Promise<void> {
+    await this.prisma.analysisCounter.update({
+      where: { id: 1 },
+      data: { total: { increment: 1 } },
+    });
+  }
+
+  async getCounter(): Promise<{ total: number; limit: number }> {
+    const counter = await this.prisma.analysisCounter.findUnique({ where: { id: 1 } });
+    const limit = parseInt(this.configService.get<string>('GLOBAL_FREE_ANALYSIS_LIMIT') ?? '200', 10);
+    return { total: counter?.total ?? 0, limit };
+  }
+
+  async resetCounter(): Promise<void> {
+    await this.prisma.analysisCounter.update({ where: { id: 1 }, data: { total: 0 } });
   }
 
   private async parsePdf(buffer: Buffer): Promise<string> {

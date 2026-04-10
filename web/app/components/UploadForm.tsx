@@ -205,6 +205,15 @@ export function UploadForm({
               </div>
             </div>
 
+            {/* Free credit badge */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-rc-muted">Cost</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-rc-green/8 border border-rc-green/20 rounded-md">
+                <span className="text-[10px]">✦</span>
+                <span className="font-mono text-[10px] text-rc-green font-medium uppercase tracking-tight">Free credit available</span>
+              </div>
+            </div>
+
             {/* Analyze button */}
             <button
               onClick={onSubmit}

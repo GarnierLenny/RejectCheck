@@ -3,16 +3,23 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AnalyzeModule } from './analyze/analyze.module';
 import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module';
+import { WaitlistModule } from './waitlist/waitlist.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ 
+    ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.local']
-    }), 
-    AnalyzeModule
+    }),
+    PrismaModule,
+    AnalyzeModule,
+    WaitlistModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+

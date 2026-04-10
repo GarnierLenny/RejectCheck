@@ -16,8 +16,34 @@ const chivoMono = Chivo_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RejectCheck",
-  description: "Find out why your CV will be rejected — before you apply.",
+  title: "RejectCheck — Find out why your CV got rejected",
+  description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+  icons: {
+    icon: "/RejectCheck_white.png",
+    shortcut: "/RejectCheck_white.png",
+    apple: "/RejectCheck_white.png",
+  },
+  openGraph: {
+    title: "RejectCheck — Find out why your CV got rejected",
+    description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+    url: "https://rejectcheck.com",
+    siteName: "RejectCheck",
+    images: [
+      {
+        url: "/RejectCheck_white.png",
+        width: 500,
+        height: 500,
+        alt: "RejectCheck",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "RejectCheck — Find out why your CV got rejected",
+    description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+    images: ["/RejectCheck_white.png"],
+  },
 };
 
 export default function RootLayout({
