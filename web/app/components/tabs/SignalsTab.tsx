@@ -79,8 +79,8 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
       <SignalSection
         title="GitHub Signal"
         abbr="GH"
-        abbrevBg="bg-rc-text/10"
-        icon={<img src="/icons/github.svg" alt="GitHub" width={18} height={18} className="opacity-70" style={{ filter: 'invert(1)' }} />}
+        abbrevBg="bg-black"
+        icon={<img src="/icons/github.svg" alt="GitHub" width={18} height={18} style={{ filter: 'invert(1)' }} />}
         score={github.score}
         strengths={github.strengths}
         issues={github.issues}

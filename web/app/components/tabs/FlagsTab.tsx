@@ -45,7 +45,7 @@ export function FlagsTab({ flags, jdMatch }: Props) {
             <div key={i} className="flex items-center justify-between py-2 border-b border-rc-border/40">
               <span className="text-[13px] text-rc-text">{s.skill}</span>
               <div className="flex items-center gap-3">
-                {s.evidence && <span className="text-[9px] font-mono text-rc-hint truncate max-w-[100px]">{s.evidence}</span>}
+                {s.evidence && <span className="text-[9px] font-mono text-rc-hint">{s.evidence}</span>}
                 {s.found ? (
                   <span className="w-4 h-4 rounded-full bg-rc-green/20 text-rc-green flex items-center justify-center text-[10px]">✓</span>
                 ) : (

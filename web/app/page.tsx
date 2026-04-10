@@ -74,7 +74,7 @@ export default function Home() {
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
       <nav className="flex items-center justify-between px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
         <div className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5">
-          <Image src="/RejectCheck.png" alt="RejectCheck Logo" width={44} height={44} className="rounded-[4px]" />
+          <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
         </div>
       </nav>
 

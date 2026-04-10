@@ -46,21 +46,35 @@ export function ScoreSidebar({ result, onReset }: Props) {
           <div className={`h-full ${scoreBgClass} transition-all duration-1000`} style={{ width: `${result.score}%` }} />
         </div>
 
-        <div className="space-y-4">
-          {Object.entries(result.breakdown).map(([key, val]) => val !== null && (
-            <div key={key} className="space-y-1.5">
-              <div className="flex justify-between text-[11px] font-mono text-rc-muted uppercase tracking-tight">
-                <span>{key.replace('_', ' ')}</span>
-                <span>{val}%</span>
+        <div className="space-y-2">
+          {Object.entries(result.breakdown).map(([key, val]) => {
+            const label = key.replace(/_/g, ' ');
+            let badge: React.ReactNode;
+            if (val === null) {
+              badge = (
+                <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded border border-rc-border text-rc-hint bg-rc-bg">
+                  Not analyzed
+                </span>
+              );
+            } else {
+              const [text, cls] =
+                val <= 30 ? ["Weak",     "text-rc-red bg-rc-red/10 border-rc-red/20"] :
+                val <= 60 ? ["Moderate", "text-rc-amber bg-rc-amber/10 border-rc-amber/20"] :
+                val <= 80 ? ["Good",     "text-rc-green bg-rc-green/10 border-rc-green/20"] :
+                            ["Strong",   "text-rc-green bg-rc-green/10 border-rc-green/20"];
+              badge = (
+                <span className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded border ${cls}`}>
+                  {text}
+                </span>
+              );
+            }
+            return (
+              <div key={key} className="flex items-center justify-between py-1.5">
+                <span className="font-mono text-[10px] text-rc-muted uppercase tracking-tight">{label}</span>
+                {badge}
               </div>
-              <div className="h-1 bg-rc-text/10 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${val >= 70 ? 'bg-rc-red' : val >= 40 ? 'bg-rc-amber' : 'bg-rc-green'} opacity-80`}
-                  style={{ width: `${val}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

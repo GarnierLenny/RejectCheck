@@ -16,6 +16,26 @@ type Props = {
   error: string | null;
 };
 
+type AccuracyLevel = {
+  segments: number;
+  label: string;
+  color: string;
+};
+
+function getAccuracy(cvFile: File | null, jd: string, github: string, liFile: File | null): AccuracyLevel {
+  const hasCV = !!cvFile;
+  const hasJD = jd.trim().length > 0;
+  const hasGH = github.trim().length > 0;
+  const hasLI = !!liFile;
+
+  const score = (hasCV ? 1 : 0) + (hasJD ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
+
+  if (score <= 1) return { segments: 1, label: "Basic accuracy", color: "bg-rc-red" };
+  if (score === 2) return { segments: 2, label: "Basic accuracy", color: "bg-rc-red" };
+  if (score === 3) return { segments: 3, label: "Enhanced accuracy", color: "bg-rc-amber" };
+  return { segments: 5, label: "Full signal", color: "bg-rc-green" };
+}
+
 export function UploadForm({
   cvFile, setCvFile,
   liFile, setLiFile,
@@ -26,163 +46,216 @@ export function UploadForm({
   const fileRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLInputElement>(null);
 
+  const hasRequired = !!cvFile && jobDescription.trim().length > 0;
+  const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
+
   return (
-    <div className="max-w-[780px] mx-auto">
-      <div className="mb-8">
-        <h1 className="font-sans text-[32px] tracking-[0.03em] text-rc-text mb-1.5 uppercase">
-          Analyze your application
-        </h1>
-        <p className="text-[13px] text-rc-muted font-mono">More inputs = more accurate diagnosis</p>
-      </div>
+    <div className="max-w-[1200px] mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-start">
 
-      {/* CV Upload */}
-      <div className="mb-5">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-rc-muted flex items-center gap-2">
-            Your CV{" "}
-            <span className="text-[10px] px-2 py-[2px] rounded-[10px] bg-rc-red-bg text-rc-red border-[0.5px] border-rc-red-border lowercase tracking-normal">required</span>
-          </div>
-        </div>
-        {!cvFile ? (
-          <div
-            onClick={() => fileRef.current?.click()}
-            className="border-[0.5px] border-dashed border-rc-red/35 rounded-[10px] p-6 text-center cursor-pointer transition-all bg-rc-red-bg hover:border-rc-red hover:bg-[#e24b4a1f] group relative"
-          >
-            <div className="opacity-70 flex items-center justify-center mb-2.5">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                <rect x="4" y="2" width="16" height="20" rx="2" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5"/>
-                <path d="M8 9h8M8 13h8M8 17h5" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="21" cy="21" r="5" fill="#0a0a08" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5"/>
-                <path d="M21 18.5v5M18.5 21h5" stroke="rgba(226,75,74,0.8)" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
+        {/* ══════════════════════════════════════
+            LEFT — Required inputs
+        ══════════════════════════════════════ */}
+        <div className="space-y-5">
+
+          {/* CV Upload */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-muted">Your CV</span>
+              <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-rc-red border border-rc-red/30 px-2 py-0.5 rounded">Required</span>
             </div>
-            <p className="text-[13px] text-rc-muted mb-[3px] group-hover:text-rc-text transition-colors">Drop your CV or click to browse</p>
-            <span className="font-mono text-[11px] text-rc-hint">PDF — max 5MB</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2.5 p-[11px] px-[14px] bg-rc-surface border-[0.5px] border-rc-green-border rounded-[8px]">
-            <div className="w-7 h-7 rounded-[6px] bg-rc-green-bg border-[0.5px] border-rc-green-border flex items-center justify-center shrink-0">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <rect x="2" y="1" width="9" height="12" rx="1.5" stroke="#639922" strokeWidth="1.2"/>
-                <path d="M4 5h6M4 7.5h6M4 10h4" stroke="#639922" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <span className="text-[13px] text-rc-text flex-1 truncate">{cvFile.name}</span>
-            <span className="font-mono text-[11px] text-rc-muted">{(cvFile.size / 1024).toFixed(0)} KB</span>
-            <button type="button" onClick={() => { if (fileRef.current) fileRef.current.value = ""; setCvFile(null); }} className="bg-transparent border-none text-rc-muted cursor-pointer text-[18px] leading-none px-1 hover:text-rc-red transition-colors">&times;</button>
-          </div>
-        )}
-        <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
-      </div>
 
-      {/* Job Description */}
-      <div className="mb-5">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-rc-muted flex items-center gap-2">
-            Job description{" "}
-            <span className="text-[10px] px-2 py-[2px] rounded-[10px] bg-rc-red-bg text-rc-red border-[0.5px] border-rc-red-border lowercase tracking-normal">required</span>
-          </div>
-        </div>
-        <textarea
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Paste the full job description — title, requirements, tech stack, responsibilities..."
-          className="w-full bg-rc-surface border-[0.5px] border-rc-border rounded-[10px] px-4 py-[14px] text-rc-text font-sans text-[13px] min-h-[110px] resize-y outline-none transition-colors focus:border-rc-red/40 placeholder:text-rc-hint leading-[1.6]"
-        />
-      </div>
-
-      <div className="h-[0.5px] bg-rc-border my-6" />
-
-      {/* Profile inputs */}
-      <div className="mb-5">
-        <div className="flex items-center justify-between mb-2.5">
-          <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-rc-muted flex items-center gap-2">
-            Your profiles{" "}
-            <span className="text-[10px] px-2 py-[2px] rounded-[10px] bg-rc-green-bg text-rc-green border-[0.5px] border-rc-green-border lowercase tracking-normal">boosts accuracy</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* GitHub */}
-          <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-[10px] p-4">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-[6px] bg-black flex items-center justify-center shrink-0">
-                <img src="/icons/github.svg" alt="GitHub" width={16} height={16} style={{ filter: 'invert(1)' }} />
+            {!cvFile ? (
+              <div
+                onClick={() => fileRef.current?.click()}
+                className="group border border-dashed border-rc-red/40 bg-rc-red/[0.03] hover:bg-rc-red/[0.055] hover:border-rc-red/60 rounded-xl cursor-pointer transition-all duration-200 flex flex-col items-center justify-center py-14 gap-3"
+              >
+                <div className="w-12 h-12 rounded-xl bg-rc-red/10 border border-rc-red/20 group-hover:bg-rc-red/15 group-hover:border-rc-red/30 flex items-center justify-center transition-all duration-200">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <p className="text-[15px] text-rc-muted group-hover:text-rc-text transition-colors font-medium">
+                    Drop your CV or <span className="text-rc-red underline decoration-dotted underline-offset-2">browse</span>
+                  </p>
+                  <p className="font-mono text-[11px] text-rc-hint mt-1">PDF · max 5MB</p>
+                </div>
               </div>
-              <div>
-                <div className="text-[13px] font-medium">GitHub</div>
-                <div className="font-mono text-[11px] text-rc-hint">username</div>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3.5 bg-rc-surface border border-rc-green/30 rounded-xl">
+                <div className="w-9 h-9 rounded-lg bg-rc-green/10 border border-rc-green/20 flex items-center justify-center shrink-0">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] text-rc-text font-medium truncate">{cvFile.name}</p>
+                  <p className="font-mono text-[10px] text-rc-hint mt-0.5">{(cvFile.size / 1024).toFixed(0)} KB · PDF</p>
+                </div>
+                <button type="button" onClick={() => { if (fileRef.current) fileRef.current.value = ""; setCvFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors p-1.5 rounded-lg hover:bg-rc-red/8">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            )}
+            <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
+          </div>
+
+          {/* Job Description */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-muted">Job description</span>
+              <span className="font-mono text-[9px] tracking-[0.12em] uppercase text-rc-red border border-rc-red/30 px-2 py-0.5 rounded">Required</span>
+            </div>
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder={"Paste the full job posting — title,\nrequirements, tech stack, responsibilities,\nnice-to-haves..."}
+              className="w-full bg-rc-surface border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded-xl px-5 py-4 text-rc-text text-[14px] min-h-[180px] resize-y outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
+            />
+            <p className="font-mono text-[10px] text-rc-hint mt-2">The more complete the posting, the sharper the diagnosis.</p>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════
+            RIGHT — Signals + Accuracy + CTA
+        ══════════════════════════════════════ */}
+        <div className="lg:sticky lg:top-[40px] space-y-3">
+
+          {/* GitHub card */}
+          <div className="bg-rc-surface border border-rc-border rounded-xl p-4">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-[#1a1a1a] flex items-center justify-center shrink-0">
+                <img src="/icons/github.svg" alt="GitHub" width="16" height="16" className="invert" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-medium text-rc-text">GitHub</span>
+                  <span className="font-mono text-[9px] text-rc-green border border-rc-green/30 bg-rc-green/8 px-1.5 py-0.5 rounded tracking-wide">+accuracy</span>
+                </div>
+                <p className="font-mono text-[10px] text-rc-hint mt-0.5">repos · languages · activity</p>
               </div>
             </div>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[11px] text-rc-hint pointer-events-none">github.com/</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[11px] text-rc-hint pointer-events-none select-none">github.com/</span>
               <input
                 type="text"
                 placeholder="username"
                 value={githubUsername}
                 onChange={(e) => setGithubUsername(e.target.value)}
-                className="w-full bg-rc-bg border-[0.5px] border-rc-border rounded-[8px] py-[10px] pr-3 pl-[80px] text-rc-text font-mono text-[12px] outline-none transition-colors focus:border-white/20 placeholder:text-rc-hint mb-2.5"
+                className="w-full bg-rc-bg border border-rc-border focus:border-rc-border/70 rounded-lg py-2.5 pr-3 pl-[78px] text-rc-text font-mono text-[12px] outline-none transition-colors placeholder:text-rc-hint/50"
               />
             </div>
-            <div className="font-mono text-[11px] text-rc-hint leading-[1.5]">We&apos;ll analyze your repos, languages, and activity relevant to the job.</div>
           </div>
 
-          {/* LinkedIn */}
-          <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-[10px] p-4">
+          {/* LinkedIn card */}
+          <div className="bg-rc-surface border border-rc-border rounded-xl p-4">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-[6px] bg-[#0A66C2] flex items-center justify-center shrink-0">
-                <img src="/icons/linkedin.svg" alt="LinkedIn" width={15} height={15} style={{ filter: 'brightness(0) invert(1)' }} />
+              <div className="w-8 h-8 rounded-lg bg-[#0A66C2] flex items-center justify-center shrink-0">
+                <span className="font-mono text-[11px] font-bold text-white">in</span>
               </div>
-              <div>
-                <div className="text-[13px] font-medium">LinkedIn</div>
-                <div className="font-mono text-[11px] text-rc-hint">export your profile as PDF</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[14px] font-medium text-rc-text">LinkedIn</span>
+                  <span className="font-mono text-[9px] text-rc-green border border-rc-green/30 bg-rc-green/8 px-1.5 py-0.5 rounded tracking-wide">+accuracy</span>
+                </div>
+                <p className="font-mono text-[10px] text-rc-hint mt-0.5">export your profile as PDF</p>
               </div>
             </div>
             {!liFile ? (
-              <div onClick={() => liRef.current?.click()} className="border-[0.5px] border-dashed border-[#0a66c2]/35 rounded-[8px] p-3.5 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.06] hover:border-[#0a66c2]/60">
-                <p className="text-[12px] text-[#0a66c2] mb-0.5">Drop your LinkedIn PDF export</p>
-                <span className="font-mono text-[10px] text-rc-hint font-medium">Settings → Data Privacy → Get a copy</span>
+              <div
+                onClick={() => liRef.current?.click()}
+                className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded-lg py-3 px-4 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.06] hover:bg-[#0a66c2]/[0.1]"
+              >
+                <p className="text-[13px] text-[#5ba3d9] font-medium mb-0.5">Drop LinkedIn PDF export</p>
+                <span className="font-mono text-[10px] text-rc-hint">Settings → Data Privacy → Get a copy</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 p-[9px] px-[12px] bg-rc-bg border-[0.5px] border-rc-green-border rounded-[8px]">
-                <div className="w-[22px] h-[22px] rounded-[6px] bg-rc-green-bg border-[0.5px] border-rc-green-border flex items-center justify-center shrink-0">
-                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                    <rect x="2" y="1" width="9" height="12" rx="1.5" stroke="#639922" strokeWidth="1.2"/>
-                    <path d="M4 5h6M4 7.5h6M4 10h4" stroke="#639922" strokeWidth="1.2" strokeLinecap="round"/>
-                  </svg>
-                </div>
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-rc-bg border border-rc-green/30 rounded-lg">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span className="text-[12px] text-rc-text flex-1 truncate">{liFile.name}</span>
-                <span className="font-mono text-[10px] text-rc-muted">{(liFile.size / 1024).toFixed(0)} KB</span>
-                <button type="button" onClick={() => { if (liRef.current) liRef.current.value = ""; setLiFile(null); }} className="bg-transparent border-none text-rc-muted cursor-pointer text-[16px] leading-none px-1 hover:text-rc-red transition-colors">&times;</button>
+                <button type="button" onClick={() => { if (liRef.current) liRef.current.value = ""; setLiFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
               </div>
             )}
             <input type="file" ref={liRef} accept=".pdf" className="hidden" onChange={(e) => setLiFile(e.target.files?.[0] || null)} />
-            <div className="font-mono text-[11px] text-rc-hint leading-[1.5] mt-2.5">We&apos;ll cross-reference your experience, skills, and recommendations.</div>
+          </div>
+
+          {/* Accuracy + CTA card */}
+          <div className="bg-rc-surface border border-rc-border rounded-xl p-4">
+
+            {/* Accuracy widget */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-[3px] w-8 rounded-full transition-all duration-300 ${
+                        i <= accuracy.segments ? accuracy.color : "bg-rc-border"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="font-mono text-[10px] text-rc-hint tracking-wide">{accuracy.label}</span>
+              </div>
+            </div>
+
+            {/* Analyze button */}
+            <button
+              onClick={onSubmit}
+              disabled={loading || !hasRequired}
+              className="w-full relative group font-mono text-[13px] tracking-[0.12em] uppercase font-medium text-white/90 bg-rc-red rounded-lg py-3.5 border-none cursor-pointer transition-all duration-200 hover:bg-[#c93a39] hover:shadow-[0_6px_24px_rgba(226,75,74,0.2)] active:scale-[0.99] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-rc-red overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {loading ? (
+                  <>
+                    <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
+                      <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    Analyze
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                      <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </>
+                )}
+              </span>
+              {!loading && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
+              )}
+            </button>
+
+            {/* Trust line */}
+            <div className="flex items-center justify-center gap-4 mt-3">
+              {[
+                { icon: "⏱", text: "~45s" },
+                { icon: "🔒", text: "No data stored" },
+                { icon: "✦", text: "1 credit" },
+              ].map(({ icon, text }) => (
+                <span key={text} className="font-mono text-[9px] text-rc-hint flex items-center gap-1 tracking-wide">
+                  <span className="opacity-60">{icon}</span>{text}
+                </span>
+              ))}
+            </div>
+
+            {error && (
+              <div className="mt-3 p-2.5 bg-rc-red/5 border border-rc-red/20 rounded-lg text-[11px] text-rc-red text-center font-mono">
+                {error}
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="font-mono text-[11px] text-rc-hint mt-3 leading-[1.5] py-2.5 px-3 border-l-2 border-rc-green/30 bg-rc-green-bg rounded-r-[6px]">
-          <strong className="text-rc-green font-medium">Tip:</strong> Adding GitHub + LinkedIn reduces false positives by ~40% — the diagnosis becomes job-specific, not just CV-based.
-        </div>
       </div>
-
-      <div className="h-[0.5px] bg-rc-border my-6" />
-
-      <div className="flex items-center justify-end">
-        <button
-          onClick={onSubmit}
-          disabled={loading}
-          className="font-sans text-[20px] tracking-[0.05em] text-white bg-rc-red px-8 py-[13px] rounded-[6px] border-none cursor-pointer transition-all hover:bg-[#a82e2d] hover:-translate-y-px hover:shadow-[0_0_20px_rgba(201,58,57,0.3)] flex items-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-        >
-          {loading ? "ANALYZING..." : "ANALYZE"}
-          {!loading && (
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7h10M7.5 3l4 4-4 4" stroke="#0a0a08" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
-        </button>
-      </div>
-      {error && <div className="text-rc-red text-[13px] font-sans mt-3 text-right">{error}</div>}
     </div>
   );
 }
