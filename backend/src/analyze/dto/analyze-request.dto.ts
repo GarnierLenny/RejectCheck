@@ -4,6 +4,7 @@ import { z } from 'zod';
 export const AnalyzeRequestSchema = z.object({
   jobDescription: z.string().min(1, 'Job description is required'),
   githubUsername: z.string().optional(),
+  motivationLetterText: z.string().optional(),
   email: z.string().email().optional(),
   isRegistered: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
 });

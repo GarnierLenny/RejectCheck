@@ -25,12 +25,14 @@ model Subscription {
 }
 
 model Analysis {
-  id             Int      @id @default(autoincrement())
-  email          String?  // Registered users only
-  ip             String?  // Anonymous tracking
-  jobDescription String?  // Registered users only
-  result         Json?    // Registered users only
-  createdAt      DateTime @default(now())
+  id               Int      @id @default(autoincrement())
+  email            String?  // Registered users only
+  ip               String?  // Anonymous tracking
+  jobDescription   String?  // Registered users only
+  cvText           String?  // Registered users only
+  motivationLetter String?  // Registered users only
+  result           Json?    // Registered users only
+  createdAt        DateTime @default(now())
 }
 
 model Profile {

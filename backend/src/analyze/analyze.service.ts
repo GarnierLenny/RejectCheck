@@ -72,9 +72,11 @@ export class AnalyzeService {
     cvBuffer?: Buffer;
     jobDescription: string;
     linkedinBuffer?: Buffer;
+    motivationLetterBuffer?: Buffer;
+    motivationLetterText?: string;
     githubUsername?: string;
-  }, onStep?: (step: string) => void): Promise<AnalyzeResponse> {
-    const { cvBuffer, jobDescription, linkedinBuffer, githubUsername } = data;
+  }, onStep?: (step: string) => void): Promise<{ result: AnalyzeResponse; cvText: string; motivationLetterText: string }> {
+    const { cvBuffer, jobDescription, linkedinBuffer, motivationLetterBuffer, motivationLetterText: mlText, githubUsername } = data;
 
     if (!cvBuffer) {
       throw new BadRequestException('CV is required');
@@ -91,6 +93,18 @@ export class AnalyzeService {
         linkedinText = await this.parsePdf(linkedinBuffer);
       } catch {
         console.warn('Failed to parse LinkedIn PDF');
+      }
+    }
+
+    let motivationLetterText = '';
+    if (mlText) {
+      motivationLetterText = mlText.trim().slice(0, MAX_TEXT_CHARS);
+    } else if (motivationLetterBuffer) {
+      onStep?.('parsing_motivation_letter');
+      try {
+        motivationLetterText = await this.parsePdf(motivationLetterBuffer);
+      } catch {
+        console.warn('Failed to parse Motivation Letter PDF');
       }
     }
 
@@ -123,7 +137,7 @@ export class AnalyzeService {
         { role: "system", content: systemPrompt },
         {
           role: "user",
-          content: `Analyze this application for the following job. Use the provided CV and additional context (LinkedIn/GitHub) to find gaps.
+          content: `Analyze this application for the following job. Use the provided documents to find gaps.
 
           JOB DESCRIPTION:
           ${jobText}
@@ -133,10 +147,11 @@ export class AnalyzeService {
           CANDIDATE CV:
           ${cvText}
 
+          ${motivationLetterText ? `---\nMOTIVATION LETTER:\n${motivationLetterText}` : ''}
           ${linkedinText ? `---\nLINKEDIN PROFILE:\n${linkedinText}` : ''}
           ${githubInfo ? `---\nGITHUB DATA:\n${githubInfo}` : ''}
 
-          Be brutal and specific.`,
+          Be brutal and specific. Evaluate if the motivation letter (if provided) actually adds value or is generic.`,
         },
       ],
     });
@@ -146,7 +161,8 @@ export class AnalyzeService {
 
     try {
       const parsedJson = JSON.parse(raw);
-      return AnalyzeResponseSchema.parse(parsedJson);
+      const result = AnalyzeResponseSchema.parse(parsedJson);
+      return { result, cvText, motivationLetterText };
     } catch (err) {
       console.error("Zod validation or JSON error:", err, raw);
       throw new InternalServerErrorException("Invalid AI response format");
@@ -162,13 +178,13 @@ export class AnalyzeService {
 
     // 2. Check usage count by email
     if (email) {
-      const count = await this.prisma.analysis.count({ where: { email } });
+      const count = await (this.prisma as any).analysis.count({ where: { email } });
       if (count >= 1) return { allowed: false, reason: 'limit_reached' };
     }
 
     // 3. Check usage count by IP
     if (ip) {
-      const count = await this.prisma.analysis.count({ where: { ip } });
+      const count = await (this.prisma as any).analysis.count({ where: { ip } });
       if (count >= 1) return { allowed: false, reason: 'limit_reached' };
     }
 
@@ -179,27 +195,31 @@ export class AnalyzeService {
     email?: string; 
     ip?: string; 
     jobDescription: string; 
+    cvText?: string;
+    motivationLetter?: string;
     result: any; 
     isRegistered: boolean 
   }) {
-    const { email, ip, jobDescription, result, isRegistered } = data;
+    const { email, ip, jobDescription, cvText, motivationLetter, result, isRegistered } = data;
 
     if (isRegistered && email) {
       // Registered User: Store everything
-      await this.prisma.analysis.create({
+      await (this.prisma as any).analysis.create({
         data: {
           email,
-          ip,
+          ip: ip ?? null,
           jobDescription,
+          cvText: cvText ?? null,
+          motivationLetter: motivationLetter ?? null,
           result: result as any,
         }
       });
     } else {
       // Anonymous User: Store ONLY IP and createdAt (by default)
       // We explicitly null out email and jobDescription as requested
-      await this.prisma.analysis.create({
+      await (this.prisma as any).analysis.create({
         data: {
-          ip,
+          ip: ip ?? null,
           email: null,
           jobDescription: null,
           // We omit 'result' to keep it as DB null
@@ -210,7 +230,7 @@ export class AnalyzeService {
 
   async getHistory(email: string) {
     if (!email) return [];
-    return this.prisma.analysis.findMany({
+    return (this.prisma as any).analysis.findMany({
       where: { 
         email,
         result: { not: Prisma.DbNull }
@@ -220,7 +240,7 @@ export class AnalyzeService {
   }
 
   async getAnalysisById(id: number, email: string) {
-    return this.prisma.analysis.findFirst({
+    return (this.prisma as any).analysis.findFirst({
       where: { 
         id,
         email,
@@ -230,15 +250,15 @@ export class AnalyzeService {
   }
 
   async getProfile(email: string) {
-    let profile = await this.prisma.profile.findUnique({ where: { email } });
+    let profile = await (this.prisma as any).profile.findUnique({ where: { email } });
     if (!profile) {
-      profile = await this.prisma.profile.create({ data: { email } });
+      profile = await (this.prisma as any).profile.create({ data: { email } });
     }
     return profile;
   }
 
   async updateProfile(email: string, data: { username?: string; avatarUrl?: string }) {
-    return this.prisma.profile.upsert({
+    return (this.prisma as any).profile.upsert({
       where: { email },
       update: data,
       create: { email, ...data },

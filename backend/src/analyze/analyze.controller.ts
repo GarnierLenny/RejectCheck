@@ -20,9 +20,14 @@ export class AnalyzeController {
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'cv', maxCount: 1 },
     { name: 'linkedin', maxCount: 1 },
+    { name: 'motivationLetter', maxCount: 1 },
   ]))
   async analyze(
-    @UploadedFiles() files: { cv?: Express.Multer.File[], linkedin?: Express.Multer.File[] },
+    @UploadedFiles() files: { 
+      cv?: Express.Multer.File[], 
+      linkedin?: Express.Multer.File[], 
+      motivationLetter?: Express.Multer.File[] 
+    },
     @Body() body: unknown,
     @Res() res: any,
     @Req() req: Request,
@@ -31,7 +36,7 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { jobDescription, githubUsername, email, isRegistered } = parsed.data;
+    const { jobDescription, githubUsername, motivationLetterText, email, isRegistered } = parsed.data;
 
     // Capture IP: primary from x-forwarded-for, fallback to req.ip
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
@@ -54,11 +59,13 @@ export class AnalyzeController {
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      const result = await this.analyzeService.analyzeApplication(
+      const { result, cvText: parsedCv, motivationLetterText: parsedMl } = await this.analyzeService.analyzeApplication(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           jobDescription,
           linkedinBuffer: files.linkedin?.[0]?.buffer,
+          motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
+          motivationLetterText,
           githubUsername,
         },
         (step) => write({ step }),
@@ -69,6 +76,8 @@ export class AnalyzeController {
         email,
         ip,
         jobDescription,
+        cvText: parsedCv,
+        motivationLetter: parsedMl,
         result,
         isRegistered: !!isRegistered,
       });

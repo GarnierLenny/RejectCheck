@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 type Props = {
   cvFile: File | null;
@@ -11,6 +11,10 @@ type Props = {
   setJobDescription: (v: string) => void;
   githubUsername: string;
   setGithubUsername: (v: string) => void;
+  mlFile: File | null;
+  setMlFile: (f: File | null) => void;
+  mlText: string;
+  setMlText: (v: string) => void;
   onSubmit: (e: React.MouseEvent<HTMLButtonElement>) => void;
   loading: boolean;
   error: string | null;
@@ -41,10 +45,14 @@ export function UploadForm({
   liFile, setLiFile,
   jobDescription, setJobDescription,
   githubUsername, setGithubUsername,
+  mlFile, setMlFile,
+  mlText, setMlText,
   onSubmit, loading, error,
 }: Props) {
+  const [mlMode, setMlMode] = useState<"file" | "text">("file");
   const fileRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLInputElement>(null);
+  const mlRef = useRef<HTMLInputElement>(null);
 
   const hasRequired = !!cvFile && jobDescription.trim().length > 0;
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
@@ -183,6 +191,80 @@ export function UploadForm({
               </div>
             )}
             <input type="file" ref={liRef} accept=".pdf" className="hidden" onChange={(e) => setLiFile(e.target.files?.[0] || null)} />
+          </div>
+
+          {/* Motivation Letter card */}
+          <div className="bg-rc-surface border border-rc-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(226,75,74,0.8)" strokeWidth="1.5">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] font-medium text-rc-text">Motivation Letter</span>
+                    <span className="font-mono text-[9px] text-rc-muted border border-rc-border px-1.5 py-0.5 rounded tracking-wide">Optional</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex bg-rc-bg border border-rc-border rounded-lg p-0.5">
+                <button 
+                  onClick={() => setMlMode("file")}
+                  className={`px-2 py-1 font-mono text-[9px] uppercase rounded-md transition-all ${mlMode === "file" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}
+                >
+                  PDF
+                </button>
+                <button 
+                  onClick={() => setMlMode("text")}
+                  className={`px-2 py-1 font-mono text-[9px] uppercase rounded-md transition-all ${mlMode === "text" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}
+                >
+                  Text
+                </button>
+              </div>
+            </div>
+
+            {mlMode === "file" ? (
+              <>
+                {!mlFile ? (
+                  <div
+                    onClick={() => mlRef.current?.click()}
+                    className="border border-rc-border border-dashed hover:border-rc-red/30 rounded-lg py-3 px-4 text-center cursor-pointer transition-all bg-rc-bg hover:bg-rc-red/[0.03]"
+                  >
+                    <p className="text-[13px] text-rc-muted font-medium mb-0.5">Drop motivation letter PDF</p>
+                    <span className="font-mono text-[10px] text-rc-hint">or <span className="text-rc-red decoration-dotted underline">click to browse</span></span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-rc-bg border border-rc-green/30 rounded-lg">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span className="text-[12px] text-rc-text flex-1 truncate">{mlFile.name}</span>
+                    <button type="button" onClick={() => { if (mlRef.current) mlRef.current.value = ""; setMlFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+                )}
+                <input type="file" ref={mlRef} accept=".pdf" className="hidden" onChange={(e) => { 
+                  setMlFile(e.target.files?.[0] || null);
+                  setMlText(""); // Clear text if file is uploaded
+                }} />
+              </>
+            ) : (
+              <textarea
+                value={mlText}
+                onChange={(e) => {
+                  setMlText(e.target.value);
+                  setMlFile(null);
+                }}
+                onBlur={() => {
+                  if (mlText.trim()) setMlFile(null);
+                }}
+                placeholder="Paste your motivation letter here..."
+                className="w-full bg-rc-bg border border-rc-border focus:border-rc-red/20 rounded-lg px-4 py-3 text-rc-text text-[13px] min-h-[100px] resize-y outline-none transition-colors placeholder:text-rc-hint/50"
+              />
+            )}
           </div>
 
           {/* Accuracy + CTA card */}

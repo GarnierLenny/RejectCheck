@@ -172,14 +172,19 @@ function LoginContent() {
           </form>
 
           {/* Toggle */}
-          <p className="mt-6 text-center text-[12px] font-mono text-rc-hint">
-            {mode === "signin" ? "No account?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setInfo(null); }}
-              className="text-rc-red hover:underline bg-transparent border-none cursor-pointer font-mono text-[12px] p-0"
-            >
-              {mode === "signin" ? "Sign up" : "Sign in"}
-            </button>
+          <p className="mt-6 text-center text-[12px] font-mono text-rc-hint flex flex-col gap-4">
+            <span>
+              {mode === "signin" ? "No account?" : "Already have an account?"}{" "}
+              <button
+                onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(null); setInfo(null); }}
+                className="text-rc-red hover:underline bg-transparent border-none cursor-pointer font-mono text-[12px] p-0"
+              >
+                {mode === "signin" ? "Sign up" : "Sign in"}
+              </button>
+            </span>
+            <Link href="/privacy" className="opacity-60 hover:opacity-100 transition-opacity hover:text-rc-red no-underline">
+              Privacy Policy & GDPR →
+            </Link>
           </p>
         </div>
       </div>

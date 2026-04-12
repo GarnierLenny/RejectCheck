@@ -210,9 +210,9 @@ export default function Home() {
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">RejectCheck © 2026</div>
         <div className="flex gap-6">
-          <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
-            Privacy
-          </a>
+          <Link href="/privacy" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+            Privacy (GDPR)
+          </Link>
           <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
             Terms
           </a>

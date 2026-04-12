@@ -28,6 +28,8 @@ function AnalyzeContent() {
   const [jobDescription, setJobDescription] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [liFile, setLiFile] = useState<File | null>(null);
+  const [mlFile, setMlFile] = useState<File | null>(null);
+  const [mlText, setMlText] = useState("");
   const [githubUsername, setGithubUsername] = useState("");
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("ats");
@@ -77,26 +79,6 @@ function AnalyzeContent() {
         })
         .catch(err => console.error("[Analyze] Error syncing sub:", err));
     }
-
-
-    // Sync subscription status from server if user is logged in
-    if (user?.email) {
-      fetch(`${apiUrl}/api/stripe/subscription?email=${user.email}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data?.status === 'active') {
-            const sub: StoredSubscription = {
-              plan: data.plan,
-              email: user.email!,
-              expiry: new Date(data.currentPeriodEnd).getTime(),
-            };
-            localStorage.setItem('rc_subscription', JSON.stringify(sub));
-            setActiveSubscription(sub);
-            setPaywallReason(null);
-          }
-        })
-        .catch(err => console.error("[Analyze] Error syncing sub:", err));
-    }
     // If there is an ID in the URL, fetch that analysis
     const id = searchParams.get('id');
     if (id && user?.email) {
@@ -126,6 +108,8 @@ function AnalyzeContent() {
     const formData = new FormData();
     formData.append("cv", cvFile);
     if (liFile) formData.append("linkedin", liFile);
+    if (mlFile) formData.append("motivationLetter", mlFile);
+    if (mlText) formData.append("motivationLetterText", mlText);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
     const emailToSend = activeSubscription?.email || user?.email || email;
@@ -236,24 +220,12 @@ function AnalyzeContent() {
               <UploadForm
                 cvFile={cvFile} setCvFile={setCvFile}
                 liFile={liFile} setLiFile={setLiFile}
+                mlFile={mlFile} setMlFile={setMlFile}
+                mlText={mlText} setMlText={setMlText}
                 jobDescription={jobDescription} setJobDescription={setJobDescription}
                 githubUsername={githubUsername} setGithubUsername={setGithubUsername}
                 onSubmit={handleSubmit} loading={false} error={error}
               />
-              {!activeSubscription && (
-                <div className="mt-6 max-w-[560px]">
-                  <label className="block font-mono text-[10px] tracking-[0.18em] uppercase text-rc-muted mb-2">
-                    Enter your email to unlock subscription benefits
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full bg-rc-surface border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded-xl px-5 py-3 text-rc-text font-mono text-[13px] outline-none transition-colors placeholder:text-rc-hint"
-                  />
-                </div>
-              )}
             </>
           )
         ) : (
