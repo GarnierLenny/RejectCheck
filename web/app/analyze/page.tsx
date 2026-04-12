@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,7 +22,7 @@ type Tab = "ats" | "profile" | "audit" | "signals" | "flags";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
-export default function Home() {
+function AnalyzeContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const [jobDescription, setJobDescription] = useState("");
@@ -266,5 +266,17 @@ export default function Home() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen bg-rc-bg flex items-center justify-center">
+        <span className="font-mono text-[11px] tracking-widest uppercase text-rc-hint animate-pulse">Loading…</span>
+      </div>
+    }>
+      <AnalyzeContent />
+    </Suspense>
   );
 }

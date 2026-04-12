@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -75,7 +75,7 @@ const plans = [
   },
 ];
 
-export default function PricingPage() {
+function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -101,7 +101,7 @@ export default function PricingPage() {
         })
         .catch(err => console.error("[Pricing] Error fetching sub:", err));
     }
-  }, [user]);
+  }, [user, searchParams]);
 
   async function handlePaidPlan(plan: 'shortlisted' | 'hired') {
     if (!user) {
@@ -309,5 +309,17 @@ export default function PricingPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function PricingPage() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen bg-rc-bg flex items-center justify-center">
+        <span className="font-mono text-[11px] tracking-widest uppercase text-rc-hint animate-pulse">Loading…</span>
+      </div>
+    }>
+      <PricingContent />
+    </Suspense>
   );
 }

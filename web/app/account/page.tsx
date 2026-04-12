@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,7 +15,7 @@ type Subscription = {
   currentPeriodEnd: string;
 } | null;
 
-export default function UserPage() {
+function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -69,7 +69,7 @@ export default function UserPage() {
 
       setLoading(false);
     });
-  }, []);
+  }, [searchParams, router, supabase.auth]);
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -181,5 +181,17 @@ export default function UserPage() {
         <SuccessModal onClose={() => setShowSuccessModal(false)} />
       )}
     </div>
+  );
+}
+
+export default function UserPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-rc-bg flex items-center justify-center">
+        <span className="font-mono text-[11px] tracking-widest uppercase text-rc-hint animate-pulse">Loading…</span>
+      </div>
+    }>
+      <AccountPageContent />
+    </Suspense>
   );
 }

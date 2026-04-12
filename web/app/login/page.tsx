@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,7 +8,7 @@ import { createClient } from "../../lib/supabase";
 
 type Mode = "signin" | "signup";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/account';
@@ -25,7 +25,7 @@ export default function LoginPage() {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) router.replace(redirect);
     });
-  }, []);
+  }, [router, redirect, supabase.auth]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -159,5 +159,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+       <div className="min-h-screen bg-rc-bg flex items-center justify-center">
+        <span className="font-mono text-[11px] tracking-widest uppercase text-rc-hint animate-pulse">Loading…</span>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
