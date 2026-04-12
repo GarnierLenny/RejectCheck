@@ -11,7 +11,7 @@ type Props = {
   setJobDescription: (v: string) => void;
   githubUsername: string;
   setGithubUsername: (v: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.MouseEvent<HTMLButtonElement>) => void;
   loading: boolean;
   error: string | null;
 };

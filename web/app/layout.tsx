@@ -47,6 +47,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,6 +60,7 @@ export default function RootLayout({
       className={`${instrumentSans.variable} ${chivoMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Toaster position="top-center" expand={true} richColors />
         <Providers>
           {children}
         </Providers>

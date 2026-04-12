@@ -7,13 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model AnalysisCounter {
-  id    Int @id @default(1)
-  total Int @default(0)
-}
-
 model Waitlist {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id               Int      @id @default(autoincrement())
+  email            String   @unique
+  stripeCustomerId String
+  plan             String
+  status           String
+  currentPeriodEnd DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

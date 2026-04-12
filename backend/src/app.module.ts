@@ -5,7 +5,7 @@ import { AnalyzeModule } from './analyze/analyze.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
-import { AdminModule } from './admin/admin.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { AdminModule } from './admin/admin.module';
     PrismaModule,
     AnalyzeModule,
     WaitlistModule,
-    AdminModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

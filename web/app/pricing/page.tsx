@@ -1,0 +1,313 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { useAuth } from "../../context/auth";
+import { AuthNavLink } from "../components/AuthNavLink";
+import { Check, ShieldCheck, Zap, Star, Trophy, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
+
+const plans = [
+  {
+    id: 'free' as const,
+    name: 'REJECTED',
+    price: '0€',
+    period: '/forever',
+    description: 'Perfect for a first reality check.',
+    icon: <Zap className="w-5 h-5 text-rc-hint" />,
+    features: [
+      '1 deep analysis',
+      'ATS simulation',
+      'Seniority gap audit',
+      'CV tone analysis',
+      'Score breakdown',
+      'Hidden red flags',
+      'Actionable fixes',
+      'Export PDF / Markdown',
+    ],
+    cta: 'Start for free',
+    href: '/analyze',
+    popular: false,
+  },
+  {
+    id: 'shortlisted' as const,
+    name: 'SHORTLISTED',
+    price: '7.99€',
+    period: '/month',
+    description: 'For serious candidates who iterate until they win.',
+    icon: <Star className="w-5 h-5 text-rc-red" />,
+    features: [
+      'Everything in REJECTED',
+      'Unlimited analyses',
+      'Score Evolution Tracker',
+      'Analysis history',
+      'Interview AI (coming soon)',
+      'CV Rewrite Mode (coming soon)',
+    ],
+    cta: 'Get Shortlisted',
+    href: null,
+    popular: false,
+  },
+  {
+    id: 'hired' as const,
+    name: 'HIRED',
+    price: '14.99€',
+    period: '/month',
+    description: 'Maximum firepower. We guarantee your success.',
+    icon: <Trophy className="w-5 h-5 text-amber-500" />,
+    features: [
+      'Everything in SHORTLISTED',
+      'CV Version Manager (coming soon)',
+      'Job Fit Score via URL (coming soon)',
+      'Rejection Pattern Analysis (coming soon)',
+      'Application Tracker (coming soon)',
+      'Salary Reality Check (coming soon)',
+      'Chrome Extension (coming soon)',
+    ],
+    cta: 'Get Hired',
+    href: null,
+    popular: true,
+    guarantee: "Hired? We refund your current month.",
+  },
+];
+
+export default function PricingPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const [loadingPlan, setLoadingPlan] = useState<'shortlisted' | 'hired' | null>(null);
+  const [activePlan, setActivePlan] = useState<string | null>(null);
+
+  // Fetch current subscription status
+  useEffect(() => {
+    // Check for error param from Stripe
+    if (searchParams.get("error") === "true") {
+      toast.error("Payment cancelled. You can try again when you're ready.", {
+        duration: 5000,
+      });
+    }
+
+    if (user?.email) {
+      fetch(`${apiUrl}/api/stripe/subscription?email=${user.email}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.status === 'active') {
+            setActivePlan(data.plan);
+          }
+        })
+        .catch(err => console.error("[Pricing] Error fetching sub:", err));
+    }
+  }, [user]);
+
+  async function handlePaidPlan(plan: 'shortlisted' | 'hired') {
+    if (!user) {
+      router.push('/login?redirect=/pricing');
+      return;
+    }
+
+    if (activePlan === plan) return;
+
+    setLoadingPlan(plan);
+    console.log(`[Pricing] Initiating checkout for plan: ${plan}, email: ${user.email}, api: ${apiUrl}`);
+    
+    try {
+      const res = await fetch(`${apiUrl}/api/stripe/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, email: user.email }),
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`[Pricing] Checkout fetch failed: ${res.status} ${res.statusText}`, errorText);
+        alert(`Failed to initiate checkout: ${res.statusText}. Please check the console.`);
+        setLoadingPlan(null);
+        return;
+      }
+
+      const data = await res.json();
+      console.log(`[Pricing] Checkout response:`, data);
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error(`[Pricing] No URL in checkout response:`, data);
+        alert("Failed to get checkout URL. Please try again.");
+        setLoadingPlan(null);
+      }
+    } catch (err) {
+      console.error(`[Pricing] Checkout error:`, err);
+      // alert(`An error occurred during checkout: ${err instanceof Error ? err.message : String(err)}`);
+      setLoadingPlan(null);
+    }
+  }
+
+  return (
+    <div className="bg-rc-bg text-rc-text font-sans min-h-screen selection:bg-rc-red/10 selection:text-rc-red">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-rc-bg/80 backdrop-blur-md border-b border-rc-border">
+        <div className="max-w-[1200px] mx-auto flex items-center justify-between px-5 py-4 md:px-[40px]">
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
+            <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={32} height={32} className="w-8 h-8 md:w-10 md:h-10" />
+          </Link>
+          <div className="flex items-center gap-4">
+            <AuthNavLink />
+            <Link
+              href="/analyze"
+              className="group relative inline-flex items-center justify-center px-4 py-2 font-mono text-[11px] tracking-widest uppercase text-white bg-rc-red rounded-lg overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 no-underline shadow-lg shadow-rc-red/20"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Try free <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="max-w-[1200px] mx-auto px-5 md:px-[40px] pt-32 pb-24">
+        {/* Header */}
+        <div className="text-center mb-16 space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/5 border border-rc-red/10 animate-fade-in">
+            <span className="w-1.5 h-1.5 rounded-full bg-rc-red animate-pulse" />
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-medium">Pricing Plans</span>
+          </div>
+          <h1 className="text-[40px] md:text-[64px] font-bold leading-[1.1] tracking-tight text-rc-text">
+            Choose your <span className="text-rc-red">career fuel.</span>
+          </h1>
+          <p className="text-rc-muted text-lg md:text-xl max-w-[600px] mx-auto font-medium">
+            From first rejection to your dream offer. <br className="hidden md:block" /> Get the edge you deserve.
+          </p>
+        </div>
+
+        {/* Pricing Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative items-stretch">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className={`group relative flex flex-col p-8 rounded-[24px] transition-all duration-500 hover:-translate-y-1 border ${
+                plan.popular 
+                  ? 'bg-white border-rc-red/20 shadow-[0_20px_50px_rgba(201,58,57,0.12)] scale-[1.02] z-10' 
+                  : 'bg-rc-surface/50 border-rc-border hover:bg-white hover:shadow-xl hover:border-rc-red/10'
+              }`}
+            >
+              {plan.popular && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-full shadow-lg shadow-rc-red/20 z-20">
+                  Recommended
+                </div>
+              )}
+
+              <div className="mb-8 flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`p-2 rounded-xl ${plan.popular ? 'bg-rc-red/10' : 'bg-rc-bg'}`}>
+                      {plan.icon}
+                    </div>
+                    <span className={`font-mono text-[11px] tracking-[0.2em] uppercase font-bold ${plan.id === 'free' ? 'text-rc-hint' : 'text-rc-red'}`}>
+                      {plan.name}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[48px] font-black tracking-tight text-rc-text">
+                      {plan.price}
+                    </span>
+                    <span className="text-rc-hint font-mono text-sm">{plan.period}</span>
+                  </div>
+                  <p className="mt-3 text-sm text-rc-muted leading-relaxed font-medium">
+                    {plan.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-10 flex-1">
+                <div className="h-px w-full bg-gradient-to-r from-transparent via-rc-border to-transparent mb-6" />
+                <ul className="space-y-4">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-3 group/item">
+                      <div className={`mt-0.5 rounded-full p-0.5 transition-colors ${plan.popular ? 'bg-rc-red/10 text-rc-red' : 'bg-rc-border/50 text-rc-hint'}`}>
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                      </div>
+                      <span className="text-[14px] text-rc-muted leading-tight group-hover/item:text-rc-text transition-colors">
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Guarantee Highlight for HIRED plan */}
+              {plan.guarantee && (
+                <div className="mb-8 p-4 rounded-2xl bg-rc-red/5 border border-rc-red/10 flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-rc-red shrink-0" />
+                  <span className="text-[13px] font-bold text-rc-red leading-tight">
+                    {plan.guarantee}
+                  </span>
+                </div>
+              )}
+
+              <div className="mt-auto">
+                {plan.href ? (
+                  <Link
+                    href={plan.href}
+                    className={`flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase border transition-all duration-300 font-bold no-underline ${
+                      activePlan === 'free' && plan.id === 'free'
+                        ? 'bg-rc-bg text-rc-hint border-rc-border cursor-default opacity-60'
+                        : 'border-rc-border hover:border-rc-red hover:text-rc-red hover:bg-rc-red/5'
+                    }`}
+                  >
+                    {activePlan === 'free' && plan.id === 'free' 
+                      ? 'Current Plan' 
+                      : (activePlan !== null && activePlan !== 'free' && plan.id === 'free')
+                        ? 'Downgrade to Free'
+                        : plan.cta}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => handlePaidPlan(plan.id as 'shortlisted' | 'hired')}
+                    disabled={loadingPlan !== null || activePlan === plan.id}
+                    className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase transition-all duration-300 group/btn font-bold cursor-pointer ${
+                      activePlan === plan.id
+                        ? 'bg-rc-bg text-rc-hint border border-rc-border cursor-default'
+                        : plan.popular 
+                          ? 'bg-rc-red text-white shadow-lg shadow-rc-red/25 hover:shadow-rc-red/40 hover:scale-[1.02] active:scale-[0.98]' 
+                          : 'bg-rc-text text-white hover:bg-rc-red hover:shadow-lg active:scale-[0.98]'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    <span className="relative z-10">
+                      {activePlan === plan.id ? 'Current Plan' : loadingPlan === plan.id ? 'Processing...' : plan.cta}
+                    </span>
+                    {activePlan !== plan.id && (
+                      <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* FAQ - Quick assurance */}
+        <div className="mt-24 text-center">
+            <p className="text-rc-hint text-sm font-mono tracking-widest uppercase">Fast support · Secure payment via Stripe · Cancel anytime</p>
+        </div>
+      </div>
+
+      <footer className="border-t border-rc-border bg-white/50 backdrop-blur-sm relative z-10">
+        <div className="max-w-[1200px] mx-auto py-12 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <Image src="/RejectCheck_500_bg_less.png" alt="Logo" width={32} height={32} />
+            <div className="font-mono text-[12px] text-rc-hint">© 2026 RejectCheck. Build with focus.</div>
+          </div>
+          <div className="flex gap-8">
+            <a href="#" className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">Privacy</a>
+            <a href="#" className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">Terms</a>
+            <a href="mailto:support@rejectcheck.com" className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">Contact</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

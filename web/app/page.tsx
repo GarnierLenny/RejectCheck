@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { AuthNavLink } from "./components/AuthNavLink";
 
 const steps = [
   {
@@ -65,12 +66,21 @@ export default function Home() {
             height={40}
           />
         </div>
-        <Link
-          href="/analyze"
-          className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"
-        >
-          Try free →
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/pricing"
+            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
+          >
+            Pricing
+          </Link>
+          <AuthNavLink />
+          <Link
+            href="/analyze"
+            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"
+          >
+            Try free →
+          </Link>
+        </div>
       </nav>
 
       {/* ─── Hero ────────────────────────────────────────────────── */}

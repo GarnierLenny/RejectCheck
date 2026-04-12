@@ -5,6 +5,7 @@ import { PDFParse } from 'pdf-parse';
 import { z } from 'zod';
 import { AnalyzeResponseSchema, AnalyzeResponse } from './dto/analyze-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { StripeService } from '../stripe/stripe.service';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -15,39 +16,12 @@ export class AnalyzeService {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
+    private stripeService: StripeService,
   ) {
     const prompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT');
     console.log(`[AnalyzeService] Constructor: SYSTEM_ANALYZE_PROMPT loaded. Length: ${prompt?.length ?? 0}`);
     if (prompt) console.log(`[AnalyzeService] Prompt Start: "${prompt.slice(0, 50)}..."`);
     this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
-  }
-
-  async checkGlobalLimit(): Promise<void> {
-    const limit = parseInt(this.configService.get<string>('GLOBAL_FREE_ANALYSIS_LIMIT') ?? '200', 10);
-    const counter = await this.prisma.analysisCounter.findUnique({ where: { id: 1 } });
-    if (counter && counter.total >= limit) {
-      throw new HttpException(
-        { message: 'Free tier capacity reached', code: 'GLOBAL_LIMIT_REACHED' },
-        429,
-      );
-    }
-  }
-
-  async incrementCounter(): Promise<void> {
-    await this.prisma.analysisCounter.update({
-      where: { id: 1 },
-      data: { total: { increment: 1 } },
-    });
-  }
-
-  async getCounter(): Promise<{ total: number; limit: number }> {
-    const counter = await this.prisma.analysisCounter.findUnique({ where: { id: 1 } });
-    const limit = parseInt(this.configService.get<string>('GLOBAL_FREE_ANALYSIS_LIMIT') ?? '200', 10);
-    return { total: counter?.total ?? 0, limit };
-  }
-
-  async resetCounter(): Promise<void> {
-    await this.prisma.analysisCounter.update({ where: { id: 1 }, data: { total: 0 } });
   }
 
   private async parsePdf(buffer: Buffer): Promise<string> {

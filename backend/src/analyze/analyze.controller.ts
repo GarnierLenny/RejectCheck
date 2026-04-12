@@ -29,7 +29,7 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { jobDescription, githubUsername } = parsed.data;
+    const { jobDescription, githubUsername, email } = parsed.data;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -39,8 +39,6 @@ export class AnalyzeController {
     const write = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
-      await this.analyzeService.checkGlobalLimit();
-
       const result = await this.analyzeService.analyzeApplication(
         {
           cvBuffer: files.cv?.[0]?.buffer,
@@ -52,35 +50,10 @@ export class AnalyzeController {
       );
 
       write({ step: 'done', result });
-
-      // Fire-and-forget: a DB failure should not affect the client response
-      this.analyzeService.incrementCounter().catch((err) =>
-        console.error('[AnalyzeController] Counter increment failed:', err),
-      );
     } catch (err: any) {
       write({ step: 'error', message: err.message || 'Analysis failed', code: err.response?.code });
     } finally {
       res.end();
     }
-  }
-
-  @Get('counter')
-  @ApiOperation({ summary: 'Get current analysis counter (admin)' })
-  async getCounter(@Headers('x-admin-key') adminKey: string, @Res() res: any) {
-    if (adminKey !== this.configService.get('ADMIN_SECRET_KEY')) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    const data = await this.analyzeService.getCounter();
-    return res.status(200).json(data);
-  }
-
-  @Post('reset-counter')
-  @ApiOperation({ summary: 'Reset analysis counter to 0 (admin)' })
-  async resetCounter(@Headers('x-admin-key') adminKey: string, @Res() res: any) {
-    if (adminKey !== this.configService.get('ADMIN_SECRET_KEY')) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    await this.analyzeService.resetCounter();
-    return res.status(200).json({ message: 'Counter reset', total: 0 });
   }
 }

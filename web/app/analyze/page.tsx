@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { AnalysisResult } from "../components/types";
 
 import { UploadForm } from "../components/UploadForm";
+import { AuthNavLink } from "../components/AuthNavLink";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { PaywallScreen } from "../components/PaywallScreen";
 import { ScoreSidebar } from "../components/ScoreSidebar";
@@ -14,14 +16,20 @@ import { ProfileTab } from "../components/tabs/ProfileTab";
 import { AuditTab } from "../components/tabs/AuditTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
+import { useAuth } from "../../context/auth";
 
 type Tab = "ats" | "profile" | "audit" | "signals" | "flags";
 
+type StoredSubscription = { plan: string; email: string; expiry: number };
+
 export default function Home() {
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [jobDescription, setJobDescription] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [liFile, setLiFile] = useState<File | null>(null);
   const [githubUsername, setGithubUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("ats");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
@@ -30,14 +38,67 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
+  const [activeSubscription, setActiveSubscription] = useState<StoredSubscription | null>(null);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
   useEffect(() => {
-    if (localStorage.getItem('rc_free_used') === 'true') {
-      setPaywallReason('local');
+    // Check for stored subscription
+    try {
+      const stored = localStorage.getItem('rc_subscription');
+      if (stored) {
+        const parsed: StoredSubscription = JSON.parse(stored);
+        if (parsed.expiry > Date.now()) {
+          setActiveSubscription(parsed);
+          if (parsed.email) setEmail(parsed.email);
+        } else {
+          localStorage.removeItem('rc_subscription');
+        }
+      }
+    } catch {
+      // ignore parse errors
     }
-  }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
+    // Sync subscription status from server if user is logged in
+    if (user?.email) {
+      fetch(`${apiUrl}/api/stripe/subscription?email=${user.email}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.status === 'active') {
+            const sub: StoredSubscription = {
+              plan: data.plan,
+              email: user.email!,
+              expiry: new Date(data.currentPeriodEnd).getTime(),
+            };
+            localStorage.setItem('rc_subscription', JSON.stringify(sub));
+            setActiveSubscription(sub);
+            setPaywallReason(null);
+          }
+        })
+        .catch(err => console.error("[Analyze] Error syncing sub:", err));
+    }
+
+
+    // Check local free tier limit only if no active subscription
+    const currentSub = (() => {
+      try {
+        const stored = localStorage.getItem('rc_subscription');
+        if (!stored) return null;
+        const parsed: StoredSubscription = JSON.parse(stored);
+        return parsed.expiry > Date.now() ? parsed : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    if (!currentSub && localStorage.getItem('rc_free_used') === 'true') {
+      setPaywallReason('local');
+    } else if (currentSub) {
+      setPaywallReason(null);
+    }
+  }, [searchParams, user, apiUrl]);
+
+  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     if (!cvFile || !jobDescription.trim()) return;
 
@@ -46,13 +107,14 @@ export default function Home() {
     if (liFile) formData.append("linkedin", liFile);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
+    const emailToSend = activeSubscription?.email || user?.email || email;
+    if (emailToSend) formData.append("email", emailToSend);
 
     setLoading(true);
     setError(null);
     setCurrentStep(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
@@ -70,13 +132,10 @@ export default function Home() {
           if (payload.step === "done") {
             setResult(payload.result);
             setLoading(false);
-            localStorage.setItem('rc_free_used', 'true');
-          } else if (payload.step === "error") {
-            if (payload.code === 'GLOBAL_LIMIT_REACHED') {
-              setPaywallReason('global');
-              setLoading(false);
-              return;
+            if (!activeSubscription) {
+              localStorage.setItem('rc_free_used', 'true');
             }
+          } else if (payload.step === "error") {
             throw new Error(payload.message);
           } else {
             setCurrentStep(payload.step);
@@ -91,7 +150,7 @@ export default function Home() {
   }
 
   function handleReset() {
-    if (localStorage.getItem('rc_free_used') === 'true') {
+    if (!activeSubscription && localStorage.getItem('rc_free_used') === 'true') {
       setPaywallReason('local');
       return;
     }
@@ -125,22 +184,47 @@ export default function Home() {
         <Link href="/" className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
           <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
         </Link>
+        <div className="flex items-center gap-3">
+          <AuthNavLink />
+          <Link
+            href="/pricing"
+            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-hint hover:text-rc-text transition-colors no-underline"
+          >
+            Upgrade →
+          </Link>
+        </div>
       </nav>
 
       <div className={`${result ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
         {paywallReason ? (
-          <PaywallScreen reason={paywallReason} />
+          <PaywallScreen />
         ) : !result ? (
           loading ? (
             <LoadingScreen currentStep={currentStep} hasGithub={!!githubUsername} />
           ) : (
-          <UploadForm
-            cvFile={cvFile} setCvFile={setCvFile}
-            liFile={liFile} setLiFile={setLiFile}
-            jobDescription={jobDescription} setJobDescription={setJobDescription}
-            githubUsername={githubUsername} setGithubUsername={setGithubUsername}
-            onSubmit={handleSubmit} loading={false} error={error}
-          />
+            <>
+              <UploadForm
+                cvFile={cvFile} setCvFile={setCvFile}
+                liFile={liFile} setLiFile={setLiFile}
+                jobDescription={jobDescription} setJobDescription={setJobDescription}
+                githubUsername={githubUsername} setGithubUsername={setGithubUsername}
+                onSubmit={handleSubmit} loading={false} error={error}
+              />
+              {!activeSubscription && (
+                <div className="mt-6 max-w-[560px]">
+                  <label className="block font-mono text-[10px] tracking-[0.18em] uppercase text-rc-muted mb-2">
+                    Enter your email to unlock subscription benefits
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full bg-rc-surface border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded-xl px-5 py-3 text-rc-text font-mono text-[13px] outline-none transition-colors placeholder:text-rc-hint"
+                  />
+                </div>
+              )}
+            </>
           )
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight, Sparkles, ShieldCheck, Zap, Star, Trophy } from "lucide-react";
 
-type Props = { reason: 'local' | 'global' };
 type SubmitState = 'idle' | 'loading' | 'success' | 'conflict' | 'error';
 
-export function PaywallScreen({ reason }: Props) {
+export function PaywallScreen() {
   const [email, setEmail] = useState('');
   const [state, setState] = useState<SubmitState>('idle');
 
@@ -53,114 +54,105 @@ export function PaywallScreen({ reason }: Props) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[70vh] py-12">
-      <div className="bg-white border border-rc-border rounded-2xl p-10 md:p-12 w-full max-w-[540px] shadow-[0_20px_50px_rgba(0,0,0,0.04)]">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-8"
-          style={{
-            background: 'rgba(201, 58, 57, 0.08)',
-            border: '1px solid rgba(201, 58, 57, 0.15)',
-          }}
-        >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--rc-red)" strokeWidth="1.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-          </svg>
+    <div className="flex items-center justify-center min-h-[80vh] py-12 px-4 selection:bg-rc-red/10 selection:text-rc-red">
+      <div className="bg-white border border-rc-border rounded-[32px] p-8 md:p-14 w-full max-w-[620px] shadow-[0_30px_70px_rgba(201,58,57,0.08)] relative overflow-hidden group">
+        {/* Background micro-accents */}
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform duration-700">
+           <Trophy className="w-40 h-40" />
         </div>
-
-        <h2 
-          className="text-[28px] md:text-[34px] font-semibold text-rc-text mb-4 text-center leading-tight tracking-tight"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          {reason === 'local'
-            ? "Hope that scan helped!"
-            : "We're a bit busy."}
-        </h2>
-
-        <p className="text-[15px] text-rc-muted mb-8 text-center leading-relaxed">
-          {reason === 'local'
-            ? "To keep RejectCheck free for everyone, we offer one deep-dive per user. We're building a version for power-users—join the waitlist to be at the front of the line."
-            : "RejectCheck is seeing a lot of love today and our servers need a breather. Drop your email and we'll send you a priority link as soon as a slot opens up."}
-        </p>
-
-        <div className="bg-rc-bg/50 border border-rc-border rounded-xl p-5 mb-8">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint mb-3">Waitlist Benefits</p>
-          <ul className="space-y-2.5">
-            {[
-              "Unlimited deep-dive scans",
-              "Priority support for CV optimization",
-              "Exclusive developer job network access",
-              "Early access to new features"
-            ].map((benefit) => (
-              <li key={benefit} className="flex items-center gap-2.5 text-[13px] text-rc-muted">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rc-green)" strokeWidth="3">
-                  <path d="M20 6L9 17 4 12" />
-                </svg>
-                {benefit}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {state === 'success' ? (
-          <div className="p-4 bg-rc-green-bg border border-rc-green-border rounded-xl text-center">
-            <p className="text-[14px] text-rc-green font-medium">You&apos;re now on the priority list.</p>
-            <p className="font-mono text-[11px] text-rc-green mt-1">We&apos;ll notify you soon.</p>
+        
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/5 border border-rc-red/10 mb-8">
+            <Sparkles className="w-3.5 h-3.5 text-rc-red animate-pulse" />
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">Free Scan Complete</span>
           </div>
-        ) : state === 'conflict' ? (
-          <div className="p-4 bg-rc-amber-border/10 border border-rc-amber-border rounded-xl text-center">
-            <p className="text-[14px] text-rc-amber font-medium">Already on the list.</p>
-            <p className="font-mono text-[11px] text-rc-amber mt-1 italic">Check your inbox for updates.</p>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="relative">
-              <input
-                type="email"
-                placeholder="developer@work.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-rc-bg border border-rc-border hover:border-rc-border/80 focus:border-rc-red/40 rounded-xl px-5 py-3.5 text-rc-text text-[15px] outline-none transition-all placeholder:text-rc-hint"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={state === 'loading' || !email.trim()}
-              className="w-full relative group font-mono text-[12px] tracking-[0.12em] uppercase font-semibold text-white bg-rc-red rounded-xl py-4 border-none cursor-pointer transition-all duration-200 hover:opacity-90 active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed overflow-hidden shadow-[0_8px_25px_rgba(201,58,57,0.2)]"
+
+          <h2 className="text-[32px] md:text-[42px] font-bold text-rc-text mb-4 leading-[1.1] tracking-tight">
+            Level up your <span className="text-rc-red">job search.</span>
+          </h2>
+
+          <p className="text-[17px] text-rc-muted mb-10 mx-auto max-w-[440px] leading-relaxed font-medium">
+            You've seen the red flags. Now it's time to fix them and land your next role. Unlock unlimited deep-dives and career-changing tools.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center">
+            <Link 
+              href="/pricing"
+              className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 no-underline font-bold"
             >
-              <span className="relative z-10">
-                {state === 'loading' ? 'Enrolling...' : 'Join Waitlist'}
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-            </button>
-            {state === 'error' && (
-              <p className="font-mono text-[11px] text-rc-red text-center mt-2 animate-pulse">Connection error. Please try again.</p>
-            )}
-          </form>
-        )}
+              Get Unlimited Access <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link 
+              href="/analyze"
+              onClick={(e) => { e.preventDefault(); window.location.reload(); }}
+              className="inline-flex items-center justify-center px-8 py-4 border border-rc-border text-rc-muted hover:text-rc-text hover:bg-rc-bg transition-all duration-300 font-mono text-[11px] tracking-widest uppercase rounded-xl no-underline font-bold"
+            >
+              Back to Analyzer
+            </Link>
+          </div>
 
-        <div className="mt-8 pt-8 border-t border-rc-border/50 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-12">
+            {[
+              { icon: <Zap className="w-4 h-4 text-rc-red" />, text: "Unlimited deep-dive scans" },
+              { icon: <Star className="w-4 h-4 text-rc-red" />, text: "Priority CV optimization" },
+              { icon: <ShieldCheck className="w-4 h-4 text-rc-red" />, text: "Red flag removal guide" },
+              { icon: <Trophy className="w-4 h-4 text-rc-red" />, text: "Interview AI & Tracker" },
+            ].map((feature, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-rc-bg/40 border border-rc-border/50">
+                {feature.icon}
+                <span className="text-[13px] font-bold text-rc-muted leading-none">{feature.text}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-rc-border to-transparent mb-12" />
+
+          {/* Waitlist fallback */}
+          <div className="max-w-[400px] mx-auto">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint mb-4 font-bold">Or join the waitlist for early features</p>
+            {state === 'success' ? (
+              <div className="p-4 bg-rc-green-bg border border-rc-green-border rounded-xl">
+                <p className="text-[14px] text-rc-green font-bold">You're on the priority list.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="name@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 bg-rc-bg border border-rc-border rounded-lg px-4 py-2 text-[14px] outline-none focus:border-rc-red/20 transition-colors"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={state === 'loading'}
+                  className="bg-rc-text text-white px-4 py-2 rounded-lg text-[11px] font-mono uppercase tracking-widest hover:opacity-90 transition-opacity font-bold disabled:opacity-50"
+                >
+                  Join
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-rc-border/50 text-center">
           {showAdmin ? (
-            <form onSubmit={handleAdminReset} className="flex gap-2">
+            <form onSubmit={handleAdminReset} className="flex gap-2 max-w-[300px] mx-auto">
               <input 
                 type="password" 
-                placeholder="Admin Secret Key" 
+                placeholder="Admin Key" 
                 value={adminKey}
                 onChange={(e) => setAdminKey(e.target.value)}
                 className={`flex-1 bg-rc-bg border ${adminError ? 'border-rc-red/50' : 'border-rc-border'} rounded-lg px-3 py-2 text-[12px] font-mono outline-none`}
                 autoFocus
               />
-              <button 
-                type="submit" 
-                className="bg-rc-text text-white px-4 py-2 rounded-lg text-[11px] font-mono uppercase tracking-wider hover:opacity-90"
-              >
-                Reset
-              </button>
+              <button type="submit" className="bg-rc-text text-white px-4 py-2 rounded-lg text-[11px] font-mono uppercase">Reset</button>
             </form>
           ) : (
             <button 
               onClick={() => setShowAdmin(true)}
-              className="font-mono text-[9px] uppercase tracking-[0.2em] text-rc-hint hover:text-rc-muted transition-colors"
+              className="font-mono text-[9px] uppercase tracking-[0.2em] text-rc-hint hover:text-rc-muted transition-colors font-bold"
             >
               Admin Access
             </button>
@@ -169,5 +161,4 @@ export function PaywallScreen({ reason }: Props) {
       </div>
     </div>
   );
-
 }

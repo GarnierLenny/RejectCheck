@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   
   const configService = app.get(ConfigService);
   const corsOriginEnv = configService.get<string>('CORS_ORIGIN') || 'https://rejectcheck.com,https://www.rejectcheck.com,http://localhost:3000';
