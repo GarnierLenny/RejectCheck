@@ -16,6 +16,7 @@ function LoginContent() {
 
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -41,7 +42,15 @@ function LoginContent() {
         router.push(redirect);
       }
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: {
+            username: username
+          }
+        }
+      });
       if (error) {
         setError(error.message);
       } else {
@@ -117,6 +126,22 @@ function LoginContent() {
                 className="w-full px-4 py-3 rounded-lg bg-rc-surface border border-rc-border text-[13px] font-sans text-rc-text placeholder:text-rc-hint focus:outline-none focus:border-rc-red/40 transition-colors"
               />
             </div>
+
+            {mode === "signup" && (
+              <div className="flex flex-col gap-1.5">
+                <label className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-muted">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="johndoe"
+                  className="w-full px-4 py-3 rounded-lg bg-rc-surface border border-rc-border text-[13px] font-sans text-rc-text placeholder:text-rc-hint focus:outline-none focus:border-rc-red/40 transition-colors"
+                />
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <label className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-muted">

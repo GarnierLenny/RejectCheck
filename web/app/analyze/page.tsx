@@ -79,22 +79,43 @@ function AnalyzeContent() {
     }
 
 
-    // Check local free tier limit only if no active subscription
-    const currentSub = (() => {
-      try {
-        const stored = localStorage.getItem('rc_subscription');
-        if (!stored) return null;
-        const parsed: StoredSubscription = JSON.parse(stored);
-        return parsed.expiry > Date.now() ? parsed : null;
-      } catch {
-        return null;
-      }
-    })();
-
-    if (!currentSub && localStorage.getItem('rc_free_used') === 'true') {
-      setPaywallReason('local');
-    } else if (currentSub) {
-      setPaywallReason(null);
+    // Sync subscription status from server if user is logged in
+    if (user?.email) {
+      fetch(`${apiUrl}/api/stripe/subscription?email=${user.email}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.status === 'active') {
+            const sub: StoredSubscription = {
+              plan: data.plan,
+              email: user.email!,
+              expiry: new Date(data.currentPeriodEnd).getTime(),
+            };
+            localStorage.setItem('rc_subscription', JSON.stringify(sub));
+            setActiveSubscription(sub);
+            setPaywallReason(null);
+          }
+        })
+        .catch(err => console.error("[Analyze] Error syncing sub:", err));
+    }
+    // If there is an ID in the URL, fetch that analysis
+    const id = searchParams.get('id');
+    if (id && user?.email) {
+      setLoading(true);
+      fetch(`${apiUrl}/api/analyze/${id}?email=${user.email}`)
+        .then(res => {
+          if (!res.ok) throw new Error("Analysis not found");
+          return res.json();
+        })
+        .then(data => {
+          setResult(data.result);
+          setJobDescription(data.jobDescription || "");
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("[Analyze] Error loading by ID:", err);
+          setError(err.message);
+          setLoading(false);
+        });
     }
   }, [searchParams, user, apiUrl]);
 
@@ -109,6 +130,7 @@ function AnalyzeContent() {
     formData.append("jobDescription", jobDescription);
     const emailToSend = activeSubscription?.email || user?.email || email;
     if (emailToSend) formData.append("email", emailToSend);
+    formData.append("isRegistered", String(!!user));
 
     setLoading(true);
     setError(null);
@@ -116,6 +138,13 @@ function AnalyzeContent() {
 
     try {
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
+      
+      if (res.status === 402) {
+        setPaywallReason('global');
+        setLoading(false);
+        return;
+      }
+
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -132,9 +161,6 @@ function AnalyzeContent() {
           if (payload.step === "done") {
             setResult(payload.result);
             setLoading(false);
-            if (!activeSubscription) {
-              localStorage.setItem('rc_free_used', 'true');
-            }
           } else if (payload.step === "error") {
             throw new Error(payload.message);
           } else {
@@ -150,10 +176,6 @@ function AnalyzeContent() {
   }
 
   function handleReset() {
-    if (!activeSubscription && localStorage.getItem('rc_free_used') === 'true') {
-      setPaywallReason('local');
-      return;
-    }
     setResult(null);
     setError(null);
     setCurrentStep(null);
@@ -184,13 +206,21 @@ function AnalyzeContent() {
         <Link href="/" className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
           <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-6">
+          {user && (
+            <Link 
+              href="/history" 
+              className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-hint hover:text-rc-text transition-colors no-underline"
+            >
+              History
+            </Link>
+          )}
           <AuthNavLink />
           <Link
             href="/pricing"
-            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-hint hover:text-rc-text transition-colors no-underline"
+            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red hover:text-rc-red/80 transition-colors no-underline"
           >
-            Upgrade →
+            Pricing →
           </Link>
         </div>
       </nav>
@@ -253,6 +283,23 @@ function AnalyzeContent() {
               {activeTab === "audit"   && <AuditTab cv={result.audit.cv} />}
               {activeTab === "signals" && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={githubUsername.trim().length > 0} hasLinkedin={liFile !== null} />}
               {activeTab === "flags"   && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} />}
+
+              {/* Anonymous CTA */}
+              {!user && (
+                <div className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-rc-surface to-rc-bg border border-rc-red/20 text-center relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rc-red/50 to-transparent" />
+                  <h3 className="text-xl font-bold mb-3">Don't lose your analysis</h3>
+                  <p className="text-rc-muted text-sm max-w-[400px] mx-auto mb-6">
+                    Sign up now to save this result and track your progress. Unregistered analyses are not saved and will be lost.
+                  </p>
+                  <Link 
+                    href="/login" 
+                    className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20"
+                  >
+                    Create Account
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}

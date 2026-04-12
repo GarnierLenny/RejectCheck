@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { AnalyzeResponseSchema, AnalyzeResponse } from './dto/analyze-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { StripeService } from '../stripe/stripe.service';
+import { Prisma } from '@prisma/client';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -150,5 +151,97 @@ export class AnalyzeService {
       console.error("Zod validation or JSON error:", err, raw);
       throw new InternalServerErrorException("Invalid AI response format");
     }
+  }
+
+  async checkUsageLimit(email?: string, ip?: string): Promise<{ allowed: boolean; reason?: string }> {
+    // 1. Check if email has a paid subscription
+    if (email) {
+      const hasSub = await this.stripeService.checkSubscription(email);
+      if (hasSub) return { allowed: true };
+    }
+
+    // 2. Check usage count by email
+    if (email) {
+      const count = await this.prisma.analysis.count({ where: { email } });
+      if (count >= 1) return { allowed: false, reason: 'limit_reached' };
+    }
+
+    // 3. Check usage count by IP
+    if (ip) {
+      const count = await this.prisma.analysis.count({ where: { ip } });
+      if (count >= 1) return { allowed: false, reason: 'limit_reached' };
+    }
+
+    return { allowed: true };
+  }
+
+  async saveAnalysis(data: { 
+    email?: string; 
+    ip?: string; 
+    jobDescription: string; 
+    result: any; 
+    isRegistered: boolean 
+  }) {
+    const { email, ip, jobDescription, result, isRegistered } = data;
+
+    if (isRegistered && email) {
+      // Registered User: Store everything
+      await this.prisma.analysis.create({
+        data: {
+          email,
+          ip,
+          jobDescription,
+          result: result as any,
+        }
+      });
+    } else {
+      // Anonymous User: Store ONLY IP and createdAt (by default)
+      // We explicitly null out email and jobDescription as requested
+      await this.prisma.analysis.create({
+        data: {
+          ip,
+          email: null,
+          jobDescription: null,
+          // We omit 'result' to keep it as DB null
+        }
+      });
+    }
+  }
+
+  async getHistory(email: string) {
+    if (!email) return [];
+    return this.prisma.analysis.findMany({
+      where: { 
+        email,
+        result: { not: Prisma.DbNull }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getAnalysisById(id: number, email: string) {
+    return this.prisma.analysis.findFirst({
+      where: { 
+        id,
+        email,
+        result: { not: Prisma.DbNull }
+      }
+    });
+  }
+
+  async getProfile(email: string) {
+    let profile = await this.prisma.profile.findUnique({ where: { email } });
+    if (!profile) {
+      profile = await this.prisma.profile.create({ data: { email } });
+    }
+    return profile;
+  }
+
+  async updateProfile(email: string, data: { username?: string; avatarUrl?: string }) {
+    return this.prisma.profile.upsert({
+      where: { email },
+      update: data,
+      create: { email, ...data },
+    });
   }
 }

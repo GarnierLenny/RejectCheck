@@ -23,3 +23,21 @@ model Subscription {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+model Analysis {
+  id             Int      @id @default(autoincrement())
+  email          String?  // Registered users only
+  ip             String?  // Anonymous tracking
+  jobDescription String?  // Registered users only
+  result         Json?    // Registered users only
+  createdAt      DateTime @default(now())
+}
+
+model Profile {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
