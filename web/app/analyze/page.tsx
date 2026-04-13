@@ -191,14 +191,6 @@ function AnalyzeContent() {
           <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
         </Link>
         <div className="flex items-center gap-6">
-          {user && (
-            <Link 
-              href="/history" 
-              className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-hint hover:text-rc-text transition-colors no-underline"
-            >
-              History
-            </Link>
-          )}
           <AuthNavLink />
           <Link
             href="/pricing"

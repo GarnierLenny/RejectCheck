@@ -46,6 +46,9 @@ export const metadata: Metadata = {
     description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
     images: ["/RejectCheck_white.png"],
   },
+  alternates: {
+    canonical: "./",
+  },
 };
 
 import { Toaster } from "sonner";
