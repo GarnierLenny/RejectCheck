@@ -1,6 +1,6 @@
 import type { components } from "../types/api";
 
-export type AnalysisResult = components["schemas"]["AnalyzeResponseDto_Output"];
+export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"];
 export type Issue = AnalysisResult["audit"]["cv"]["issues"][number];
 export type Fix = AnalysisResult["seniority_analysis"]["fix"];
 

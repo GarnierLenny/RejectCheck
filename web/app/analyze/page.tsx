@@ -16,7 +16,9 @@ import { ProfileTab } from "../components/tabs/ProfileTab";
 import { AuditTab } from "../components/tabs/AuditTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
+import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
+import { toast } from "sonner";
 
 type Tab = "ats" | "profile" | "audit" | "signals" | "flags";
 
@@ -41,6 +43,7 @@ function AnalyzeContent() {
   const [error, setError] = useState<string | null>(null);
   const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
   const [activeSubscription, setActiveSubscription] = useState<StoredSubscription | null>(null);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -176,6 +179,28 @@ function AnalyzeContent() {
     });
   }
 
+  const exportToMd = () => {
+    if (!result) return;
+    const md = generateMarkdown(result);
+    const names = getExportFilenames(result);
+    triggerDownload(md, names.md, "text/markdown");
+    toast.success("Markdown report downloaded");
+  };
+
+  const exportToPdf = async () => {
+    if (!result) return;
+    setIsExportingPdf(true);
+    const names = getExportFilenames(result);
+    try {
+      await generatePdf(result, names.pdf);
+      toast.success("PDF report generated");
+    } catch (err) {
+      console.error("PDF Export failed:", err);
+      toast.error("Failed to generate PDF");
+    }
+    setIsExportingPdf(false);
+  };
+
   const tabs = result ? ([
     { id: "ats",     label: "ATS Filter", badge: result.ats_simulation.would_pass ? "✓" : "✗", badgeClass: result.ats_simulation.would_pass ? "text-rc-green" : "text-rc-red" },
     { id: "profile", label: "Profile",    badge: null, badgeClass: "" },
@@ -222,7 +247,13 @@ function AnalyzeContent() {
           )
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <ScoreSidebar result={result} onReset={handleReset} />
+            <ScoreSidebar 
+              result={result} 
+              onReset={handleReset} 
+              onExportMd={exportToMd}
+              onExportPdf={exportToPdf}
+              isExportingPdf={isExportingPdf}
+            />
 
             <div className="lg:col-span-8">
               {/* Tab nav */}

@@ -249,6 +249,16 @@ export class AnalyzeService {
     });
   }
 
+  async deleteAnalysis(id: number, email: string) {
+    const analysis = await (this.prisma as any).analysis.findFirst({
+      where: { id, email },
+    });
+    if (!analysis) throw new BadRequestException('Analysis not found or unauthorized');
+    return (this.prisma as any).analysis.delete({
+      where: { id },
+    });
+  }
+
   async getProfile(email: string) {
     let profile = await (this.prisma as any).profile.findUnique({ where: { email } });
     if (!profile) {

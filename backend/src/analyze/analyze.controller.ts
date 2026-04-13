@@ -1,10 +1,11 @@
 import { Controller, Post, Get, UseInterceptors, UploadedFiles, Body, Res, Req, Query, BadRequestException } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiConsumes, ApiOperation, ApiTags, ApiOkResponse, ApiBody } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AnalyzeService } from './analyze.service';
-import { AnalyzeRequestSchema } from './dto/analyze-request.dto';
+import { AnalyzeRequestSchema, AnalyzeRequestDto } from './dto/analyze-request.dto';
+import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 
 @ApiTags('Analyze')
 @Controller('api/analyze')
@@ -17,6 +18,8 @@ export class AnalyzeController {
   @Post()
   @ApiOperation({ summary: 'Analyze a CV against a job description' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: AnalyzeRequestDto })
+  @ApiOkResponse({ type: AnalyzeResponseDto })
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'cv', maxCount: 1 },
     { name: 'linkedin', maxCount: 1 },
@@ -96,6 +99,7 @@ export class AnalyzeController {
 
   @Get('history')
   @ApiOperation({ summary: 'Get analysis history for a user' })
+  @ApiOkResponse({ type: [AnalyzeResponseDto] })
   async getHistory(@Query('email') email: string) {
     if (!email) throw new BadRequestException('Email is required');
     return this.analyzeService.getHistory(email);
@@ -122,6 +126,7 @@ export class AnalyzeController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific analysis by ID' })
+  @ApiOkResponse({ type: AnalyzeResponseDto })
   async getAnalysis(@Req() req: Request, @Query('email') email: any, @Res() res: any) {
     const { id: rawId } = req.params;
     const id = parseInt(rawId as string);
@@ -134,5 +139,17 @@ export class AnalyzeController {
     if (!analysis) return res.status(404).json({ message: 'Analysis not found' });
     
     return res.json(analysis);
+  }
+
+  @Post(':id/delete') // Using POST for compatibility or @Delete if supported by frontend fetch easily
+  @ApiOperation({ summary: 'Delete an analysis' })
+  async deleteAnalysis(@Req() req: Request, @Query('email') email: any) {
+    const { id: rawId } = req.params;
+    const id = parseInt(rawId as string);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const emailStr = String(email || '');
+    if (!emailStr) throw new BadRequestException('Email is required');
+
+    return this.analyzeService.deleteAnalysis(id, emailStr);
   }
 }

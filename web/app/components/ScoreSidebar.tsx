@@ -1,12 +1,16 @@
 import type { AnalysisResult } from "./types";
 import { Tooltip } from "./Tooltip";
+import { Download, FileDown, RotateCcw } from "lucide-react";
 
 type Props = {
   result: AnalysisResult;
   onReset: () => void;
+  onExportPdf: () => void;
+  onExportMd: () => void;
+  isExportingPdf?: boolean;
 };
 
-export function ScoreSidebar({ result, onReset }: Props) {
+export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExportingPdf }: Props) {
   const scoreTextClass =
     result.score >= 70 ? "text-rc-red"
     : result.score >= 40 ? "text-rc-amber"
@@ -18,7 +22,7 @@ export function ScoreSidebar({ result, onReset }: Props) {
     : "bg-rc-green";
 
   return (
-    <div className="lg:col-span-4 sticky top-[40px] space-y-6">
+    <div className="lg:col-span-4 sticky top-[40px] space-y-5">
       {/* Score card */}
       <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6 shadow-xl">
         <div className="flex items-center justify-between mb-6">
@@ -78,6 +82,25 @@ export function ScoreSidebar({ result, onReset }: Props) {
         </div>
       </div>
 
+      {/* Export buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={onExportPdf}
+          disabled={isExportingPdf}
+          className="flex items-center justify-center gap-2 font-mono text-[10px] text-rc-text bg-rc-surface hover:bg-rc-bg transition-colors py-3 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest disabled:opacity-50"
+        >
+          <FileDown size={14} className="text-rc-red" />
+          {isExportingPdf ? "Exporting..." : "Export PDF"}
+        </button>
+        <button
+          onClick={onExportMd}
+          className="flex items-center justify-center gap-2 font-mono text-[10px] text-rc-text bg-rc-surface hover:bg-rc-bg transition-colors py-3 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
+        >
+          <Download size={14} className="text-rc-hint" />
+          Markdown
+        </button>
+      </div>
+
       {/* Confidence card */}
       <div className="bg-rc-surface/50 border-[0.5px] border-rc-border rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
@@ -85,21 +108,18 @@ export function ScoreSidebar({ result, onReset }: Props) {
           <span className="text-[12px] font-mono font-bold text-rc-text">{result.confidence.score}%</span>
         </div>
         <p className="text-[12px] text-rc-muted leading-relaxed font-sans">{result.confidence.reason}</p>
-        {result.confidence.score < 80 && (
-          <div className="mt-4 p-3 bg-rc-amber/5 border-[0.5px] border-rc-amber/20 rounded-lg text-[11px] text-rc-amber/80 leading-snug">
-            Tip: Provide more data (GitHub/LinkedIn) to reach 95%+ confidence.
-          </div>
-        )}
       </div>
 
       {/* Reset button */}
       <button
         type="button"
         onClick={onReset}
-        className="w-full flex items-center justify-center gap-2 font-mono text-[11px] text-rc-muted hover:text-rc-text transition-colors py-4 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
+        className="w-full flex items-center justify-center gap-2 font-mono text-[10px] text-rc-hint hover:text-rc-text transition-colors py-3 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
       >
-        &larr; Analyze New Profile
+        <RotateCcw size={12} />
+        New Profile
       </button>
     </div>
   );
 }
+

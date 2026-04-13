@@ -20,8 +20,11 @@ import {
   Trophy,
   Zap,
   Camera,
-  User as UserIcon
+  User as UserIcon,
+  MoreVertical,
+  Download
 } from "lucide-react";
+import { ExportModal } from "../components/ExportModal";
 
 type HistoryItem = {
   id: number;
@@ -61,6 +64,9 @@ function AccountPageContent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
+  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
+  const [exportItem, setExportItem] = useState<HistoryItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     if (searchParams.get("success") === "true") {
@@ -126,6 +132,41 @@ function AccountPageContent() {
       setLoading(false);
     });
   }, [searchParams, router, supabase.auth]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClick = () => setActiveMenuId(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
+
+  async function handleDelete(e: React.MouseEvent, id: number) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm("Are you sure you want to delete this analysis?")) return;
+
+    setIsDeleting(id);
+    try {
+      const res = await fetch(`${apiUrl}/api/analyze/${id}/delete?email=${encodeURIComponent(user?.email || "")}`, {
+        method: 'POST',
+      });
+      if (res.ok) {
+        setHistory(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
+    } finally {
+      setIsDeleting(null);
+      setActiveMenuId(null);
+    }
+  }
+
+  function handleOpenExport(e: React.MouseEvent, item: HistoryItem) {
+    e.preventDefault();
+    e.stopPropagation();
+    setExportItem(item);
+    setActiveMenuId(null);
+  }
 
   async function handleUpdateProfile(data: Partial<Profile>) {
     if (!user?.email) return;
@@ -440,29 +481,62 @@ function AccountPageContent() {
                   const score = item.result?.score ?? 0;
                   
                   return (
-                    <Link 
-                      key={item.id} 
-                      href={`/analyze?id=${item.id}`}
-                      className="flex items-center justify-between p-6 bg-white border border-rc-border rounded-[24px] hover:border-rc-red/20 group transition-all no-underline shadow-sm"
-                    >
-                      <div className="flex items-center gap-6">
-                        <div className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-black shadow-sm transition-transform group-hover:scale-105 ${getScoreColor(score)}`}>
-                          {score}
+                    <div key={item.id} className="relative group">
+                      <Link 
+                        href={`/analyze?id=${item.id}`}
+                        className={`flex items-center justify-between p-6 bg-white border border-rc-border rounded-[24px] hover:border-rc-red/20 group/card transition-all no-underline shadow-sm ${isDeleting === item.id ? 'opacity-50 pointer-events-none' : ''}`}
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-black shadow-sm transition-transform group-hover/card:scale-105 ${getScoreColor(score)}`}>
+                            {score}
+                          </div>
+                          <div className="space-y-1">
+                            <h3 className="font-bold text-rc-text tracking-tight flex items-center gap-2 group-hover/card:text-rc-red transition-colors">
+                              {jobTitle} <span className="text-rc-hint/50 font-normal group-hover/card:text-rc-red/30">•</span> {company}
+                            </h3>
+                            <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
+                              <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </p>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <h3 className="font-bold text-rc-text tracking-tight flex items-center gap-2 group-hover:text-rc-red transition-colors">
-                            {jobTitle} <span className="text-rc-hint/50 font-normal group-hover:text-rc-red/30">•</span> {company}
-                          </h3>
-                          <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
-                            <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </p>
+                        <div className="flex items-center gap-4 pr-12">
+                          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint opacity-10 font-bold group-hover/card:opacity-100 group-hover/card:text-rc-red transition-all">Details</span>
+                          <ChevronRight className="w-5 h-5 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
                         </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint opacity-10 font-bold group-hover:opacity-100 group-hover:text-rc-red transition-all">Details</span>
-                        <ChevronRight className="w-5 h-5 text-rc-hint/30 group-hover:text-rc-red transition-all" />
-                      </div>
-                    </Link>
+                      </Link>
+
+                      {/* Menu Button */}
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setActiveMenuId(activeMenuId === item.id ? null : item.id);
+                        }}
+                        className={`absolute right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-xl hover:bg-rc-bg transition-all z-20 border border-transparent hover:border-rc-border ${activeMenuId === item.id ? 'bg-rc-bg border-rc-border text-rc-red' : 'text-rc-hint'}`}
+                      >
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {activeMenuId === item.id && (
+                        <div className="absolute right-12 top-[calc(50%+20px)] w-48 bg-white border border-rc-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={(e) => handleOpenExport(e, item)}
+                            className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-bg text-rc-text transition-colors border-b border-rc-border group/item"
+                          >
+                            <Download className="w-4 h-4 text-rc-red group-hover/item:scale-110 transition-transform" />
+                            <span className="font-semibold">Export Report</span>
+                          </button>
+                          <button 
+                            onClick={(e) => handleDelete(e, item.id)}
+                            className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-red/5 text-rc-red transition-colors group/del"
+                          >
+                            <Trash2 className="w-4 h-4 group-hover/del:rotate-12 transition-transform" />
+                            <span className="font-semibold">Delete Analysis</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   );
                 })
               )}
@@ -480,6 +554,12 @@ function AccountPageContent() {
       {showSuccessModal && (
         <SuccessModal onClose={() => setShowSuccessModal(false)} />
       )}
+
+      <ExportModal 
+        isOpen={!!exportItem} 
+        onClose={() => setExportItem(null)} 
+        result={exportItem?.result || null} 
+      />
     </div>
   );
 }
