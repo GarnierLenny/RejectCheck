@@ -16,9 +16,9 @@ import { ProfileTab } from "../components/tabs/ProfileTab";
 import { AuditTab } from "../components/tabs/AuditTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
-import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
+import { Check, X } from "lucide-react";
 
 type Tab = "ats" | "profile" | "audit" | "signals" | "flags";
 
@@ -201,8 +201,18 @@ function AnalyzeContent() {
     setIsExportingPdf(false);
   };
 
+  // Derive flags from either current state or loaded result
+  const hasGithubVal = githubUsername.trim().length > 0 || result?.audit.github.score !== null;
+  const hasLinkedinVal = liFile !== null || result?.audit.linkedin.score !== null;
+  const hasMLVal = mlFile !== null || mlText.trim().length > 0 || (result as any)?.motivationLetter !== undefined;
+
   const tabs = result ? ([
-    { id: "ats",     label: "ATS Filter", badge: result.ats_simulation.would_pass ? "✓" : "✗", badgeClass: result.ats_simulation.would_pass ? "text-rc-green" : "text-rc-red" },
+    { 
+      id: "ats",     
+      label: "ATS Filter", 
+      badge: result.ats_simulation.would_pass ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />, 
+      badgeClass: result.ats_simulation.would_pass ? "text-rc-green" : "text-rc-red" 
+    },
     { id: "profile", label: "Profile",    badge: null, badgeClass: "" },
     { id: "audit",   label: "CV Audit",   badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
     { id: "signals", label: "Signals",    badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
@@ -231,7 +241,12 @@ function AnalyzeContent() {
           <PaywallScreen />
         ) : !result ? (
           loading ? (
-            <LoadingScreen currentStep={currentStep} hasGithub={!!githubUsername} />
+            <LoadingScreen 
+              currentStep={currentStep} 
+              hasGithub={githubUsername.trim().length > 0} 
+              hasLinkedin={liFile !== null}
+              hasML={mlFile !== null || mlText.trim().length > 0}
+            />
           ) : (
             <>
               <UploadForm
@@ -276,7 +291,7 @@ function AnalyzeContent() {
               {activeTab === "ats"     && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
               {activeTab === "profile" && <ProfileTab result={result} />}
               {activeTab === "audit"   && <AuditTab cv={result.audit.cv} />}
-              {activeTab === "signals" && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={githubUsername.trim().length > 0} hasLinkedin={liFile !== null} />}
+              {activeTab === "signals" && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
               {activeTab === "flags"   && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} />}
 
               {/* Anonymous CTA */}
