@@ -5,6 +5,8 @@ import { PDFParse } from 'pdf-parse';
 import { z } from 'zod';
 import { AnalyzeResponseSchema, AnalyzeResponse } from './dto/analyze-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { StripeService } from '../stripe/stripe.service';
+import { Prisma } from '@prisma/client';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -15,39 +17,12 @@ export class AnalyzeService {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
+    private stripeService: StripeService,
   ) {
     const prompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT');
     console.log(`[AnalyzeService] Constructor: SYSTEM_ANALYZE_PROMPT loaded. Length: ${prompt?.length ?? 0}`);
     if (prompt) console.log(`[AnalyzeService] Prompt Start: "${prompt.slice(0, 50)}..."`);
     this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
-  }
-
-  async checkGlobalLimit(): Promise<void> {
-    const limit = parseInt(this.configService.get<string>('GLOBAL_FREE_ANALYSIS_LIMIT') ?? '200', 10);
-    const counter = await this.prisma.analysisCounter.findUnique({ where: { id: 1 } });
-    if (counter && counter.total >= limit) {
-      throw new HttpException(
-        { message: 'Free tier capacity reached', code: 'GLOBAL_LIMIT_REACHED' },
-        429,
-      );
-    }
-  }
-
-  async incrementCounter(): Promise<void> {
-    await this.prisma.analysisCounter.update({
-      where: { id: 1 },
-      data: { total: { increment: 1 } },
-    });
-  }
-
-  async getCounter(): Promise<{ total: number; limit: number }> {
-    const counter = await this.prisma.analysisCounter.findUnique({ where: { id: 1 } });
-    const limit = parseInt(this.configService.get<string>('GLOBAL_FREE_ANALYSIS_LIMIT') ?? '200', 10);
-    return { total: counter?.total ?? 0, limit };
-  }
-
-  async resetCounter(): Promise<void> {
-    await this.prisma.analysisCounter.update({ where: { id: 1 }, data: { total: 0 } });
   }
 
   private async parsePdf(buffer: Buffer): Promise<string> {
@@ -97,9 +72,11 @@ export class AnalyzeService {
     cvBuffer?: Buffer;
     jobDescription: string;
     linkedinBuffer?: Buffer;
+    motivationLetterBuffer?: Buffer;
+    motivationLetterText?: string;
     githubUsername?: string;
-  }, onStep?: (step: string) => void): Promise<AnalyzeResponse> {
-    const { cvBuffer, jobDescription, linkedinBuffer, githubUsername } = data;
+  }, onStep?: (step: string) => void): Promise<{ result: AnalyzeResponse; cvText: string; motivationLetterText: string }> {
+    const { cvBuffer, jobDescription, linkedinBuffer, motivationLetterBuffer, motivationLetterText: mlText, githubUsername } = data;
 
     if (!cvBuffer) {
       throw new BadRequestException('CV is required');
@@ -116,6 +93,18 @@ export class AnalyzeService {
         linkedinText = await this.parsePdf(linkedinBuffer);
       } catch {
         console.warn('Failed to parse LinkedIn PDF');
+      }
+    }
+
+    let motivationLetterText = '';
+    if (mlText) {
+      motivationLetterText = mlText.trim().slice(0, MAX_TEXT_CHARS);
+    } else if (motivationLetterBuffer) {
+      onStep?.('parsing_motivation_letter');
+      try {
+        motivationLetterText = await this.parsePdf(motivationLetterBuffer);
+      } catch {
+        console.warn('Failed to parse Motivation Letter PDF');
       }
     }
 
@@ -148,7 +137,7 @@ export class AnalyzeService {
         { role: "system", content: systemPrompt },
         {
           role: "user",
-          content: `Analyze this application for the following job. Use the provided CV and additional context (LinkedIn/GitHub) to find gaps.
+          content: `Analyze this application for the following job. Use the provided documents to find gaps.
 
           JOB DESCRIPTION:
           ${jobText}
@@ -158,10 +147,11 @@ export class AnalyzeService {
           CANDIDATE CV:
           ${cvText}
 
+          ${motivationLetterText ? `---\nMOTIVATION LETTER:\n${motivationLetterText}` : ''}
           ${linkedinText ? `---\nLINKEDIN PROFILE:\n${linkedinText}` : ''}
           ${githubInfo ? `---\nGITHUB DATA:\n${githubInfo}` : ''}
 
-          Be brutal and specific.`,
+          Be brutal and specific. Evaluate if the motivation letter (if provided) actually adds value or is generic.`,
         },
       ],
     });
@@ -171,10 +161,107 @@ export class AnalyzeService {
 
     try {
       const parsedJson = JSON.parse(raw);
-      return AnalyzeResponseSchema.parse(parsedJson);
+      const result = AnalyzeResponseSchema.parse(parsedJson);
+      return { result, cvText, motivationLetterText };
     } catch (err) {
       console.error("Zod validation or JSON error:", err, raw);
       throw new InternalServerErrorException("Invalid AI response format");
     }
+  }
+
+  async checkUsageLimit(email?: string, ip?: string): Promise<{ allowed: boolean; reason?: string }> {
+    // 1. Check if email has a paid subscription
+    if (email) {
+      const hasSub = await this.stripeService.checkSubscription(email);
+      if (hasSub) return { allowed: true };
+    }
+
+    // 2. Check usage count by email
+    if (email) {
+      const count = await (this.prisma as any).analysis.count({ where: { email } });
+      if (count >= 1) return { allowed: false, reason: 'limit_reached' };
+    }
+
+    // 3. Check usage count by IP
+    if (ip) {
+      const count = await (this.prisma as any).analysis.count({ where: { ip } });
+      if (count >= 1) return { allowed: false, reason: 'limit_reached' };
+    }
+
+    return { allowed: true };
+  }
+
+  async saveAnalysis(data: { 
+    email?: string; 
+    ip?: string; 
+    jobDescription: string; 
+    cvText?: string;
+    motivationLetter?: string;
+    result: any; 
+    isRegistered: boolean 
+  }) {
+    const { email, ip, jobDescription, cvText, motivationLetter, result, isRegistered } = data;
+
+    if (isRegistered && email) {
+      // Registered User: Store everything
+      await (this.prisma as any).analysis.create({
+        data: {
+          email,
+          ip: ip ?? null,
+          jobDescription,
+          cvText: cvText ?? null,
+          motivationLetter: motivationLetter ?? null,
+          result: result as any,
+        }
+      });
+    } else {
+      // Anonymous User: Store ONLY IP and createdAt (by default)
+      // We explicitly null out email and jobDescription as requested
+      await (this.prisma as any).analysis.create({
+        data: {
+          ip: ip ?? null,
+          email: null,
+          jobDescription: null,
+          // We omit 'result' to keep it as DB null
+        }
+      });
+    }
+  }
+
+  async getHistory(email: string) {
+    if (!email) return [];
+    return (this.prisma as any).analysis.findMany({
+      where: { 
+        email,
+        result: { not: Prisma.DbNull }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getAnalysisById(id: number, email: string) {
+    return (this.prisma as any).analysis.findFirst({
+      where: { 
+        id,
+        email,
+        result: { not: Prisma.DbNull }
+      }
+    });
+  }
+
+  async getProfile(email: string) {
+    let profile = await (this.prisma as any).profile.findUnique({ where: { email } });
+    if (!profile) {
+      profile = await (this.prisma as any).profile.create({ data: { email } });
+    }
+    return profile;
+  }
+
+  async updateProfile(email: string, data: { username?: string; avatarUrl?: string }) {
+    return (this.prisma as any).profile.upsert({
+      where: { email },
+      update: data,
+      create: { email, ...data },
+    });
   }
 }

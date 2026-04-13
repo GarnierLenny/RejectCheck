@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Navbar } from "./components/Navbar";
 
 const steps = [
   {
@@ -55,23 +56,7 @@ const signals = [
 export default function Home() {
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
-      {/* ─── Nav ─────────────────────────────────────────────────── */}
-      <nav className="flex items-center justify-between px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border">
-        <div className="flex items-center gap-2.5">
-          <Image
-            src="/RejectCheck_500_bg_less.png"
-            alt="RejectCheck Logo"
-            width={40}
-            height={40}
-          />
-        </div>
-        <Link
-          href="/analyze"
-          className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"
-        >
-          Try free →
-        </Link>
-      </nav>
+      <Navbar />
 
       {/* ─── Hero ────────────────────────────────────────────────── */}
       <section className="max-w-[1100px] mx-auto px-5 md:px-[40px] pt-20 pb-24 md:pt-28 md:pb-32">
@@ -225,9 +210,9 @@ export default function Home() {
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">RejectCheck © 2026</div>
         <div className="flex gap-6">
-          <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
-            Privacy
-          </a>
+          <Link href="/privacy" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+            Privacy (GDPR)
+          </Link>
           <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
             Terms
           </a>

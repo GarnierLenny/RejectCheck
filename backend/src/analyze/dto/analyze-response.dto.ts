@@ -99,6 +99,10 @@ export const AnalyzeResponseSchema = z.object({
     detected: z.boolean(),
     explanation: z.string(),
   }),
+  job_details: z.object({
+    title: z.string(),
+    company: z.string(),
+  }),
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}

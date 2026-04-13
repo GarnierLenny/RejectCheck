@@ -17,6 +17,7 @@ const chivoMono = Chivo_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://rejectcheck.com"),
   title: "RejectCheck — Find out why your CV got rejected",
   description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
   icons: {
@@ -45,7 +46,12 @@ export const metadata: Metadata = {
     description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
     images: ["/RejectCheck_white.png"],
   },
+  alternates: {
+    canonical: "./",
+  },
 };
+
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -58,6 +64,7 @@ export default function RootLayout({
       className={`${instrumentSans.variable} ${chivoMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Toaster position="top-center" expand={true} richColors />
         <Providers>
           {children}
         </Providers>

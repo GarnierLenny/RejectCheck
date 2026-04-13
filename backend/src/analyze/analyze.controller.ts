@@ -1,4 +1,5 @@
-import { Controller, Post, Get, UseInterceptors, UploadedFiles, Body, Res, Headers } from '@nestjs/common';
+import { Controller, Post, Get, UseInterceptors, UploadedFiles, Body, Res, Req, Query, BadRequestException } from '@nestjs/common';
+import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
@@ -19,68 +20,119 @@ export class AnalyzeController {
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'cv', maxCount: 1 },
     { name: 'linkedin', maxCount: 1 },
+    { name: 'motivationLetter', maxCount: 1 },
   ]))
   async analyze(
-    @UploadedFiles() files: { cv?: Express.Multer.File[], linkedin?: Express.Multer.File[] },
+    @UploadedFiles() files: { 
+      cv?: Express.Multer.File[], 
+      linkedin?: Express.Multer.File[], 
+      motivationLetter?: Express.Multer.File[] 
+    },
     @Body() body: unknown,
     @Res() res: any,
+    @Req() req: Request,
   ) {
     const parsed = AnalyzeRequestSchema.safeParse(body);
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { jobDescription, githubUsername } = parsed.data;
+    const { jobDescription, githubUsername, motivationLetterText, email, isRegistered } = parsed.data;
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
+    // Capture IP: primary from x-forwarded-for, fallback to req.ip
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
 
     const write = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
-      await this.analyzeService.checkGlobalLimit();
+      // 1. Check Usage Limit
+      const limit = await this.analyzeService.checkUsageLimit(email, ip);
+      if (!limit.allowed) {
+        // Return 402 Payment Required for limit reached
+        return res.status(402).json({ 
+          message: 'Analysis limit reached. Upgrade to continue.', 
+          code: 'LIMIT_REACHED' 
+        });
+      }
 
-      const result = await this.analyzeService.analyzeApplication(
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
+
+      const { result, cvText: parsedCv, motivationLetterText: parsedMl } = await this.analyzeService.analyzeApplication(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           jobDescription,
           linkedinBuffer: files.linkedin?.[0]?.buffer,
+          motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
+          motivationLetterText,
           githubUsername,
         },
         (step) => write({ step }),
       );
 
-      write({ step: 'done', result });
+      // 2. Save Analysis (with GDPR rules handled in service)
+      await this.analyzeService.saveAnalysis({
+        email,
+        ip,
+        jobDescription,
+        cvText: parsedCv,
+        motivationLetter: parsedMl,
+        result,
+        isRegistered: !!isRegistered,
+      });
 
-      // Fire-and-forget: a DB failure should not affect the client response
-      this.analyzeService.incrementCounter().catch((err) =>
-        console.error('[AnalyzeController] Counter increment failed:', err),
-      );
+      write({ step: 'done', result });
     } catch (err: any) {
+      if (res.writableEnded) return;
+      if (!res.headersSent) {
+        return res.status(err.status || 500).json({ message: err.message });
+      }
       write({ step: 'error', message: err.message || 'Analysis failed', code: err.response?.code });
     } finally {
       res.end();
     }
   }
 
-  @Get('counter')
-  @ApiOperation({ summary: 'Get current analysis counter (admin)' })
-  async getCounter(@Headers('x-admin-key') adminKey: string, @Res() res: any) {
-    if (adminKey !== this.configService.get('ADMIN_SECRET_KEY')) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    const data = await this.analyzeService.getCounter();
-    return res.status(200).json(data);
+  @Get('history')
+  @ApiOperation({ summary: 'Get analysis history for a user' })
+  async getHistory(@Query('email') email: string) {
+    if (!email) throw new BadRequestException('Email is required');
+    return this.analyzeService.getHistory(email);
   }
 
-  @Post('reset-counter')
-  @ApiOperation({ summary: 'Reset analysis counter to 0 (admin)' })
-  async resetCounter(@Headers('x-admin-key') adminKey: string, @Res() res: any) {
-    if (adminKey !== this.configService.get('ADMIN_SECRET_KEY')) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    await this.analyzeService.resetCounter();
-    return res.status(200).json({ message: 'Counter reset', total: 0 });
+  @Get('profile')
+  @ApiOperation({ summary: 'Get user profile' })
+  async getProfile(@Query('email') email: string) {
+    console.log("[AnalyzeController] GET /profile for", email);
+    if (!email) throw new BadRequestException('Email is required');
+    return this.analyzeService.getProfile(email);
+  }
+
+  @Post('profile')
+  @ApiOperation({ summary: 'Update user profile' })
+  async updateProfile(@Body() body: { email: string; username?: string; avatarUrl?: string }) {
+    console.log("[AnalyzeController] POST /profile for", body.email);
+    if (!body.email) throw new BadRequestException('Email is required');
+    return this.analyzeService.updateProfile(body.email, {
+      username: body.username,
+      avatarUrl: body.avatarUrl,
+    });
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a specific analysis by ID' })
+  async getAnalysis(@Req() req: Request, @Query('email') email: any, @Res() res: any) {
+    const { id: rawId } = req.params;
+    const id = parseInt(rawId as string);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const emailStr = String(email || '');
+    if (!emailStr) throw new BadRequestException('Email is required');
+    
+    console.log("[AnalyzeController] GET /:id", id, "for", emailStr);
+    const analysis = await this.analyzeService.getAnalysisById(id, emailStr);
+    if (!analysis) return res.status(404).json({ message: 'Analysis not found' });
+    
+    return res.json(analysis);
   }
 }
