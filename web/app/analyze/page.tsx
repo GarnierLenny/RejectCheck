@@ -17,12 +17,13 @@ import { AuditTab } from "../components/tabs/AuditTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
 import { ActionsTab } from "../components/tabs/ActionsTab";
+import { BridgeTab } from "../components/tabs/BridgeTab";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "ats" | "profile" | "audit" | "signals" | "flags" | "actions";
+type Tab = "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -220,6 +221,7 @@ function AnalyzeContent() {
     { id: "signals", label: "Signals",    badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",   label: "Red Flags",  badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
     { id: "actions", label: "Actions to take", badge: null, badgeClass: "" },
+    { id: "bridge",  label: "Bridge the gap",   badge: null, badgeClass: "" },
   ] as const) : [];
 
   return (
@@ -297,6 +299,7 @@ function AnalyzeContent() {
               {activeTab === "signals" && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
               {activeTab === "flags"   && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} />}
               {activeTab === "actions" && <ActionsTab result={result} />}
+              {activeTab === "bridge"  && <BridgeTab result={result} />}
 
               {/* Anonymous CTA */}
               {!user && (

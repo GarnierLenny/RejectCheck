@@ -272,6 +272,98 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontStyle: "italic",
     color: "#bbb",
+  },
+  bridgeCard: {
+    backgroundColor: "#f0fdf4",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#dcfce7",
+    padding: 24,
+    marginBottom: 32,
+  },
+  bridgeTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: "#166534",
+    marginBottom: 8,
+  },
+  techBadgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 16,
+  },
+  techBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#dcfce7",
+    borderRadius: 4,
+  },
+  techBadgeText: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: "#166534",
+    textTransform: "uppercase",
+  },
+  featureItem: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 6,
+    alignItems: "flex-start",
+  },
+  featureCheck: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+    backgroundColor: "#22c55e",
+    marginTop: 2,
+  },
+  featureText: {
+    fontSize: 11,
+    color: "#166534",
+    flex: 1,
+    lineHeight: 1.4,
+  },
+  whyItMatters: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#22c55e",
+  },
+  vitalStepsCard: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: "#fff1f2",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#fecdd3",
+  },
+  vitalStepsTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: "#9f1239",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  vitalStepLine: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 4,
+  },
+  vitalStepBullet: {
+    color: "#e11d48",
+    fontWeight: 700,
+  },
+  vitalStepText: {
+    fontSize: 10,
+    color: "#9f1239",
+    flex: 1,
+    lineHeight: 1.4,
   }
 });
 
@@ -482,6 +574,50 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                   <Text style={{ fontSize: 12, color: "#333", fontStyle: "italic" }}>Fix: {flag.fix.summary}</Text>
                 </View>
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* 8.5 Bridge the Gap */}
+        {result.project_recommendation && (
+          <View style={styles.section} wrap={false}>
+            <Text style={styles.h3}>Bridge the Gap</Text>
+            <View style={styles.bridgeCard}>
+              <Text style={styles.bridgeTitle}>{result.project_recommendation.name}</Text>
+              <Text style={{ ...styles.body, color: "#166534", marginBottom: 12 }}>{result.project_recommendation.description}</Text>
+              
+              <View style={styles.techBadgeContainer}>
+                {result.project_recommendation.technologies.map((tech, i) => (
+                  <View key={i} style={styles.techBadge}>
+                    <Text style={styles.techBadgeText}>{tech}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={{ gap: 8 }}>
+                <Text style={{ ...styles.label, color: "#15803d", marginBottom: 4 }}>Key Features to Build:</Text>
+                {result.project_recommendation.key_features.map((feature, i) => (
+                  <View key={i} style={styles.featureItem}>
+                    <View style={styles.featureCheck} />
+                    <Text style={styles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.whyItMatters}>
+                <Text style={{ ...styles.label, color: "#15803d", marginBottom: 4 }}>Why this matters:</Text>
+                <Text style={{ ...styles.body, fontSize: 11, color: "#166534" }}>{result.project_recommendation.why_it_matters}</Text>
+              </View>
+
+              <View style={styles.vitalStepsCard}>
+                <Text style={styles.vitalStepsTitle}>Vital Steps for Impact</Text>
+                {result.project_recommendation.what_matters.map((step, i) => (
+                  <View key={i} style={styles.vitalStepLine}>
+                    <Text style={styles.vitalStepBullet}>•</Text>
+                    <Text style={styles.vitalStepText}>{step}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
         )}

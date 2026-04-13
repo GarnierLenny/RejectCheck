@@ -89,6 +89,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/analyze/{id}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete an analysis */
+        post: operations["AnalyzeController_deleteAnalysis"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stripe/checkout": {
         parameters: {
             query?: never;
@@ -358,6 +375,14 @@ export interface components {
                 title: string;
                 company: string;
             };
+            project_recommendation: {
+                name: string;
+                description: string;
+                technologies: string[];
+                key_features: string[];
+                why_it_matters: string;
+                what_matters: string[];
+            };
         };
     };
     responses: never;
@@ -481,6 +506,23 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AnalyzeResponseDto"];
                 };
+            };
+        };
+    };
+    AnalyzeController_deleteAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

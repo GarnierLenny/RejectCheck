@@ -139,7 +139,26 @@ ${(result.cv_tone.examples as string[]).map(ex => `- ${ex}`).join('\n')}`);
     b.push(flagsMd);
   }
 
-  // 9. Your Action Plan
+  // 9. Bridge the Gap (Project Recommendation)
+  if (result.project_recommendation) {
+    const project = result.project_recommendation;
+    b.push(`## 🌉 Bridge the Gap
+> [!todo] **Recommended Project: ${project.name}**
+> ${project.description}
+> 
+> **Technologies:** ${project.technologies.join(", ")}
+> 
+> **Why it matters:** 
+> ${project.why_it_matters}`);
+
+    b.push(`### 🛠️ Key Features to Build
+${project.key_features.map(f => `- ${f}`).join('\n')}`);
+
+    b.push(`### 🚀 Vital Steps for Impact
+${project.what_matters.map(s => `- ${s}`).join('\n')}`);
+  }
+
+  // 10. Your Action Plan
   if (actionPlan.week.length > 0 || actionPlan.month.length > 0 || actionPlan.longTerm.length > 0) {
     b.push(`## 🚀 Your Action Plan`);
     const planBlocks: string[] = [];

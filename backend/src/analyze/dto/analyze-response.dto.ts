@@ -26,6 +26,15 @@ export const IssueSchema = z.object({
   fix: FixSchema,
 });
 
+export const ProjectRecommendationSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  technologies: z.array(z.string()),
+  key_features: z.array(z.string()),
+  why_it_matters: z.string(),
+  what_matters: z.array(z.string()),
+});
+
 export const AnalyzeResponseSchema = z.object({
   score: z.number().min(0).max(100),
   verdict: z.enum(['Low', 'Medium', 'High']),
@@ -103,6 +112,7 @@ export const AnalyzeResponseSchema = z.object({
     title: z.string(),
     company: z.string(),
   }),
+  project_recommendation: ProjectRecommendationSchema,
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}
