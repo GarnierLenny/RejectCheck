@@ -58,6 +58,7 @@ job: "${jobDisplay}"
 date: ${new Date().toISOString().split('T')[0]}
 score: ${result.score}
 verdict: "${result.verdict}"
+confidence: ${result.confidence?.score ?? 'N/A'}
 ---`);
 
   // 2. Header & Abstract
@@ -65,7 +66,7 @@ verdict: "${result.verdict}"
   b.push(`> [!abstract] **Analysis Summary**
 > - **Job:** ${jobDisplay}
 > - **Date:** ${dateStr}
-> - **Rejection Risk:** ${result.score}% — **${result.verdict}**`);
+> - **Rejection Risk:** ${result.score}% — **${result.verdict}**${result.confidence ? `\n> - **Confidence:** ${result.confidence.score}% — ${result.confidence.reason}` : ''}`);
 
   // 3. Score Breakdown (Table)
   b.push(`## 📊 Score Breakdown`);
@@ -87,24 +88,56 @@ verdict: "${result.verdict}"
   // 4. ATS Simulation
   b.push(`## 🤖 ATS Simulation`);
   b.push(`> [!${result.ats_simulation.would_pass ? 'success' : 'error'}] **Result: ${result.ats_simulation.would_pass ? "PASSED" : "FAILED"}**
-> **Simulated Score:** ${result.ats_simulation.score}/100
+> **Simulated Score:** ${result.ats_simulation.score}/100 (threshold: ${result.ats_simulation.threshold})
 > ${result.ats_simulation.reason}`);
 
   if (result.ats_simulation.critical_missing_keywords.length > 0) {
     b.push(`### 🔑 Missing Critical Keywords
-${result.ats_simulation.critical_missing_keywords.map((kw: any) => `- ${kw.keyword} (${kw.jd_frequency}×)`).join('\n')}`);
+| Keyword | Frequency | Required | Score Impact | Missing From |
+| :--- | :--- | :--- | :--- | :--- |
+${result.ats_simulation.critical_missing_keywords.map((kw: any) =>
+  `| **${kw.keyword}** | ${kw.jd_frequency}× | ${kw.required ? 'Yes' : 'No'} | -${kw.score_impact} | ${(kw.sections_missing as string[]).join(', ')} |`
+).join('\n')}`);
+  }
+
+  // 4.2 JD Required Skills Matrix
+  if (result.audit.jd_match?.required_skills?.length > 0) {
+    b.push(`### 📋 JD Required Skills
+| Skill | Found | Evidence |
+| :--- | :--- | :--- |
+${result.audit.jd_match.required_skills.map((s: any) =>
+  `| **${s.skill}** | ${s.found ? '✅' : '❌'} | ${s.evidence || '—'} |`
+).join('\n')}`);
+    if (result.audit.jd_match.experience_gap) {
+      b.push(`> [!warning] **Experience Gap**\n> ${result.audit.jd_match.experience_gap}`);
+    }
   }
 
   // 4.5 Technical Skill Gap
   if (result.technical_analysis) {
     b.push(`## 💻 Technical Skill Gap
 
-| Technology | Expected | Current | Status |
-| :--- | :--- | :--- | :--- |
-${result.technical_analysis.skills.map((s: any) => `| **${s.name}** | ${s.expected}/10 | ${s.current}/10 | ${s.current >= s.expected ? '✅ AT TARGET' : '❌ GAP'} |`).join('\n')}
+| Technology | Expected | Current | Status | Evidence |
+| :--- | :--- | :--- | :--- | :--- |
+${result.technical_analysis.skills.map((s: any) => `| **${s.name}** | ${s.expected}/10 | ${s.current}/10 | ${s.current >= s.expected ? '✅ AT TARGET' : '❌ GAP'} | ${s.evidence || '—'} |`).join('\n')}`);
 
-> [!info] **IA Strategy**
+    if (result.technical_analysis.reasoning) {
+      b.push(`> [!note] **Technical Reasoning**
+> ${result.technical_analysis.reasoning}`);
+    }
+
+    b.push(`> [!info] **AI Strategy**
 > ${result.technical_analysis.recommendation}`);
+
+    if (result.technical_analysis.market_context) {
+      b.push(`> [!tip] **Market Context**
+> ${result.technical_analysis.market_context}`);
+    }
+
+    if (result.technical_analysis.seniority_signals?.length > 0) {
+      b.push(`### 📡 Seniority Signals (Claude)
+${(result.technical_analysis.seniority_signals as string[]).map(s => `- ${s}`).join('\n')}`);
+    }
   }
 
   // 5. Seniority Gap
@@ -116,31 +149,82 @@ ${result.technical_analysis.skills.map((s: any) => `| **${s.name}** | ${s.expect
 > ${result.seniority_analysis.gap}
 > **Strength Identified:** ${result.seniority_analysis.strength}`);
 
-  b.push(`**Immediate Fix:**
-${result.seniority_analysis.fix.summary}`);
+  b.push(`**Immediate Fix:** ${result.seniority_analysis.fix.summary}
+**Est. Time:** ${result.seniority_analysis.fix.time_required}
+${result.seniority_analysis.fix.steps?.map((s: string) => `- [ ] ${s}`).join('\n') || ''}`);
+
+  if (result.correlation) {
+    b.push(`### 🔗 Tone × Seniority Correlation
+> [!${result.correlation.detected ? 'warning' : 'success'}] **Correlation ${result.correlation.detected ? 'Detected' : 'Not Detected'}**
+> ${result.correlation.explanation}`);
+  }
 
   // 6. CV Tone Audit
   b.push(`## 🎭 CV Tone Audit
 **Detected Tone:** \`${result.cv_tone.detected.toUpperCase()}\`
 
 **Examples from your CV:**
-${(result.cv_tone.examples as string[]).map(ex => `- ${ex}`).join('\n')}`);
+${(result.cv_tone.examples as string[]).map(ex => `- ${ex}`).join('\n')}
+
+**Fix:** ${result.cv_tone.fix.summary}
+**Est. Time:** ${result.cv_tone.fix.time_required}
+${result.cv_tone.fix.steps?.map((s: string) => `- [ ] ${s}`).join('\n') || ''}`);
 
   // 7. Detailed Audit Issues
   if (result.audit.cv.issues.length > 0) {
-    b.push(`## 🔍 Detailed Audit Issues`);
+    b.push(`## 🔍 CV Audit Issues`);
     const issuesMd = (result.audit.cv.issues as any[]).map(issue => {
       const type = issue.severity === 'critical' ? 'danger' : issue.severity === 'major' ? 'warning' : 'todo';
       const icon = issue.severity === 'critical' ? '🔴' : issue.severity === 'major' ? '🟠' : '🟡';
       return `### ${icon} [${String(issue.category).toUpperCase()}] ${issue.what}
 > [!${type}] **${String(issue.severity).toUpperCase()}**
 > **Why it matters:** ${issue.why}
-> 
+>
 > **Action Step:** ${issue.fix.summary}
 > **Est. Time:** ${issue.fix.time_required}`;
     }).join('\n\n');
     b.push(issuesMd);
   }
+
+  if (result.audit.cv.strengths?.length > 0) {
+    b.push(`### ✅ CV Strengths
+${(result.audit.cv.strengths as string[]).map(s => `- ${s}`).join('\n')}`);
+  }
+
+  // 7.5 External Signals (GitHub + LinkedIn)
+  const githubHasData = result.audit.github.score !== null || result.audit.github.issues.length > 0 || result.audit.github.strengths.length > 0;
+  const linkedinHasData = result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0 || result.audit.linkedin.strengths.length > 0;
+
+  b.push(`## 📡 External Signals`);
+
+  const renderSignalSection = (title: string, data: typeof result.audit.github, hasData: boolean, emptyMsg: string) => {
+    const lines: string[] = [];
+    lines.push(`### ${title}${hasData && data.score !== null ? ` — Score: ${data.score}%` : ' — Score: N/A'}`);
+    if (!hasData) {
+      lines.push(`*${emptyMsg}*`);
+      return lines.join('\n');
+    }
+    if (data.strengths.length > 0) {
+      lines.push(`**Strengths:** ${(data.strengths as string[]).join(' · ')}`);
+    }
+    if (data.issues.length > 0) {
+      (data.issues as any[]).forEach(issue => {
+        const type = issue.severity === 'critical' ? 'danger' : issue.severity === 'major' ? 'warning' : 'todo';
+        const icon = issue.severity === 'critical' ? '🔴' : issue.severity === 'major' ? '🟠' : '🟡';
+        lines.push(`#### ${icon} [${String(issue.category).toUpperCase()}] ${issue.what}
+> [!${type}] **${String(issue.severity).toUpperCase()}**
+> **Why it matters:** ${issue.why}
+> **Action Step:** ${issue.fix.summary}
+> **Est. Time:** ${issue.fix.time_required}`);
+      });
+    } else {
+      lines.push(`*No issues detected — strong signal.*`);
+    }
+    return lines.join('\n\n');
+  };
+
+  b.push(renderSignalSection('GitHub Signal', result.audit.github, githubHasData, 'No GitHub username provided — deep technical verification skipped.'));
+  b.push(renderSignalSection('LinkedIn Signal', result.audit.linkedin, linkedinHasData, 'No LinkedIn PDF provided — cross-reference verification skipped.'));
 
   // 8. Hidden Red Flags
   if (result.hidden_red_flags.length > 0) {
@@ -155,19 +239,36 @@ ${(result.cv_tone.examples as string[]).map(ex => `- ${ex}`).join('\n')}`);
   if (result.project_recommendation) {
     const project = result.project_recommendation;
     b.push(`## 🌉 Bridge the Gap
-> [!todo] **Recommended Project: ${project.name}**
+> [!todo] **Recommended Project: ${project.name}** · *${project.difficulty_level}*
 > ${project.description}
-> 
+>
 > **Technologies:** ${project.technologies.join(", ")}
-> 
-> **Why it matters:** 
+>
+> **Why it matters:**
 > ${project.why_it_matters}`);
 
-    b.push(`### 🛠️ Key Features to Build
-${project.key_features.map(f => `- ${f}`).join('\n')}`);
+    b.push(`### 🛠️ What to Build
+${project.key_features.map((f, i) => `${i + 1}. ${f}`).join('\n')}`);
 
-    b.push(`### 🚀 Vital Steps for Impact
-${project.what_matters.map(s => `- ${s}`).join('\n')}`);
+    if (project.architecture) {
+      b.push(`### 🏗️ Architecture Blueprint
+\`\`\`
+${project.architecture}
+\`\`\``);
+    }
+
+    if (project.advanced_concepts?.length > 0) {
+      b.push(`### ⚡ Advanced Concepts
+${project.advanced_concepts.map((c: string) => `- \`${c}\``).join('\n')}`);
+    }
+
+    if (project.success_criteria?.length > 0) {
+      b.push(`### ✅ Success Criteria
+${project.success_criteria.map((c: string) => `- [ ] ${c}`).join('\n')}`);
+    }
+
+    b.push(`### 🚀 Actionable Steps
+${project.what_matters.map((s: string) => `- ${s}`).join('\n')}`);
   }
 
   // 10. Your Action Plan
