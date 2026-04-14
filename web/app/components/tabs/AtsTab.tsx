@@ -33,7 +33,7 @@ function KeywordRow({ kw, checked, onToggle, accent }: { kw: Keyword; checked: b
         {kw.sections_missing.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {kw.sections_missing.map((sec) => (
-              <span key={sec} className="font-mono text-[9px] text-rc-hint bg-rc-bg border border-rc-border px-1.5 py-0.5 rounded">{sec} ✗</span>
+              <span key={sec} className="font-mono text-[9px] text-rc-hint bg-rc-bg border border-rc-border/40 px-1.5 py-0.5 rounded">{sec} ✗</span>
             ))}
           </div>
         )}
@@ -56,19 +56,28 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
 
   return (
     <div className="space-y-6">
+
+      {/* ATS context callout */}
+      <div className="flex items-start gap-3 p-4 bg-rc-surface/20 border border-rc-border/30 rounded-xl">
+        <span className="font-mono text-[10px] text-rc-hint mt-0.5">?</span>
+        <p className="font-mono text-[10px] text-rc-hint leading-relaxed">
+          <span className="text-rc-text font-bold">ATS (Applicant Tracking System)</span> — software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.
+        </p>
+      </div>
+
       {/* Verdict + Score */}
-      <div className={`p-7 rounded-2xl border-[1px] ${ats.would_pass ? 'border-rc-green/30 bg-rc-green/5' : 'border-rc-red/20 bg-rc-red/5'}`}>
+      <div className={`p-7 rounded-xl border ${ats.would_pass ? 'border-rc-green/20 bg-rc-green/5' : 'border-rc-red/20 bg-rc-red/5'}`}>
         <div className="flex items-start justify-between gap-6 mb-6">
           <div>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-2">Module 01 — Bot Filter Simulation</span>
-            <h2 className={`font-sans font-bold text-[26px] tracking-tight uppercase ${ats.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint block mb-2">Bot Filter Simulation</span>
+            <h2 className={`font-sans font-bold text-[22px] tracking-tight uppercase ${ats.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
               {ats.would_pass ? 'ATS Pass Estimated' : 'ATS Rejection Likely'}
             </h2>
             <p className="text-[13px] text-rc-muted leading-relaxed mt-2 max-w-[420px]">{ats.reason}</p>
           </div>
           <div className="text-right shrink-0">
             <div className="text-[42px] font-mono font-medium leading-none text-rc-text">{ats.score}<span className="text-[18px] text-rc-hint">/100</span></div>
-            <div className={`text-[12px] font-mono mt-1 font-semibold ${gapToThreshold > 0 ? 'text-rc-red' : 'text-rc-green'}`}>
+            <div className={`font-mono text-[11px] mt-1 font-semibold ${gapToThreshold > 0 ? 'text-rc-red' : 'text-rc-green'}`}>
               {gapToThreshold > 0 ? `${gapToThreshold} pts below threshold` : `${Math.abs(gapToThreshold)} pts above threshold`}
             </div>
           </div>
@@ -82,7 +91,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
           <div className="relative h-3 bg-rc-border/40 rounded-full overflow-visible">
             <div className="absolute z-10 flex flex-col items-center" style={{ left: `${atsThreshold}%`, top: '-6px', transform: 'translateX(-50%)' }}>
               <div className="w-[4px] h-6 bg-rc-amber rounded-full" />
-              <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/15 border border-rc-amber/40 px-2 py-1 rounded-md">
+              <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/10 border border-rc-amber/30 px-2 py-1 rounded-md">
                 min. {atsThreshold}
               </div>
             </div>
@@ -109,18 +118,22 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
       </div>
 
       {/* Keyword Simulator */}
-      <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-rc-border flex items-center justify-between">
-          <h3 className="font-sans font-semibold text-[14px] text-rc-text">Simulate your ATS score — check what you can add</h3>
+      <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-rc-border/30 flex items-center justify-between">
+          <div>
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-text font-bold">Keyword Simulator</h3>
+            <p className="font-mono text-[9px] text-rc-hint mt-0.5">Check keywords you can add — see your score update in real time</p>
+          </div>
           {checkedKeywords.size > 0 && (
             <button onClick={onReset} className="font-mono text-[10px] text-rc-hint hover:text-rc-red transition-colors uppercase tracking-wider">Reset</button>
           )}
         </div>
 
         {requiredKws.length > 0 && (
-          <div className="p-6 border-b border-rc-border">
+          <div className="p-6 border-b border-rc-border/30">
             <div className="flex items-center gap-2 mb-4">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-rc-red font-semibold">Required</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red font-bold">Required</span>
               <span className="font-mono text-[9px] text-rc-hint">— mentioned {requiredKws.reduce((s, k) => s + k.jd_frequency, 0)}x in job description</span>
             </div>
             <div className="space-y-3">
@@ -134,7 +147,8 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
         {preferredKws.length > 0 && (
           <div className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <span className="font-mono text-[10px] uppercase tracking-widest text-rc-amber font-semibold">Preferred</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-amber font-bold">Preferred</span>
               <span className="font-mono text-[9px] text-rc-hint">— bonus points, not eliminatory</span>
             </div>
             <div className="space-y-3">

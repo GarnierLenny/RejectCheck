@@ -17,12 +17,14 @@ import { AuditTab } from "../components/tabs/AuditTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
 import { ActionsTab } from "../components/tabs/ActionsTab";
+import { BridgeTab } from "../components/tabs/BridgeTab";
+import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "ats" | "profile" | "audit" | "signals" | "flags" | "actions";
+type Tab = "overview" | "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -36,7 +38,7 @@ function AnalyzeContent() {
   const [mlText, setMlText] = useState("");
   const [githubUsername, setGithubUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("ats");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
   const [loading, setLoading] = useState(false);
@@ -46,6 +48,7 @@ function AnalyzeContent() {
   const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
   const [activeSubscription, setActiveSubscription] = useState<StoredSubscription | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [visualLoadingDone, setVisualLoadingDone] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -96,6 +99,7 @@ function AnalyzeContent() {
         .then(data => {
           setResult(data.result);
           setJobDescription(data.jobDescription || "");
+          setVisualLoadingDone(true);
           setLoading(false);
         })
         .catch(err => {
@@ -169,8 +173,9 @@ function AnalyzeContent() {
     setError(null);
     setCurrentStep(null);
     setJobDescription("");
-    setActiveTab("ats");
+    setActiveTab("overview");
     setCheckedKeywords(new Set());
+    setVisualLoadingDone(false);
   }
 
   function toggleKeyword(keyword: string) {
@@ -209,6 +214,7 @@ function AnalyzeContent() {
   const hasMLVal = mlFile !== null || mlText.trim().length > 0 || (result as any)?.motivationLetter !== undefined;
 
   const tabs = result ? ([
+    { id: "overview", label: "Skill Gap",   badge: null, badgeClass: "" },
     { 
       id: "ats",     
       label: "ATS Filter", 
@@ -220,6 +226,7 @@ function AnalyzeContent() {
     { id: "signals", label: "Signals",    badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",   label: "Red Flags",  badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
     { id: "actions", label: "Actions to take", badge: null, badgeClass: "" },
+    { id: "bridge",  label: "Bridge the gap",   badge: null, badgeClass: "" },
   ] as const) : [];
 
   return (
@@ -239,16 +246,17 @@ function AnalyzeContent() {
         </div>
       </nav>
 
-      <div className={`${result ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
+      <div className={`${result && visualLoadingDone ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
         {paywallReason ? (
           <PaywallScreen />
-        ) : !result ? (
-          loading ? (
+        ) : (!result || !visualLoadingDone) ? (
+          (loading || (result && !visualLoadingDone)) ? (
             <LoadingScreen 
-              currentStep={currentStep} 
+              currentStep={result ? "done" : currentStep} 
               hasGithub={githubUsername.trim().length > 0} 
               hasLinkedin={liFile !== null}
               hasML={mlFile !== null || mlText.trim().length > 0}
+              onFinished={() => setVisualLoadingDone(true)}
             />
           ) : (
             <>
@@ -275,28 +283,33 @@ function AnalyzeContent() {
 
             <div className="lg:col-span-8">
               {/* Tab nav */}
-              <div className="flex border-b-[0.5px] border-rc-border mb-7 overflow-x-auto">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
-                      activeTab === tab.id ? "border-rc-red text-rc-text" : "border-transparent text-rc-hint hover:text-rc-muted"
-                    }`}
-                  >
-                    {tab.label}
-                    {tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
-                  </button>
-                ))}
+              <div className="relative mb-7">
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red rounded-full pointer-events-none" />
+                <div className="tabs-scrollbar flex border-b-0 overflow-x-auto pb-[2px]">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
+                        activeTab === tab.id ? "border-rc-red text-rc-red font-semibold" : "border-transparent text-rc-hint hover:text-rc-muted"
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Tab content */}
+              {activeTab === "overview" && <TechnicalRadarChart data={result.technical_analysis} />}
               {activeTab === "ats"     && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
               {activeTab === "profile" && <ProfileTab result={result} />}
               {activeTab === "audit"   && <AuditTab cv={result.audit.cv} />}
               {activeTab === "signals" && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
               {activeTab === "flags"   && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} />}
               {activeTab === "actions" && <ActionsTab result={result} />}
+              {activeTab === "bridge"  && <BridgeTab result={result} />}
 
               {/* Anonymous CTA */}
               {!user && (

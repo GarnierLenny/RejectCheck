@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 48,
   },
   label: {
     fontSize: 10,
@@ -272,8 +272,252 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontStyle: "italic",
     color: "#bbb",
-  }
+  },
+  bridgeCard: {
+    backgroundColor: "#f0fdf4",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#dcfce7",
+    padding: 24,
+    marginBottom: 32,
+  },
+  bridgeTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: "#166534",
+    marginBottom: 8,
+  },
+  techBadgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 16,
+  },
+  techBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#dcfce7",
+    borderRadius: 4,
+  },
+  techBadgeText: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: "#166534",
+    textTransform: "uppercase",
+  },
+  featureItem: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 6,
+    alignItems: "flex-start",
+  },
+  featureCheck: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+    backgroundColor: "#22c55e",
+    marginTop: 2,
+  },
+  featureText: {
+    fontSize: 11,
+    color: "#166534",
+    flex: 1,
+    lineHeight: 1.4,
+  },
+  whyItMatters: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#22c55e",
+  },
+  vitalStepsCard: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: "#fff1f2",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#fecdd3",
+  },
+  vitalStepsTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: "#9f1239",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  vitalStepLine: {
+    flexDirection: "row",
+    gap: 6,
+    marginBottom: 4,
+  },
+  vitalStepBullet: {
+    color: "#e11d48",
+    fontWeight: 700,
+  },
+  vitalStepText: {
+    fontSize: 10,
+    color: "#9f1239",
+    flex: 1,
+    lineHeight: 1.4,
+  },
+  techSection: {
+    marginTop: 12,
+  },
+  techSkillRow: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+    width: '100%',
+  },
+  techSkillLabel: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: "#475569",
+    flex: 1,
+  },
+  techSkillLevels: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  techLevelText: {
+    fontSize: 10,
+    fontFamily: 'InstrumentSans',
+  },
+  techSkillEvidence: {
+    fontSize: 9,
+    color: "#64748b",
+    fontStyle: "italic",
+    marginTop: 4,
+    lineHeight: 1.4,
+  },
+  techRecommendation: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#64748b",
+  },
+  infoBox: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: "#f0f9ff",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#0ea5e9",
+  },
+  signalCard: {
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  signalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  signalTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#1a1917",
+  },
+  signalScore: {
+    fontSize: 20,
+    fontWeight: 700,
+  },
+  strengthBadgeContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  strengthBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "#f0fdf4",
+    borderWidth: 1,
+    borderColor: "#dcfce7",
+    borderRadius: 4,
+  },
+  strengthBadgeText: {
+    fontSize: 8,
+    color: "#166534",
+    fontWeight: 700,
+    textTransform: "uppercase",
+  },
+  architectureBox: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#f8fafc",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#D94040",
+  },
+  advancedBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    backgroundColor: "#fffbeb",
+    borderWidth: 1,
+    borderColor: "#fde68a",
+    borderRadius: 4,
+  },
+  advancedBadgeText: {
+    fontSize: 8,
+    color: "#92400e",
+    fontWeight: 700,
+    textTransform: "uppercase",
+  },
+  successCriteriaItem: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 6,
+    alignItems: "flex-start",
+  },
+  successCheck: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#dcfce7",
+    borderWidth: 1,
+    borderColor: "#86efac",
+    marginTop: 2,
+  },
+  correlationBox: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: "#fffbeb",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#d97706",
+  },
+  jdSkillRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
 });
+
+function stripMd(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/^#+\s+/gm, "")
+    .trim();
+}
 
 type TemplateProps = {
   result: AnalysisResult;
@@ -383,6 +627,11 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               {result.verdict}
             </Text>
           </View>
+          {result.confidence && (
+            <Text style={{ fontSize: 10, color: "#888", marginTop: 4 }}>
+              Confidence: {result.confidence.score}% — {stripMd(result.confidence.reason)}
+            </Text>
+          )}
         </View>
 
         {/* 4. ATS Simulation */}
@@ -394,22 +643,110 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                 {result.ats_simulation.would_pass ? "Passed" : "Failed"}
               </Text>
             </View>
+            <Text style={{ fontSize: 10, color: "#888" }}>
+              Score: {result.ats_simulation.score}/100 (threshold: {result.ats_simulation.threshold})
+            </Text>
           </View>
           <Text style={styles.body}>{result.ats_simulation.reason}</Text>
-          
+
           {result.ats_simulation.critical_missing_keywords.length > 0 && (
-            <View style={{ ...styles.howToFix, borderLeftColor: redColor, backgroundColor: "#fff5f5", borderLeftWidth: 2 }}>
-               <Text style={{ fontSize: 11, fontWeight: 700, color: redColor, marginBottom: 8 }}>Critical Missing Keywords:</Text>
-               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                  {result.ats_simulation.critical_missing_keywords.map((kw: any) => (
-                    <Text key={kw.keyword} style={{ fontSize: 10, backgroundColor: "white", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3, color: "#333" }}>
-                      {kw.keyword} ({kw.jd_frequency}x)
-                    </Text>
-                  ))}
-               </View>
+            <View style={{ ...styles.howToFix, borderLeftColor: redColor, backgroundColor: "#fff5f5", borderLeftWidth: 2, marginTop: 12 }}>
+              <Text style={{ fontSize: 11, fontWeight: 700, color: redColor, marginBottom: 8 }}>Critical Missing Keywords:</Text>
+              {result.ats_simulation.critical_missing_keywords.map((kw: any) => (
+                <View key={kw.keyword} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#fecaca" }}>
+                  <Text style={{ fontSize: 10, fontWeight: 700, color: "#333", flex: 1 }}>{kw.keyword}</Text>
+                  <Text style={{ fontSize: 9, color: "#888", width: 50, textAlign: "center" }}>{kw.jd_frequency}× in JD</Text>
+                  <Text style={{ fontSize: 9, color: kw.required ? redColor : "#888", width: 50, textAlign: "center" }}>{kw.required ? "Required" : "Optional"}</Text>
+                  <Text style={{ fontSize: 9, color: redColor, width: 60, textAlign: "right" }}>-{kw.score_impact} pts</Text>
+                </View>
+              ))}
             </View>
           )}
         </View>
+
+        {/* 4.2 JD Required Skills */}
+        {result.audit.jd_match?.required_skills?.length > 0 && (
+          <View style={styles.section}>
+            <Text style={{ ...styles.h3, fontSize: 14 }}>JD Required Skills</Text>
+            <View style={{ borderWidth: 1, borderColor: "#e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+              {(result.audit.jd_match.required_skills as any[]).map((skill: any, i: number) => (
+                <View key={i} style={{ ...styles.jdSkillRow, backgroundColor: i % 2 === 0 ? "#fafafa" : "white", paddingHorizontal: 12 }}>
+                  <Text style={{ fontSize: 11, fontWeight: 600, flex: 1, color: "#1a1917" }}>{skill.skill}</Text>
+                  <Text style={{ fontSize: 11, width: 24, textAlign: "center", color: skill.found ? "#166534" : redColor }}>{skill.found ? "✓" : "✗"}</Text>
+                  <Text style={{ fontSize: 9, color: "#94a3b8", flex: 2, textAlign: "right" }}>{skill.evidence || "—"}</Text>
+                </View>
+              ))}
+            </View>
+            {result.audit.jd_match.experience_gap && (
+              <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", backgroundColor: "#fffbeb", marginTop: 8 }}>
+                <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>Experience Gap:</Text>
+                <Text style={{ fontSize: 11, color: "#78350f" }}>{stripMd(result.audit.jd_match.experience_gap)}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* 4.5 Technical Skill Gap */}
+        {result.technical_analysis && (
+          <View style={styles.section}>
+            <Text style={styles.h3}>Technical Skill Gap Analysis</Text>
+            <View style={styles.techSection}>
+              {result.technical_analysis.skills.map((skill: any, i: number) => (
+                <View key={i} style={styles.techSkillRow} wrap={false}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                    <Text style={{ fontSize: 11, fontWeight: 700, color: "#1a1917", flex: 1, marginRight: 20 }}>{skill.name}</Text>
+                    <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+                      <Text style={{ fontSize: 10, color: "#64748b" }}>Expected: {skill.expected}/10</Text>
+                      <Text style={{ fontSize: 10, color: skill.current >= skill.expected ? "#166534" : redColor, fontWeight: 700 }}>
+                        Current: {skill.current}/10
+                      </Text>
+                    </View>
+                  </View>
+                  {skill.evidence && (
+                    <Text style={{ 
+                      fontSize: 9, 
+                      color: "#444", 
+                      fontStyle: "italic", 
+                      marginTop: 2,
+                      lineHeight: 1.5
+                    }}>
+                      {stripMd(skill.evidence)}
+                    </Text>
+                  )}
+                </View>
+              ))}
+              {result.technical_analysis.reasoning && (
+                <View style={styles.infoBox}>
+                  <Text style={{ ...styles.label, fontSize: 8, color: "#0369a1", marginBottom: 4 }}>Technical Reasoning:</Text>
+                  <Text style={{ fontSize: 10, color: "#0c4a6e" }}>{stripMd(result.technical_analysis.reasoning)}</Text>
+                </View>
+              )}
+              <View style={styles.techRecommendation}>
+                <Text style={{ ...styles.label, fontSize: 8, color: "#64748b", marginBottom: 4 }}>AI Strategy:</Text>
+                <Text style={{ fontSize: 11, color: "#1e293b", fontStyle: "italic" }}>
+                  "{stripMd(result.technical_analysis.recommendation)}"
+                </Text>
+              </View>
+              {result.technical_analysis.market_context && (
+                <View style={{ ...styles.infoBox, backgroundColor: "#f0fdf4", borderLeftColor: "#22c55e", marginTop: 8 }}>
+                  <Text style={{ ...styles.label, fontSize: 8, color: "#15803d", marginBottom: 4 }}>Market Context:</Text>
+                  <Text style={{ fontSize: 10, color: "#14532d" }}>{stripMd(result.technical_analysis.market_context)}</Text>
+                </View>
+              )}
+              {result.technical_analysis.seniority_signals?.length > 0 && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={{ ...styles.label, fontSize: 8, marginBottom: 6 }}>Seniority Signals (Claude):</Text>
+                  {(result.technical_analysis.seniority_signals as string[]).map((signal, i) => (
+                    <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 4 }}>
+                      <Text style={{ fontSize: 9, color: "#64748b" }}>•</Text>
+                      <Text style={{ fontSize: 10, color: "#475569", flex: 1 }}>{stripMd(signal)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* 5. Seniority Gap */}
         <View style={styles.section} break>
@@ -424,7 +761,33 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               <Text style={{ fontSize: 13, fontWeight: 600, color: redColor }}>{result.seniority_analysis.detected}</Text>
             </View>
           </View>
-          <Text style={styles.body}>{result.seniority_analysis.gap}</Text>
+          <Text style={styles.body}>{stripMd(result.seniority_analysis.gap)}</Text>
+          {result.seniority_analysis.strength && (
+            <Text style={{ fontSize: 12, color: "#166534", marginTop: 8, fontStyle: "italic" }}>
+              Strength: {stripMd(result.seniority_analysis.strength)}
+            </Text>
+          )}
+          {result.seniority_analysis.fix?.steps?.length > 0 && (
+            <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
+              <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
+                Fix: {stripMd(result.seniority_analysis.fix.summary)} — {result.seniority_analysis.fix.time_required}
+              </Text>
+              {(result.seniority_analysis.fix.steps as string[]).map((step, i) => (
+                <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, color: "#d97706" }}>•</Text>
+                  <Text style={{ fontSize: 10, color: "#78350f", flex: 1 }}>{stripMd(step)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {result.correlation && (
+            <View style={styles.correlationBox}>
+              <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>
+                Tone × Seniority Correlation: {result.correlation.detected ? "Detected" : "Not Detected"}
+              </Text>
+              <Text style={{ fontSize: 10, color: "#78350f" }}>{stripMd(result.correlation.explanation)}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -447,6 +810,19 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               );
             })}
           </View>
+          {result.cv_tone.fix?.steps?.length > 0 && (
+            <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
+              <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
+                Fix: {stripMd(result.cv_tone.fix.summary)} — {result.cv_tone.fix.time_required}
+              </Text>
+              {(result.cv_tone.fix.steps as string[]).map((step, i) => (
+                <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, color: "#d97706" }}>•</Text>
+                  <Text style={{ fontSize: 10, color: "#78350f", flex: 1 }}>{stripMd(step)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* 7. CV Audit Issues */}
@@ -468,7 +844,76 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               </View>
             </View>
           ))}
+          {result.audit.cv.strengths?.length > 0 && (
+            <View style={{ marginTop: 16 }}>
+              <Text style={{ ...styles.label, marginBottom: 8 }}>CV Strengths:</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                {(result.audit.cv.strengths as string[]).map((strength, i) => (
+                  <View key={i} style={styles.strengthBadge}>
+                    <Text style={styles.strengthBadgeText}>{strength}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
+
+        {/* 7.5 External Signals (GitHub + LinkedIn) */}
+        {(() => {
+          const gh = result.audit.github;
+          const li = result.audit.linkedin;
+          const ghHasData = gh.score !== null || gh.issues.length > 0 || gh.strengths.length > 0;
+          const liHasData = li.score !== null || li.issues.length > 0 || li.strengths.length > 0;
+          const renderSignal = (title: string, data: typeof gh, hasData: boolean, emptyMsg: string) => (
+            <View style={styles.signalCard} wrap={false}>
+              <View style={styles.signalHeader}>
+                <Text style={styles.signalTitle}>{title}</Text>
+                <Text style={{ ...styles.signalScore, color: data.score === null ? "#888" : data.score >= 70 ? "#166534" : data.score >= 50 ? "#d97706" : redColor }}>
+                  {data.score !== null ? `${data.score}%` : "N/A"}
+                </Text>
+              </View>
+              {!hasData ? (
+                <Text style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", padding: 16 }}>{emptyMsg}</Text>
+              ) : (
+                <View>
+                  {data.strengths.length > 0 && (
+                    <View style={styles.strengthBadgeContainer}>
+                      {(data.strengths as string[]).map((s, i) => (
+                        <View key={i} style={styles.strengthBadge}>
+                          <Text style={styles.strengthBadgeText}>{s}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  {data.issues.length > 0 ? (
+                    data.issues.map((issue: any, i: number) => (
+                      <View key={i} style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: "#f1f5f9" }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                          <View style={getBadgeStyle(issue.severity === 'critical' ? 20 : 50)}>
+                            <Text style={{ ...styles.badgeText, fontSize: 7 }}>{issue.severity} • {issue.category}</Text>
+                          </View>
+                          <Text style={{ fontSize: 9, color: "#999" }}>{issue.fix.time_required}</Text>
+                        </View>
+                        <Text style={{ fontSize: 12, fontWeight: 600, marginBottom: 3 }}>{issue.what}</Text>
+                        <Text style={{ fontSize: 10, color: "#666" }}>{issue.why}</Text>
+                        <Text style={{ fontSize: 10, color: "#333", marginTop: 4, fontStyle: "italic" }}>Fix: {issue.fix.summary}</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", padding: 16, textAlign: "center" }}>No issues detected — strong signal.</Text>
+                  )}
+                </View>
+              )}
+            </View>
+          );
+          return (
+            <View style={styles.section}>
+              <Text style={styles.h3}>External Signals</Text>
+              {renderSignal("GitHub Signal", gh, ghHasData, "No GitHub username provided — deep technical verification skipped.")}
+              {renderSignal("LinkedIn Signal", li, liHasData, "No LinkedIn PDF provided — cross-reference verification skipped.")}
+            </View>
+          );
+        })()}
 
         {/* 8. Hidden Red Flags */}
         {result.hidden_red_flags.length > 0 && (
@@ -482,6 +927,99 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                   <Text style={{ fontSize: 12, color: "#333", fontStyle: "italic" }}>Fix: {flag.fix.summary}</Text>
                 </View>
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* 8.5 Bridge the Gap */}
+        {result.project_recommendation && (
+          <View style={styles.section}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 }}>
+              <Text style={{ ...styles.h3, marginBottom: 0 }}>Bridge the Gap</Text>
+              {result.project_recommendation.difficulty_level && (
+                <View style={{
+                  paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20, borderWidth: 1,
+                  backgroundColor: result.project_recommendation.difficulty_level === "Expert" ? "#fff1f2" : result.project_recommendation.difficulty_level === "Advanced" ? "#fffbeb" : "#f8fafc",
+                  borderColor: result.project_recommendation.difficulty_level === "Expert" ? "#fecdd3" : result.project_recommendation.difficulty_level === "Advanced" ? "#fde68a" : "#e2e8f0",
+                }}>
+                  <Text style={{ fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1,
+                    color: result.project_recommendation.difficulty_level === "Expert" ? redColor : result.project_recommendation.difficulty_level === "Advanced" ? "#92400e" : "#64748b",
+                  }}>
+                    {result.project_recommendation.difficulty_level}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.bridgeCard}>
+              <Text style={styles.bridgeTitle}>{stripMd(result.project_recommendation.name)}</Text>
+              <Text style={{ ...styles.body, color: "#166534", marginBottom: 12 }}>{stripMd(result.project_recommendation.description)}</Text>
+
+              <View style={styles.techBadgeContainer}>
+                {result.project_recommendation.technologies.map((tech, i) => (
+                  <View key={i} style={styles.techBadge}>
+                    <Text style={styles.techBadgeText}>{stripMd(tech)}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={{ gap: 8, marginBottom: 12 }}>
+                <Text style={{ ...styles.label, color: "#15803d", marginBottom: 4 }}>What to Build:</Text>
+                {result.project_recommendation.key_features.map((feature, i) => (
+                  <View key={i} style={styles.featureItem}>
+                    <View style={styles.featureCheck} />
+                    <Text style={styles.featureText}>{stripMd(feature)}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.whyItMatters}>
+                <Text style={{ ...styles.label, color: "#15803d", marginBottom: 4 }}>Why this matters:</Text>
+                <Text style={{ ...styles.body, fontSize: 11, color: "#166534" }}>{stripMd(result.project_recommendation.why_it_matters)}</Text>
+              </View>
+
+              {result.project_recommendation.architecture && (
+                <View style={styles.architectureBox}>
+                  <Text style={{ ...styles.label, fontSize: 8, color: "#991b1b", marginBottom: 6 }}>Architecture Blueprint:</Text>
+                  <Text style={{ fontSize: 10, color: "#1e293b", fontFamily: "InstrumentSans", lineHeight: 1.5 }}>
+                    {stripMd(result.project_recommendation.architecture)}
+                  </Text>
+                </View>
+              )}
+
+              {result.project_recommendation.advanced_concepts?.length > 0 && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={{ ...styles.label, fontSize: 8, marginBottom: 6 }}>Advanced Concepts:</Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                    {result.project_recommendation.advanced_concepts.map((concept: string, i: number) => (
+                      <View key={i} style={styles.advancedBadge}>
+                        <Text style={styles.advancedBadgeText}>{stripMd(concept)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {result.project_recommendation.success_criteria?.length > 0 && (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={{ ...styles.label, fontSize: 8, marginBottom: 6 }}>Success Criteria:</Text>
+                  {result.project_recommendation.success_criteria.map((criteria: string, i: number) => (
+                    <View key={i} style={styles.successCriteriaItem}>
+                      <View style={styles.successCheck} />
+                      <Text style={{ fontSize: 10, color: "#166534", flex: 1 }}>{stripMd(criteria)}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <View style={styles.vitalStepsCard}>
+                <Text style={styles.vitalStepsTitle}>Actionable Steps</Text>
+                {result.project_recommendation.what_matters.map((step, i) => (
+                  <View key={i} style={styles.vitalStepLine}>
+                    <Text style={styles.vitalStepBullet}>•</Text>
+                    <Text style={styles.vitalStepText}>{stripMd(step)}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
         )}

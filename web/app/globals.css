@@ -56,3 +56,12 @@ body {
 .animate-pulse-slow {
   animation: pulse 2s infinite;
 }
+
+/* Tab header — hide native scrollbar on all browsers */
+.tabs-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.tabs-scrollbar::-webkit-scrollbar {
+  display: none;
+}
