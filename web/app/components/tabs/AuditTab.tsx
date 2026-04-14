@@ -5,41 +5,67 @@ type Props = {
   cv: AnalysisResult["audit"]["cv"];
 };
 
+const SEVERITY_CONFIG = {
+  critical: { color: "text-rc-red", dot: "bg-rc-red", border: "border-rc-red/20", bg: "bg-rc-red/5" },
+  major:    { color: "text-rc-amber", dot: "bg-rc-amber", border: "border-rc-amber/20", bg: "bg-rc-amber/5" },
+  minor:    { color: "text-rc-hint", dot: "bg-rc-hint", border: "border-rc-border/30", bg: "bg-rc-surface/10" },
+};
+
 export function AuditTab({ cv }: Props) {
+  const criticalCount = cv.issues.filter(i => i.severity === "critical").length;
+  const majorCount    = cv.issues.filter(i => i.severity === "major").length;
+  const minorCount    = cv.issues.filter(i => i.severity === "minor").length;
+
   return (
     <div className="space-y-8">
-      <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-rc-border bg-rc-surface/50 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-rc-red/10 border border-rc-red/20 flex items-center justify-center text-rc-red">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-sans text-[22px] uppercase">CV Forensic Audit</h3>
-              <p className="text-[11px] font-mono text-rc-hint uppercase tracking-tight">Status: {cv.issues.length} technical vulnerabilities identified</p>
-            </div>
+      <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl overflow-hidden">
+
+        {/* Header */}
+        <div className="p-6 border-b border-rc-border/30 flex items-start justify-between">
+          <div>
+            <h2 className="font-sans font-bold text-[22px] tracking-tight uppercase text-rc-text">CV Forensic Audit</h2>
+            <p className="font-mono text-[10px] text-rc-hint uppercase tracking-wider mt-1">
+              {cv.issues.length} vulnerabilit{cv.issues.length !== 1 ? "ies" : "y"} identified
+            </p>
           </div>
           <div className="text-right">
-            <span className="block font-mono text-[11px] text-rc-hint uppercase">Health Score</span>
-            <span className="text-[24px] font-mono text-rc-text">{cv.score}%</span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint block mb-1">Health Score</span>
+            <span className={`font-mono text-[24px] font-medium ${cv.score >= 80 ? 'text-rc-green' : cv.score >= 60 ? 'text-rc-amber' : 'text-rc-red'}`}>
+              {cv.score}%
+            </span>
           </div>
         </div>
 
-        {cv.strengths.length > 0 && (
-          <div className="flex flex-wrap gap-2 p-4 border-b border-rc-border">
-            {cv.strengths.map((s, i) => (
-              <span key={i} className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-rc-green/10 text-rc-green border border-rc-green/20">Strength: {s}</span>
-            ))}
+        {/* Severity breakdown + Strengths */}
+        <div className="p-5 border-b border-rc-border/30 flex flex-wrap gap-4 items-start justify-between">
+          <div className="flex items-center gap-2 flex-wrap">
+            {(["critical", "major", "minor"] as const).map(sev => {
+              const count = sev === "critical" ? criticalCount : sev === "major" ? majorCount : minorCount;
+              if (count === 0) return null;
+              const cfg = SEVERITY_CONFIG[sev];
+              return (
+                <span key={sev} className={`inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded border ${cfg.bg} ${cfg.border} ${cfg.color}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                  {count} {sev}
+                </span>
+              );
+            })}
           </div>
-        )}
 
-        <div className="divide-y divide-rc-border">
+          {cv.strengths.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {cv.strengths.map((s, i) => (
+                <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-green/5 text-rc-green border border-rc-green/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rc-green" />
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Issues list */}
+        <div className="divide-y divide-rc-border/20">
           {cv.issues.map((issue, idx) => (
             <IssueItem key={idx} issue={issue} />
           ))}

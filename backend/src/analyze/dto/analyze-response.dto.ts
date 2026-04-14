@@ -46,6 +46,7 @@ export const TechnicalSkillSchema = z.object({
   name: z.string(),
   expected: z.number().min(0).max(10),
   current: z.number().min(0).max(10),
+  evidence: z.string(),
 });
 
 export const AnalyzeResponseSchema = z.object({
@@ -130,6 +131,8 @@ export const AnalyzeResponseSchema = z.object({
     reasoning: z.string(),
     skills: z.array(TechnicalSkillSchema).length(5),
     recommendation: z.string(),
+    market_context: z.string(),
+    seniority_signals: z.array(z.string()),
   }),
 });
 

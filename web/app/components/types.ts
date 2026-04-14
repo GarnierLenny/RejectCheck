@@ -4,6 +4,7 @@ export type TechnicalSkill = {
   name: string;
   expected: number;
   current: number;
+  evidence: string;
 };
 
 export type ProjectRecommendation = {
@@ -22,8 +23,11 @@ export type ProjectRecommendation = {
 export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"] & {
   technical_analysis: {
     skills: TechnicalSkill[];
+    skill_priority: string[];
     recommendation: string;
     reasoning: string;
+    market_context: string;
+    seniority_signals: string[];
   };
   project_recommendation: ProjectRecommendation;
 };

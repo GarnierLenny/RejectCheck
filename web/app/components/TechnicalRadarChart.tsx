@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "./types";
 
 interface Props {
@@ -23,126 +24,188 @@ export function TechnicalRadarChart({ data }: Props) {
     fullMark: 10,
   }));
 
-  return (
-    <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-2xl overflow-hidden mb-8 shadow-2xl relative group">
-      {/* Decorative gradient blur */}
-      <div className="absolute -top-24 -right-24 w-64 h-64 bg-rc-red/5 blur-[100px] pointer-events-none group-hover:bg-rc-red/10 transition-colors duration-700" />
-      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-rc-amber/5 blur-[100px] pointer-events-none" />
+  const skillMap = Object.fromEntries(data.skills.map((s) => [s.name, s]));
 
-      <div className="p-8 pb-4 border-b border-rc-border/50">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-rc-hint block mb-1">Module 0.5 — Technical Profile</span>
-            <h2 className="font-sans font-bold text-[22px] tracking-tight uppercase text-rc-text bg-gradient-to-r from-rc-text to-rc-text/70 bg-clip-text">
-              Skill Gap Analysis
-            </h2>
+  return (
+    <div className="relative group py-4">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="font-sans font-bold text-[22px] tracking-tight uppercase text-rc-text bg-gradient-to-r from-rc-text to-rc-text/70 bg-clip-text">
+            Skill Gap Analysis
+          </h2>
+          <p className="font-mono text-[10px] text-rc-hint uppercase tracking-wider mt-1">Comparison between CV and Job Description</p>
+        </div>
+        <div className="flex gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full border-2 border-rc-amber bg-rc-amber/10 shadow-[0_0_10px_rgba(249,115,22,0.3)]" />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-rc-muted">Target (JD)</span>
           </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-rc-red shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
-              <span className="font-mono text-[10px] uppercase tracking-wider text-rc-muted">Expected</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-rc-green shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-              <span className="font-mono text-[10px] uppercase tracking-wider text-rc-muted">Current</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-rc-red shadow-[0_0_12px_rgba(239,68,68,0.5)]" />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-rc-muted">Your Profile</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 items-center">
-        <div className="h-[320px] w-full relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
-              {/* Radial lines from center to extremities */}
-              <PolarGrid polarRadius={[]} stroke="#333" strokeDasharray="3 3" />
+      <div className="flex flex-col gap-10">
+        {/* Chart + Priority panel */}
+        <div className="flex gap-6 items-start">
+          <div className="flex-1 h-[380px] relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-rc-red/5 to-transparent blur-3xl opacity-20 pointer-events-none" />
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+                <PolarGrid polarRadius={[]} stroke="#333" strokeDasharray="3 3" />
+                <PolarAngleAxis
+                  dataKey="subject"
+                  tick={{ fill: '#999', fontSize: 10, fontWeight: 500, fontFamily: 'monospace' }}
+                />
+                <PolarRadiusAxis
+                  angle={30}
+                  domain={[0, 10]}
+                  tick={false}
+                  axisLine={false}
+                />
+                <Radar
+                  dataKey="fullMark"
+                  stroke="#444"
+                  fill="none"
+                  isAnimationActive={false}
+                />
+                <Radar
+                  name="Target"
+                  dataKey="expected"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  strokeOpacity={1}
+                  strokeDasharray="4 4"
+                  fill="#f97316"
+                  fillOpacity={0.05}
+                />
+                <Radar
+                  name="Your Profile"
+                  dataKey="current"
+                  stroke="#ef4444"
+                  strokeWidth={2.5}
+                  fill="#ef4444"
+                  fillOpacity={0.25}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0f0f0f',
+                    border: '0.5px solid #222',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    color: '#fff',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                  }}
+                  itemStyle={{ padding: '2px 0' }}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
 
-              {/* Outer boundary contour */}
-              <Radar
-                dataKey="fullMark"
-                stroke="#333"
-                fill="none"
-                isAnimationActive={false}
-              />
-              <PolarAngleAxis 
-                dataKey="subject" 
-                tick={{ fill: '#999', fontSize: 10, fontWeight: 500, fontFamily: 'monospace' }}
-              />
-              <PolarRadiusAxis 
-                angle={30} 
-                domain={[0, 10]} 
-                tick={false} 
-                axisLine={false}
-              />
-              
-              {/* Expected Level Radar */}
-              <Radar
-                name="Expected"
-                dataKey="expected"
-                stroke="#ef4444"
-                strokeWidth={1}
-                fill="#ef4444"
-                fillOpacity={0.05}
-              />
-
-              {/* Current Level Radar */}
-              <Radar
-                name="Current"
-                dataKey="current"
-                stroke="#22c55e"
-                strokeWidth={2}
-                fill="#22c55e"
-                fillOpacity={0.2}
-                animationDuration={1500}
-                animationEasing="ease-out"
-              />
-
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#0f0f0f', 
-                  border: '0.5px solid #222', 
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  fontFamily: 'monospace',
-                  color: '#fff',
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-                }}
-                itemStyle={{ padding: '2px 0' }}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
+          {/* Priority sidebar */}
+          <div className="w-[210px] shrink-0 bg-rc-surface/20 border border-rc-border/30 rounded-xl p-5 flex flex-col gap-4">
+            <div>
+              <h4 className="font-mono text-[10px] uppercase tracking-widest text-rc-red font-bold flex items-center gap-1.5 mb-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
+                Job Priority
+              </h4>
+              <p className="font-mono text-[9px] text-rc-hint">Skills ranked by importance</p>
+            </div>
+            <ol className="flex flex-col gap-1.5">
+              {(data.skill_priority ?? data.skills.map(s => s.name)).map((name, i) => {
+                const skill = skillMap[name];
+                const gap = skill ? skill.expected - skill.current : 0;
+                const isOk = gap <= 0;
+                const rankColors = ["text-rc-red", "text-rc-amber", "text-rc-muted", "text-rc-hint", "text-rc-hint"];
+                return (
+                  <li key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-rc-surface/30 border border-rc-border/20 hover:border-rc-border/50 transition-colors">
+                    <span className={`font-mono text-[13px] font-bold w-5 text-center shrink-0 ${rankColors[i]}`}>{i + 1}</span>
+                    <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                      <span className="font-mono text-[11px] text-rc-text leading-tight">{name}</span>
+                      {skill && (
+                        <span className={`font-mono text-[9px] font-bold ${isOk ? 'text-rc-green' : 'text-rc-amber'}`}>
+                          {isOk ? '✓ target met' : `−${gap} pts gap`}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-rc-bg/50 border border-rc-border/50 rounded-xl p-6 relative overflow-hidden backdrop-blur-sm">
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+        <div className="space-y-8">
+          <div className="bg-rc-surface/30 border border-rc-border/50 rounded-2xl p-8 relative overflow-hidden backdrop-blur-sm">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
                 <path d="M12 2v20M2 12h20M12 2a10 10 0 0 1 10 10M12 2A10 10 0 0 0 2 12M22 12a10 10 0 0 1-10 10M2 12a10 10 0 0 0 10 10" />
               </svg>
             </div>
-            
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red mb-3 font-bold">IA Recommendation</h3>
-            <p className="text-[15px] text-rc-text leading-relaxed font-sans italic">
-              &ldquo;{data.recommendation}&rdquo;
-            </p>
+            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-rc-red mb-4 font-bold">Strategic Recommendation</h3>
+            <div className="text-[15px] text-rc-text leading-relaxed font-sans italic [&_strong]:font-semibold [&_strong]:not-italic [&_em]:italic [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
+              <ReactMarkdown>{data.recommendation}</ReactMarkdown>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {data.skills.map((s, idx) => {
               const gap = s.expected - s.current;
               const isOk = gap <= 0;
               return (
-                <div key={idx} className="flex items-center justify-between text-[11px] font-mono border-b border-rc-border/30 pb-2">
-                  <span className="text-rc-muted uppercase">{s.name}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-rc-hint">Lvl {s.current}/{s.expected}</span>
-                    <span className={`px-2 py-0.5 rounded ${isOk ? 'bg-rc-green/10 text-rc-green' : 'bg-rc-red/10 text-rc-red'}`}>
-                      {isOk ? '✓ AT TARGET' : `-${gap} PTS GAP`}
+                <div key={idx} className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6 flex flex-col gap-4 hover:bg-rc-surface/40 transition-all cursor-default group/item">
+                  <div className="flex items-center justify-between">
+                    <span className="text-rc-text font-mono text-[11px] uppercase tracking-wider font-semibold group-hover/item:text-rc-text transition-colors">{s.name}</span>
+                    <span className={`px-2.5 py-1 rounded text-[9px] font-bold ${isOk ? 'bg-rc-red/20 text-rc-text border border-rc-red/30' : 'bg-rc-amber/10 text-rc-amber border border-rc-amber/20'}`}>
+                      {isOk ? 'TARGET MET' : 'GAP'}
                     </span>
+                  </div>
+                  <div className="flex items-end justify-between">
+                    <span className="text-rc-text font-mono text-2xl font-bold">{s.current} <span className="text-rc-hint text-sm font-normal">/ {s.expected}</span></span>
+                    {!isOk && <span className="text-rc-amber font-mono text-[11px] uppercase font-bold">-{gap} PTS</span>}
+                  </div>
+                  <div className="text-[12px] text-rc-muted leading-relaxed border-t border-rc-border/20 pt-4 group-hover/item:text-rc-text transition-colors [&_strong]:font-semibold [&_strong]:text-rc-text">
+                    <ReactMarkdown>{s.evidence}</ReactMarkdown>
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6">
+              <h4 className="font-mono text-[10px] uppercase tracking-widest text-rc-amber mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
+                Market Context
+              </h4>
+              <div className="text-sm text-rc-text leading-relaxed [&_strong]:font-semibold [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
+                <ReactMarkdown>{data.market_context}</ReactMarkdown>
+              </div>
+            </div>
+            <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6">
+              <h4 className="font-mono text-[10px] uppercase tracking-widest text-rc-red mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
+                Missing Seniority Signals
+              </h4>
+              <ul className="space-y-2">
+                {data.seniority_signals.map((sig, i) => (
+                  <li key={i} className="text-sm text-rc-muted flex items-start gap-2">
+                    <span className="text-rc-red mt-1 shrink-0">•</span>
+                    <div className="[&_strong]:font-semibold [&_strong]:text-rc-text">
+                      <ReactMarkdown>{sig}</ReactMarkdown>
+                    </div>
+                  </li>
+                ))}
+                {data.seniority_signals.length === 0 && (
+                  <li className="text-sm text-rc-hint italic text-rc-muted">No specific gaps identified for this level.</li>
+                )}
+              </ul>
+            </div>
           </div>
         </div>
       </div>

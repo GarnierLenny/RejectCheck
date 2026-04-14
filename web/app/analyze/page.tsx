@@ -24,7 +24,7 @@ import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge";
+type Tab = "overview" | "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -38,7 +38,7 @@ function AnalyzeContent() {
   const [mlText, setMlText] = useState("");
   const [githubUsername, setGithubUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("ats");
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
   const [loading, setLoading] = useState(false);
@@ -173,7 +173,7 @@ function AnalyzeContent() {
     setError(null);
     setCurrentStep(null);
     setJobDescription("");
-    setActiveTab("ats");
+    setActiveTab("overview");
     setCheckedKeywords(new Set());
     setVisualLoadingDone(false);
   }
@@ -214,6 +214,7 @@ function AnalyzeContent() {
   const hasMLVal = mlFile !== null || mlText.trim().length > 0 || (result as any)?.motivationLetter !== undefined;
 
   const tabs = result ? ([
+    { id: "overview", label: "Skill Gap",   badge: null, badgeClass: "" },
     { 
       id: "ats",     
       label: "ATS Filter", 
@@ -281,26 +282,27 @@ function AnalyzeContent() {
             />
 
             <div className="lg:col-span-8">
-              {/* Technical Skills Radar Chart - New Header Section */}
-              <TechnicalRadarChart data={result.technical_analysis} />
-
               {/* Tab nav */}
-              <div className="flex border-b-[0.5px] border-rc-border mb-7 overflow-x-auto">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
-                      activeTab === tab.id ? "border-rc-red text-rc-text" : "border-transparent text-rc-hint hover:text-rc-muted"
-                    }`}
-                  >
-                    {tab.label}
-                    {tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
-                  </button>
-                ))}
+              <div className="relative mb-7">
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red rounded-full pointer-events-none" />
+                <div className="tabs-scrollbar flex border-b-0 overflow-x-auto pb-[2px]">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
+                        activeTab === tab.id ? "border-rc-red text-rc-red font-semibold" : "border-transparent text-rc-hint hover:text-rc-muted"
+                      }`}
+                    >
+                      {tab.label}
+                      {tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Tab content */}
+              {activeTab === "overview" && <TechnicalRadarChart data={result.technical_analysis} />}
               {activeTab === "ats"     && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
               {activeTab === "profile" && <ProfileTab result={result} />}
               {activeTab === "audit"   && <AuditTab cv={result.audit.cv} />}

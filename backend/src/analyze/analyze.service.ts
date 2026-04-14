@@ -83,13 +83,81 @@ export class AnalyzeService {
 
     console.log(`[AnalyzeService] Requesting Technical Analysis from Claude 3.5 Sonnet...`);
 
-    let raw: string;
     try {
       const msg = await this.anthropic.messages.create({
         model: "claude-sonnet-4-6",
-        max_tokens: 2048,
+        max_tokens: 8192,
         temperature: 0.1,
         system: technicalPrompt,
+        tools: [
+          {
+            name: "submit_technical_analysis",
+            description: "Submit the completed technical gap analysis as structured data.",
+            input_schema: {
+              type: "object" as const,
+              properties: {
+                technical_analysis: {
+                  type: "object",
+                  properties: {
+                    reasoning: { type: "string" },
+                    skill_priority: {
+                      type: "array",
+                      description: "The 5 skill names ordered from most to least critical for THIS specific job",
+                      items: { type: "string" },
+                      minItems: 5,
+                      maxItems: 5,
+                    },
+                    skills: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          name: { type: "string" },
+                          expected: { type: "number" },
+                          current: { type: "number" },
+                          evidence: { type: "string" },
+                        },
+                        required: ["name", "expected", "current", "evidence"],
+                      },
+                      minItems: 5,
+                      maxItems: 5,
+                    },
+                    recommendation: { type: "string" },
+                    market_context: { type: "string" },
+                    seniority_signals: { type: "array", items: { type: "string" } },
+                  },
+                  required: ["reasoning", "skill_priority", "skills", "recommendation", "market_context", "seniority_signals"],
+                },
+                project_recommendation: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string" },
+                    description: { type: "string" },
+                    technologies: { type: "array", items: { type: "string" } },
+                    key_features: { type: "array", items: { type: "string" } },
+                    architecture: { type: "string" },
+                    advanced_concepts: { type: "array", items: { type: "string" } },
+                    success_criteria: { type: "array", items: { type: "string" } },
+                    difficulty_level: { type: "string" },
+                    why_it_matters: { type: "string" },
+                    what_matters: { type: "array", items: { type: "string" } },
+                  },
+                  required: ["name", "description", "technologies", "key_features", "architecture", "advanced_concepts", "success_criteria", "difficulty_level", "why_it_matters", "what_matters"],
+                },
+                scores: {
+                  type: "object",
+                  properties: {
+                    tech_stack_fit: { type: "number" },
+                    github_signal: { type: ["number", "null"] },
+                  },
+                  required: ["tech_stack_fit", "github_signal"],
+                },
+              },
+              required: ["technical_analysis", "project_recommendation", "scores"],
+            },
+          }
+        ],
+        tool_choice: { type: "tool", name: "submit_technical_analysis" },
         messages: [
           {
             role: "user",
@@ -108,26 +176,21 @@ export class AnalyzeService {
           LINKEDIN SKILLS: ${linkedinText || 'None provided'}
           MOTIVATION LETTER: ${motivationLetterText || 'None provided'}
 
-          Return ONLY a raw JSON object, no markdown, no code fences.`
+          Formatting rules:
+          - Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals): bold key terms, italics for nuance, short bullet lists where helpful.
+          - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`
           }
         ]
       });
-      raw = (msg.content[0] as any).text as string;
+
+      const toolUse = msg.content.find((block: any) => block.type === 'tool_use');
+      if (!toolUse || (toolUse as any).type !== 'tool_use') {
+        console.error("[Claude] No tool_use block in response:", JSON.stringify(msg.content).slice(0, 300));
+        throw new InternalServerErrorException("Technical Analysis failed");
+      }
+      return (toolUse as any).input;
     } catch (apiErr: any) {
       console.error("[Claude] Anthropic API call failed:", apiErr?.message || apiErr);
-      throw new InternalServerErrorException("Technical Analysis failed");
-    }
-
-    // Extract the JSON object regardless of surrounding text or code fences
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) {
-      console.error("[Claude] No JSON object found in response:", raw.slice(0, 300));
-      throw new InternalServerErrorException("Technical Analysis failed");
-    }
-    try {
-      return JSON.parse(match[0]);
-    } catch (e) {
-      console.error("[Claude] Failed to parse extracted JSON:", match[0].slice(0, 300));
       throw new InternalServerErrorException("Technical Analysis failed");
     }
   }
@@ -267,8 +330,14 @@ export class AnalyzeService {
         fullResponse.breakdown.github_signal = claudeResult.value.scores.github_signal;
       } else {
         console.error("Claude Technical Analysis failed, using fallback placeholders");
-        const placeholder = { name: "Technical Analysis Unavailable", expected: 5, current: 0 };
-        fullResponse.technical_analysis = { reasoning: "Technical analysis was unavailable for this run.", skills: [placeholder, placeholder, placeholder, placeholder, placeholder], recommendation: "" };
+        const placeholder = { name: "Technical Analysis Unavailable", expected: 5, current: 0, evidence: "Technical engine was unavailable for this scan." };
+        fullResponse.technical_analysis = { 
+          reasoning: "Technical analysis was unavailable for this run.", 
+          skills: [placeholder, placeholder, placeholder, placeholder, placeholder], 
+          recommendation: "",
+          market_context: "Unavailable",
+          seniority_signals: []
+        };
         fullResponse.project_recommendation = { name: "Analysis Incomplete", description: "Technical engine was unavailable.", technologies: [], key_features: [], architecture: "", advanced_concepts: [], success_criteria: [], difficulty_level: "Intermediate", why_it_matters: "", what_matters: [] };
       }
       
