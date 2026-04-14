@@ -95,6 +95,18 @@ verdict: "${result.verdict}"
 ${result.ats_simulation.critical_missing_keywords.map((kw: any) => `- ${kw.keyword} (${kw.jd_frequency}×)`).join('\n')}`);
   }
 
+  // 4.5 Technical Skill Gap
+  if (result.technical_analysis) {
+    b.push(`## 💻 Technical Skill Gap
+
+| Technology | Expected | Current | Status |
+| :--- | :--- | :--- | :--- |
+${result.technical_analysis.skills.map((s: any) => `| **${s.name}** | ${s.expected}/10 | ${s.current}/10 | ${s.current >= s.expected ? '✅ AT TARGET' : '❌ GAP'} |`).join('\n')}
+
+> [!info] **IA Strategy**
+> ${result.technical_analysis.recommendation}`);
+  }
+
   // 5. Seniority Gap
   b.push(`## ⚖️ Seniority Gap
 **Expected:** ${result.seniority_analysis.expected}

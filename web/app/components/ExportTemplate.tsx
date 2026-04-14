@@ -364,6 +364,42 @@ const styles = StyleSheet.create({
     color: "#9f1239",
     flex: 1,
     lineHeight: 1.4,
+  },
+  techSection: {
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  techSkillRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
+  },
+  techSkillLabel: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: "#475569",
+  },
+  techSkillLevels: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  techLevelText: {
+    fontSize: 10,
+    fontFamily: 'InstrumentSans',
+  },
+  techRecommendation: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#64748b",
   }
 });
 
@@ -502,6 +538,32 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
             </View>
           )}
         </View>
+
+        {/* 4.5 Technical Skill Gap */}
+        {result.technical_analysis && (
+          <View style={styles.section}>
+            <Text style={styles.h3}>Technical Skill Gap Analysis</Text>
+            <View style={styles.techSection}>
+              {result.technical_analysis.skills.map((skill: any, i: number) => (
+                <View key={i} style={styles.techSkillRow}>
+                  <Text style={styles.techSkillLabel}>{skill.name}</Text>
+                  <View style={styles.techSkillLevels}>
+                    <Text style={{ ...styles.techLevelText, color: "#64748b" }}>Expected: {skill.expected}/10</Text>
+                    <Text style={{ ...styles.techLevelText, color: skill.current >= skill.expected ? "#166534" : redColor, fontWeight: 700 }}>
+                      Current: {skill.current}/10
+                    </Text>
+                  </View>
+                </View>
+              ))}
+              <View style={styles.techRecommendation}>
+                <Text style={{ ...styles.label, fontSize: 8, color: "#64748b", marginBottom: 4 }}>IA Strategy:</Text>
+                <Text style={{ fontSize: 11, color: "#1e293b", fontStyle: "italic" }}>
+                  "{result.technical_analysis.recommendation}"
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* 5. Seniority Gap */}
         <View style={styles.section} break>

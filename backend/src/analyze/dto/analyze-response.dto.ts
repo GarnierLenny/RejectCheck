@@ -26,13 +26,26 @@ export const IssueSchema = z.object({
   fix: FixSchema,
 });
 
+// Claude sometimes returns a string instead of an array — coerce gracefully
+const strOrArr = z.union([z.array(z.string()), z.string()]).transform(v => Array.isArray(v) ? v : [v]);
+
 export const ProjectRecommendationSchema = z.object({
   name: z.string(),
   description: z.string(),
-  technologies: z.array(z.string()),
-  key_features: z.array(z.string()),
+  technologies: strOrArr,
+  key_features: strOrArr,
+  architecture: z.string(),
+  advanced_concepts: strOrArr,
+  success_criteria: strOrArr,
+  difficulty_level: z.enum(['Intermediate', 'Advanced', 'Expert']),
   why_it_matters: z.string(),
-  what_matters: z.array(z.string()),
+  what_matters: strOrArr,
+});
+
+export const TechnicalSkillSchema = z.object({
+  name: z.string(),
+  expected: z.number().min(0).max(10),
+  current: z.number().min(0).max(10),
 });
 
 export const AnalyzeResponseSchema = z.object({
@@ -113,6 +126,11 @@ export const AnalyzeResponseSchema = z.object({
     company: z.string(),
   }),
   project_recommendation: ProjectRecommendationSchema,
+  technical_analysis: z.object({
+    reasoning: z.string(),
+    skills: z.array(TechnicalSkillSchema).length(5),
+    recommendation: z.string(),
+  }),
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}

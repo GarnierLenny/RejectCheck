@@ -1,6 +1,32 @@
 import type { components } from "../types/api";
 
-export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"];
+export type TechnicalSkill = {
+  name: string;
+  expected: number;
+  current: number;
+};
+
+export type ProjectRecommendation = {
+  name: string;
+  description: string;
+  technologies: string[];
+  key_features: string[];
+  architecture: string;
+  advanced_concepts: string[];
+  success_criteria: string[];
+  difficulty_level: 'Intermediate' | 'Advanced' | 'Expert';
+  why_it_matters: string;
+  what_matters: string[];
+};
+
+export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"] & {
+  technical_analysis: {
+    skills: TechnicalSkill[];
+    recommendation: string;
+    reasoning: string;
+  };
+  project_recommendation: ProjectRecommendation;
+};
 export type Issue = AnalysisResult["audit"]["cv"]["issues"][number];
 export type Fix = AnalysisResult["seniority_analysis"]["fix"];
 

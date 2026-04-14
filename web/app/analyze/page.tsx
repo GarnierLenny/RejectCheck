@@ -18,6 +18,7 @@ import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
 import { ActionsTab } from "../components/tabs/ActionsTab";
 import { BridgeTab } from "../components/tabs/BridgeTab";
+import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ function AnalyzeContent() {
   const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
   const [activeSubscription, setActiveSubscription] = useState<StoredSubscription | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [visualLoadingDone, setVisualLoadingDone] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -97,6 +99,7 @@ function AnalyzeContent() {
         .then(data => {
           setResult(data.result);
           setJobDescription(data.jobDescription || "");
+          setVisualLoadingDone(true);
           setLoading(false);
         })
         .catch(err => {
@@ -172,6 +175,7 @@ function AnalyzeContent() {
     setJobDescription("");
     setActiveTab("ats");
     setCheckedKeywords(new Set());
+    setVisualLoadingDone(false);
   }
 
   function toggleKeyword(keyword: string) {
@@ -241,16 +245,17 @@ function AnalyzeContent() {
         </div>
       </nav>
 
-      <div className={`${result ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
+      <div className={`${result && visualLoadingDone ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
         {paywallReason ? (
           <PaywallScreen />
-        ) : !result ? (
-          loading ? (
+        ) : (!result || !visualLoadingDone) ? (
+          (loading || (result && !visualLoadingDone)) ? (
             <LoadingScreen 
-              currentStep={currentStep} 
+              currentStep={result ? "done" : currentStep} 
               hasGithub={githubUsername.trim().length > 0} 
               hasLinkedin={liFile !== null}
               hasML={mlFile !== null || mlText.trim().length > 0}
+              onFinished={() => setVisualLoadingDone(true)}
             />
           ) : (
             <>
@@ -276,6 +281,9 @@ function AnalyzeContent() {
             />
 
             <div className="lg:col-span-8">
+              {/* Technical Skills Radar Chart - New Header Section */}
+              <TechnicalRadarChart data={result.technical_analysis} />
+
               {/* Tab nav */}
               <div className="flex border-b-[0.5px] border-rc-border mb-7 overflow-x-auto">
                 {tabs.map((tab) => (
