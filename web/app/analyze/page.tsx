@@ -18,13 +18,14 @@ import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
 import { ActionsTab } from "../components/tabs/ActionsTab";
 import { BridgeTab } from "../components/tabs/BridgeTab";
+import { ImproveTab } from "../components/tabs/ImproveTab";
 import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge";
+type Tab = "overview" | "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge" | "improve";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -49,6 +50,9 @@ function AnalyzeContent() {
   const [activeSubscription, setActiveSubscription] = useState<StoredSubscription | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [visualLoadingDone, setVisualLoadingDone] = useState(false);
+  const [analysisId, setAnalysisId] = useState<number | null>(null);
+  const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
+  const [isRewriting, setIsRewriting] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -99,6 +103,10 @@ function AnalyzeContent() {
         .then(data => {
           setResult(data.result);
           setJobDescription(data.jobDescription || "");
+          setAnalysisId(parseInt(id));
+          if (data.result?.rewrite) {
+            setReconstructedCv(data.result.rewrite.reconstructed_cv ?? null);
+          }
           setVisualLoadingDone(true);
           setLoading(false);
         })
@@ -153,6 +161,7 @@ function AnalyzeContent() {
           const payload = JSON.parse(line.slice(6));
           if (payload.step === "done") {
             setResult(payload.result);
+            if (payload.analysisId) setAnalysisId(payload.analysisId);
             setLoading(false);
           } else if (payload.step === "error") {
             throw new Error(payload.message);
@@ -176,6 +185,62 @@ function AnalyzeContent() {
     setActiveTab("overview");
     setCheckedKeywords(new Set());
     setVisualLoadingDone(false);
+    setAnalysisId(null);
+    setReconstructedCv(null);
+  }
+
+  async function handleRewrite() {
+    const email = activeSubscription?.email || user?.email;
+    if (!analysisId || !email) return;
+
+    // Show loading screen — keep old sections visible underneath in case of failure
+    setIsRewriting(true);
+
+    try {
+      const res = await fetch(`${apiUrl}/api/analyze/rewrite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ analysisId, email }),
+      });
+
+      if (!res.ok || !res.body) {
+        toast.error("Rewrite failed. Please try again.");
+        return;
+      }
+
+      // Only clear previous result once we have a confirmed good response
+      setReconstructedCv(null);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let donePayload: { reconstructed_cv?: string } | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = JSON.parse(line.slice(6));
+          if (payload.step === "done") donePayload = payload;
+          else if (payload.step === "error") toast.error(payload.message || "Rewrite failed.");
+        }
+      }
+
+      if (donePayload) {
+        setReconstructedCv(donePayload.reconstructed_cv ?? null);
+      } else {
+        toast.error("Rewrite returned no result. Please try again.");
+      }
+    } catch (err) {
+      console.error("[Rewrite] failed:", err);
+      toast.error("Rewrite failed. Please try again.");
+    } finally {
+      setIsRewriting(false);
+    }
   }
 
   function toggleKeyword(keyword: string) {
@@ -227,6 +292,7 @@ function AnalyzeContent() {
     { id: "flags",   label: "Red Flags",  badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
     { id: "actions", label: "Actions to take", badge: null, badgeClass: "" },
     { id: "bridge",  label: "Bridge the gap",   badge: null, badgeClass: "" },
+    { id: "improve", label: "Improve CV",        badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
   return (
@@ -285,7 +351,7 @@ function AnalyzeContent() {
               {/* Tab nav */}
               <div className="relative mb-7">
                 <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red rounded-full pointer-events-none" />
-                <div className="tabs-scrollbar flex border-b-0 overflow-x-auto pb-[2px]">
+                <div className="tabs-scrollbar scroll flex border-b-0 overflow-x-auto pb-[2px]">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
@@ -310,6 +376,15 @@ function AnalyzeContent() {
               {activeTab === "flags"   && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} />}
               {activeTab === "actions" && <ActionsTab result={result} />}
               {activeTab === "bridge"  && <BridgeTab result={result} />}
+              {activeTab === "improve" && (
+                <ImproveTab
+                  reconstructedCv={reconstructedCv}
+                  isLoading={isRewriting}
+                  isPremium={!!activeSubscription}
+                  hasAnalysisId={!!analysisId}
+                  onRewrite={handleRewrite}
+                />
+              )}
 
               {/* Anonymous CTA */}
               {!user && (

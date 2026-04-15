@@ -75,7 +75,7 @@ export class AnalyzeController {
       );
 
       // 2. Save Analysis (with GDPR rules handled in service)
-      await this.analyzeService.saveAnalysis({
+      const { id: analysisId } = await this.analyzeService.saveAnalysis({
         email,
         ip,
         jobDescription,
@@ -85,7 +85,7 @@ export class AnalyzeController {
         isRegistered: !!isRegistered,
       });
 
-      write({ step: 'done', result });
+      write({ step: 'done', result, analysisId });
     } catch (err: any) {
       if (res.writableEnded) return;
       if (!res.headersSent) {
@@ -122,6 +122,43 @@ export class AnalyzeController {
       username: body.username,
       avatarUrl: body.avatarUrl,
     });
+  }
+
+  @Post('rewrite')
+  @ApiOperation({ summary: 'Rewrite a CV based on a previous analysis' })
+  async rewrite(
+    @Body() body: { analysisId: number; email: string },
+    @Res() res: any,
+  ) {
+    const { analysisId, email } = body;
+    if (!analysisId || !email) {
+      return res.status(400).json({ message: 'analysisId and email are required' });
+    }
+
+    const isPremium = await this.analyzeService.checkPremium(email);
+    if (!isPremium) {
+      return res.status(402).json({ message: 'Premium subscription required', code: 'PREMIUM_REQUIRED' });
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const write = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      write({ step: 'rewriting' });
+      const rewriteResult = await this.analyzeService.rewriteCv(analysisId, email);
+      await this.analyzeService.saveRewrite(analysisId, email, rewriteResult);
+      write({ step: 'done', reconstructed_cv: rewriteResult.reconstructed_cv });
+    } catch (err: any) {
+      if (!res.writableEnded) {
+        write({ step: 'error', message: err.message || 'Rewrite failed' });
+      }
+    } finally {
+      res.end();
+    }
   }
 
   @Get(':id')

@@ -2,6 +2,7 @@ import type { AnalysisResult } from "../components/types";
 import { pdf } from "@react-pdf/renderer";
 import React from "react";
 import { ExportTemplatePdf } from "../components/ExportTemplate";
+import { CvRewritePdf } from "../components/CvRewritePdf";
 
 /**
  * Generates a Markdown representation of the analysis result.
@@ -334,6 +335,26 @@ export async function generatePdf(result: AnalysisResult, filename: string) {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Native PDF generation failed:", error);
+    throw error;
+  }
+}
+
+/**
+ * Generates a PDF from the rewritten CV text.
+ */
+export async function generateCvPdf(cvText: string, filename: string) {
+  try {
+    const blob = await pdf(<CvRewritePdf cvText={cvText} />).toBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("CV PDF generation failed:", error);
     throw error;
   }
 }
