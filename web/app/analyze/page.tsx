@@ -12,12 +12,10 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { PaywallScreen } from "../components/PaywallScreen";
 import { ScoreSidebar } from "../components/ScoreSidebar";
 import { AtsTab } from "../components/tabs/AtsTab";
-import { ProfileTab } from "../components/tabs/ProfileTab";
-import { AuditTab } from "../components/tabs/AuditTab";
+import { CvAnalysisTab } from "../components/tabs/CvAnalysisTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
-import { ActionsTab } from "../components/tabs/ActionsTab";
-import { BridgeTab } from "../components/tabs/BridgeTab";
+import { RoadmapTab } from "../components/tabs/RoadmapTab";
 import { ImproveTab } from "../components/tabs/ImproveTab";
 import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
@@ -25,7 +23,7 @@ import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "profile" | "audit" | "signals" | "flags" | "actions" | "bridge" | "improve";
+type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "improve";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -286,13 +284,11 @@ function AnalyzeContent() {
       badge: result.ats_simulation.would_pass ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />, 
       badgeClass: result.ats_simulation.would_pass ? "text-rc-green" : "text-rc-red" 
     },
-    { id: "profile", label: "Profile",    badge: null, badgeClass: "" },
-    { id: "audit",   label: "CV Audit",   badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
-    { id: "signals", label: "Signals",    badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
-    { id: "flags",   label: "Red Flags",  badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
-    { id: "actions", label: "Actions to take", badge: null, badgeClass: "" },
-    { id: "bridge",  label: "Bridge the gap",   badge: null, badgeClass: "" },
-    { id: "improve", label: "Improve CV",        badge: "✦", badgeClass: "text-rc-red" },
+    { id: "cv-analysis", label: "CV Analysis", badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
+    { id: "signals",     label: "Signals",     badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
+    { id: "flags",       label: "Red Flags",   badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
+    { id: "roadmap",     label: "Roadmap",     badge: null, badgeClass: "" },
+    { id: "improve",     label: "Improve CV",  badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
   return (
@@ -368,14 +364,12 @@ function AnalyzeContent() {
               </div>
 
               {/* Tab content */}
-              {activeTab === "overview" && <TechnicalRadarChart data={result.technical_analysis} />}
-              {activeTab === "ats"     && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
-              {activeTab === "profile" && <ProfileTab result={result} />}
-              {activeTab === "audit"   && <AuditTab cv={result.audit.cv} />}
-              {activeTab === "signals" && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
-              {activeTab === "flags"   && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} />}
-              {activeTab === "actions" && <ActionsTab result={result} />}
-              {activeTab === "bridge"  && <BridgeTab result={result} />}
+              {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
+              {activeTab === "ats"          && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
+              {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
+              {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
+              {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
+              {activeTab === "roadmap"      && <RoadmapTab result={result} />}
               {activeTab === "improve" && (
                 <ImproveTab
                   reconstructedCv={reconstructedCv}

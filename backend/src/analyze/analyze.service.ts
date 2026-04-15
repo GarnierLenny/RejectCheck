@@ -78,7 +78,14 @@ export class AnalyzeService {
     githubInfo: string;
     linkedinText: string;
     motivationLetterText: string;
-  }): Promise<{ technical_analysis: AnalyzeResponse['technical_analysis']; project_recommendation: AnalyzeResponse['project_recommendation']; scores: { tech_stack_fit: number; github_signal: number | null } }> {
+  }): Promise<{
+    technical_analysis: AnalyzeResponse['technical_analysis'];
+    project_recommendation: AnalyzeResponse['project_recommendation'];
+    scores: { tech_stack_fit: number; github_signal: number | null; linkedin_signal: number | null };
+    overall: { score: number; verdict: 'Low' | 'Medium' | 'High'; confidence: { score: number; reason: string } };
+    audit_github: AnalyzeResponse['audit']['github'];
+    audit_linkedin: AnalyzeResponse['audit']['linkedin'];
+  }> {
     const { jobText, cvText, githubInfo, linkedinText, motivationLetterText } = data;
     const technicalPrompt = this.configService.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
 
@@ -148,13 +155,137 @@ export class AnalyzeService {
                 scores: {
                   type: "object",
                   properties: {
-                    tech_stack_fit: { type: "number" },
-                    github_signal: { type: ["number", "null"] },
+                    tech_stack_fit: { type: "number", description: "Tech stack fit score 0-100" },
+                    github_signal: { type: ["number", "null"], description: "GitHub profile strength 0-100, null if not provided" },
+                    linkedin_signal: { type: ["number", "null"], description: "LinkedIn profile strength for this role 0-100, null if not provided" },
                   },
-                  required: ["tech_stack_fit", "github_signal"],
+                  required: ["tech_stack_fit", "github_signal", "linkedin_signal"],
+                },
+                overall: {
+                  type: "object",
+                  description: "Holistic overall rejection risk assessment combining all signals",
+                  properties: {
+                    score: { type: "number", minimum: 0, maximum: 100, description: "Overall rejection risk: 0=strong match (low risk), 100=very weak match (high risk)" },
+                    verdict: { type: "string", enum: ["Low", "Medium", "High"], description: "Low=strong candidate, Medium=partial match, High=weak match" },
+                    confidence: {
+                      type: "object",
+                      properties: {
+                        score: { type: "number", minimum: 0, maximum: 100 },
+                        reason: { type: "string", description: "One sentence explaining the confidence level" },
+                      },
+                      required: ["score", "reason"],
+                    },
+                  },
+                  required: ["score", "verdict", "confidence"],
+                },
+                audit_github: {
+                  type: "object",
+                  description: "GitHub profile audit. score=null and empty arrays if GitHub not provided.",
+                  properties: {
+                    score: { type: ["number", "null"], minimum: 0, maximum: 100 },
+                    strengths: { type: "array", items: { type: "string" } },
+                    issues: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          severity: { type: "string", enum: ["critical", "major", "minor"] },
+                          category: { type: "string", enum: ["keywords", "impact", "seniority", "stack", "format", "tone", "consistency"] },
+                          what: { type: "string" },
+                          why: { type: "string" },
+                          fix: {
+                            type: "object",
+                            properties: {
+                              summary: { type: "string" },
+                              steps: { type: "array", items: { type: "string" } },
+                              example: {
+                                anyOf: [
+                                  { type: "null" },
+                                  { type: "object", properties: { before: { type: "string" }, after: { type: "string" } }, required: ["before", "after"] },
+                                ],
+                              },
+                              project_idea: {
+                                anyOf: [
+                                  { type: "null" },
+                                  {
+                                    type: "object",
+                                    properties: {
+                                      name: { type: "string" },
+                                      description: { type: "string" },
+                                      endpoints: { type: "array", items: { type: "string" } },
+                                      bonus: { anyOf: [{ type: "null" }, { type: "string" }] },
+                                      proves: { type: "string" },
+                                    },
+                                    required: ["name", "description", "endpoints", "bonus", "proves"],
+                                  },
+                                ],
+                              },
+                              time_required: { type: "string" },
+                            },
+                            required: ["summary", "steps", "example", "project_idea", "time_required"],
+                          },
+                        },
+                        required: ["severity", "category", "what", "why", "fix"],
+                      },
+                    },
+                  },
+                  required: ["score", "issues", "strengths"],
+                },
+                audit_linkedin: {
+                  type: "object",
+                  description: "LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided.",
+                  properties: {
+                    score: { type: ["number", "null"], minimum: 0, maximum: 100 },
+                    strengths: { type: "array", items: { type: "string" } },
+                    issues: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          severity: { type: "string", enum: ["critical", "major", "minor"] },
+                          category: { type: "string", enum: ["keywords", "impact", "seniority", "stack", "format", "tone", "consistency"] },
+                          what: { type: "string" },
+                          why: { type: "string" },
+                          fix: {
+                            type: "object",
+                            properties: {
+                              summary: { type: "string" },
+                              steps: { type: "array", items: { type: "string" } },
+                              example: {
+                                anyOf: [
+                                  { type: "null" },
+                                  { type: "object", properties: { before: { type: "string" }, after: { type: "string" } }, required: ["before", "after"] },
+                                ],
+                              },
+                              project_idea: {
+                                anyOf: [
+                                  { type: "null" },
+                                  {
+                                    type: "object",
+                                    properties: {
+                                      name: { type: "string" },
+                                      description: { type: "string" },
+                                      endpoints: { type: "array", items: { type: "string" } },
+                                      bonus: { anyOf: [{ type: "null" }, { type: "string" }] },
+                                      proves: { type: "string" },
+                                    },
+                                    required: ["name", "description", "endpoints", "bonus", "proves"],
+                                  },
+                                ],
+                              },
+                              time_required: { type: "string" },
+                            },
+                            required: ["summary", "steps", "example", "project_idea", "time_required"],
+                          },
+                        },
+                        required: ["severity", "category", "what", "why", "fix"],
+                      },
+                    },
+                  },
+                  required: ["score", "issues", "strengths"],
                 },
               },
-              required: ["technical_analysis", "project_recommendation", "scores"],
+              required: ["technical_analysis", "project_recommendation", "scores", "overall", "audit_github", "audit_linkedin"],
             },
           }
         ],
@@ -179,7 +310,13 @@ export class AnalyzeService {
 
           Formatting rules:
           - Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals): bold key terms, italics for nuance, short bullet lists where helpful.
-          - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`
+          - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.
+
+          Also compute the following fields:
+          - scores.linkedin_signal: 0-100 signal strength of the LinkedIn profile for this specific role. Set null if LinkedIn was not provided.
+          - overall: holistic rejection risk score (0=strong match/low risk, 100=very weak match/high risk), verdict (Low/Medium/High), and confidence. Consider all available signals: technical skills, CV quality, GitHub activity, LinkedIn coherence. Low verdict = strong candidate with low rejection risk.
+          - audit_github: if GitHub data is provided above, score the profile (0-100), list up to 3 issues and strengths. If GitHub was not provided, set score=null, issues=[], strengths=[].
+          - audit_linkedin: if LinkedIn profile is provided above, score it (0-100), identify inconsistencies or gaps vs the CV and job requirements. If LinkedIn was not provided, set score=null, issues=[], strengths=[].`
           }
         ]
       });
@@ -315,26 +452,57 @@ export class AnalyzeService {
       // Initialize full response structure with GPT data
       const fullResponse: any = {
         ...gptParsed,
-        // Reconstruct breakdown with Claude's scores if available
+        // Reconstruct breakdown — will be overridden by Claude if available
         breakdown: {
           ...gptParsed.breakdown,
           tech_stack_fit: 0,
           github_signal: null,
         }
       };
-      
+
       // Merge Claude's results if successful
       if (claudeResult.status === 'fulfilled') {
-        fullResponse.technical_analysis = claudeResult.value.technical_analysis;
-        fullResponse.project_recommendation = claudeResult.value.project_recommendation;
-        fullResponse.breakdown.tech_stack_fit = claudeResult.value.scores.tech_stack_fit;
-        fullResponse.breakdown.github_signal = claudeResult.value.scores.github_signal;
+        const cv = claudeResult.value;
+        fullResponse.technical_analysis = cv.technical_analysis;
+        fullResponse.project_recommendation = cv.project_recommendation;
+
+        // Claude owns the Overall Risk calculation
+        fullResponse.score = cv.overall.score;
+        fullResponse.verdict = cv.overall.verdict;
+        fullResponse.confidence = cv.overall.confidence;
+
+        // Merge audit scores: prefer Claude's value, fall back to GPT's if Claude returned null
+        const mergedAuditGithub = {
+          ...cv.audit_github,
+          score: cv.audit_github.score ?? gptParsed.audit?.github?.score ?? null,
+        };
+        const mergedAuditLinkedin = {
+          ...cv.audit_linkedin,
+          score: cv.audit_linkedin.score ?? gptParsed.audit?.linkedin?.score ?? null,
+        };
+
+        // Full breakdown with all 5 signals — cross-sync scores with audit values as fallback
+        fullResponse.breakdown = {
+          keyword_match: gptParsed.breakdown?.keyword_match ?? 0,
+          experience_level: gptParsed.breakdown?.experience_level ?? 0,
+          tech_stack_fit: cv.scores.tech_stack_fit,
+          github_signal: cv.scores.github_signal ?? mergedAuditGithub.score,
+          linkedin_signal: cv.scores.linkedin_signal ?? gptParsed.breakdown?.linkedin_signal ?? mergedAuditLinkedin.score,
+        };
+
+        // Claude owns GitHub + LinkedIn audits (with GPT fallback for scores)
+        fullResponse.audit = {
+          ...gptParsed.audit,
+          github: mergedAuditGithub,
+          linkedin: mergedAuditLinkedin,
+        };
       } else {
-        console.error("Claude Technical Analysis failed, using fallback placeholders");
+        console.error("Claude analysis failed, using GPT fallback for overall risk and signals");
         const placeholder = { name: "Technical Analysis Unavailable", expected: 5, current: 0, evidence: "Technical engine was unavailable for this scan." };
-        fullResponse.technical_analysis = { 
-          reasoning: "Technical analysis was unavailable for this run.", 
-          skills: [placeholder, placeholder, placeholder, placeholder, placeholder], 
+        fullResponse.technical_analysis = {
+          reasoning: "Technical analysis was unavailable for this run.",
+          skill_priority: [],
+          skills: [placeholder, placeholder, placeholder, placeholder, placeholder],
           recommendation: "",
           market_context: "Unavailable",
           seniority_signals: []

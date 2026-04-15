@@ -4,9 +4,27 @@ import { FixBlock } from "../FixBlock";
 type Props = {
   flags: AnalysisResult["hidden_red_flags"];
   jdMatch: AnalysisResult["audit"]["jd_match"];
+  score: AnalysisResult["score"];
+  verdict: AnalysisResult["verdict"];
+  confidence: AnalysisResult["confidence"];
+  breakdown: AnalysisResult["breakdown"];
 };
 
-export function FlagsTab({ flags, jdMatch }: Props) {
+const VERDICT_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  High:   { label: "Strong Match",  color: "text-rc-green", bg: "bg-rc-green/5",   border: "border-rc-green/20" },
+  Medium: { label: "Partial Match", color: "text-rc-amber", bg: "bg-rc-amber/5",   border: "border-rc-amber/20" },
+  Low:    { label: "Weak Match",    color: "text-rc-red",   bg: "bg-rc-red/5",     border: "border-rc-red/20" },
+};
+
+const BREAKDOWN_LABELS: Record<string, string> = {
+  keyword_match:    "Keyword Match",
+  tech_stack_fit:   "Tech Stack Fit",
+  experience_level: "Experience Level",
+  github_signal:    "GitHub Signal",
+  linkedin_signal:  "LinkedIn Signal",
+};
+
+export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown }: Props) {
   const sortedSkills = [...jdMatch.required_skills].sort((a, b) =>
     a.found === b.found ? 0 : a.found ? 1 : -1
   );
@@ -14,8 +32,54 @@ export function FlagsTab({ flags, jdMatch }: Props) {
   const foundCount = sortedSkills.filter(s => s.found).length;
   const totalCount = sortedSkills.length;
 
+  const verdictCfg = VERDICT_CONFIG[verdict] ?? VERDICT_CONFIG.Low;
+  const breakdownEntries = Object.entries(breakdown).filter(([, v]) => v !== null) as [string, number][];
+
   return (
     <div className="space-y-8">
+
+      {/* ── Recruiter View ────────────────────────────────── */}
+      <div className={`p-6 rounded-xl border ${verdictCfg.bg} ${verdictCfg.border}`}>
+        <div className="flex items-start justify-between gap-6 mb-6">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint block mb-2">Recruiter View</span>
+            <h2 className={`font-sans font-bold text-[22px] tracking-tight uppercase ${verdictCfg.color}`}>
+              {verdictCfg.label}
+            </h2>
+            <p className="text-[13px] text-rc-muted leading-relaxed mt-2 max-w-[420px]">{confidence.reason}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <div className="text-[42px] font-mono font-medium leading-none text-rc-text">
+              {score}<span className="text-[18px] text-rc-hint">/100</span>
+            </div>
+            <div className={`font-mono text-[11px] mt-1 font-semibold ${verdictCfg.color}`}>
+              {confidence.score}% confidence
+            </div>
+          </div>
+        </div>
+
+        {/* Breakdown bars */}
+        <div className="space-y-3">
+          {breakdownEntries.map(([key, value]) => (
+            <div key={key} className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-rc-hint">
+                  {BREAKDOWN_LABELS[key] ?? key}
+                </span>
+                <span className={`font-mono text-[10px] font-bold ${value >= 70 ? 'text-rc-green' : value >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
+                  {value}
+                </span>
+              </div>
+              <div className="h-1.5 bg-rc-border/40 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${value >= 70 ? 'bg-rc-green' : value >= 50 ? 'bg-rc-amber' : 'bg-rc-red'}`}
+                  style={{ width: `${value}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Hidden Red Flags */}
       <div className="space-y-4">

@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import type { Fix } from "./types";
 
 export function FixBlock({ fix }: { fix: Fix }) {
@@ -5,14 +6,16 @@ export function FixBlock({ fix }: { fix: Fix }) {
     <div className="mt-4 p-4 bg-rc-bg rounded-lg border-[0.5px] border-rc-border/40">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-5 h-5 rounded-full bg-rc-green/20 flex items-center justify-center text-[10px] text-rc-green">✓</div>
-        <p className="text-[13px] font-medium text-rc-text">{fix.summary}</p>
+        <div className="text-[13px] font-medium text-rc-text prose-sm prose-invert max-w-none">
+          <ReactMarkdown>{fix.summary}</ReactMarkdown>
+        </div>
       </div>
 
       <div className="space-y-2.5 ml-7 mb-4">
         {fix.steps.map((step, i) => (
           <div key={i} className="text-[12px] text-rc-muted flex gap-2">
             <span className="text-rc-hint font-mono">{i + 1}.</span>
-            <span>{step}</span>
+            <span className="prose-sm prose-invert max-w-none"><ReactMarkdown>{step}</ReactMarkdown></span>
           </div>
         ))}
       </div>
@@ -21,10 +24,14 @@ export function FixBlock({ fix }: { fix: Fix }) {
         <div className="ml-7 border-l-2 border-rc-red/20 pl-4 py-1 space-y-3">
           <div className="space-y-1">
             <span className="text-[10px] uppercase tracking-wider text-rc-hint font-mono">Current:</span>
-            <p className="text-[12px] text-rc-muted italic">&quot;{fix.example.before}&quot;</p>
+            <div className="text-[12px] text-rc-muted italic prose-sm prose-invert max-w-none">
+              <ReactMarkdown>{`"${fix.example.before}"`}</ReactMarkdown>
+            </div>
           </div>
           <span className="text-[10px] uppercase tracking-wider text-rc-green font-mono italic">Reframed:</span>
-          <p className="text-[12px] text-rc-text font-medium">{fix.example.after}</p>
+          <div className="text-[12px] text-rc-text font-medium prose-sm prose-invert max-w-none">
+            <ReactMarkdown>{fix.example.after}</ReactMarkdown>
+          </div>
         </div>
       )}
 
@@ -34,19 +41,24 @@ export function FixBlock({ fix }: { fix: Fix }) {
             <span className="text-[11px] font-bold text-rc-text uppercase tracking-widest">{fix.project_idea.name}</span>
             <span className="text-[10px] text-rc-green font-mono bg-rc-green/10 px-2 py-0.5 rounded">NEW PROJECT</span>
           </div>
-          <p className="text-[12px] text-rc-muted mb-3 leading-relaxed">{fix.project_idea.description}</p>
+          <div className="text-[12px] text-rc-muted mb-3 leading-relaxed prose-sm prose-invert max-w-none">
+            <ReactMarkdown>{fix.project_idea.description}</ReactMarkdown>
+          </div>
           <div className="flex flex-wrap gap-2 mb-3">
             {fix.project_idea.endpoints.map((e, i) => (
               <span key={i} className="text-[10px] font-mono text-rc-hint bg-rc-surface px-1.5 py-0.5 rounded border-[0.5px] border-rc-border/50">{e}</span>
             ))}
           </div>
           <div className="text-[11px] text-rc-text leading-tight mb-1">
-            <span className="text-rc-hint">Demonstrates:</span> {fix.project_idea.proves}
+            <span className="text-rc-hint">Demonstrates:</span>{" "}
+            <span className="prose-sm prose-invert max-w-none inline"><ReactMarkdown>{fix.project_idea.proves}</ReactMarkdown></span>
           </div>
           {fix.project_idea.bonus && (
             <div className="text-[11px] leading-tight mt-1">
               <span className="text-rc-green font-mono">Bonus:</span>{" "}
-              <span className="text-rc-muted">{fix.project_idea.bonus}</span>
+              <span className="text-rc-muted prose-sm prose-invert max-w-none inline">
+                <ReactMarkdown>{fix.project_idea.bonus}</ReactMarkdown>
+              </span>
             </div>
           )}
         </div>

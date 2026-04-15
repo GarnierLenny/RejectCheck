@@ -11,7 +11,8 @@ type Props = {
 
 const ATS_THRESHOLD_FALLBACK = 70;
 
-function KeywordRow({ kw, checked, onToggle, accent }: { kw: Keyword; checked: boolean; onToggle: () => void; accent: string }) {
+function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword; checked: boolean; onToggle: () => void; accent: string; maxImpact: number }) {
+  const impactPct = maxImpact > 0 ? Math.round((kw.score_impact / maxImpact) * 100) : 0;
   return (
     <label className="flex items-start gap-3 cursor-pointer group">
       <div
@@ -25,10 +26,19 @@ function KeywordRow({ kw, checked, onToggle, accent }: { kw: Keyword; checked: b
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap mb-1.5">
           <span className={`text-[13px] font-medium transition-colors ${checked ? 'line-through text-rc-hint' : 'text-rc-text'}`}>{kw.keyword}</span>
           <span className={`font-mono text-[10px] ${accent} px-1.5 py-0.5 rounded`}>{kw.jd_frequency}x in JD</span>
-          <span className="font-mono text-[10px] text-rc-green">+{kw.score_impact} pts</span>
+        </div>
+        {/* Impact bar */}
+        <div className="flex items-center gap-2">
+          <div className="flex-1 h-1 bg-rc-border/40 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${checked ? 'bg-rc-green/40' : 'bg-rc-green'}`}
+              style={{ width: `${impactPct}%` }}
+            />
+          </div>
+          <span className="font-mono text-[10px] text-rc-green shrink-0">+{kw.score_impact} pts</span>
         </div>
         {kw.sections_missing.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1.5">
@@ -51,8 +61,9 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
     }, 0)
   ));
   const gapToThreshold = atsThreshold - simulatedScore;
-  const requiredKws = ats.critical_missing_keywords.filter(k => k.required);
-  const preferredKws = ats.critical_missing_keywords.filter(k => !k.required);
+  const requiredKws = [...ats.critical_missing_keywords.filter(k => k.required)].sort((a, b) => b.score_impact - a.score_impact);
+  const preferredKws = [...ats.critical_missing_keywords.filter(k => !k.required)].sort((a, b) => b.score_impact - a.score_impact);
+  const maxImpact = Math.max(...ats.critical_missing_keywords.map(k => k.score_impact), 1);
 
   return (
     <div className="space-y-6">
@@ -138,7 +149,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
             </div>
             <div className="space-y-3">
               {requiredKws.map((kw) => (
-                <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-red bg-rc-red/10" />
+                <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-red bg-rc-red/10" maxImpact={maxImpact} />
               ))}
             </div>
           </div>
@@ -153,7 +164,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
             </div>
             <div className="space-y-3">
               {preferredKws.map((kw) => (
-                <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-amber bg-rc-amber/10" />
+                <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-amber bg-rc-amber/10" maxImpact={maxImpact} />
               ))}
             </div>
           </div>
