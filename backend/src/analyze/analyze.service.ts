@@ -1,9 +1,10 @@
-import { Injectable, UnprocessableEntityException, InternalServerErrorException, BadRequestException, HttpException } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { PDFParse } from 'pdf-parse';
 import { z } from 'zod';
 import { AnalyzeResponseSchema, AnalyzeResponse } from './dto/analyze-response.dto';
+import { RewriteResponse, RewriteResponseSchema } from './dto/rewrite-response.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { StripeService } from '../stripe/stripe.service';
 import { Prisma } from '@prisma/client';
@@ -371,20 +372,20 @@ export class AnalyzeService {
     return { allowed: true };
   }
 
-  async saveAnalysis(data: { 
-    email?: string; 
-    ip?: string; 
-    jobDescription: string; 
+  async saveAnalysis(data: {
+    email?: string;
+    ip?: string;
+    jobDescription: string;
     cvText?: string;
     motivationLetter?: string;
-    result: any; 
-    isRegistered: boolean 
-  }) {
+    result: any;
+    isRegistered: boolean
+  }): Promise<{ id: number | null }> {
     const { email, ip, jobDescription, cvText, motivationLetter, result, isRegistered } = data;
 
     if (isRegistered && email) {
       // Registered User: Store everything
-      await (this.prisma as any).analysis.create({
+      const created = await (this.prisma as any).analysis.create({
         data: {
           email,
           ip: ip ?? null,
@@ -394,6 +395,7 @@ export class AnalyzeService {
           result: result as any,
         }
       });
+      return { id: created.id };
     } else {
       // Anonymous User: Store ONLY IP and createdAt (by default)
       // We explicitly null out email and jobDescription as requested
@@ -405,6 +407,97 @@ export class AnalyzeService {
           // We omit 'result' to keep it as DB null
         }
       });
+      return { id: null };
+    }
+  }
+
+  async saveRewrite(analysisId: number, email: string, rewriteResult: RewriteResponse): Promise<void> {
+    const analysis = await (this.prisma as any).analysis.findFirst({ where: { id: analysisId, email } });
+    if (!analysis || !analysis.result) return;
+    const updatedResult = { ...(analysis.result as any), rewrite: rewriteResult };
+    await (this.prisma as any).analysis.update({
+      where: { id: analysisId },
+      data: { result: updatedResult },
+    });
+  }
+
+  async checkPremium(email: string): Promise<boolean> {
+    return this.stripeService.checkSubscription(email);
+  }
+
+  async rewriteCv(analysisId: number, email: string): Promise<RewriteResponse> {
+    const analysis = await (this.prisma as any).analysis.findFirst({
+      where: { id: analysisId, email, result: { not: Prisma.DbNull } },
+    });
+
+    if (!analysis) throw new BadRequestException('Analysis not found');
+    if (!analysis.cvText) throw new BadRequestException('CV text not available for this analysis');
+
+    const result = analysis.result as any;
+
+    // Build rich context from the existing analysis findings
+    const missingKeywords = result.ats_simulation?.critical_missing_keywords
+      ?.map((k: any) => `${k.keyword} (missing from: ${(k.sections_missing as string[]).join(', ')})`)
+      ?.join('\n  - ') || 'none';
+
+    const atsScore = result.ats_simulation?.score ?? '?';
+    const passiveExamples = result.cv_tone?.examples?.join('\n  - ') || 'none';
+    const toneDetected = result.cv_tone?.detected || 'unknown';
+    const seniorityGap = result.seniority_analysis?.gap || 'none';
+    const seniorityFix = result.seniority_analysis?.fix?.summary || '';
+    const cvIssues = result.audit?.cv?.issues
+      ?.map((i: any) => `[${i.severity.toUpperCase()}] ${i.what} — ${i.why}`)
+      ?.join('\n  - ') || 'none';
+
+    const systemPrompt = `You are an expert CV writer. You receive an original CV and a detailed analysis of its weaknesses. Your job is to rewrite the FULL CV, fixing every issue identified.
+
+Output ONLY the rewritten CV — no preamble, no commentary, no explanation. Start directly with the candidate's name or first section.
+
+Formatting rules (strict Markdown):
+- ## for main section headers (e.g. ## EXPERIENCE, ## EDUCATION, ## SKILLS, ## PROFILE)
+- ### for sub-entries (job titles, degree names) if needed
+- **bold** for job titles, company names, and degree names
+- - bullet points for responsibilities and achievements
+- Blank line between sections
+
+Rewriting rules:
+- Replace passive verbs: "responsible for" → "Led", "worked on" → "Built", "helped with" → "Drove", "assisted" → "Owned"
+- Inject missing ATS keywords naturally into existing content — never as a standalone dump
+- Add scope and impact language where the analysis flags seniority gaps
+- Strengthen ownership: "part of a team that" → "Led a cross-functional team of N to"
+- Never fabricate companies, dates, job titles, or specific numbers not present in the original
+- Preserve ALL sections from the original CV — do not remove any content`;
+
+    const userMessage = `Rewrite this CV to maximise interview chances. Fix all issues identified in the analysis below.
+
+ATS SCORE: ${atsScore}/100
+MISSING KEYWORDS (inject naturally): ${missingKeywords}
+TONE (${toneDetected}) — passive examples: ${passiveExamples}
+SENIORITY GAP: ${seniorityGap} — Fix: ${seniorityFix}
+CV AUDIT ISSUES: ${cvIssues}
+
+ORIGINAL CV:
+${analysis.cvText}`;
+
+    try {
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        temperature: 0.3,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+      });
+
+      const reconstructed_cv = completion.choices[0]?.message?.content?.trim() ?? '';
+      console.log(`[GPT] rewriteCv returned ${reconstructed_cv.length} chars`);
+
+      if (!reconstructed_cv) throw new InternalServerErrorException('GPT returned empty CV');
+
+      return RewriteResponseSchema.parse({ reconstructed_cv });
+    } catch (err: any) {
+      console.error('[GPT] rewriteCv failed:', err?.message || err);
+      throw new InternalServerErrorException('CV rewrite failed');
     }
   }
 
