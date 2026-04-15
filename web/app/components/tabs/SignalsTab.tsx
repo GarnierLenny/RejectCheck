@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "../types";
 import { IssueItem } from "../IssueItem";
 
@@ -83,7 +84,7 @@ function SignalSection({
                   {strengths.map((s, i) => (
                     <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-green/5 text-rc-green border border-rc-green/20">
                       <span className="w-1.5 h-1.5 rounded-full bg-rc-green" />
-                      {s}
+                      <ReactMarkdown components={{ p: ({ children }) => <>{children}</> }}>{s}</ReactMarkdown>
                     </span>
                   ))}
                 </div>

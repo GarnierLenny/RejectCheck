@@ -129,6 +129,7 @@ export const AnalyzeResponseSchema = z.object({
   project_recommendation: ProjectRecommendationSchema,
   technical_analysis: z.object({
     reasoning: z.string(),
+    skill_priority: z.array(z.string()).default([]),
     skills: z.array(TechnicalSkillSchema).length(5),
     recommendation: z.string(),
     market_context: z.string(),
