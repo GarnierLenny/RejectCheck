@@ -51,6 +51,7 @@ const signals = [
   "GitHub analysis",
   "LinkedIn PDF",
   "Actionable fixes",
+  "CV Rewrite",
 ];
 
 export default function Home() {
@@ -170,6 +171,83 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CV Rewrite / Premium ────────────────────────────────── */}
+      <section className="border-t-[0.5px] border-rc-border">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-20 md:py-28">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+            {/* Left — copy */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-px w-6 bg-rc-red" />
+                <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
+                  Premium
+                </span>
+              </div>
+
+              <h2 className="text-[28px] md:text-[38px] font-semibold leading-[1.12] tracking-[-0.02em] text-rc-text mb-5 max-w-[420px]">
+                Don&apos;t just read the report.{" "}
+                <span className="text-rc-red italic" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                  Fix the CV.
+                </span>
+              </h2>
+
+              <p className="text-[15px] text-rc-muted leading-[1.75] mb-10 max-w-[400px]">
+                After the diagnosis, one click rewrites your entire CV — injecting
+                missing keywords, converting passive tone to ownership language, and
+                adding seniority signals exactly where the scan flagged gaps.
+                Export as a clean, recruiter-ready PDF.
+              </p>
+
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2.5 border border-rc-red text-rc-red font-mono text-[12px] tracking-[0.14em] uppercase px-7 py-3.5 rounded-xl hover:bg-rc-red hover:text-white active:scale-[0.98] transition-all duration-200 no-underline"
+              >
+                See pricing
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 7h10M7.5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+            </div>
+
+            {/* Right — feature list */}
+            <div className="flex flex-col gap-px bg-rc-border border border-rc-border rounded-2xl overflow-hidden">
+              {[
+                {
+                  label: "Passive verbs → ownership",
+                  detail: "\"Responsible for\" becomes \"Led\". \"Worked on\" becomes \"Built\". Every bullet, rewritten.",
+                },
+                {
+                  label: "ATS keywords, injected naturally",
+                  detail: "Missing terms woven into your existing content — never dumped at the bottom as a keyword block.",
+                },
+                {
+                  label: "Seniority signals added",
+                  detail: "Scope, team size, and impact language inserted where the scan flagged alignment gaps.",
+                },
+                {
+                  label: "Export as a formatted PDF",
+                  detail: "One click. Clean monochrome layout, ready to attach to any application.",
+                },
+              ].map((item) => (
+                <div key={item.label} className="bg-rc-bg px-7 py-6 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-1 h-1 rounded-full bg-rc-red shrink-0" />
+                    <span className="text-[14px] font-semibold text-rc-text tracking-[-0.01em]">
+                      {item.label}
+                    </span>
+                  </div>
+                  <p className="text-[13px] text-rc-hint leading-[1.65] pl-[18px]">
+                    {item.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
       </section>
