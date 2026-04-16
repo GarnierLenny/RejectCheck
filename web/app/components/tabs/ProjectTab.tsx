@@ -4,9 +4,11 @@ import { CheckCircle2, Zap, Target, Gauge, ArrowRight, Layers, ShieldCheck, Ligh
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "../types";
 import { SectionHeader } from "../SectionHeader";
+import { BlurredSection } from "../BlurredSection";
 
 type Props = {
   project: AnalysisResult["project_recommendation"];
+  isPremium?: boolean;
 };
 
 function stripMd(text: string): string {
@@ -15,7 +17,7 @@ function stripMd(text: string): string {
 
 const mdClass = "[&_strong]:font-semibold [&_strong]:text-rc-text [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc [&_p]:leading-[1.7]";
 
-export function ProjectTab({ project }: Props) {
+export function ProjectTab({ project, isPremium = true }: Props) {
   if (!project) {
     return (
       <div className="p-12 text-center bg-rc-surface border border-rc-border border-dashed">
@@ -47,15 +49,58 @@ export function ProjectTab({ project }: Props) {
         }
       />
 
-      {/* Project name + description */}
+      {/* Project name — always visible as teaser */}
       <div className="bg-rc-surface border border-rc-border p-6">
         <h3 className="font-sans font-bold text-[21px] tracking-tight text-rc-text mb-3 leading-tight">
           {stripMd(project.name)}
         </h3>
-        <div className={`text-[17px] text-rc-muted ${mdClass}`}>
-          <ReactMarkdown>{project.description}</ReactMarkdown>
-        </div>
+        {isPremium && (
+          <div className={`text-[17px] text-rc-muted ${mdClass}`}>
+            <ReactMarkdown>{project.description}</ReactMarkdown>
+          </div>
+        )}
+        {!isPremium && (
+          <p className="font-mono text-[12px] text-rc-hint">Upgrade to see the full project blueprint</p>
+        )}
       </div>
+
+      {!isPremium && (
+        <BlurredSection
+          aggregateText="Your personalized project blueprint is ready — architecture, features, success criteria and more"
+          ctaText="Unlock project plan →"
+        >
+          <div className="space-y-4">
+            <div className="bg-rc-surface border border-rc-border p-6 space-y-3">
+              <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-green font-bold flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5" /> Strategic Value
+              </h4>
+              {[90, 70, 85].map((w, i) => (
+                <div key={i} className="h-3 bg-rc-border/40 rounded" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+            <div className="bg-rc-surface border border-rc-border p-6 space-y-3">
+              <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-text font-bold flex items-center gap-1.5">
+                <ListChecks className="w-3.5 h-3.5" /> What to Build
+              </h4>
+              {[80, 65, 75, 55].map((w, i) => (
+                <div key={i} className="h-3 bg-rc-border/40 rounded" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+            <div className="bg-rc-surface-raised border border-rc-border p-6 space-y-3 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-rc-red" />
+              <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5" /> Architecture Blueprint
+              </h4>
+              {[95, 80].map((w, i) => (
+                <div key={i} className="h-3 bg-rc-border/40 rounded" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          </div>
+        </BlurredSection>
+      )}
+
+      {/* Full content — premium only */}
+      {isPremium && <>
 
       {/* Strategic Value */}
       <div className="bg-rc-surface border border-rc-border p-6">
@@ -168,6 +213,8 @@ export function ProjectTab({ project }: Props) {
           Deploy to production and document the trade-offs you made. That&apos;s what seniors do.
         </p>
       </div>
+
+      </>}
     </div>
   );
 }
