@@ -31,16 +31,18 @@ const styles = StyleSheet.create({
 type Segment = { bold: boolean; text: string };
 
 function parseInline(text: string): Segment[] {
+  // Strip single asterisks used for italic (no italic font available)
+  const cleaned = text.replace(/\*([^*]+)\*/g, '$1');
   const segments: Segment[] = [];
   const regex = /\*\*(.+?)\*\*/g;
   let last = 0;
   let match: RegExpExecArray | null;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) segments.push({ bold: false, text: text.slice(last, match.index) });
+  while ((match = regex.exec(cleaned)) !== null) {
+    if (match.index > last) segments.push({ bold: false, text: cleaned.slice(last, match.index) });
     segments.push({ bold: true, text: match[1] });
     last = regex.lastIndex;
   }
-  if (last < text.length) segments.push({ bold: false, text: text.slice(last) });
+  if (last < cleaned.length) segments.push({ bold: false, text: cleaned.slice(last) });
   return segments;
 }
 
@@ -57,6 +59,7 @@ function RichText({ segments, style }: { segments: Segment[]; style: any }) {
 }
 
 type Block =
+  | { type: "h1"; text: string }
   | { type: "h2"; text: string }
   | { type: "h3"; text: string }
   | { type: "bullet"; segments: Segment[] }
@@ -76,7 +79,14 @@ function parse(cv: string): Block[] {
       continue;
     }
 
+    // Dividers — skip entirely
+    if (/^-{3,}$/.test(trimmed)) continue;
+
     // Markdown headers
+    if (line.startsWith("# ") && !line.startsWith("## ")) {
+      blocks.push({ type: "h1", text: line.slice(2).trim() });
+      continue;
+    }
     if (line.startsWith("## ")) { blocks.push({ type: "h2", text: line.slice(3).trim() }); continue; }
     if (line.startsWith("### ")) { blocks.push({ type: "h3", text: line.slice(4).trim() }); continue; }
 
@@ -106,6 +116,7 @@ export function CvRewritePdf({ cvText }: { cvText: string }) {
       <Page size="A4" style={styles.page}>
         {blocks.map((block, i) => {
           if (block.type === "spacer") return <View key={i} style={styles.spacer} />;
+          if (block.type === "h1") return <Text key={i} style={styles.h2}>{block.text}</Text>;
           if (block.type === "h2") return (
             <View key={i}>
               <Text style={styles.h2}>{block.text}</Text>
