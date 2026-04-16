@@ -1,4 +1,5 @@
 import type { AnalysisResult } from "../types";
+import { SectionHeader } from "../SectionHeader";
 
 type Keyword = AnalysisResult["ats_simulation"]["critical_missing_keywords"][number];
 
@@ -16,7 +17,7 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
   return (
     <label className="flex items-start gap-3 cursor-pointer group">
       <div
-        className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-rc-green border-rc-green' : 'border-rc-border group-hover:border-rc-green/50'}`}
+        className={`mt-0.5 w-4 h-4 border flex items-center justify-center shrink-0 transition-colors ${checked ? 'bg-rc-green border-rc-green' : 'border-rc-border group-hover:border-rc-green/50'}`}
         onClick={onToggle}
       >
         {checked && (
@@ -27,23 +28,22 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1.5">
-          <span className={`text-[13px] font-medium transition-colors ${checked ? 'line-through text-rc-hint' : 'text-rc-text'}`}>{kw.keyword}</span>
-          <span className={`font-mono text-[10px] ${accent} px-1.5 py-0.5 rounded`}>{kw.jd_frequency}x in JD</span>
+          <span className={`text-[16px] font-medium transition-colors ${checked ? 'line-through text-rc-hint' : 'text-rc-text'}`}>{kw.keyword}</span>
+          <span className={`font-mono text-[11px] ${accent} px-1.5 py-0.5`}>{kw.jd_frequency}x in JD</span>
         </div>
-        {/* Impact bar */}
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-1 bg-rc-border/40 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-rc-border/40 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-300 ${checked ? 'bg-rc-green/40' : 'bg-rc-green'}`}
+              className={`h-full transition-all duration-300 ${checked ? 'bg-rc-green/40' : 'bg-rc-green'}`}
               style={{ width: `${impactPct}%` }}
             />
           </div>
-          <span className="font-mono text-[10px] text-rc-green shrink-0">+{kw.score_impact} pts</span>
+          <span className="font-mono text-[11px] text-rc-green shrink-0">+{kw.score_impact} pts</span>
         </div>
         {kw.sections_missing.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {kw.sections_missing.map((sec) => (
-              <span key={sec} className="font-mono text-[9px] text-rc-hint bg-rc-bg border border-rc-border/40 px-1.5 py-0.5 rounded">{sec} ✗</span>
+              <span key={sec} className="font-mono text-[11px] text-rc-hint bg-rc-bg border border-rc-border/40 px-1.5 py-0.5">{sec} ✗</span>
             ))}
           </div>
         )}
@@ -66,110 +66,117 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
   const maxImpact = Math.max(...ats.critical_missing_keywords.map(k => k.score_impact), 1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
 
-      {/* ATS context callout */}
-      <div className="flex items-start gap-3 p-4 bg-rc-surface/20 border border-rc-border/30 rounded-xl">
-        <span className="font-mono text-[10px] text-rc-hint mt-0.5">?</span>
-        <p className="font-mono text-[10px] text-rc-hint leading-relaxed">
-          <span className="text-rc-text font-bold">ATS (Applicant Tracking System)</span> — software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.
-        </p>
-      </div>
-
-      {/* Verdict + Score */}
-      <div className={`p-7 rounded-xl border ${ats.would_pass ? 'border-rc-green/20 bg-rc-green/5' : 'border-rc-red/20 bg-rc-red/5'}`}>
-        <div className="flex items-start justify-between gap-6 mb-6">
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint block mb-2">Bot Filter Simulation</span>
-            <h2 className={`font-sans font-bold text-[22px] tracking-tight uppercase ${ats.would_pass ? 'text-rc-green' : 'text-rc-red'}`}>
-              {ats.would_pass ? 'ATS Pass Estimated' : 'ATS Rejection Likely'}
-            </h2>
-            <p className="text-[13px] text-rc-muted leading-relaxed mt-2 max-w-[420px]">{ats.reason}</p>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-[42px] font-mono font-medium leading-none text-rc-text">{ats.score}<span className="text-[18px] text-rc-hint">/100</span></div>
-            <div className={`font-mono text-[11px] mt-1 font-semibold ${gapToThreshold > 0 ? 'text-rc-red' : 'text-rc-green'}`}>
-              {gapToThreshold > 0 ? `${gapToThreshold} pts below threshold` : `${Math.abs(gapToThreshold)} pts above threshold`}
-            </div>
-          </div>
-        </div>
-
-        {/* Threshold bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between font-mono text-[10px] text-rc-hint uppercase">
-            <span>0</span><span>100</span>
-          </div>
-          <div className="relative h-3 bg-rc-border/40 rounded-full overflow-visible">
-            <div className="absolute z-10 flex flex-col items-center" style={{ left: `${atsThreshold}%`, top: '-6px', transform: 'translateX(-50%)' }}>
-              <div className="w-[4px] h-6 bg-rc-amber rounded-full" />
-              <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/10 border border-rc-amber/30 px-2 py-1 rounded-md">
-                min. {atsThreshold}
+      {/* ── SECTION 1: ATS Simulation ────────────────────── */}
+      <div>
+        <SectionHeader
+          label="Bot Filter"
+          labelColor={ats.would_pass ? "text-rc-green" : "text-rc-red"}
+          title={ats.would_pass ? "ATS Pass Estimated" : "ATS Rejection Likely"}
+          subtitle={ats.reason}
+          meta={
+            <div className="text-right shrink-0">
+              <div className="text-[44px] font-mono font-medium leading-none text-rc-text">
+                {ats.score}<span className="text-[20px] text-rc-hint">/100</span>
+              </div>
+              <div className={`font-mono text-[12px] mt-1 font-semibold ${gapToThreshold > 0 ? 'text-rc-red' : 'text-rc-green'}`}>
+                {gapToThreshold > 0 ? `${gapToThreshold} pts below threshold` : `${Math.abs(gapToThreshold)} pts above threshold`}
               </div>
             </div>
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${simulatedScore >= atsThreshold ? 'bg-rc-green' : 'bg-rc-amber'}`}
-              style={{ width: `${ats.score}%` }}
-            />
-            {simulatedScore > ats.score && (
+          }
+        />
+
+        <div className={`p-6 border ${ats.would_pass ? 'border-rc-green/20 bg-rc-green/5' : 'border-rc-red/20 bg-rc-red/5'}`}>
+          {/* Threshold bar */}
+          <div className="space-y-2">
+            <div className="flex justify-between font-mono text-[11px] text-rc-hint uppercase">
+              <span>0</span><span>100</span>
+            </div>
+            <div className="relative h-3 bg-rc-border/40 overflow-visible">
+              <div className="absolute z-10 flex flex-col items-center" style={{ left: `${atsThreshold}%`, top: '-6px', transform: 'translateX(-50%)' }}>
+                <div className="w-[4px] h-6 bg-rc-amber" />
+                <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/10 border border-rc-amber/30 px-2 py-1">
+                  min. {atsThreshold}
+                </div>
+              </div>
               <div
-                className="absolute top-0 h-full rounded-full bg-rc-green/40 transition-all duration-300"
-                style={{ left: `${ats.score}%`, width: `${simulatedScore - ats.score}%` }}
+                className={`h-full transition-all duration-500 ${simulatedScore >= atsThreshold ? 'bg-rc-green' : 'bg-rc-amber'}`}
+                style={{ width: `${ats.score}%` }}
               />
+              {simulatedScore > ats.score && (
+                <div
+                  className="absolute top-0 h-full bg-rc-green/40 transition-all duration-300"
+                  style={{ left: `${ats.score}%`, width: `${simulatedScore - ats.score}%` }}
+                />
+              )}
+            </div>
+            {simulatedScore !== ats.score && (
+              <div className="flex justify-between font-mono text-[11px]">
+                <span className="text-rc-hint">Current: {ats.score}</span>
+                <span className={`font-semibold ${simulatedScore >= atsThreshold ? 'text-rc-green' : 'text-rc-amber'}`}>
+                  Simulated: {simulatedScore} {simulatedScore >= atsThreshold ? '— would pass ✓' : ''}
+                </span>
+              </div>
             )}
           </div>
-          {simulatedScore !== ats.score && (
-            <div className="flex justify-between font-mono text-[10px]">
-              <span className="text-rc-hint">Current: {ats.score}</span>
-              <span className={`font-semibold ${simulatedScore >= atsThreshold ? 'text-rc-green' : 'text-rc-amber'}`}>
-                Simulated: {simulatedScore} {simulatedScore >= atsThreshold ? '— would pass ✓' : ''}
-              </span>
+        </div>
+
+        {/* ATS explanation callout */}
+        <div className="flex items-start gap-3 p-4 bg-rc-surface border border-rc-border mt-4">
+          <span className="font-mono text-[12px] text-rc-hint mt-0.5">?</span>
+          <p className="font-mono text-[12px] text-rc-hint leading-relaxed">
+            <span className="text-rc-text font-bold">ATS (Applicant Tracking System)</span> — software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.
+          </p>
+        </div>
+      </div>
+
+      {/* ── SECTION 2: Keyword Simulator ─────────────────── */}
+      <div>
+        <SectionHeader
+          label="Simulator"
+          title="Keyword Gap"
+          subtitle="Check keywords you can realistically add to your CV — your ATS score updates in real time."
+          meta={
+            checkedKeywords.size > 0
+              ? <button onClick={onReset} className="font-mono text-[11px] text-rc-hint hover:text-rc-red transition-colors uppercase tracking-wider">Reset</button>
+              : undefined
+          }
+        />
+
+        <div className="bg-rc-surface border border-rc-border overflow-hidden">
+          {requiredKws.length > 0 && (
+            <div className="p-6 border-b border-rc-border">
+              <div className="flex items-center gap-2 mb-5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
+                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-red font-bold">Required</span>
+                <span className="font-mono text-[11px] text-rc-hint">— mentioned {requiredKws.reduce((s, k) => s + k.jd_frequency, 0)}x in job description</span>
+              </div>
+              <div className="space-y-4">
+                {requiredKws.map((kw) => (
+                  <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-red bg-rc-red/10" maxImpact={maxImpact} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {preferredKws.length > 0 && (
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
+                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-amber font-bold">Preferred</span>
+                <span className="font-mono text-[11px] text-rc-hint">— bonus points, not eliminatory</span>
+              </div>
+              <div className="space-y-4">
+                {preferredKws.map((kw) => (
+                  <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-amber bg-rc-amber/10" maxImpact={maxImpact} />
+                ))}
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Keyword Simulator */}
-      <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-rc-border/30 flex items-center justify-between">
-          <div>
-            <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-text font-bold">Keyword Simulator</h3>
-            <p className="font-mono text-[9px] text-rc-hint mt-0.5">Check keywords you can add — see your score update in real time</p>
-          </div>
-          {checkedKeywords.size > 0 && (
-            <button onClick={onReset} className="font-mono text-[10px] text-rc-hint hover:text-rc-red transition-colors uppercase tracking-wider">Reset</button>
-          )}
-        </div>
-
-        {requiredKws.length > 0 && (
-          <div className="p-6 border-b border-rc-border/30">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red font-bold">Required</span>
-              <span className="font-mono text-[9px] text-rc-hint">— mentioned {requiredKws.reduce((s, k) => s + k.jd_frequency, 0)}x in job description</span>
-            </div>
-            <div className="space-y-3">
-              {requiredKws.map((kw) => (
-                <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-red bg-rc-red/10" maxImpact={maxImpact} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {preferredKws.length > 0 && (
-          <div className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-amber font-bold">Preferred</span>
-              <span className="font-mono text-[9px] text-rc-hint">— bonus points, not eliminatory</span>
-            </div>
-            <div className="space-y-3">
-              {preferredKws.map((kw) => (
-                <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-amber bg-rc-amber/10" maxImpact={maxImpact} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

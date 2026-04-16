@@ -3,10 +3,12 @@
 :root {
   --rc-bg: #f7f5f2;
   --rc-surface: #ffffff;
-  --rc-border: rgba(0,0,0,0.12);
+  --rc-border: #d4cfc9;
+  --rc-surface-raised: #fafaf9;
+  --rc-surface-hero: #f2efe9;
   --rc-text: #1a1917;
-  --rc-muted: rgba(26,25,23,0.8);
-  --rc-hint: rgba(26,25,23,0.65);
+  --rc-muted: #3a3834;
+  --rc-hint: #6b6860;
   --rc-red: #C93A39;
   --rc-red-bg: rgba(201,58,57,0.07);
   --rc-red-border: rgba(201,58,57,0.22);
@@ -21,6 +23,8 @@
   --color-rc-bg: var(--rc-bg);
   --color-rc-surface: var(--rc-surface);
   --color-rc-border: var(--rc-border);
+  --color-rc-surface-raised: var(--rc-surface-raised);
+  --color-rc-surface-hero: var(--rc-surface-hero);
   --color-rc-text: var(--rc-text);
   --color-rc-muted: var(--rc-muted);
   --color-rc-hint: var(--rc-hint);

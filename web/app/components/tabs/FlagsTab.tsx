@@ -1,5 +1,6 @@
 import type { AnalysisResult } from "../types";
 import { FixBlock } from "../FixBlock";
+import { SectionHeader } from "../SectionHeader";
 
 type Props = {
   flags: AnalysisResult["hidden_red_flags"];
@@ -36,126 +37,124 @@ export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown
   const breakdownEntries = Object.entries(breakdown).filter(([, v]) => v !== null) as [string, number][];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
 
-      {/* ── Recruiter View ────────────────────────────────── */}
-      <div className={`p-6 rounded-xl border ${verdictCfg.bg} ${verdictCfg.border}`}>
-        <div className="flex items-start justify-between gap-6 mb-6">
-          <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint block mb-2">Recruiter View</span>
-            <h2 className={`font-sans font-bold text-[22px] tracking-tight uppercase ${verdictCfg.color}`}>
-              {verdictCfg.label}
-            </h2>
-            <p className="text-[13px] text-rc-muted leading-relaxed mt-2 max-w-[420px]">{confidence.reason}</p>
-          </div>
-          <div className="text-right shrink-0">
-            <div className="text-[42px] font-mono font-medium leading-none text-rc-text">
-              {score}<span className="text-[18px] text-rc-hint">/100</span>
-            </div>
-            <div className={`font-mono text-[11px] mt-1 font-semibold ${verdictCfg.color}`}>
-              {confidence.score}% confidence
-            </div>
-          </div>
-        </div>
-
-        {/* Breakdown bars */}
-        <div className="space-y-3">
-          {breakdownEntries.map(([key, value]) => (
-            <div key={key} className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-rc-hint">
-                  {BREAKDOWN_LABELS[key] ?? key}
-                </span>
-                <span className={`font-mono text-[10px] font-bold ${value >= 70 ? 'text-rc-green' : value >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
-                  {value}
-                </span>
+      {/* ── SECTION 1: Recruiter View ─────────────────────── */}
+      <div>
+        <SectionHeader
+          label="Recruiter Assessment"
+          labelColor={verdictCfg.color}
+          title={verdictCfg.label}
+          subtitle={confidence.reason}
+          meta={
+            <div className="text-right">
+              <div className="text-[44px] font-mono font-medium leading-none text-rc-text">
+                {score}<span className="text-[20px] text-rc-hint">/100</span>
               </div>
-              <div className="h-1.5 bg-rc-border/40 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${value >= 70 ? 'bg-rc-green' : value >= 50 ? 'bg-rc-amber' : 'bg-rc-red'}`}
-                  style={{ width: `${value}%` }}
-                />
+              <div className={`font-mono text-[12px] mt-1 font-semibold ${verdictCfg.color}`}>
+                {confidence.score}% confidence
               </div>
             </div>
-          ))}
+          }
+        />
+
+        <div className={`p-6 border ${verdictCfg.bg} ${verdictCfg.border}`}>
+          <div className="space-y-4">
+            {breakdownEntries.map(([key, value]) => (
+              <div key={key} className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[12px] uppercase tracking-wider text-rc-hint">
+                    {BREAKDOWN_LABELS[key] ?? key}
+                  </span>
+                  <span className={`font-mono text-[12px] font-bold ${value >= 70 ? 'text-rc-green' : value >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
+                    {value}
+                  </span>
+                </div>
+                <div className="h-2 bg-rc-border/40 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 ${value >= 70 ? 'bg-rc-green' : value >= 50 ? 'bg-rc-amber' : 'bg-rc-red'}`}
+                    style={{ width: `${value}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Hidden Red Flags */}
-      <div className="space-y-4">
-        {/* Section header */}
-        <div className="flex items-center justify-between">
-          <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red flex items-center gap-1.5 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-            Experienced Recruiter Intuition
-          </h3>
-          <span className="font-mono text-[9px] uppercase tracking-wider text-rc-hint">
-            {flags.length} flag{flags.length !== 1 ? "s" : ""} identified
-          </span>
-        </div>
+      {/* ── SECTION 2: Recruiter Intuition ───────────────── */}
+      <div>
+        <SectionHeader
+          label="Hidden Signals"
+          labelColor="text-rc-red"
+          title="Recruiter Intuition"
+          subtitle={`${flags.length} behavioral flag${flags.length !== 1 ? "s" : ""} that experienced recruiters notice and rarely mention.`}
+        />
 
         <div className="space-y-3">
           {flags.map((flag, idx) => (
-            <div key={idx} className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6 hover:bg-rc-surface/30 transition-colors">
-              <div className="flex items-start gap-5">
-                <div className="w-1.5 h-1.5 bg-rc-red rounded-full mt-2 shrink-0" />
-                <div className="space-y-4 w-full">
-                  <div>
-                    <h4 className="text-[14px] font-semibold text-rc-text mb-1 uppercase tracking-tight">{flag.flag}</h4>
-                    <div className="text-[13px] text-rc-muted leading-relaxed">
-                      <span className="text-rc-amber font-mono text-[10px] uppercase font-bold mr-2">Recruiter perception:</span>
-                      {flag.perception}
-                    </div>
-                  </div>
-                  <FixBlock fix={flag.fix} />
+            <div key={idx} className="border border-rc-border border-l-[3px] border-l-rc-red bg-rc-surface p-6 hover:bg-rc-surface-raised transition-colors">
+              {/* Meta */}
+              <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-red block mb-2">Red Flag</span>
+              {/* Title */}
+              <h4 className="text-[19px] font-semibold text-rc-text mb-3 leading-snug">{flag.flag}</h4>
+              {/* Divider */}
+              <div className="h-px bg-rc-border/40 mb-4" />
+              {/* Body */}
+              <div className="text-[17px] text-rc-muted leading-[1.7] mb-5">
+                <span className="font-mono text-[11px] uppercase text-rc-amber font-bold mr-2">Recruiter perception:</span>
+                {flag.perception}
+              </div>
+              <FixBlock fix={flag.fix} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── SECTION 3: Technical Requirements ────────────── */}
+      <div>
+        <SectionHeader
+          label="Skills Checklist"
+          title="Technical Requirements"
+          subtitle="Required skills from the job description matched against your CV."
+          meta={
+            <div className="text-right">
+              <span className={`font-mono text-[22px] font-bold ${foundCount === totalCount ? 'text-rc-green' : foundCount >= totalCount * 0.7 ? 'text-rc-amber' : 'text-rc-red'}`}>
+                {foundCount}/{totalCount}
+              </span>
+              <span className="font-mono text-[11px] text-rc-hint uppercase block">matched</span>
+            </div>
+          }
+        />
+
+        <div className="bg-rc-surface border border-rc-border p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1 mb-6">
+            {sortedSkills.map((s, i) => (
+              <div key={i} className="flex items-center justify-between py-3 border-b border-rc-border/30">
+                <span className="text-[17px] text-rc-text">{s.skill}</span>
+                <div className="flex items-center gap-3">
+                  {s.evidence && (
+                    <span className="font-mono text-[11px] text-rc-hint">{s.evidence}</span>
+                  )}
+                  {s.found ? (
+                    <span className="font-mono text-[12px] text-rc-green font-bold">✓</span>
+                  ) : (
+                    <span className="font-mono text-[13px] text-rc-red font-bold leading-none">×</span>
+                  )}
                 </div>
               </div>
+            ))}
+          </div>
+
+          {jdMatch.experience_gap && (
+            <div className="p-4 bg-rc-red/5 border-l-4 border-rc-red">
+              <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-red block mb-1.5 font-bold">Crucial Experience Gap</span>
+              <p className="text-[17px] text-rc-muted italic leading-[1.7]">{jdMatch.experience_gap}</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
-      {/* Technical Requirement Matrix */}
-      <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6">
-        {/* Section header */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-text font-bold flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rc-text" />
-            Technical Requirement Matrix
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className={`font-mono text-[10px] font-bold ${foundCount === totalCount ? 'text-rc-green' : foundCount >= totalCount * 0.7 ? 'text-rc-amber' : 'text-rc-red'}`}>
-              {foundCount}/{totalCount}
-            </span>
-            <span className="font-mono text-[9px] text-rc-hint uppercase">skills matched</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-2 mb-6">
-          {sortedSkills.map((s, i) => (
-            <div key={i} className="flex items-center justify-between py-2.5 border-b border-rc-border/30">
-              <span className="text-[13px] text-rc-text">{s.skill}</span>
-              <div className="flex items-center gap-3">
-                {s.evidence && (
-                  <span className="font-mono text-[9px] text-rc-hint">{s.evidence}</span>
-                )}
-                {s.found ? (
-                  <span className="font-mono text-[10px] text-rc-green font-bold">✓</span>
-                ) : (
-                  <span className="font-mono text-[11px] text-rc-red font-bold leading-none">×</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {jdMatch.experience_gap && (
-          <div className="p-4 bg-rc-red/5 border-l-4 border-rc-red rounded-r-xl">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red block mb-1 font-bold">Crucial Experience Gap</span>
-            <p className="text-[13px] text-rc-muted italic leading-relaxed">{jdMatch.experience_gap}</p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }

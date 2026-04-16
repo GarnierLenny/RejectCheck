@@ -16,6 +16,7 @@ import { CvAnalysisTab } from "../components/tabs/CvAnalysisTab";
 import { SignalsTab } from "../components/tabs/SignalsTab";
 import { FlagsTab } from "../components/tabs/FlagsTab";
 import { RoadmapTab } from "../components/tabs/RoadmapTab";
+import { ProjectTab } from "../components/tabs/ProjectTab";
 import { ImproveTab } from "../components/tabs/ImproveTab";
 import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
@@ -23,7 +24,7 @@ import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "improve";
+type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "project" | "improve";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -288,6 +289,7 @@ function AnalyzeContent() {
     { id: "signals",     label: "Signals",     badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",       label: "Red Flags",   badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
     { id: "roadmap",     label: "Roadmap",     badge: null, badgeClass: "" },
+    { id: "project",     label: "Project",     badge: null, badgeClass: "" },
     { id: "improve",     label: "Improve CV",  badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
@@ -334,69 +336,66 @@ function AnalyzeContent() {
             </>
           )
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <ScoreSidebar 
-              result={result} 
-              onReset={handleReset} 
+          <div>
+            <ScoreSidebar
+              result={result}
+              onReset={handleReset}
               onExportMd={exportToMd}
               onExportPdf={exportToPdf}
               isExportingPdf={isExportingPdf}
             />
 
-            <div className="lg:col-span-8">
-              {/* Tab nav */}
-              <div className="relative mb-7">
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red rounded-full pointer-events-none" />
-                <div className="tabs-scrollbar scroll flex border-b-0 overflow-x-auto pb-[2px]">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
-                        activeTab === tab.id ? "border-rc-red text-rc-red font-semibold" : "border-transparent text-rc-hint hover:text-rc-muted"
-                      }`}
-                    >
-                      {tab.label}
-                      {tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tab content */}
-              {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
-              {activeTab === "ats"          && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
-              {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
-              {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
-              {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
-              {activeTab === "roadmap"      && <RoadmapTab result={result} />}
-              {activeTab === "improve" && (
-                <ImproveTab
-                  reconstructedCv={reconstructedCv}
-                  isLoading={isRewriting}
-                  isPremium={!!activeSubscription}
-                  hasAnalysisId={!!analysisId}
-                  onRewrite={handleRewrite}
-                />
-              )}
-
-              {/* Anonymous CTA */}
-              {!user && (
-                <div className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-rc-surface to-rc-bg border border-rc-red/20 text-center relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rc-red/50 to-transparent" />
-                  <h3 className="text-xl font-bold mb-3">Don't lose your analysis</h3>
-                  <p className="text-rc-muted text-sm max-w-[400px] mx-auto mb-6">
-                    Sign up now to save this result and track your progress. Unregistered analyses are not saved and will be lost.
-                  </p>
-                  <Link 
-                    href="/login" 
-                    className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20"
+            {/* Tab nav */}
+            <div className="mb-8 border-b border-rc-border">
+              <div className="tabs-scrollbar flex overflow-x-auto">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`shrink-0 flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
+                      activeTab === tab.id ? "border-rc-red text-rc-red font-bold" : "border-transparent text-rc-muted hover:text-rc-text"
+                    }`}
                   >
-                    Create Account
-                  </Link>
-                </div>
-              )}
+                    {tab.label}
+                    {tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Tab content — full width */}
+            {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
+            {activeTab === "ats"          && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
+            {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
+            {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
+            {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
+            {activeTab === "roadmap"      && <RoadmapTab result={result} />}
+            {activeTab === "project"      && <ProjectTab project={result.project_recommendation} />}
+            {activeTab === "improve" && (
+              <ImproveTab
+                reconstructedCv={reconstructedCv}
+                isLoading={isRewriting}
+                isPremium={!!activeSubscription}
+                hasAnalysisId={!!analysisId}
+                onRewrite={handleRewrite}
+              />
+            )}
+
+            {/* Anonymous CTA */}
+            {!user && (
+              <div className="mt-12 p-8 bg-rc-surface border border-rc-border text-center">
+                <h3 className="text-[18px] font-bold mb-3 font-mono uppercase tracking-tight">Don&apos;t lose your analysis</h3>
+                <p className="text-rc-muted text-[15px] max-w-[420px] mx-auto mb-6 leading-relaxed">
+                  Sign up now to save this result and track your progress. Unregistered analyses are not saved and will be lost.
+                </p>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
+                >
+                  Create Account
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
