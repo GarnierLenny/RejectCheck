@@ -52,23 +52,23 @@ export function CvAnalysisTab({ result }: Props) {
         <div className="space-y-5">
 
           {/* Seniority Gap */}
-          <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6">
+          <div className="bg-rc-surface border border-rc-border rounded p-6">
             <div className="flex items-center gap-2 mb-6">
               <TrendingUp size={13} className="text-rc-hint" />
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint font-bold">Seniority Gap Analysis</span>
             </div>
 
             <div className="flex items-center gap-4 mb-6 max-w-lg">
-              <div className="flex-1 text-center px-5 py-4 bg-rc-bg rounded-lg border border-rc-border/30">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-rc-hint block mb-1.5">Expected</span>
-                <span className="text-[17px] font-semibold text-rc-text">{seniority_analysis.expected}</span>
+              <div className="flex-1 text-center px-5 py-5 bg-rc-bg rounded border border-rc-border">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-rc-hint block mb-2">Expected</span>
+                <span className="text-[20px] font-mono font-bold text-rc-text">{seniority_analysis.expected}</span>
               </div>
               <div className="shrink-0 text-rc-hint">
                 <ArrowRight size={18} strokeWidth={1.5} />
               </div>
-              <div className="flex-1 text-center px-5 py-4 bg-rc-bg rounded-lg border border-rc-red/20">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-rc-red block mb-1.5">Detected</span>
-                <span className="text-[17px] font-semibold text-rc-text">{seniority_analysis.detected}</span>
+              <div className="flex-1 text-center px-5 py-5 bg-rc-bg rounded border border-rc-red/20">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-rc-red block mb-2">Detected</span>
+                <span className="text-[20px] font-mono font-bold text-rc-text">{seniority_analysis.detected}</span>
               </div>
             </div>
 
@@ -86,7 +86,7 @@ export function CvAnalysisTab({ result }: Props) {
           </div>
 
           {/* Tone Audit */}
-          <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl p-6">
+          <div className="bg-rc-surface border border-rc-border rounded p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <MessageSquare size={13} className="text-rc-hint" />
@@ -103,7 +103,7 @@ export function CvAnalysisTab({ result }: Props) {
                 return (
                   <div
                     key={i}
-                    className={`flex items-start gap-3 p-3 bg-rc-bg rounded-lg border-l-[3px] ${isGood ? "border-l-rc-green" : "border-l-rc-red"}`}
+                    className={`flex items-start gap-3 p-3 bg-rc-surface-raised border-l-2 ${isGood ? "border-l-rc-green" : "border-l-rc-red"}`}
                   >
                     <div className="shrink-0 mt-0.5">
                       {isGood
@@ -122,7 +122,7 @@ export function CvAnalysisTab({ result }: Props) {
 
           {/* Correlation block */}
           {correlation.detected && (
-            <div className="flex gap-4 p-5 bg-rc-amber/5 border border-rc-amber/20 rounded-xl">
+            <div className="flex gap-4 p-5 bg-rc-amber/5 border border-rc-amber/20 rounded">
               <div className="shrink-0 mt-0.5">
                 <Link size={13} className="text-rc-amber" />
               </div>
@@ -147,10 +147,10 @@ export function CvAnalysisTab({ result }: Props) {
       {/* ══════════════════════════════════════════════════
           SECTION 2 — CV FORENSIC AUDIT
       ══════════════════════════════════════════════════ */}
-      <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl overflow-hidden">
+      <div className="bg-rc-surface border border-rc-border rounded overflow-hidden">
 
         {/* Header */}
-        <div className="p-6 border-b border-rc-border/30 flex items-start justify-between">
+        <div className="p-6 border-b border-rc-border flex items-start justify-between">
           <div>
             <h2 className="font-sans font-bold text-[22px] tracking-tight uppercase text-rc-text">CV Forensic Audit</h2>
             <p className="font-mono text-[10px] text-rc-hint uppercase tracking-wider mt-1">
@@ -166,7 +166,7 @@ export function CvAnalysisTab({ result }: Props) {
         </div>
 
         {/* Severity breakdown + Strengths */}
-        <div className="p-5 border-b border-rc-border/30 flex flex-wrap gap-4 items-start justify-between">
+        <div className="p-5 border-b border-rc-border flex flex-wrap gap-4 items-start justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {(["critical", "major", "minor"] as const).map(sev => {
               const count = sev === "critical" ? criticalCount : sev === "major" ? majorCount : minorCount;

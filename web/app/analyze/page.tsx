@@ -345,14 +345,13 @@ function AnalyzeContent() {
 
             <div className="lg:col-span-8">
               {/* Tab nav */}
-              <div className="relative mb-7">
-                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red rounded-full pointer-events-none" />
-                <div className="tabs-scrollbar scroll flex border-b-0 overflow-x-auto pb-[2px]">
+              <div className="mb-7 border-b border-rc-border">
+                <div className="tabs-scrollbar flex overflow-x-auto">
                   {tabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 border-b-[2px] transition-colors ${
+                      className={`shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest px-5 py-3 transition-colors relative -mb-px border-b-2 ${
                         activeTab === tab.id ? "border-rc-red text-rc-red font-semibold" : "border-transparent text-rc-hint hover:text-rc-muted"
                       }`}
                     >
@@ -382,15 +381,14 @@ function AnalyzeContent() {
 
               {/* Anonymous CTA */}
               {!user && (
-                <div className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-rc-surface to-rc-bg border border-rc-red/20 text-center relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rc-red/50 to-transparent" />
-                  <h3 className="text-xl font-bold mb-3">Don't lose your analysis</h3>
+                <div className="mt-12 p-8 bg-rc-surface border border-rc-border text-center">
+                  <h3 className="text-xl font-bold mb-3 font-mono uppercase tracking-tight">Don&apos;t lose your analysis</h3>
                   <p className="text-rc-muted text-sm max-w-[400px] mx-auto mb-6">
                     Sign up now to save this result and track your progress. Unregistered analyses are not saved and will be lost.
                   </p>
-                  <Link 
-                    href="/login" 
-                    className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20"
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded transition-colors hover:bg-rc-red/90 active:scale-95"
                   >
                     Create Account
                   </Link>

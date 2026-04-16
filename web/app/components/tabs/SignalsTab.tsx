@@ -28,11 +28,11 @@ function SignalSection({
   const minorCount    = issues.filter(i => i.severity === "minor").length;
 
   return (
-    <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl overflow-hidden">
+    <div className="bg-rc-surface border border-rc-border rounded overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-rc-border/30 flex items-start justify-between">
+      <div className="p-6 border-b border-rc-border flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-rc-surface/30 border border-rc-border/30 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded bg-rc-surface-raised border border-rc-border flex items-center justify-center shrink-0">
             {icon}
           </div>
           <div>
@@ -53,7 +53,7 @@ function SignalSection({
       {!hasData ? (
         <div className="p-8 text-center">
           <p className="text-[13px] text-rc-muted mb-3">{emptyMessage}</p>
-          <p className="font-mono text-[10px] text-rc-hint bg-rc-bg border border-dashed border-rc-border/40 rounded-xl px-4 py-3 inline-block">
+          <p className="font-mono text-[10px] text-rc-hint bg-rc-bg border border-dashed border-rc-border/40 px-4 py-3 inline-block">
             {ctaText}
           </p>
         </div>
@@ -61,7 +61,7 @@ function SignalSection({
         <div>
           {/* Severity breakdown + Strengths */}
           {(issues.length > 0 || strengths.length > 0) && (
-            <div className="p-5 border-b border-rc-border/30 flex flex-wrap gap-4 items-start justify-between">
+            <div className="p-5 border-b border-rc-border flex flex-wrap gap-4 items-start justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 {criticalCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-red/5 border border-rc-red/20 text-rc-red">

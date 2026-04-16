@@ -3,9 +3,9 @@ import type { Fix } from "./types";
 
 export function FixBlock({ fix }: { fix: Fix }) {
   return (
-    <div className="mt-4 p-4 bg-rc-bg rounded-lg border-[0.5px] border-rc-border/40">
+    <div className="mt-4 p-4 bg-rc-surface-raised rounded border border-rc-border">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-5 h-5 rounded-full bg-rc-green/20 flex items-center justify-center text-[10px] text-rc-green">✓</div>
+        <div className="w-5 h-5 rounded bg-rc-green/20 flex items-center justify-center text-[10px] text-rc-green">✓</div>
         <div className="text-[13px] font-medium text-rc-text prose-sm prose-invert max-w-none">
           <ReactMarkdown>{fix.summary}</ReactMarkdown>
         </div>
@@ -36,17 +36,17 @@ export function FixBlock({ fix }: { fix: Fix }) {
       )}
 
       {fix.project_idea && (
-        <div className="ml-7 bg-rc-bg/50 p-3.5 rounded-md border-[0.5px] border-rc-border/30">
+        <div className="ml-7 bg-rc-bg p-3.5 rounded border border-rc-border/50">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold text-rc-text uppercase tracking-widest">{fix.project_idea.name}</span>
-            <span className="text-[10px] text-rc-green font-mono bg-rc-green/10 px-2 py-0.5 rounded">NEW PROJECT</span>
+            <span className="text-[10px] text-rc-green font-mono bg-rc-green/10 px-2 py-0.5 rounded border border-rc-green/20">NEW PROJECT</span>
           </div>
           <div className="text-[12px] text-rc-muted mb-3 leading-relaxed prose-sm prose-invert max-w-none">
             <ReactMarkdown>{fix.project_idea.description}</ReactMarkdown>
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
             {fix.project_idea.endpoints.map((e, i) => (
-              <span key={i} className="text-[10px] font-mono text-rc-hint bg-rc-surface px-1.5 py-0.5 rounded border-[0.5px] border-rc-border/50">{e}</span>
+              <span key={i} className="text-[10px] font-mono text-rc-hint bg-rc-surface px-1.5 py-0.5 border border-rc-border/50">{e}</span>
             ))}
           </div>
           <div className="text-[11px] text-rc-text leading-tight mb-1">

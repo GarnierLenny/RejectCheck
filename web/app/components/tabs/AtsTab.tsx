@@ -32,9 +32,9 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
         </div>
         {/* Impact bar */}
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-1 bg-rc-border/40 rounded-full overflow-hidden">
+          <div className="flex-1 h-2 bg-rc-border/40 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-300 ${checked ? 'bg-rc-green/40' : 'bg-rc-green'}`}
+              className={`h-full transition-all duration-300 ${checked ? 'bg-rc-green/40' : 'bg-rc-green'}`}
               style={{ width: `${impactPct}%` }}
             />
           </div>
@@ -43,7 +43,7 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
         {kw.sections_missing.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-1.5">
             {kw.sections_missing.map((sec) => (
-              <span key={sec} className="font-mono text-[9px] text-rc-hint bg-rc-bg border border-rc-border/40 px-1.5 py-0.5 rounded">{sec} ✗</span>
+              <span key={sec} className="font-mono text-[9px] text-rc-hint bg-rc-bg border border-rc-border/40 px-1.5 py-0.5">{sec} ✗</span>
             ))}
           </div>
         )}
@@ -69,7 +69,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
     <div className="space-y-6">
 
       {/* ATS context callout */}
-      <div className="flex items-start gap-3 p-4 bg-rc-surface/20 border border-rc-border/30 rounded-xl">
+      <div className="flex items-start gap-3 p-4 bg-rc-surface border border-rc-border rounded">
         <span className="font-mono text-[10px] text-rc-hint mt-0.5">?</span>
         <p className="font-mono text-[10px] text-rc-hint leading-relaxed">
           <span className="text-rc-text font-bold">ATS (Applicant Tracking System)</span> — software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.
@@ -77,7 +77,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
       </div>
 
       {/* Verdict + Score */}
-      <div className={`p-7 rounded-xl border ${ats.would_pass ? 'border-rc-green/20 bg-rc-green/5' : 'border-rc-red/20 bg-rc-red/5'}`}>
+      <div className={`p-7 border rounded ${ats.would_pass ? 'border-rc-green/20 bg-rc-green/5' : 'border-rc-red/20 bg-rc-red/5'}`}>
         <div className="flex items-start justify-between gap-6 mb-6">
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint block mb-2">Bot Filter Simulation</span>
@@ -99,20 +99,20 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
           <div className="flex justify-between font-mono text-[10px] text-rc-hint uppercase">
             <span>0</span><span>100</span>
           </div>
-          <div className="relative h-3 bg-rc-border/40 rounded-full overflow-visible">
+          <div className="relative h-3 bg-rc-border/40 overflow-visible">
             <div className="absolute z-10 flex flex-col items-center" style={{ left: `${atsThreshold}%`, top: '-6px', transform: 'translateX(-50%)' }}>
-              <div className="w-[4px] h-6 bg-rc-amber rounded-full" />
-              <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/10 border border-rc-amber/30 px-2 py-1 rounded-md">
+              <div className="w-[4px] h-6 bg-rc-amber" />
+              <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/10 border border-rc-amber/30 px-2 py-1 rounded">
                 min. {atsThreshold}
               </div>
             </div>
             <div
-              className={`h-full rounded-full transition-all duration-500 ${simulatedScore >= atsThreshold ? 'bg-rc-green' : 'bg-rc-amber'}`}
+              className={`h-full transition-all duration-500 ${simulatedScore >= atsThreshold ? 'bg-rc-green' : 'bg-rc-amber'}`}
               style={{ width: `${ats.score}%` }}
             />
             {simulatedScore > ats.score && (
               <div
-                className="absolute top-0 h-full rounded-full bg-rc-green/40 transition-all duration-300"
+                className="absolute top-0 h-full bg-rc-green/40 transition-all duration-300"
                 style={{ left: `${ats.score}%`, width: `${simulatedScore - ats.score}%` }}
               />
             )}
@@ -129,8 +129,8 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
       </div>
 
       {/* Keyword Simulator */}
-      <div className="bg-rc-surface/20 border border-rc-border/30 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-rc-border/30 flex items-center justify-between">
+      <div className="bg-rc-surface border border-rc-border rounded overflow-hidden">
+        <div className="px-6 py-4 border-b border-rc-border flex items-center justify-between">
           <div>
             <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-text font-bold">Keyword Simulator</h3>
             <p className="font-mono text-[9px] text-rc-hint mt-0.5">Check keywords you can add — see your score update in real time</p>
@@ -141,7 +141,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
         </div>
 
         {requiredKws.length > 0 && (
-          <div className="p-6 border-b border-rc-border/30">
+          <div className="p-6 border-b border-rc-border">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red font-bold">Required</span>

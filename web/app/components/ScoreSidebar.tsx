@@ -24,7 +24,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
   return (
     <div className="lg:col-span-4 sticky top-[40px] space-y-5">
       {/* Score card */}
-      <div className="bg-rc-surface border-[0.5px] border-rc-border rounded-xl p-6 shadow-xl">
+      <div className="bg-rc-surface border border-rc-border rounded p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-1.5">
             <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-muted">Overall Risk</span>
@@ -37,7 +37,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
               </div>
             </Tooltip>
           </div>
-          <span className={`font-sans text-[14px] px-3 py-1 rounded bg-rc-bg border-[0.5px] ${scoreTextClass} border-current uppercase tracking-widest`}>
+          <span className={`font-sans text-[14px] px-3 py-1 rounded bg-rc-bg border ${scoreTextClass} border-current uppercase tracking-widest`}>
             {result.verdict}
           </span>
         </div>
@@ -46,11 +46,11 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
           {result.score}<span className="text-[24px] opacity-60">%</span>
         </div>
 
-        <div className="h-[2px] bg-rc-text/10 w-full rounded-full overflow-hidden mb-8">
+        <div className="h-[3px] bg-rc-text/10 w-full overflow-hidden mb-8">
           <div className={`h-full ${scoreBgClass} transition-all duration-1000`} style={{ width: `${result.score}%` }} />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {Object.entries(result.breakdown).map(([key, val]) => {
             const label = key.replace(/_/g, ' ');
             let badge: React.ReactNode;
@@ -73,9 +73,21 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
               );
             }
             return (
-              <div key={key} className="flex items-center justify-between py-1.5">
-                <span className="font-mono text-[10px] text-rc-muted uppercase tracking-tight">{label}</span>
-                {badge}
+              <div key={key} className="space-y-1">
+                <div className="flex items-center justify-between py-1">
+                  <span className="font-mono text-[10px] text-rc-muted uppercase tracking-tight">{label}</span>
+                  {badge}
+                </div>
+                {val !== null && (
+                  <div className="h-[2px] bg-rc-text/8 w-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-700 ${
+                        val <= 30 ? 'bg-rc-red' : val <= 60 ? 'bg-rc-amber' : 'bg-rc-green'
+                      }`}
+                      style={{ width: `${val}%` }}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
@@ -87,14 +99,14 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
         <button
           onClick={onExportPdf}
           disabled={isExportingPdf}
-          className="flex items-center justify-center gap-2 font-mono text-[10px] text-rc-text bg-rc-surface hover:bg-rc-bg transition-colors py-3 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest disabled:opacity-50"
+          className="flex items-center justify-center gap-2 font-mono text-[10px] text-rc-text bg-rc-surface hover:bg-rc-surface-raised transition-colors py-3 border border-rc-border rounded uppercase tracking-widest disabled:opacity-50"
         >
           <FileDown size={14} className="text-rc-red" />
           {isExportingPdf ? "Exporting..." : "Export PDF"}
         </button>
         <button
           onClick={onExportMd}
-          className="flex items-center justify-center gap-2 font-mono text-[10px] text-rc-text bg-rc-surface hover:bg-rc-bg transition-colors py-3 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
+          className="flex items-center justify-center gap-2 font-mono text-[10px] text-rc-text bg-rc-surface hover:bg-rc-surface-raised transition-colors py-3 border border-rc-border rounded uppercase tracking-widest"
         >
           <Download size={14} className="text-rc-hint" />
           Markdown
@@ -102,7 +114,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
       </div>
 
       {/* Confidence card */}
-      <div className="bg-rc-surface/50 border-[0.5px] border-rc-border rounded-xl p-6">
+      <div className="bg-rc-surface-raised border border-rc-border rounded p-6">
         <div className="flex items-center justify-between mb-4">
           <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint">Model Confidence</span>
           <span className="text-[12px] font-mono font-bold text-rc-text">{result.confidence.score}%</span>
@@ -114,7 +126,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
       <button
         type="button"
         onClick={onReset}
-        className="w-full flex items-center justify-center gap-2 font-mono text-[10px] text-rc-hint hover:text-rc-text transition-colors py-3 border-[0.5px] border-rc-border rounded-xl uppercase tracking-widest"
+        className="w-full flex items-center justify-center gap-2 font-mono text-[10px] text-rc-hint hover:text-rc-text transition-colors py-3 border border-rc-border rounded uppercase tracking-widest"
       >
         <RotateCcw size={12} />
         New Profile
@@ -122,4 +134,3 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
     </div>
   );
 }
-
