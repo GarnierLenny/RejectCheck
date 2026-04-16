@@ -57,6 +57,7 @@ function AnalyzeContent() {
   const [analysisId, setAnalysisId] = useState<number | null>(null);
   const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [originalCv, setOriginalCv] = useState<string | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -108,6 +109,7 @@ function AnalyzeContent() {
           setResult(data.result);
           setJobDescription(data.jobDescription || "");
           setAnalysisId(parseInt(id));
+          if (data.cvText) setOriginalCv(data.cvText);
           if (data.result?.rewrite) {
             setReconstructedCv(data.result.rewrite.reconstructed_cv ?? null);
           }
@@ -166,6 +168,7 @@ function AnalyzeContent() {
           if (payload.step === "done") {
             setResult(payload.result);
             if (payload.analysisId) setAnalysisId(payload.analysisId);
+            if (payload.cvText) setOriginalCv(payload.cvText);
             setLoading(false);
           } else if (payload.step === "error") {
             throw new Error(payload.message);
@@ -191,6 +194,7 @@ function AnalyzeContent() {
     setVisualLoadingDone(false);
     setAnalysisId(null);
     setReconstructedCv(null);
+    setOriginalCv(null);
   }
 
   async function handleRewrite() {
@@ -380,6 +384,7 @@ function AnalyzeContent() {
             {activeTab === "improve" && (
               <ImproveTab
                 reconstructedCv={reconstructedCv}
+                originalCv={originalCv}
                 isLoading={isRewriting}
                 isPremium={!!activeSubscription}
                 hasAnalysisId={!!analysisId}
