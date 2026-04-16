@@ -18,6 +18,8 @@ type Props = {
   onSubmit: (e: React.MouseEvent<HTMLButtonElement>) => void;
   loading: boolean;
   error: string | null;
+  step: 1 | 2 | 3;
+  onStepChange: (s: 1 | 2 | 3) => void;
 };
 
 type AccuracyLevel = {
@@ -482,9 +484,9 @@ export function UploadForm({
   mlFile, setMlFile,
   mlText, setMlText,
   onSubmit, loading, error,
+  step, onStepChange,
 }: Props) {
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
-  const [step, setStep] = useState<1 | 2 | 3>(1);
   const fileRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLInputElement>(null);
   const mlRef = useRef<HTMLInputElement>(null);
@@ -493,52 +495,8 @@ export function UploadForm({
   const hasStep1 = hasRequired;
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
 
-  const stepItems = [
-    { n: 1 as const, label: "Application" },
-    { n: 2 as const, label: "Signals" },
-    { n: 3 as const, label: "Launch" },
-  ] as const;
-
   return (
-    <div className="bg-rc-surface border border-rc-border overflow-hidden max-w-[900px] mx-auto">
-
-      {/* ── Navbar ──────────────────────────────────────────────────── */}
-      <div className="bg-rc-surface border-b border-rc-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-rc-red" />
-          <span className="font-mono text-[13px] font-bold text-rc-red tracking-wide">RejectCheck</span>
-        </div>
-
-        {/* Step indicators */}
-        <div className="flex items-center gap-1.5">
-          {stepItems.map(({ n, label }, i) => {
-            const state = step > n ? "done" : step === n ? "active" : "idle";
-            return (
-              <div key={n} className="flex items-center gap-1.5">
-                {i > 0 && (
-                  <div className={`w-5 h-px ${step > n ? "bg-rc-green" : "bg-rc-border"}`} />
-                )}
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
-                    state === "done" ? "bg-rc-green text-white"
-                    : state === "active" ? "bg-rc-red text-white"
-                    : "bg-white border border-rc-border text-rc-hint"
-                  }`}>
-                    {state === "done" ? "✓" : n}
-                  </div>
-                  <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
-                    state === "done" ? "text-rc-green"
-                    : state === "active" ? "text-rc-red font-bold"
-                    : "text-rc-hint"
-                  }`}>{label}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="w-[140px]" />
-      </div>
+    <div className="bg-rc-surface border border-rc-border overflow-hidden">
 
       {/* ── Body ────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-[260px_1fr] min-h-[440px]">
@@ -592,7 +550,7 @@ export function UploadForm({
             {step > 1 ? (
               <button
                 type="button"
-                onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
+                onClick={() => onStepChange((step - 1) as 1 | 2 | 3)}
                 className="font-mono text-[9px] uppercase tracking-[0.1em] text-rc-hint hover:text-rc-text transition-colors flex items-center gap-1.5"
               >
                 <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
@@ -605,7 +563,7 @@ export function UploadForm({
             {step < 3 && (
               <button
                 type="button"
-                onClick={() => setStep((s) => (s + 1) as 2 | 3)}
+                onClick={() => onStepChange((step + 1) as 2 | 3)}
                 disabled={step === 1 && !hasStep1}
                 className="bg-rc-red text-white font-mono text-[10px] tracking-[0.14em] uppercase px-5 py-2.5 rounded flex items-center gap-2 transition-all hover:bg-[#c93a39] hover:shadow-[0_4px_16px_rgba(201,58,57,0.25)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-rc-red"
               >
