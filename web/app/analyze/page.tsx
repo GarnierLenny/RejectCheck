@@ -357,7 +357,7 @@ function AnalyzeContent() {
         </div>
       </nav>
 
-      <div className={`${result && visualLoadingDone ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto ${result && visualLoadingDone ? "pt-9 pb-[80px]" : "flex-1 flex flex-col pt-4"} px-5 md:px-[32px] transition-[max-width,width] duration-500`}>
+      <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
         {paywallReason ? (
           <PaywallScreen />
         ) : (!result || !visualLoadingDone) ? (
