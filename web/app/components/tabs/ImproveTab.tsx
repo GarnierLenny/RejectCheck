@@ -4,16 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Wand2, Loader2, Zap, ScanSearch, TrendingUp, FileWarning, Download, CheckCircle } from "lucide-react";
 import { generateCvPdf } from "../../utils/export";
+import { CvMarkdownRenderer } from "../CvMarkdownRenderer";
 
 type ImproveTabProps = {
   reconstructedCv: string | null;
+  originalCv: string | null;
   isLoading: boolean;
   isPremium: boolean;
   hasAnalysisId: boolean;
   onRewrite: () => void;
 };
 
-export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisId, onRewrite }: ImproveTabProps) {
+export function ImproveTab({ reconstructedCv, originalCv, isLoading, isPremium, hasAnalysisId, onRewrite }: ImproveTabProps) {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   async function handleExport() {
@@ -67,7 +69,7 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
 
   if (reconstructedCv) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-rc-green shrink-0" />
@@ -81,21 +83,42 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
           </button>
         </div>
 
-        <button
-          onClick={handleExport}
-          disabled={isExportingPdf}
-          className="inline-flex items-center gap-2 px-6 py-3.5 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20 font-bold disabled:opacity-50"
-        >
-          {isExportingPdf
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <Download className="w-4 h-4" />
-          }
-          Download PDF
-        </button>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Left — Original */}
+          <div className="flex flex-col gap-2">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint font-bold">Original</p>
+            <div className="h-[480px] overflow-y-auto rounded-xl border border-rc-border bg-rc-surface/30 p-4">
+              <pre className="text-[11px] text-rc-muted leading-relaxed whitespace-pre-wrap font-mono">
+                {originalCv ?? "Original CV not available."}
+              </pre>
+            </div>
+          </div>
 
-        <p className="font-mono text-[10px] text-rc-hint leading-relaxed">
-          The PDF is formatted as a standard CV. Open it in any PDF viewer or send it directly to recruiters.
-        </p>
+          {/* Right — Improved */}
+          <div className="flex flex-col gap-2">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-rc-red font-bold">✦ Improved</p>
+            <div className="h-[480px] overflow-y-auto rounded-xl border border-rc-red/20 bg-rc-surface/10 p-4">
+              <CvMarkdownRenderer markdown={reconstructedCv} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleExport}
+            disabled={isExportingPdf}
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20 font-bold disabled:opacity-50"
+          >
+            {isExportingPdf
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Download className="w-4 h-4" />
+            }
+            Download PDF
+          </button>
+          <p className="font-mono text-[10px] text-rc-hint">
+            Open in any PDF viewer or send directly to recruiters.
+          </p>
+        </div>
       </div>
     );
   }
