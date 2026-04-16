@@ -1,6 +1,8 @@
 import ReactMarkdown from "react-markdown";
+import { Github, Linkedin } from "react-bootstrap-icons";
 import type { AnalysisResult } from "../types";
 import { IssueItem } from "../IssueItem";
+import { SectionHeader } from "../SectionHeader";
 
 type SignalData = AnalysisResult["audit"]["github"] | AnalysisResult["audit"]["linkedin"];
 
@@ -12,10 +14,9 @@ type Props = {
 };
 
 function SignalSection({
-  title, icon, score, strengths, issues, hasData, emptyMessage, ctaText,
+  title, score, strengths, issues, hasData, emptyMessage, ctaText,
 }: {
-  title: string;
-  icon: React.ReactNode;
+  title: React.ReactNode;
   score: number | null;
   strengths: string[];
   issues: SignalData["issues"];
@@ -28,32 +29,26 @@ function SignalSection({
   const minorCount    = issues.filter(i => i.severity === "minor").length;
 
   return (
-    <div className="bg-rc-surface border border-rc-border rounded overflow-hidden">
-      {/* Header */}
-      <div className="p-6 border-b border-rc-border flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-rc-surface-raised border border-rc-border flex items-center justify-center shrink-0">
-            {icon}
+    <div>
+      <SectionHeader
+        label="Signal Analysis"
+        title={title}
+        subtitle={hasData ? `${issues.length} issue${issues.length !== 1 ? "s" : ""} detected` : "Not provided"}
+        meta={
+          <div className="text-right">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">Signal Score</span>
+            <span className={`font-mono text-[26px] font-medium ${score === null ? 'text-rc-hint' : score >= 70 ? 'text-rc-green' : score >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
+              {score !== null ? `${score}%` : "N/A"}
+            </span>
           </div>
-          <div>
-            <h3 className="font-sans font-bold text-[17px] tracking-tight uppercase text-rc-text">{title}</h3>
-            <p className="font-mono text-[10px] text-rc-hint uppercase tracking-wider mt-0.5">
-              {hasData ? `${issues.length} issue${issues.length !== 1 ? "s" : ""} detected` : "Not provided"}
-            </p>
-          </div>
-        </div>
-        <div className="text-right">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint block mb-1">Signal Score</span>
-          <span className={`font-mono text-[24px] font-medium ${score === null ? 'text-rc-hint' : score >= 70 ? 'text-rc-green' : score >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
-            {score !== null ? `${score}%` : "N/A"}
-          </span>
-        </div>
-      </div>
+        }
+      />
 
+      <div className="bg-rc-surface border border-rc-border overflow-hidden">
       {!hasData ? (
-        <div className="p-8 text-center">
-          <p className="text-[13px] text-rc-muted mb-3">{emptyMessage}</p>
-          <p className="font-mono text-[10px] text-rc-hint bg-rc-bg border border-dashed border-rc-border/40 px-4 py-3 inline-block">
+        <div className="p-10 text-center">
+          <p className="text-[17px] text-rc-muted mb-4 leading-relaxed">{emptyMessage}</p>
+          <p className="font-mono text-[12px] text-rc-hint bg-rc-bg border border-dashed border-rc-border/40 px-5 py-3 inline-block">
             {ctaText}
           </p>
         </div>
@@ -64,17 +59,17 @@ function SignalSection({
             <div className="p-5 border-b border-rc-border flex flex-wrap gap-4 items-start justify-between">
               <div className="flex items-center gap-2 flex-wrap">
                 {criticalCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-red/5 border border-rc-red/20 text-rc-red">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-red/5 border border-rc-red/20 text-rc-red">
                     <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />{criticalCount} critical
                   </span>
                 )}
                 {majorCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-amber/5 border border-rc-amber/20 text-rc-amber">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-amber/5 border border-rc-amber/20 text-rc-amber">
                     <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />{majorCount} major
                   </span>
                 )}
                 {minorCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-surface/10 border border-rc-border/30 text-rc-hint">
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-surface/10 border border-rc-border/30 text-rc-hint">
                     <span className="w-1.5 h-1.5 rounded-full bg-rc-hint" />{minorCount} minor
                   </span>
                 )}
@@ -82,7 +77,7 @@ function SignalSection({
               {strengths.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {strengths.map((s, i) => (
-                    <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-green/5 text-rc-green border border-rc-green/20">
+                    <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-green/5 text-rc-green border border-rc-green/20">
                       <span className="w-1.5 h-1.5 rounded-full bg-rc-green" />
                       <ReactMarkdown components={{ p: ({ children }) => <>{children}</> }}>{s}</ReactMarkdown>
                     </span>
@@ -99,12 +94,13 @@ function SignalSection({
               ))}
             </div>
           ) : (
-            <p className="font-mono text-[11px] text-rc-hint italic text-center py-8 uppercase tracking-wider">
+            <p className="font-mono text-[12px] text-rc-hint italic text-center py-10 uppercase tracking-wider">
               No issues detected — strong signal.
             </p>
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -115,10 +111,9 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
   const linkedinHasData = hasLinkedin || linkedin.score !== null || linkedin.issues.length > 0 || linkedin.strengths.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <SignalSection
-        title="GitHub Signal"
-        icon={<img src="/icons/github.svg" alt="GitHub" width={16} height={16} style={{ filter: 'invert(0.6)' }} />}
+        title={<span className="flex items-center gap-2.5"><Github size={20} className="text-rc-text" />GitHub Signal</span>}
         score={github.score}
         strengths={github.strengths}
         issues={github.issues}
@@ -127,8 +122,7 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
         ctaText="Re-analyze with your GitHub username to unlock signal"
       />
       <SignalSection
-        title="LinkedIn Signal"
-        icon={<img src="/icons/linkedin.svg" alt="LinkedIn" width={16} height={16} style={{ filter: 'invert(0.6)' }} />}
+        title={<span className="flex items-center gap-2.5"><Linkedin size={20} className="text-rc-text" />LinkedIn Signal</span>}
         score={linkedin.score}
         strengths={linkedin.strengths}
         issues={linkedin.issues}

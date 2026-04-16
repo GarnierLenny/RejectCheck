@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "./types";
+import { SectionHeader } from "./SectionHeader";
 
 interface Props {
   data: AnalysisResult["technical_analysis"];
@@ -28,24 +29,23 @@ export function TechnicalRadarChart({ data }: Props) {
 
   return (
     <div className="relative group py-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="font-sans font-bold text-[22px] tracking-tight uppercase text-rc-text">
-            Skill Gap Analysis
-          </h2>
-          <p className="font-mono text-[10px] text-rc-hint uppercase tracking-wider mt-1">Comparison between CV and Job Description</p>
-        </div>
-        <div className="flex gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full border-2 border-rc-amber bg-rc-amber/10" />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-rc-muted">Target (JD)</span>
+      <SectionHeader
+        label="Skill Mapping"
+        title="Skill Gap Analysis"
+        subtitle="Your current level vs. what the job requires, measured across each key skill."
+        meta={
+          <div className="flex gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full border-2 border-rc-amber bg-rc-amber/10" />
+              <span className="font-mono text-[12px] uppercase tracking-wider text-rc-muted">Target (JD)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-rc-red" />
+              <span className="font-mono text-[12px] uppercase tracking-wider text-rc-muted">Your Profile</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-rc-red" />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-rc-muted">Your Profile</span>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex flex-col gap-10">
         {/* Chart + Priority panel */}
@@ -109,11 +109,11 @@ export function TechnicalRadarChart({ data }: Props) {
           {/* Priority sidebar */}
           <div className="w-[210px] shrink-0 bg-rc-surface border border-rc-border rounded p-5 flex flex-col gap-4">
             <div>
-              <h4 className="font-mono text-[10px] uppercase tracking-widest text-rc-red font-bold flex items-center gap-1.5 mb-0.5">
+              <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-red font-bold flex items-center gap-1.5 mb-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
                 Job Priority
               </h4>
-              <p className="font-mono text-[9px] text-rc-hint">Skills ranked by importance</p>
+              <p className="font-mono text-[11px] text-rc-hint">Skills ranked by importance</p>
             </div>
             <ol className="flex flex-col gap-1.5">
               {(data.skill_priority ?? data.skills.map(s => s.name)).map((name, i) => {
@@ -146,8 +146,8 @@ export function TechnicalRadarChart({ data }: Props) {
                 <path d="M12 2v20M2 12h20M12 2a10 10 0 0 1 10 10M12 2A10 10 0 0 0 2 12M22 12a10 10 0 0 1-10 10M2 12a10 10 0 0 0 10 10" />
               </svg>
             </div>
-            <h3 className="font-mono text-[11px] uppercase tracking-[0.2em] text-rc-red mb-4 font-bold">Strategic Recommendation</h3>
-            <div className="text-[15px] text-rc-text leading-relaxed font-sans italic [&_strong]:font-semibold [&_strong]:not-italic [&_em]:italic [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
+            <h3 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red mb-4 font-bold">Strategic Recommendation</h3>
+            <div className="text-[17px] text-rc-text leading-[1.7] font-sans italic [&_strong]:font-semibold [&_strong]:not-italic [&_em]:italic [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
               <ReactMarkdown>{data.recommendation}</ReactMarkdown>
             </div>
           </div>
@@ -168,7 +168,7 @@ export function TechnicalRadarChart({ data }: Props) {
                     <span className="text-rc-text font-mono text-2xl font-bold">{s.current} <span className="text-rc-hint text-sm font-normal">/ {s.expected}</span></span>
                     {!isOk && <span className="text-rc-amber font-mono text-[11px] uppercase font-bold">-{gap} PTS</span>}
                   </div>
-                  <div className="text-[12px] text-rc-muted leading-relaxed border-t border-rc-border pt-4 [&_strong]:font-semibold [&_strong]:text-rc-text">
+                  <div className="text-[14px] text-rc-muted leading-[1.7] border-t border-rc-border pt-4 [&_strong]:font-semibold [&_strong]:text-rc-text">
                     <ReactMarkdown>{s.evidence}</ReactMarkdown>
                   </div>
                 </div>
@@ -178,22 +178,22 @@ export function TechnicalRadarChart({ data }: Props) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div className="bg-rc-surface border border-rc-border rounded p-6">
-              <h4 className="font-mono text-[10px] uppercase tracking-widest text-rc-amber mb-3 flex items-center gap-2">
+              <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-amber mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
                 Market Context
               </h4>
-              <div className="text-sm text-rc-text leading-relaxed [&_strong]:font-semibold [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
+              <div className="text-[16px] text-rc-text leading-[1.7] [&_strong]:font-semibold [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
                 <ReactMarkdown>{data.market_context}</ReactMarkdown>
               </div>
             </div>
             <div className="bg-rc-surface border border-rc-border rounded p-6">
-              <h4 className="font-mono text-[10px] uppercase tracking-widest text-rc-red mb-3 flex items-center gap-2">
+              <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-red mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
                 Missing Seniority Signals
               </h4>
               <ul className="space-y-2">
                 {data.seniority_signals.map((sig, i) => (
-                  <li key={i} className="text-sm text-rc-muted flex items-start gap-2">
+                  <li key={i} className="text-[16px] text-rc-muted flex items-start gap-2 leading-[1.7]">
                     <span className="text-rc-red mt-1 shrink-0">•</span>
                     <div className="[&_strong]:font-semibold [&_strong]:text-rc-text">
                       <ReactMarkdown>{sig}</ReactMarkdown>

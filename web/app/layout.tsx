@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Chivo_Mono } from 'next/font/google';
+import { DM_Sans, Chivo_Mono } from 'next/font/google';
 import "./globals.css";
 import Providers from "./providers";
 import { Analytics } from "@vercel/analytics/next"
 
-const instrumentSans = Instrument_Sans({
+const dmSans = DM_Sans({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-sans',
@@ -61,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${instrumentSans.variable} ${chivoMono.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${chivoMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Toaster position="top-center" expand={true} richColors />
