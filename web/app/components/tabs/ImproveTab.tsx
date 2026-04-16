@@ -83,23 +83,10 @@ export function ImproveTab({ reconstructedCv, originalCv, isLoading, isPremium, 
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Left — Original */}
-          <div className="flex flex-col gap-2">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint font-bold">Original</p>
-            <div className="h-[480px] overflow-y-auto rounded-xl border border-rc-border bg-rc-surface/30 p-4">
-              <pre className="text-[11px] text-rc-muted leading-relaxed whitespace-pre-wrap font-mono">
-                {originalCv ?? "Original CV not available."}
-              </pre>
-            </div>
-          </div>
-
-          {/* Right — Improved */}
-          <div className="flex flex-col gap-2">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-rc-red font-bold">✦ Improved</p>
-            <div className="h-[480px] overflow-y-auto rounded-xl border border-rc-red/20 bg-rc-surface/10 p-4">
-              <CvMarkdownRenderer markdown={reconstructedCv} />
-            </div>
+        <div className="flex flex-col gap-2">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-rc-red font-bold">✦ Your improved CV</p>
+          <div className="h-[520px] overflow-y-auto rounded-xl border border-rc-red/20 bg-rc-surface/10 p-6">
+            <CvMarkdownRenderer markdown={reconstructedCv} />
           </div>
         </div>
 
