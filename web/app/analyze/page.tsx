@@ -39,7 +39,11 @@ function AnalyzeContent() {
   const [mlText, setMlText] = useState("");
   const [githubUsername, setGithubUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const t = searchParams.get("tab");
+    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","roadmap","project","improve","interview"];
+    return validTabs.includes(t as Tab) ? (t as Tab) : "overview";
+  });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
   const [loading, setLoading] = useState(false);
@@ -387,6 +391,7 @@ function AnalyzeContent() {
                 isPremium={!!activeSubscription}
                 analysisId={analysisId}
                 email={activeSubscription?.email || user?.email || null}
+                defaultInterviewId={searchParams.get("interviewId") ? Number(searchParams.get("interviewId")) : null}
               />
             )}
 

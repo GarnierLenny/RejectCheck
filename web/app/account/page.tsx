@@ -7,13 +7,13 @@ import Image from "next/image";
 import { createClient } from "../../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { SuccessModal } from "../components/SuccessModal";
-import { 
-  FileText, 
-  Clock, 
-  ChevronRight, 
-  LayoutGrid, 
-  LogOut, 
-  Trash2, 
+import {
+  FileText,
+  Clock,
+  ChevronRight,
+  LayoutGrid,
+  LogOut,
+  Trash2,
   ArrowRight,
   ShieldCheck,
   Star,
@@ -22,7 +22,8 @@ import {
   Camera,
   User as UserIcon,
   MoreVertical,
-  Download
+  Download,
+  Mic,
 } from "lucide-react";
 import { ExportModal } from "../components/ExportModal";
 
@@ -31,6 +32,13 @@ type HistoryItem = {
   jobDescription: string;
   createdAt: string;
   result: any;
+};
+
+type InterviewAttempt = {
+  id: number;
+  analysisId: number;
+  createdAt: string;
+  globalScore: number | null;
 };
 
 type Profile = {
@@ -56,6 +64,7 @@ function AccountPageContent() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subscription, setSubscription] = useState<Subscription>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [interviewHistory, setInterviewHistory] = useState<InterviewAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSub, setLoadingSub] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -89,8 +98,9 @@ function AccountPageContent() {
         Promise.all([
           fetch(`${apiUrl}/api/stripe/subscription?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : null),
           fetch(`${apiUrl}/api/analyze/history?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : []),
-          fetch(`${apiUrl}/api/analyze/profile?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : null)
-        ]).then(([subData, historyData, profileData]) => {
+          fetch(`${apiUrl}/api/analyze/profile?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : null),
+          fetch(`${apiUrl}/api/interview/history?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : []),
+        ]).then(([subData, historyData, profileData, interviewData]) => {
           if (subData) {
             setSubscription(subData);
             if (subData.status === 'active') {
@@ -103,6 +113,7 @@ function AccountPageContent() {
           }
           setHistory(historyData);
           setProfile(profileData);
+          setInterviewHistory(Array.isArray(interviewData) ? interviewData : []);
 
           // If profile missing username but metadata has it, sync to DB
           const metaUsername = currentUser.user_metadata?.username;
@@ -454,7 +465,7 @@ function AccountPageContent() {
           </div>
 
           {/* RIGHT COLUMN: History (8/12) */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-10">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
                 <LayoutGrid className="w-5 h-5 text-rc-red" /> Analysis History
@@ -541,6 +552,63 @@ function AccountPageContent() {
                 })
               )}
             </div>
+
+            {/* Interview History */}
+            {interviewHistory.length > 0 && (
+              <div className="space-y-6 pt-4">
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
+                    <Mic className="w-5 h-5 text-rc-red" /> AI Interviews
+                  </h2>
+                  <div className="h-px flex-1 bg-rc-border" />
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                    {interviewHistory.length} attempt{interviewHistory.length > 1 ? "s" : ""}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {interviewHistory.map((attempt, i) => {
+                    const score = attempt.globalScore;
+                    const scoreColor = score === null
+                      ? "border-rc-border text-rc-hint bg-rc-surface"
+                      : score >= 7 ? "border-green-500/30 text-green-400 bg-green-500/5"
+                      : score >= 4 ? "border-amber-500/30 text-amber-400 bg-amber-500/5"
+                      : "border-rc-red/30 text-rc-red bg-rc-red/5";
+
+                    return (
+                      <Link
+                        key={attempt.id}
+                        href={`/analyze?id=${attempt.analysisId}&tab=interview&interviewId=${attempt.id}`}
+                        className="flex items-center justify-between p-5 bg-white border border-rc-border rounded-[20px] hover:border-rc-red/20 transition-all no-underline shadow-sm group/card"
+                      >
+                        <div className="flex items-center gap-5">
+                          <div className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-lg font-black ${scoreColor}`}>
+                            {score !== null ? score : "—"}
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-rc-text tracking-tight group-hover/card:text-rc-red transition-colors">
+                              Interview #{interviewHistory.length - i}
+                            </p>
+                            <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
+                              <Clock className="w-3 h-3" />
+                              {new Date(attempt.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                              {" · "}
+                              {new Date(attempt.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red opacity-0 group-hover/card:opacity-100 transition-all">
+                            View
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

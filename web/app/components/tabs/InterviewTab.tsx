@@ -8,6 +8,7 @@ type InterviewTabProps = {
   isPremium: boolean;
   analysisId: number | null;
   email: string | null;
+  defaultInterviewId?: number | null;
 };
 
 type InterviewState = "idle" | "in_progress" | "loading" | "done";
@@ -184,7 +185,7 @@ function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void
   );
 }
 
-export function InterviewTab({ isPremium, analysisId, email }: InterviewTabProps) {
+export function InterviewTab({ isPremium, analysisId, email, defaultInterviewId }: InterviewTabProps) {
   const [interviewState, setInterviewState] = useState<InterviewState>("idle");
   const [micGranted, setMicGranted] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -217,11 +218,14 @@ export function InterviewTab({ isPremium, analysisId, email }: InterviewTabProps
       .then(r => r.json())
       .then((data: AttemptHistory[]) => {
         setHistory(data);
-        // Auto-select most recent if none selected
-        if (data.length > 0) setSelectedAttemptId(prev => prev ?? data[0].id);
+        setSelectedAttemptId(prev => {
+          // Prefer defaultInterviewId, then keep existing, then most recent
+          if (defaultInterviewId && data.some(h => h.id === defaultInterviewId)) return defaultInterviewId;
+          return prev ?? (data.length > 0 ? data[0].id : null);
+        });
       })
       .catch(() => {});
-  }, [email]);
+  }, [email, defaultInterviewId]);
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
