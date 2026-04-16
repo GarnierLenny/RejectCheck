@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Wand2, Loader2, Zap, ScanSearch, TrendingUp, FileWarning, Download, CheckCircle } from "lucide-react";
 import { generateCvPdf } from "../../utils/export";
+import { CvMarkdownRenderer } from "../CvMarkdownRenderer";
 
 type ImproveTabProps = {
   reconstructedCv: string | null;
@@ -79,6 +80,13 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
           >
             Regenerate
           </button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-red font-bold">✦ Your improved CV</p>
+          <div className="h-[520px] overflow-y-auto rounded-xl border border-rc-red/20 bg-rc-surface/10 p-6">
+            <CvMarkdownRenderer markdown={reconstructedCv} />
+          </div>
         </div>
 
         <button
