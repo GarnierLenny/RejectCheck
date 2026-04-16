@@ -302,7 +302,7 @@ function AnalyzeContent() {
   ] as const) : [];
 
   return (
-    <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
+    <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
       <nav className="grid grid-cols-3 items-center px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
         {/* Left: logo */}
         <Link href="/" className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
@@ -357,20 +357,20 @@ function AnalyzeContent() {
         </div>
       </nav>
 
-      <div className={`${result && visualLoadingDone ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto ${result && visualLoadingDone ? "pt-9" : "pt-4"} px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
+      <div className={`${result && visualLoadingDone ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto ${result && visualLoadingDone ? "pt-9 pb-[80px]" : "flex-1 flex flex-col pt-4"} px-5 md:px-[32px] transition-[max-width,width] duration-500`}>
         {paywallReason ? (
           <PaywallScreen />
         ) : (!result || !visualLoadingDone) ? (
           (loading || (result && !visualLoadingDone)) ? (
-            <LoadingScreen 
-              currentStep={result ? "done" : currentStep} 
-              hasGithub={githubUsername.trim().length > 0} 
+            <LoadingScreen
+              currentStep={result ? "done" : currentStep}
+              hasGithub={githubUsername.trim().length > 0}
               hasLinkedin={liFile !== null}
               hasML={mlFile !== null || mlText.trim().length > 0}
               onFinished={() => setVisualLoadingDone(true)}
             />
           ) : (
-            <>
+            <div className="flex-1 flex flex-col">
               <UploadForm
                 cvFile={cvFile} setCvFile={setCvFile}
                 liFile={liFile} setLiFile={setLiFile}
@@ -381,7 +381,7 @@ function AnalyzeContent() {
                 onSubmit={handleSubmit} loading={false} error={error}
                 step={formStep} onStepChange={setFormStep}
               />
-            </>
+            </div>
           )
         ) : (
           <div>

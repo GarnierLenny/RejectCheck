@@ -496,10 +496,10 @@ export function UploadForm({
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
 
   return (
-    <div className="bg-rc-surface border border-rc-border overflow-hidden">
+    <div className="bg-rc-surface border border-rc-border overflow-hidden flex-1 flex flex-col">
 
       {/* ── Body ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-[260px_1fr] min-h-[440px]">
+      <div className="grid grid-cols-[260px_1fr] flex-1">
 
         {/* LEFT DARK PANEL */}
         <div className="bg-[#1a1917] px-6 py-7 flex flex-col justify-between">
