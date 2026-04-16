@@ -34,10 +34,10 @@ function getAccuracy(cvFile: File | null, jd: string, github: string, liFile: Fi
 
   const score = (hasCV ? 1 : 0) + (hasJD ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
 
-  if (score <= 1) return { segments: 1, label: "Précision basique", color: "bg-rc-red" };
-  if (score === 2) return { segments: 2, label: "Précision basique", color: "bg-rc-red" };
-  if (score === 3) return { segments: 3, label: "Précision améliorée", color: "bg-rc-amber" };
-  return { segments: 5, label: "Signal complet", color: "bg-rc-green" };
+  if (score <= 1) return { segments: 1, label: "Basic precision", color: "bg-rc-red" };
+  if (score === 2) return { segments: 2, label: "Basic precision", color: "bg-rc-red" };
+  if (score === 3) return { segments: 3, label: "Enhanced precision", color: "bg-rc-amber" };
+  return { segments: 5, label: "Full signal", color: "bg-rc-green" };
 }
 
 /* ── Left panel helpers ──────────────────────────────────────────────────── */
@@ -53,9 +53,9 @@ function HintBox({ title, body }: { title: string; body: string }) {
 
 function StepList({ current }: { current: 1 | 2 | 3 }) {
   const items: { n: 1 | 2 | 3; label: string }[] = [
-    { n: 1, label: "Candidature" },
-    { n: 2, label: "Signaux" },
-    { n: 3, label: "Lancer" },
+    { n: 1, label: "Application" },
+    { n: 2, label: "Signals" },
+    { n: 3, label: "Launch" },
   ];
   return (
     <div className="flex flex-col gap-2">
@@ -104,10 +104,10 @@ function LeftPanel({ stepTag, title, description, hint }: {
 function LeftStep1() {
   return (
     <LeftPanel
-      stepTag="Étape 1 sur 3"
-      title={<>Ta candidature<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-      description="CV + offre forment un tout indissociable. L'un sans l'autre, l'analyse ne peut pas cibler."
-      hint={{ title: "Pourquoi l'offre complète ?", body: "Titre, stack, responsabilités, nice-to-haves — chaque ligne affecte le score ATS." }}
+      stepTag="Step 1 of 3"
+      title={<>Your application<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
+      description="CV and job listing are inseparable. One without the other, the analysis can't target."
+      hint={{ title: "Why the full listing?", body: "Title, stack, responsibilities, nice-to-haves — every line affects the ATS score." }}
     />
   );
 }
@@ -115,10 +115,10 @@ function LeftStep1() {
 function LeftStep2() {
   return (
     <LeftPanel
-      stepTag="Étape 2 sur 3"
-      title={<>Signaux<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-      description="Chaque signal supplémentaire affine le diagnostic. GitHub révèle ce que le CV ne dit pas. LinkedIn confirme la cohérence."
-      hint={{ title: "Tous optionnels", body: "Passe cette étape si tu veux. Tu peux analyser avec CV + offre uniquement." }}
+      stepTag="Step 2 of 3"
+      title={<>Signals<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
+      description="Each additional signal sharpens the diagnosis. GitHub reveals what the CV doesn't say. LinkedIn confirms consistency."
+      hint={{ title: "All optional", body: "Skip this step if you want. You can analyze with CV + listing only." }}
     />
   );
 }
@@ -129,26 +129,26 @@ function LeftStep3({ cvFile, jobDescription, githubUsername, liFile, mlFile, mlT
 }) {
   const recap = [
     cvFile ? { icon: "CV", name: cvFile.name, val: `${(cvFile.size / 1024).toFixed(0)} KB · PDF` } : null,
-    jobDescription.trim() ? { icon: "JD", name: "Offre d'emploi", val: `${jobDescription.trim().split(/\s+/).length} mots · collée` } : null,
-    githubUsername.trim() ? { icon: "GH", name: `github.com/${githubUsername}`, val: "Signal actif" } : null,
+    jobDescription.trim() ? { icon: "JD", name: "Job listing", val: `${jobDescription.trim().split(/\s+/).length} words · pasted` } : null,
+    githubUsername.trim() ? { icon: "GH", name: `github.com/${githubUsername}`, val: "Active signal" } : null,
     liFile ? { icon: "in", name: liFile.name, val: "LinkedIn PDF" } : null,
-    (mlFile || mlText.trim()) ? { icon: "✉", name: mlFile ? mlFile.name : "Lettre de motivation", val: mlFile ? "PDF" : "Texte collé" } : null,
+    (mlFile || mlText.trim()) ? { icon: "✉", name: mlFile ? mlFile.name : "Cover letter", val: mlFile ? "PDF" : "Pasted text" } : null,
   ].filter((x): x is { icon: string; name: string; val: string } => x !== null);
 
   return (
     <div>
       <div className="font-mono text-[8px] tracking-[0.18em] uppercase text-rc-red flex items-center gap-1.5 mb-4">
         <div className="w-3 h-px bg-rc-red" />
-        Étape 3 sur 3
+        Step 3 of 3
       </div>
       <div className="text-[20px] font-bold text-[#f7f5f2] leading-[1.2] tracking-[-0.01em]">
-        Tout est prêt<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em>
+        All set<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em>
       </div>
       <p className="text-[12px] text-rc-hint mt-2.5 leading-[1.65]">
-        L'analyse prend ~45 secondes. Score, radar compétences, simulation ATS, réécriture CV.
+        Analysis takes ~45 seconds. Score, skills radar, ATS simulation, CV rewrite.
       </p>
       <div className="mt-5">
-        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-[#3a3834] mb-2">Récapitulatif</div>
+        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-[#3a3834] mb-2">Summary</div>
         <div className="flex flex-col gap-1.5">
           {recap.map((item, i) => (
             <div key={i} className="flex items-center gap-2 px-2.5 py-2 bg-white/[0.04] border border-white/[0.06] rounded">
@@ -178,8 +178,8 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
       {/* CV Upload */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Ton CV</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Requis</span>
+          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Your CV</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Required</span>
         </div>
         {!cvFile ? (
           <div
@@ -196,7 +196,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
             </div>
             <div className="text-center">
               <p className="text-[13px] text-rc-muted group-hover:text-rc-text transition-colors font-medium">
-                Drop ton CV ou <span className="text-rc-red underline decoration-dotted underline-offset-2">parcourir</span>
+                Drop your CV or <span className="text-rc-red underline decoration-dotted underline-offset-2">browse</span>
               </p>
               <p className="font-mono text-[10px] text-rc-hint mt-0.5">PDF · max 5MB</p>
             </div>
@@ -223,16 +223,16 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
       {/* Job Description */}
       <div className="flex flex-col flex-1">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Offre d'emploi</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Requis</span>
+          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Job listing</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Required</span>
         </div>
         <textarea
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          placeholder={"Développeur Full Stack Senior — React / Node.js\n\nRequis : TypeScript, AWS, 5 ans XP…\nNice-to-have : Kubernetes, contributions OS…"}
+          placeholder={"Senior Full Stack Developer — React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
           className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-y outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
         />
-        <p className="font-mono text-[9px] text-rc-hint mt-1.5">Plus elle est complète, plus le diagnostic est précis.</p>
+        <p className="font-mono text-[9px] text-rc-hint mt-1.5">The more complete, the more precise the diagnosis.</p>
       </div>
     </div>
   );
@@ -264,9 +264,9 @@ function RightStep2({
           </div>
           <div className="flex-1">
             <div className="text-[12px] font-medium text-rc-text">GitHub</div>
-            <p className="font-mono text-[9px] text-rc-hint">repos · langages · activité</p>
+            <p className="font-mono text-[9px] text-rc-hint">repos · languages · activity</p>
           </div>
-          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">+précision</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">+precision</span>
         </div>
         <div className="px-3 py-2.5">
           <div className="relative">
@@ -290,9 +290,9 @@ function RightStep2({
           </div>
           <div className="flex-1">
             <div className="text-[12px] font-medium text-rc-text">LinkedIn</div>
-            <p className="font-mono text-[9px] text-rc-hint">export profil PDF</p>
+            <p className="font-mono text-[9px] text-rc-hint">profile PDF export</p>
           </div>
-          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">+précision</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">+precision</span>
         </div>
         <div className="px-3 py-2.5">
           {!liFile ? (
@@ -300,8 +300,8 @@ function RightStep2({
               onClick={() => liRef.current?.click()}
               className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
             >
-              <p className="text-[12px] text-[#5ba3d9] font-medium">Drop l'export LinkedIn PDF</p>
-              <span className="font-mono text-[9px] text-rc-hint">Paramètres → Données → Obtenir une copie</span>
+              <p className="text-[12px] text-[#5ba3d9] font-medium">Drop your LinkedIn PDF export</p>
+              <span className="font-mono text-[9px] text-rc-hint">Settings → Data → Get a copy</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
@@ -326,12 +326,12 @@ function RightStep2({
             </svg>
           </div>
           <div className="flex-1">
-            <div className="text-[12px] font-medium text-rc-text">Lettre de motivation</div>
-            <p className="font-mono text-[9px] text-rc-hint">PDF ou texte</p>
+            <div className="text-[12px] font-medium text-rc-text">Cover letter</div>
+            <p className="font-mono text-[9px] text-rc-hint">PDF or text</p>
           </div>
           <div className="flex bg-rc-surface border border-rc-border rounded p-0.5">
             <button onClick={() => setMlMode("file")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "file" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>PDF</button>
-            <button onClick={() => setMlMode("text")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "text" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>Texte</button>
+            <button onClick={() => setMlMode("text")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "text" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>Text</button>
           </div>
         </div>
         <div className="px-3 py-2.5">
@@ -342,8 +342,8 @@ function RightStep2({
                   onClick={() => mlRef.current?.click()}
                   className="border border-rc-border border-dashed hover:border-rc-red/30 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-rc-bg hover:bg-rc-red/[0.025]"
                 >
-                  <p className="text-[12px] text-rc-muted font-medium">Drop la lettre de motivation</p>
-                  <span className="font-mono text-[9px] text-rc-hint">ou <span className="text-rc-red decoration-dotted underline">parcourir</span></span>
+                  <p className="text-[12px] text-rc-muted font-medium">Drop your cover letter</p>
+                  <span className="font-mono text-[9px] text-rc-hint">or <span className="text-rc-red decoration-dotted underline">browse</span></span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
@@ -361,7 +361,7 @@ function RightStep2({
               value={mlText}
               onChange={(e) => { setMlText(e.target.value); setMlFile(null); }}
               onBlur={() => { if (mlText.trim()) setMlFile(null); }}
-              placeholder="Colle ta lettre de motivation ici…"
+              placeholder="Paste your cover letter here…"
               className="w-full bg-rc-bg border border-rc-border focus:border-rc-red/20 rounded px-3 py-2.5 text-rc-text text-[12px] min-h-[80px] resize-y outline-none transition-colors placeholder:text-rc-hint/50"
             />
           )}
@@ -382,7 +382,7 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
       <div className="flex-1">
         {/* Accuracy */}
         <div className="mb-5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-rc-hint mb-2">Précision de l'analyse</div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-rc-hint mb-2">Analysis precision</div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -395,13 +395,13 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
 
         {/* What you'll get */}
         <div className="p-4 bg-rc-bg border border-rc-border rounded mb-5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint mb-3">Ce que tu vas recevoir</div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint mb-3">What you'll receive</div>
           <div className="flex flex-col gap-2">
             {[
-              "Score de rejet global + verdict",
-              "Simulation ATS + mots-clés manquants",
-              "Radar compétences vs. poste",
-              "Réécriture CV + Interview IA",
+              "Global rejection score + verdict",
+              "ATS simulation + missing keywords",
+              "Skills radar vs. position",
+              "CV rewrite + AI interview",
             ].map((item) => (
               <div key={item} className="flex items-center gap-2 text-[12px] text-rc-muted">
                 <span className="text-rc-red font-bold text-[10px]">✦</span>
@@ -415,10 +415,10 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
       {/* CTA */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint">Coût</span>
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint">Cost</span>
           <div className="flex items-center gap-1.5 px-2 py-1 bg-rc-green/8 border border-rc-green/20 rounded">
             <span className="text-[10px] text-rc-green">✦</span>
-            <span className="font-mono text-[9px] text-rc-green font-medium uppercase tracking-tight">1 crédit gratuit disponible</span>
+            <span className="font-mono text-[9px] text-rc-green font-medium uppercase tracking-tight">1 free credit available</span>
           </div>
         </div>
 
@@ -434,11 +434,11 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
                   <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
                   <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                Analyse en cours…
+                Analyzing…
               </>
             ) : (
               <>
-                Lancer l'analyse
+                Run analysis
                 <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                   <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -453,8 +453,8 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
         <div className="flex items-center justify-center gap-4 mt-2.5">
           {[
             { icon: "⏱", text: "~45s" },
-            { icon: "🔒", text: "Données non stockées" },
-            { icon: "✦", text: "1 crédit" },
+            { icon: "🔒", text: "Data not stored" },
+            { icon: "✦", text: "1 credit" },
           ].map(({ icon, text }) => (
             <span key={text} className="font-mono text-[8px] text-rc-hint flex items-center gap-1">
               <span className="opacity-50">{icon}</span>{text}
@@ -494,9 +494,9 @@ export function UploadForm({
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
 
   const stepItems = [
-    { n: 1 as const, label: "Candidature" },
-    { n: 2 as const, label: "Signaux" },
-    { n: 3 as const, label: "Lancer" },
+    { n: 1 as const, label: "Application" },
+    { n: 2 as const, label: "Signals" },
+    { n: 3 as const, label: "Launch" },
   ] as const;
 
   return (
@@ -598,7 +598,7 @@ export function UploadForm({
                 <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
                   <path d="M12 7H2M6.5 3L2 7l4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Retour
+                Back
               </button>
             ) : <div />}
 
@@ -609,7 +609,7 @@ export function UploadForm({
                 disabled={step === 1 && !hasStep1}
                 className="bg-rc-red text-white font-mono text-[10px] tracking-[0.14em] uppercase px-5 py-2.5 rounded flex items-center gap-2 transition-all hover:bg-[#c93a39] hover:shadow-[0_4px_16px_rgba(201,58,57,0.25)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-rc-red"
               >
-                Continuer
+                Continue
                 <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
                   <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
