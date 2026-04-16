@@ -374,13 +374,13 @@ function AnalyzeContent() {
             </div>
 
             {/* Tab content — full width */}
-            {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
+            {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} isPremium={!!activeSubscription} />}
             {activeTab === "ats"          && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
             {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
-            {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
+            {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} isPremium={!!activeSubscription} />}
             {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
             {activeTab === "roadmap"      && <RoadmapTab result={result} />}
-            {activeTab === "project"      && <ProjectTab project={result.project_recommendation} />}
+            {activeTab === "project"      && <ProjectTab project={result.project_recommendation} isPremium={!!activeSubscription} />}
             {activeTab === "improve" && (
               <ImproveTab
                 reconstructedCv={reconstructedCv}

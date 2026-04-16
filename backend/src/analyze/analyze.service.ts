@@ -525,13 +525,13 @@ export class AnalyzeService {
       if (hasSub) return { allowed: true };
     }
 
-    // 2. Check usage count by email
+    // 2. Check usage count by email — connected users get 3 free analyses
     if (email) {
       const count = await (this.prisma as any).analysis.count({ where: { email } });
-      if (count >= 1) return { allowed: false, reason: 'limit_reached' };
+      if (count >= 3) return { allowed: false, reason: 'limit_reached' };
     }
 
-    // 3. Check usage count by IP
+    // 3. Check usage count by IP — guests get 1 free analysis
     if (ip) {
       const count = await (this.prisma as any).analysis.count({ where: { ip } });
       if (count >= 1) return { allowed: false, reason: 'limit_reached' };

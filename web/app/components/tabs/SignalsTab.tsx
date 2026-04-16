@@ -3,6 +3,7 @@ import { Github, Linkedin } from "react-bootstrap-icons";
 import type { AnalysisResult } from "../types";
 import { IssueItem } from "../IssueItem";
 import { SectionHeader } from "../SectionHeader";
+import { BlurredSection } from "../BlurredSection";
 
 type SignalData = AnalysisResult["audit"]["github"] | AnalysisResult["audit"]["linkedin"];
 
@@ -11,10 +12,11 @@ type Props = {
   linkedin: AnalysisResult["audit"]["linkedin"];
   hasGithub: boolean;
   hasLinkedin: boolean;
+  isPremium?: boolean;
 };
 
 function SignalSection({
-  title, score, strengths, issues, hasData, emptyMessage, ctaText,
+  title, score, strengths, issues, hasData, emptyMessage, ctaText, isPremium = true,
 }: {
   title: React.ReactNode;
   score: number | null;
@@ -23,6 +25,7 @@ function SignalSection({
   hasData: boolean;
   emptyMessage: string;
   ctaText: string;
+  isPremium?: boolean;
 }) {
   const criticalCount = issues.filter(i => i.severity === "critical").length;
   const majorCount    = issues.filter(i => i.severity === "major").length;
@@ -52,6 +55,38 @@ function SignalSection({
             {ctaText}
           </p>
         </div>
+      ) : !isPremium ? (
+        <BlurredSection
+          aggregateText={`${issues.length} issue${issues.length !== 1 ? "s" : ""} detected — unlock to see what needs fixing`}
+          ctaText="Unlock detailed signals →"
+        >
+          <div>
+            <div className="p-5 border-b border-rc-border flex flex-wrap gap-4 items-start justify-between">
+              <div className="flex items-center gap-2 flex-wrap">
+                {criticalCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-red/5 border border-rc-red/20 text-rc-red">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />{criticalCount} critical
+                  </span>
+                )}
+                {majorCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-amber/5 border border-rc-amber/20 text-rc-amber">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />{majorCount} major
+                  </span>
+                )}
+                {minorCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-surface/10 border border-rc-border/30 text-rc-hint">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-hint" />{minorCount} minor
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="divide-y divide-rc-border/20">
+              {issues.slice(0, 3).map((issue, idx) => (
+                <IssueItem key={idx} issue={issue} />
+              ))}
+            </div>
+          </div>
+        </BlurredSection>
       ) : (
         <div>
           {/* Severity breakdown + Strengths */}
@@ -105,7 +140,7 @@ function SignalSection({
   );
 }
 
-export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) {
+export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin, isPremium = true }: Props) {
   // Derive hasData from actual content — handles history-loaded results where state vars are empty
   const githubHasData = hasGithub || github.score !== null || github.issues.length > 0 || github.strengths.length > 0;
   const linkedinHasData = hasLinkedin || linkedin.score !== null || linkedin.issues.length > 0 || linkedin.strengths.length > 0;
@@ -120,6 +155,7 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
         hasData={githubHasData}
         emptyMessage="No GitHub username provided — deep technical verification skipped."
         ctaText="Re-analyze with your GitHub username to unlock signal"
+        isPremium={isPremium}
       />
       <SignalSection
         title={<span className="flex items-center gap-2.5"><Linkedin size={20} className="text-rc-text" />LinkedIn Signal</span>}
@@ -129,6 +165,7 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
         hasData={linkedinHasData}
         emptyMessage="No LinkedIn PDF provided — cross-reference verification skipped."
         ctaText="Export your LinkedIn PDF (Settings → Data Privacy → Get a copy) and re-analyze"
+        isPremium={isPremium}
       />
     </div>
   );
