@@ -12,18 +12,19 @@ Font.register({
   ],
 });
 
-const RED = "#C93A39";
 const TEXT = "#1a1917";
 const MUTED = "#5a5856";
+const RULE = "#d1d0ce";
 
 const styles = StyleSheet.create({
   page: { paddingVertical: 48, paddingHorizontal: 56, backgroundColor: "#ffffff", fontFamily: "InstrumentSans", color: TEXT },
-  h2: { fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: 2, color: TEXT, marginTop: 18, marginBottom: 3 },
-  h2Rule: { height: 0.75, backgroundColor: "#d1d0ce", marginBottom: 7 },
+  h1: { fontSize: 20, fontWeight: 700, color: TEXT, marginBottom: 2 },
+  h2: { fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 2, color: TEXT, marginTop: 18, marginBottom: 3 },
+  h2Rule: { height: 0.75, backgroundColor: RULE, marginBottom: 7 },
   h3: { fontSize: 10.5, fontWeight: 700, color: TEXT, marginTop: 7, marginBottom: 1 },
   body: { fontSize: 10, lineHeight: 1.55, color: MUTED, marginBottom: 1 },
   bulletRow: { flexDirection: "row", alignItems: "flex-start", marginBottom: 1, marginLeft: 4 },
-  bulletDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: RED, marginRight: 7, marginTop: 5 },
+  bulletDash: { fontSize: 10, color: MUTED, marginRight: 6, lineHeight: 1.55 },
   bulletText: { fontSize: 10, lineHeight: 1.55, color: MUTED, flex: 1 },
   spacer: { height: 4 },
 });
@@ -116,7 +117,7 @@ export function CvRewritePdf({ cvText }: { cvText: string }) {
       <Page size="A4" style={styles.page}>
         {blocks.map((block, i) => {
           if (block.type === "spacer") return <View key={i} style={styles.spacer} />;
-          if (block.type === "h1") return <Text key={i} style={styles.h2}>{block.text}</Text>;
+          if (block.type === "h1") return <Text key={i} style={styles.h1}>{block.text}</Text>;
           if (block.type === "h2") return (
             <View key={i}>
               <Text style={styles.h2}>{block.text}</Text>
@@ -126,7 +127,7 @@ export function CvRewritePdf({ cvText }: { cvText: string }) {
           if (block.type === "h3") return <Text key={i} style={styles.h3}>{block.text}</Text>;
           if (block.type === "bullet") return (
             <View key={i} style={styles.bulletRow}>
-              <View style={styles.bulletDot} />
+              <Text style={styles.bulletDash}>–</Text>
               <RichText segments={block.segments} style={styles.bulletText} />
             </View>
           );
