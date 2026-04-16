@@ -72,6 +72,10 @@ type Block =
   | { type: "body"; segments: Segment[] }
   | { type: "spacer" };
 
+function stripMarkers(text: string): string {
+  return text.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
+}
+
 function parse(cv: string): Block[] {
   const hasMarkdown = cv.includes("## ");
   const blocks: Block[] = [];
@@ -88,13 +92,13 @@ function parse(cv: string): Block[] {
     // Dividers — skip entirely
     if (/^-{3,}$/.test(trimmed)) continue;
 
-    // Markdown headers
+    // Markdown headers — strip any bold/italic markers from header text
     if (line.startsWith("# ") && !line.startsWith("## ")) {
-      blocks.push({ type: "h1", text: line.slice(2).trim() });
+      blocks.push({ type: "h1", text: stripMarkers(line.slice(2).trim()) });
       continue;
     }
-    if (line.startsWith("## ")) { blocks.push({ type: "h2", text: line.slice(3).trim() }); continue; }
-    if (line.startsWith("### ")) { blocks.push({ type: "h3", text: line.slice(4).trim() }); continue; }
+    if (line.startsWith("## ")) { blocks.push({ type: "h2", text: stripMarkers(line.slice(3).trim()) }); continue; }
+    if (line.startsWith("### ")) { blocks.push({ type: "h3", text: stripMarkers(line.slice(4).trim()) }); continue; }
 
     // Bullets (markdown or unicode)
     if (/^[-*•]\s+/.test(line)) {
