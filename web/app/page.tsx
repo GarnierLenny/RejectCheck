@@ -5,12 +5,12 @@ import { Navbar } from "./components/Navbar";
 // 6-axis hexagon, centre (100,100), outer radius 80
 // Axes (clockwise from top): React, Node.js, System Design, Testing, DevOps, Algorithms
 const RADAR_SKILLS = [
-  { label: "React / Frontend", score: 0.85 },
-  { label: "Node.js / Backend", score: 0.65 },
-  { label: "System Design", score: 0.42 },
-  { label: "Testing", score: 0.55 },
-  { label: "DevOps", score: 0.28 },
-  { label: "Algorithms", score: 0.70 },
+  { label: "React / Frontend", score: 0.85, expected: 0.90 },
+  { label: "Node.js / Backend", score: 0.65, expected: 0.75 },
+  { label: "System Design", score: 0.42, expected: 0.80 },
+  { label: "Testing", score: 0.55, expected: 0.70 },
+  { label: "DevOps", score: 0.28, expected: 0.65 },
+  { label: "Algorithms", score: 0.70, expected: 0.60 },
 ];
 
 function radarPt(angle: number, r: number, cx = 100, cy = 100) {
@@ -33,6 +33,7 @@ function gridPolygon(pct: number, r = 80) {
 
 const outerR = 80;
 const skillPolygon = radarPolygon(RADAR_SKILLS.map((s) => s.score));
+const expectedPolygon = radarPolygon(RADAR_SKILLS.map((s) => s.expected));
 const gridPcts = [0.33, 0.66, 1];
 
 const axisLabelOffsets: { dx: number; dy: number; anchor: "middle" | "start" | "end" }[] = [
@@ -201,7 +202,19 @@ export default function Home() {
                       );
                     })}
 
-                    {/* Skill polygon fill */}
+                    {/* Expected polygon (job requirements) */}
+                    <polygon
+                      points={RADAR_SKILLS.map((s, i) => {
+                        const pt = radarPt(i * 60, s.expected * outerR, 110, 120);
+                        return `${pt.x},${pt.y}`;
+                      }).join(" ")}
+                      fill="rgba(100,116,139,0.08)"
+                      stroke="#94a3b8"
+                      strokeWidth="1.25"
+                      strokeDasharray="4 3"
+                    />
+
+                    {/* Candidate polygon fill */}
                     <polygon
                       points={RADAR_SKILLS.map((s, i) => {
                         const pt = radarPt(i * 60, s.score * outerR, 110, 120);
@@ -212,7 +225,7 @@ export default function Home() {
                       strokeWidth="1.5"
                     />
 
-                    {/* Skill dots */}
+                    {/* Candidate dots */}
                     {RADAR_SKILLS.map((s, i) => {
                       const pt = radarPt(i * 60, s.score * outerR, 110, 120);
                       return (
@@ -257,7 +270,19 @@ export default function Home() {
                   {/* Annotation callout */}
                   <div className="absolute top-[30px] right-[-10px] md:right-[-60px] bg-rc-bg border border-rc-red/30 rounded-xl px-3 py-2 max-w-[140px] shadow-sm">
                     <div className="font-mono text-[10px] text-rc-red font-bold mb-0.5">Gap detected</div>
-                    <p className="text-[11px] text-rc-muted leading-snug">DevOps at 28% — job requires 60%+</p>
+                    <p className="text-[11px] text-rc-muted leading-snug">DevOps at 28% — job requires 65%</p>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-5">
+                  <div className="flex items-center gap-1.5">
+                    <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#C93A39" strokeWidth="2" /></svg>
+                    <span className="font-mono text-[9px] text-rc-muted uppercase tracking-wider">Your profile</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3" /></svg>
+                    <span className="font-mono text-[9px] text-rc-muted uppercase tracking-wider">Job requirements</span>
                   </div>
                 </div>
               </div>
