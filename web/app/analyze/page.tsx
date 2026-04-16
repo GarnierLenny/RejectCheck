@@ -18,13 +18,14 @@ import { FlagsTab } from "../components/tabs/FlagsTab";
 import { RoadmapTab } from "../components/tabs/RoadmapTab";
 import { ProjectTab } from "../components/tabs/ProjectTab";
 import { ImproveTab } from "../components/tabs/ImproveTab";
+import { InterviewTab } from "../components/tabs/InterviewTab";
 import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "project" | "improve";
+type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "project" | "improve" | "interview";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -291,6 +292,7 @@ function AnalyzeContent() {
     { id: "roadmap",     label: "Roadmap",     badge: null, badgeClass: "" },
     { id: "project",     label: "Project",     badge: null, badgeClass: "" },
     { id: "improve",     label: "Improve CV",  badge: "✦", badgeClass: "text-rc-red" },
+    { id: "interview",   label: "AI Interview", badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
   return (
@@ -378,6 +380,13 @@ function AnalyzeContent() {
                 isPremium={!!activeSubscription}
                 hasAnalysisId={!!analysisId}
                 onRewrite={handleRewrite}
+              />
+            )}
+            {activeTab === "interview" && (
+              <InterviewTab
+                isPremium={!!activeSubscription}
+                analysisId={analysisId}
+                email={activeSubscription?.email || user?.email || null}
               />
             )}
 
