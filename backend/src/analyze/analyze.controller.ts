@@ -85,7 +85,7 @@ export class AnalyzeController {
         isRegistered: !!isRegistered,
       });
 
-      write({ step: 'done', result, analysisId });
+      write({ step: 'done', result, analysisId, cvText: parsedCv });
     } catch (err: any) {
       if (res.writableEnded) return;
       if (!res.headersSent) {
