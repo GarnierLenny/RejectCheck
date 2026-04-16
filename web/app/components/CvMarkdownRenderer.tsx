@@ -22,6 +22,9 @@ const components: Components = {
   ul: ({ children }) => (
     <ul className="space-y-0.5 mb-1">{children}</ul>
   ),
+  ol: ({ children }) => (
+    <ol className="space-y-0.5 mb-1 list-none">{children}</ol>
+  ),
   li: ({ children }) => (
     <li className="flex gap-2 text-[11px] text-rc-muted leading-relaxed">
       <span className="shrink-0 mt-0.5">–</span>

@@ -32,18 +32,23 @@ const styles = StyleSheet.create({
 type Segment = { bold: boolean; text: string };
 
 function parseInline(text: string): Segment[] {
-  // Strip single asterisks used for italic (no italic font available)
-  const cleaned = text.replace(/\*([^*]+)\*/g, '$1');
   const segments: Segment[] = [];
-  const regex = /\*\*(.+?)\*\*/g;
+  // Bold takes precedence: match ** before *, both in one pass
+  const regex = /\*\*(.+?)\*\*|\*([^*]+)\*/g;
   let last = 0;
   let match: RegExpExecArray | null;
-  while ((match = regex.exec(cleaned)) !== null) {
-    if (match.index > last) segments.push({ bold: false, text: cleaned.slice(last, match.index) });
-    segments.push({ bold: true, text: match[1] });
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) segments.push({ bold: false, text: text.slice(last, match.index) });
+    if (match[1] !== undefined) {
+      // Bold match (**text**)
+      segments.push({ bold: true, text: match[1] });
+    } else if (match[2] !== undefined) {
+      // Italic match (*text*) — strip markers, render as plain text
+      segments.push({ bold: false, text: match[2] });
+    }
     last = regex.lastIndex;
   }
-  if (last < cleaned.length) segments.push({ bold: false, text: cleaned.slice(last) });
+  if (last < text.length) segments.push({ bold: false, text: text.slice(last) });
   return segments;
 }
 
