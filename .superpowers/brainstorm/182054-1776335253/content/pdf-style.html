@@ -1,0 +1,87 @@
+<h2>Style du PDF amélioré</h2>
+<p class="subtitle">Le PDF actuel est très basique. Quel style premium veux-tu adopter ?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="clean" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8f7f5;padding:12px;border-radius:8px;min-height:220px;display:flex;align-items:center;justify-content:center">
+      <div style="background:#fff;width:160px;min-height:200px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.12);padding:16px;font-family:serif">
+        <div style="font-size:14px;font-weight:700;color:#1a1917;letter-spacing:0.5px">JOHN DOE</div>
+        <div style="font-size:7px;color:#888;margin-top:1px">john@email.com · linkedin.com/in/johndoe</div>
+        <div style="border-bottom:1.5px solid #1a1917;margin:8px 0 6px"></div>
+        <div style="font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1a1917;margin-bottom:4px">Experience</div>
+        <div style="font-size:8px;font-weight:600;color:#1a1917">Software Engineer</div>
+        <div style="font-size:7px;color:#888;margin-bottom:3px">Acme Corp · 2021–Present</div>
+        <div style="font-size:6.5px;color:#444;line-height:1.5">• Led backend architecture</div>
+        <div style="font-size:6.5px;color:#444;line-height:1.5">• Built REST API layer</div>
+        <div style="border-bottom:1px solid #eee;margin:6px 0"></div>
+        <div style="font-size:7px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#1a1917;margin-bottom:4px">Education</div>
+        <div style="font-size:7px;color:#444">MSc Computer Science</div>
+        <div style="font-size:6.5px;color:#888">MIT · 2019</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Élégant monochrome</h3>
+      <p>Noir et blanc pur, typographie serif, lignes fines comme séparateurs. Style classique, ATS-friendly, très professionnel.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="accent" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8f7f5;padding:12px;border-radius:8px;min-height:220px;display:flex;align-items:center;justify-content:center">
+      <div style="background:#fff;width:160px;min-height:200px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.12);padding:0;font-family:sans-serif;overflow:hidden">
+        <div style="background:#1a1917;padding:14px 14px 10px;color:#fff">
+          <div style="font-size:13px;font-weight:700;letter-spacing:0.5px">John Doe</div>
+          <div style="font-size:7px;color:#aaa;margin-top:2px">Software Engineer</div>
+          <div style="font-size:6.5px;color:#888;margin-top:2px">john@email.com</div>
+        </div>
+        <div style="padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px">
+            <div style="width:16px;height:2px;background:#C93A39"></div>
+            <div style="font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C93A39">Experience</div>
+          </div>
+          <div style="font-size:8px;font-weight:600;color:#1a1917">Software Engineer</div>
+          <div style="font-size:7px;color:#888;margin-bottom:3px">Acme Corp · 2021–Present</div>
+          <div style="font-size:6.5px;color:#444;line-height:1.5">• Led backend architecture</div>
+          <div style="font-size:6.5px;color:#444;line-height:1.5">• Built REST API layer</div>
+          <div style="display:flex;align-items:center;gap:4px;margin:6px 0 4px">
+            <div style="width:16px;height:2px;background:#C93A39"></div>
+            <div style="font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C93A39">Education</div>
+          </div>
+          <div style="font-size:7px;color:#444">MSc CS · MIT · 2019</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Header sombre + accents rouges</h3>
+      <p>Header dark avec nom en grand, sections marquées en rouge (couleur RejectCheck). Moderne, distinctif, garde la charte graphique de l'app.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="sidebar" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8f7f5;padding:12px;border-radius:8px;min-height:220px;display:flex;align-items:center;justify-content:center">
+      <div style="background:#fff;width:170px;min-height:200px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,0.12);display:flex;overflow:hidden;font-family:sans-serif">
+        <div style="width:55px;background:#1a1917;padding:12px 8px;color:#fff;flex-shrink:0">
+          <div style="width:30px;height:30px;border-radius:50%;background:#C93A39;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">JD</div>
+          <div style="font-size:6px;font-weight:700;letter-spacing:1px;color:#C93A39;text-transform:uppercase;margin-bottom:3px">Skills</div>
+          <div style="font-size:6px;color:#ccc;line-height:1.5">Python<br>React<br>Node.js<br>Docker</div>
+          <div style="font-size:6px;font-weight:700;letter-spacing:1px;color:#C93A39;text-transform:uppercase;margin:6px 0 3px">Contact</div>
+          <div style="font-size:5.5px;color:#ccc;line-height:1.6">john@email.com<br>linkedin.com</div>
+        </div>
+        <div style="flex:1;padding:10px 10px">
+          <div style="font-size:11px;font-weight:700;color:#1a1917">John Doe</div>
+          <div style="font-size:7px;color:#888;margin-bottom:8px">Software Engineer</div>
+          <div style="font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#C93A39;margin-bottom:3px">Experience</div>
+          <div style="font-size:7px;font-weight:600;color:#1a1917">Software Engineer</div>
+          <div style="font-size:6.5px;color:#888;margin-bottom:2px">Acme · 2021–Now</div>
+          <div style="font-size:6px;color:#444;line-height:1.5">• Led backend arch.</div>
+          <div style="font-size:6px;color:#444;line-height:1.5">• Built REST API</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Deux colonnes avec sidebar</h3>
+      <p>Sidebar sombre (skills, contact, langues) + colonne principale (expérience, formation). Layout moderne très répandu dans les CV tech premium.</p>
+    </div>
+  </div>
+
+</div>
