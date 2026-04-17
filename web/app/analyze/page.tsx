@@ -301,6 +301,8 @@ function AnalyzeContent() {
     { id: "interview",   label: "AI Interview", badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
+  const isFormView = !paywallReason && !result && !loading;
+
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
       <nav className="grid grid-cols-3 items-center px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
@@ -456,7 +458,7 @@ function AnalyzeContent() {
         )}
       </div>
 
-      <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4 max-w-[100vw]">
+      <footer className={`border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4 max-w-[100vw] ${isFormView ? "hidden" : ""}`}>
         <div className="font-mono text-[13px] text-rc-muted">RejectCheck © 2026</div>
         <div className="flex gap-6">
           <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">Privacy</a>

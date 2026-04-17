@@ -176,9 +176,10 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
   jobDescription: string; setJobDescription: (v: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-5 flex-1">
-      {/* CV Upload */}
-      <div>
+    <div className="grid grid-cols-2 gap-6 flex-1">
+
+      {/* CV Upload — left column */}
+      <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Your CV</span>
           <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Required</span>
@@ -186,7 +187,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         {!cvFile ? (
           <div
             onClick={() => fileRef.current?.click()}
-            className="group border border-dashed border-rc-red/40 bg-rc-red/[0.025] hover:bg-rc-red/[0.05] hover:border-rc-red/60 rounded cursor-pointer transition-all duration-200 flex flex-col items-center justify-center py-8 gap-2.5"
+            className="group border border-dashed border-rc-red/40 bg-rc-red/[0.025] hover:bg-rc-red/[0.05] hover:border-rc-red/60 rounded cursor-pointer transition-all duration-200 flex flex-col items-center justify-center flex-1 gap-2.5"
           >
             <div className="w-9 h-9 rounded bg-rc-red/8 border border-rc-red/20 group-hover:bg-rc-red/12 flex items-center justify-center transition-all">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
@@ -222,8 +223,8 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
       </div>
 
-      {/* Job Description */}
-      <div className="flex flex-col flex-1">
+      {/* Job listing — right column */}
+      <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Job listing</span>
           <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Required</span>
@@ -232,10 +233,11 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
           placeholder={"Senior Full Stack Developer — React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
-          className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-y outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
+          className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-none outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
         />
         <p className="font-mono text-[9px] text-rc-hint mt-1.5">The more complete, the more precise the diagnosis.</p>
       </div>
+
     </div>
   );
 }
@@ -499,7 +501,7 @@ export function UploadForm({
     <div className="bg-rc-surface border border-rc-border overflow-hidden flex-1 flex flex-col">
 
       {/* ── Body ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-[260px_1fr] flex-1">
+      <div className="grid grid-cols-[28%_1fr] flex-1">
 
         {/* LEFT DARK PANEL */}
         <div className="bg-[#1a1917] px-6 py-7 flex flex-col justify-between">
