@@ -1,0 +1,197 @@
+<style>
+  .directions { display: flex; flex-direction: column; gap: 20px; margin-top: 12px; }
+  .dir-card {
+    border: 1.5px solid #d4cfc9;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+  }
+  .dir-card:hover { border-color: #C93A39; box-shadow: 0 4px 20px rgba(201,58,57,0.1); }
+  .dir-card.selected { border-color: #C93A39; box-shadow: 0 0 0 3px rgba(201,58,57,0.15); }
+  .dir-preview {
+    padding: 24px 28px;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+  .dir-meta {
+    padding: 14px 20px;
+    border-top: 1px solid #ebe8e3;
+    background: #fafaf9;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .dir-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; }
+  .dir-desc { font-size: 13px; color: #6b6860; line-height: 1.5; max-width: 420px; }
+  .badge-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .badge { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; border: 1px solid; }
+
+  /* Direction A — Wizard steps */
+  .dir-a { background: #f7f5f2; }
+  .step-row { display: flex; align-items: center; gap: 0; }
+  .step-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-dot.active { background: #C93A39; color: #fff; }
+  .step-dot.done { background: #3d6114; color: #fff; }
+  .step-dot.pending { background: #fff; color: #6b6860; border: 1.5px solid #d4cfc9; }
+  .step-line { flex: 1; height: 1.5px; background: #d4cfc9; }
+  .step-line.done { background: #3d6114; }
+  .step-labels { display: flex; justify-content: space-between; margin-top: 6px; }
+  .step-lbl { font-family: 'Courier New', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #6b6860; text-align: center; width: 32px; }
+  .a-card { background: #fff; border: 1px solid #d4cfc9; border-radius: 4px; padding: 16px 20px; margin-top: 14px; }
+  .a-title { font-size: 18px; font-weight: 700; color: #1a1917; margin-bottom: 4px; }
+  .a-sub { font-size: 13px; color: #6b6860; }
+  .a-drop { border: 1.5px dashed rgba(201,58,57,0.4); background: rgba(201,58,57,0.03); border-radius: 4px; padding: 20px; text-align: center; margin-top: 10px; }
+  .a-drop-txt { font-size: 13px; color: #3a3834; }
+  .a-drop-hint { font-family: 'Courier New', monospace; font-size: 10px; color: #6b6860; margin-top: 3px; }
+
+  /* Direction B — Full-bleed hero */
+  .dir-b { background: #1a1917; }
+  .b-tag { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: #C93A39; display: flex; align-items: center; gap: 6px; }
+  .b-tag::before { content: ''; display: block; width: 18px; height: 1px; background: #C93A39; }
+  .b-h1 { font-size: 28px; font-weight: 700; color: #f7f5f2; line-height: 1.1; margin: 6px 0 4px; letter-spacing: -0.02em; }
+  .b-h1 em { color: #C93A39; font-style: italic; font-family: Georgia, serif; }
+  .b-sub { font-size: 13px; color: #6b6860; max-width: 340px; line-height: 1.6; }
+  .b-form { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 16px 20px; margin-top: 14px; display: flex; gap: 10px; align-items: flex-end; }
+  .b-input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 10px 14px; font-size: 13px; color: #f7f5f2; }
+  .b-btn { background: #C93A39; color: #fff; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 16px; border-radius: 4px; white-space: nowrap; }
+  .b-stat { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; display: flex; gap: 16px; }
+  .b-stat span { color: #3a3834; }
+  .b-stat strong { color: #f7f5f2; }
+
+  /* Direction C — Editorial split */
+  .dir-c { background: #f7f5f2; }
+  .split-mock { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #d4cfc9; border-radius: 4px; overflow: hidden; margin-top: 0; }
+  .split-left { background: #1a1917; padding: 18px 20px; }
+  .split-right { background: #fff; padding: 18px 20px; }
+  .c-score { font-family: 'Courier New', monospace; font-size: 42px; font-weight: 700; color: #C93A39; line-height: 1; }
+  .c-score-sub { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6860; margin-top: 4px; }
+  .c-tagline { font-size: 15px; font-weight: 700; color: #f7f5f2; margin-top: 12px; line-height: 1.3; }
+  .c-tagline em { color: #C93A39; font-style: italic; font-family: Georgia, serif; }
+  .c-desc { font-size: 11px; color: #6b6860; margin-top: 6px; line-height: 1.5; }
+  .c-form-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6860; margin-bottom: 6px; }
+  .c-upload { border: 1.5px dashed rgba(201,58,57,0.35); background: rgba(201,58,57,0.02); border-radius: 3px; padding: 14px; text-align: center; margin-bottom: 10px; }
+  .c-upload-t { font-size: 12px; color: #3a3834; font-weight: 500; }
+  .c-textarea { background: #f7f5f2; border: 1px solid #d4cfc9; border-radius: 3px; padding: 8px 10px; font-size: 11px; color: #6b6860; height: 46px; width: 100%; box-sizing: border-box; resize: none; margin-bottom: 10px; }
+  .c-btn { width: 100%; background: #C93A39; color: #fff; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px; border-radius: 3px; text-align: center; }
+</style>
+
+<h2>Quelle direction de design ?</h2>
+<p class="subtitle">Trois tons radicalement différents — choisis celui qui correspond à l'ambition du produit</p>
+
+<div class="directions">
+
+  <!-- A — Wizard -->
+  <div class="dir-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="dir-preview dir-a">
+      <div class="step-row">
+        <div class="step-dot done">✓</div>
+        <div class="step-line done"></div>
+        <div class="step-dot active">2</div>
+        <div class="step-line"></div>
+        <div class="step-dot pending">3</div>
+        <div class="step-line"></div>
+        <div class="step-dot pending">4</div>
+      </div>
+      <div class="step-labels">
+        <span class="step-lbl">CV</span>
+        <span class="step-lbl">Job</span>
+        <span class="step-lbl">Signaux</span>
+        <span class="step-lbl">Lancer</span>
+      </div>
+      <div class="a-card">
+        <div class="a-title">Colle l'offre d'emploi</div>
+        <div class="a-sub">Plus elle est complète, plus le diagnostic est précis</div>
+        <div class="a-drop">
+          <div class="a-drop-txt">Colle ici le texte de l'annonce…</div>
+          <div class="a-drop-hint">Titre · Requis · Stack · Responsabilités</div>
+        </div>
+      </div>
+    </div>
+    <div class="dir-meta">
+      <div>
+        <div class="dir-label" style="color:#C93A39">A — Wizard guidé</div>
+        <div class="dir-desc" style="margin-top:4px">Une étape à la fois. Chaque écran a un seul objectif. Réduit l'anxiété de la page blanche, guide l'utilisateur comme un onboarding.</div>
+        <div class="badge-list" style="margin-top:8px">
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Guidant</span>
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Conversion élevée</span>
+          <span class="badge" style="color:#8a5700;border-color:rgba(138,87,0,0.3);background:rgba(138,87,0,0.06)">Plus de clics</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B — Dark hero -->
+  <div class="dir-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="dir-preview dir-b">
+      <div class="b-tag">Analyse de candidature</div>
+      <div class="b-h1">Ton CV va se faire <em>rejeter.</em></div>
+      <div class="b-sub">Découvre pourquoi avant que le recruteur ne le fasse — en 45 secondes.</div>
+      <div class="b-form">
+        <div class="b-input">Drop your CV here…</div>
+        <div class="b-btn">Analyser →</div>
+      </div>
+      <div class="b-stat">
+        <span><strong>ATS</strong> Simulation</span>
+        <span><strong>Radar</strong> Compétences</span>
+        <span><strong>Réécriture</strong> CV</span>
+      </div>
+    </div>
+    <div class="dir-meta">
+      <div>
+        <div class="dir-label" style="color:#C93A39">B — Dark hero dramatique</div>
+        <div class="dir-desc" style="margin-top:4px">Fond sombre, typographie audacieuse, ton provocateur. Créé de l'urgence. Rupture totale avec la page de résultats — contraste intentionnel avant/après.</div>
+        <div class="badge-list" style="margin-top:8px">
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Premium</span>
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Mémorable</span>
+          <span class="badge" style="color:#8a5700;border-color:rgba(138,87,0,0.3);background:rgba(138,87,0,0.06)">Rupture avec la charte</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C — Editorial split -->
+  <div class="dir-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="dir-preview dir-c" style="padding:14px 20px;">
+      <div class="split-mock">
+        <div class="split-left">
+          <div class="c-score">87<span style="font-size:18px;opacity:0.4">%</span></div>
+          <div class="c-score-sub">Risque de rejet</div>
+          <div class="c-tagline">Sache pourquoi<br/>avant qu'ils le fassent<em>.</em></div>
+          <div class="c-desc">ATS · Radar compétences · Réécriture · Interview IA</div>
+        </div>
+        <div class="split-right">
+          <div class="c-form-label">Ton CV</div>
+          <div class="c-upload">
+            <div class="c-upload-t">Drop CV ou parcourir</div>
+          </div>
+          <div class="c-form-label">Offre d'emploi</div>
+          <div class="c-textarea">Colle l'annonce…</div>
+          <div class="c-btn">Analyser →</div>
+        </div>
+      </div>
+    </div>
+    <div class="dir-meta">
+      <div>
+        <div class="dir-label" style="color:#C93A39">C — Split éditorial</div>
+        <div class="dir-desc" style="margin-top:4px">Gauche sombre avec le score d'accroche, droite claire avec le formulaire. Montre la promesse et l'action au même endroit. Cohérent avec la charte chaude du projet.</div>
+        <div class="badge-list" style="margin-top:8px">
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Cohérent</span>
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Impact immédiat</span>
+          <span class="badge" style="color:#3d6114;border-color:rgba(61,97,20,0.3);background:rgba(61,97,20,0.06)">Tout en un coup d'œil</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const FixSchema = z.object({
   summary: z.string(),
-  steps: z.array(z.string()).min(2).max(5),
+  steps: z.array(z.string()).min(1).max(5),
   example: z.object({
     before: z.string(),
     after: z.string(),

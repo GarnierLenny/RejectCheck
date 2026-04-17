@@ -118,8 +118,8 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
   // 2. AI progression
   useEffect(() => {
     if (internalStepIdx === 4) {
-      const g = setInterval(() => setGptP(p => p < 5 ? p + 1 : p), 1500 + Math.random() * 500);
-      const c = setInterval(() => setClaudeP(p => p < 3 ? p + 1 : p), 2500 + Math.random() * 800);
+      const g = setInterval(() => setGptP(p => p < 5 ? p + 1 : p), 4500 + Math.random() * 1500);
+      const c = setInterval(() => setClaudeP(p => p < 3 ? p + 1 : p), 7000 + Math.random() * 2000);
       return () => { clearInterval(g); clearInterval(c); };
     }
   }, [internalStepIdx]);

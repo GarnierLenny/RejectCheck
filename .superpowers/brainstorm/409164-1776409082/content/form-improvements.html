@@ -1,0 +1,251 @@
+<style>
+  /* Reset & base */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; }
+
+  .section-title {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #C93A39;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-title::before { content: ''; display: block; width: 12px; height: 1px; background: #C93A39; }
+
+  .label {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6b6860;
+  }
+
+  /* --- Comparison grid --- */
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
+
+  .opt {
+    border: 1.5px solid #d4cfc9;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+  }
+  .opt:hover { border-color: #C93A39; box-shadow: 0 4px 20px rgba(201,58,57,0.09); }
+  .opt.selected { border-color: #C93A39; box-shadow: 0 0 0 3px rgba(201,58,57,0.14); }
+
+  .opt-label {
+    padding: 10px 14px;
+    border-bottom: 1px solid #ebe8e3;
+    background: #fafaf9;
+  }
+  .opt-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #C93A39; }
+  .opt-sub { font-size: 12px; color: #6b6860; margin-top: 2px; }
+
+  /* Mini wizard shell */
+  .wizard { display: grid; height: 240px; }
+  .wl { background: #1a1917; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+  .wr { background: #fff; padding: 14px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+
+  /* Left panel content */
+  .wl-tag { font-family: 'Courier New', monospace; font-size: 7px; letter-spacing: 0.16em; text-transform: uppercase; color: #C93A39; }
+  .wl-title { font-size: 14px; font-weight: 700; color: #f7f5f2; line-height: 1.25; margin-top: 4px; }
+  .wl-desc { font-size: 10px; color: #3a3834; margin-top: 5px; line-height: 1.5; }
+  .wl-hint { margin-top: 8px; padding: 6px 8px; background: rgba(201,58,57,0.08); border: 1px solid rgba(201,58,57,0.18); border-radius: 3px; }
+  .wl-hint-title { font-family: 'Courier New', monospace; font-size: 7px; text-transform: uppercase; letter-spacing: 0.1em; color: #C93A39; margin-bottom: 3px; }
+  .wl-hint-body { font-size: 9px; color: #6b6860; line-height: 1.45; }
+  .wl-steps { display: flex; flex-direction: column; gap: 4px; }
+  .wl-step { display: flex; align-items: center; gap: 5px; }
+  .wl-dot { width: 13px; height: 13px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-size: 7px; font-weight: 700; flex-shrink: 0; }
+  .wl-dot.active { background: #C93A39; color: #fff; }
+  .wl-dot.idle { border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.25); }
+  .wl-step-lbl { font-family: 'Courier New', monospace; font-size: 7px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .wl-step-lbl.active { color: #f7f5f2; }
+  .wl-step-lbl.idle { color: #3a3834; }
+
+  /* Right panel elements */
+  .field-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .req-badge { font-family: 'Courier New', monospace; font-size: 7px; text-transform: uppercase; color: #C93A39; border: 1px solid rgba(201,58,57,0.3); padding: 1px 4px; border-radius: 2px; }
+  .dropzone { border: 1.5px dashed rgba(201,58,57,0.35); background: rgba(201,58,57,0.025); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 3px; }
+  .drop-icon { width: 22px; height: 22px; border-radius: 5px; background: rgba(201,58,57,0.08); border: 1px solid rgba(201,58,57,0.2); display: flex; align-items: center; justify-content: center; }
+  .drop-text { font-size: 10px; color: #3a3834; font-weight: 500; }
+  .drop-sub { font-family: 'Courier New', monospace; font-size: 7px; color: #6b6860; }
+  .textarea-mock { background: #f7f5f2; border: 1px solid #d4cfc9; border-radius: 3px; padding: 6px 8px; font-size: 9px; color: #6b6860; line-height: 1.5; }
+  .btn { background: rgba(201,58,57,0.12); color: #C93A39; font-family: 'Courier New', monospace; font-size: 7px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 10px; border-radius: 3px; align-self: flex-end; opacity: 0.5; }
+
+  /* Verdict */
+  .verdict { padding: 10px 14px; background: #f7f5f2; border-top: 1px solid #ebe8e3; }
+  .vr { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 4px; font-size: 11px; color: #3a3834; line-height: 1.4; }
+  .vr strong { color: #1a1917; }
+
+  /* "Current" badge */
+  .current-badge { display: inline-block; font-family: 'Courier New', monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: #8a5700; background: rgba(138,87,0,0.08); border: 1px solid rgba(138,87,0,0.25); padding: 2px 7px; border-radius: 2px; margin-left: 6px; vertical-align: middle; }
+  .rec-badge { display: inline-block; font-family: 'Courier New', monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: #3d6114; background: rgba(61,97,20,0.08); border: 1px solid rgba(61,97,20,0.25); padding: 2px 7px; border-radius: 2px; margin-left: 6px; vertical-align: middle; }
+
+  .full-span { grid-column: 1 / -1; }
+</style>
+
+<h2>Form — améliorer le layout <span class="current-badge">step 1</span></h2>
+<p class="subtitle">Le wizard prend bien tout l'écran, mais les proportions et la densité sont à retravailler. 3 directions.</p>
+
+<div class="comparison" style="grid-template-columns: 1fr 1fr 1fr; margin-top: 18px;">
+
+  <!-- A: Proportional split -->
+  <div class="opt" data-choice="a" onclick="toggleSelect(this)">
+    <div class="opt-label">
+      <div class="opt-title">A — Split proportionnel <span class="rec-badge">recommandé</span></div>
+      <div class="opt-sub">Colonne gauche en %, pas en px fixe</div>
+    </div>
+    <div class="wizard" style="grid-template-columns: 28% 72%;">
+      <div class="wl">
+        <div>
+          <div class="wl-tag">Step 1 of 3</div>
+          <div class="wl-title">Your application.</div>
+          <div class="wl-desc">CV + listing — inseparable. One without the other, the analysis can't target.</div>
+          <div class="wl-hint">
+            <div class="wl-hint-title">Why the full listing?</div>
+            <div class="wl-hint-body">Title, stack, responsibilities — every line affects the ATS score.</div>
+          </div>
+        </div>
+        <div class="wl-steps">
+          <div class="wl-step"><div class="wl-dot active">1</div><span class="wl-step-lbl active">Application</span></div>
+          <div class="wl-step"><div class="wl-dot idle">2</div><span class="wl-step-lbl idle">Signals</span></div>
+          <div class="wl-step"><div class="wl-dot idle">3</div><span class="wl-step-lbl idle">Launch</span></div>
+        </div>
+      </div>
+      <div class="wr" style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr auto; gap: 8px; padding: 14px;">
+        <div>
+          <div class="field-row"><span class="label">Your CV</span><span class="req-badge">Required</span></div>
+          <div class="dropzone" style="height: 80px;">
+            <div class="drop-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div class="drop-text">Drop CV or browse</div>
+            <div class="drop-sub">PDF · max 5MB</div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; row-gap: 4px;">
+          <div class="field-row"><span class="label">Job listing</span><span class="req-badge">Required</span></div>
+          <div class="textarea-mock" style="flex: 1;">Senior Full Stack Developer — React / Node.js&#10;&#10;Required: TypeScript, AWS, 5 yrs XP…</div>
+        </div>
+        <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; padding-top: 4px; border-top: 1px solid #ebe8e3;">
+          <div class="btn" style="opacity: 0.35;">Continue →</div>
+        </div>
+      </div>
+    </div>
+    <div class="verdict">
+      <div class="vr"><span>✓</span><span><strong>2 colonnes dans le panel droit</strong> — CV + textarea côte à côte, pas en stack vertical</span></div>
+      <div class="vr"><span>✓</span><span><strong>Panel gauche 28%</strong> — il grandit avec l'écran, ne rétrécit pas</span></div>
+      <div class="vr"><span>✓</span><span>Moins de vide, meilleure densité visuelle</span></div>
+    </div>
+  </div>
+
+  <!-- B: Centered content -->
+  <div class="opt" data-choice="b" onclick="toggleSelect(this)">
+    <div class="opt-label">
+      <div class="opt-title">B — Contenu centré max-width</div>
+      <div class="opt-sub">Right panel contraint à ~640px au centre</div>
+    </div>
+    <div class="wizard" style="grid-template-columns: 260px 1fr;">
+      <div class="wl">
+        <div>
+          <div class="wl-tag">Step 1 of 3</div>
+          <div class="wl-title">Your application.</div>
+          <div class="wl-desc">CV + listing — inseparable.</div>
+          <div class="wl-hint">
+            <div class="wl-hint-title">Why the full listing?</div>
+            <div class="wl-hint-body">Every line affects the ATS score.</div>
+          </div>
+        </div>
+        <div class="wl-steps">
+          <div class="wl-step"><div class="wl-dot active">1</div><span class="wl-step-lbl active">Application</span></div>
+          <div class="wl-step"><div class="wl-dot idle">2</div><span class="wl-step-lbl idle">Signals</span></div>
+          <div class="wl-step"><div class="wl-dot idle">3</div><span class="wl-step-lbl idle">Launch</span></div>
+        </div>
+      </div>
+      <div class="wr" style="background: #f7f5f2; justify-content: center; align-items: center;">
+        <div style="width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px;">
+          <div>
+            <div class="field-row"><span class="label">Your CV</span><span class="req-badge">Required</span></div>
+            <div class="dropzone" style="height: 64px;">
+              <div class="drop-text" style="font-size: 11px;">Drop CV or browse</div>
+              <div class="drop-sub">PDF · max 5MB</div>
+            </div>
+          </div>
+          <div>
+            <div class="field-row"><span class="label">Job listing</span><span class="req-badge">Required</span></div>
+            <div class="textarea-mock" style="height: 72px;">Senior Full Stack Developer — React / Node.js&#10;&#10;Required: TypeScript, AWS…</div>
+          </div>
+          <div style="display: flex; justify-content: flex-end;">
+            <div class="btn" style="opacity: 0.35;">Continue →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="verdict">
+      <div class="vr"><span>✓</span><span><strong>Contenu encadré</strong> — max-width empêche l'étalement sur grands écrans</span></div>
+      <div class="vr"><span>✓</span><span>Panel gauche reste 260px, plus simple à maintenir</span></div>
+      <div class="vr"><span>↕</span><span>Les champs restent empilés verticalement — toujours du vide sous</span></div>
+    </div>
+  </div>
+
+  <!-- C: Immersive full-bleed -->
+  <div class="opt" data-choice="c" onclick="toggleSelect(this)">
+    <div class="opt-label">
+      <div class="opt-title">C — Immersif 50/50</div>
+      <div class="opt-sub">Split parfait — panel sombre occupe la moitié</div>
+    </div>
+    <div class="wizard" style="grid-template-columns: 1fr 1fr;">
+      <div class="wl" style="padding: 20px; justify-content: flex-start; gap: 0;">
+        <div>
+          <div class="wl-tag">Step 1 of 3</div>
+          <div class="wl-title" style="font-size: 20px; margin-top: 8px;">Your<br/>application.</div>
+          <div class="wl-desc" style="margin-top: 10px; font-size: 11px;">CV + listing — inseparable. One without the other, the analysis can't target the right keywords.</div>
+          <div class="wl-hint" style="margin-top: 12px;">
+            <div class="wl-hint-title">Why the full listing?</div>
+            <div class="wl-hint-body">Title, stack, responsibilities, nice-to-haves — every line affects the ATS score.</div>
+          </div>
+        </div>
+        <div class="wl-steps" style="margin-top: 24px;">
+          <div class="wl-step"><div class="wl-dot active">1</div><span class="wl-step-lbl active">Application</span></div>
+          <div class="wl-step"><div class="wl-dot idle">2</div><span class="wl-step-lbl idle">Signals</span></div>
+          <div class="wl-step"><div class="wl-dot idle">3</div><span class="wl-step-lbl idle">Launch</span></div>
+        </div>
+      </div>
+      <div class="wr" style="flex-direction: column; gap: 10px; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; gap: 10px; flex: 1;">
+          <div>
+            <div class="field-row"><span class="label">Your CV</span><span class="req-badge">Required</span></div>
+            <div class="dropzone" style="height: 72px;">
+              <div class="drop-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="drop-text">Drop CV or browse</div>
+              <div class="drop-sub">PDF · max 5MB</div>
+            </div>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column;">
+            <div class="field-row"><span class="label">Job listing</span><span class="req-badge">Required</span></div>
+            <div class="textarea-mock" style="flex: 1;">Senior Full Stack Developer — React / Node.js&#10;&#10;Required: TypeScript, AWS, 5 yrs XP…</div>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ebe8e3;">
+          <div class="btn" style="opacity: 0.35;">Continue →</div>
+        </div>
+      </div>
+    </div>
+    <div class="verdict">
+      <div class="vr"><span>✓</span><span><strong>50/50</strong> — le panel sombre est vraiment présent, fort impact éditorial</span></div>
+      <div class="vr"><span>✓</span><span>Espace pour développer le copy contextuel (description + hint)</span></div>
+      <div class="vr"><span>↕</span><span>Le panel droit reste vertical — textarea toujours grande</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top: 16px; padding: 12px 16px; background: #1a1917; border-radius: 4px; display: flex; gap: 10px; align-items: flex-start;">
+  <span style="font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #C93A39; flex-shrink: 0; padding-top: 2px;">Ma reco</span>
+  <p style="font-size: 12px; color: #f7f5f2; line-height: 1.6; margin: 0;">
+    <strong>A est le meilleur des deux mondes</strong> — panel gauche proportionnel (28%) + 2 colonnes dans le panel droit. Résultat : plus de hiérarchie, plus de densité, et ça tient parfaitement sur tous les formats d'écran.
+  </p>
+</div>
