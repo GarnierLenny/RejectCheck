@@ -1,0 +1,117 @@
+<style>
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+  .col-card {
+    border: 1.5px solid #d4cfc9; border-radius: 4px; overflow: hidden; cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s; background: #fff;
+  }
+  .col-card:hover { border-color: #C93A39; box-shadow: 0 4px 20px rgba(201,58,57,0.1); }
+  .col-card.selected { border-color: #C93A39; box-shadow: 0 0 0 3px rgba(201,58,57,0.15); }
+  .col-header { padding: 12px 16px; background: #f7f5f2; border-bottom: 1px solid #ebe8e3; }
+  .col-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #C93A39; }
+  .col-sub { font-size: 12px; color: #6b6860; margin-top: 2px; }
+
+  /* Steps flow */
+  .flow { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid #ebe8e3; }
+  .flow-step { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 3px; background: #f7f5f2; }
+  .flow-step.current { background: rgba(201,58,57,0.06); border: 1px solid rgba(201,58,57,0.2); }
+  .flow-step.done { background: rgba(61,97,20,0.05); border: 1px solid rgba(61,97,20,0.2); }
+  .fnum { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .fnum.active { background: #C93A39; color: #fff; }
+  .fnum.done { background: #3d6114; color: #fff; }
+  .fnum.idle { background: #fff; border: 1.5px solid #d4cfc9; color: #6b6860; }
+  .fname { font-size: 12px; font-weight: 600; color: #1a1917; }
+  .fdesc { font-family: 'Courier New', monospace; font-size: 9px; color: #6b6860; margin-top: 1px; }
+  .ftag { margin-left: auto; font-family: 'Courier New', monospace; font-size: 8px; text-transform: uppercase; padding: 2px 6px; border-radius: 2px; }
+  .ftag-req { background: rgba(201,58,57,0.08); color: #C93A39; border: 1px solid rgba(201,58,57,0.2); }
+  .ftag-opt { background: rgba(138,87,0,0.07); color: #8a5700; border: 1px solid rgba(138,87,0,0.25); }
+  .ftag-go { background: rgba(61,97,20,0.07); color: #3d6114; border: 1px solid rgba(61,97,20,0.2); }
+
+  /* Verdict */
+  .verdict { padding: 12px 16px; }
+  .verdict-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; }
+  .verdict-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .verdict-txt { font-size: 12px; color: #3a3834; line-height: 1.45; }
+  .verdict-txt strong { color: #1a1917; }
+</style>
+
+<h2>B vs C — quel impact réel ?</h2>
+<p class="subtitle">Même wizard, deux rythmes différents. Choisis celui qui correspond au type d'utilisateur que tu veux servir.</p>
+
+<div class="comparison">
+
+  <!-- B -->
+  <div class="col-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="col-header">
+      <div class="col-title">B — 4 étapes</div>
+      <div class="col-sub">Une seule chose à faire par écran</div>
+    </div>
+    <div class="flow">
+      <div class="flow-step done">
+        <div class="fnum done">✓</div>
+        <div><div class="fname">Upload CV</div><div class="fdesc">PDF seulement</div></div>
+        <span class="ftag ftag-req">Requis</span>
+      </div>
+      <div class="flow-step current">
+        <div class="fnum active">2</div>
+        <div><div class="fname">Offre d'emploi</div><div class="fdesc">Colle le texte complet</div></div>
+        <span class="ftag ftag-req">Requis</span>
+      </div>
+      <div class="flow-step">
+        <div class="fnum idle">3</div>
+        <div><div class="fname">Signaux</div><div class="fdesc">GitHub · LinkedIn · Lettre</div></div>
+        <span class="ftag ftag-opt">Optionnel</span>
+      </div>
+      <div class="flow-step">
+        <div class="fnum idle">4</div>
+        <div><div class="fname">Lancer</div><div class="fdesc">Récap + précision + CTA</div></div>
+        <span class="ftag ftag-go">Analyse →</span>
+      </div>
+    </div>
+    <div class="verdict">
+      <div class="verdict-row"><span class="verdict-icon">✓</span><span class="verdict-txt"><strong>Focalisation maximale</strong> — l'utilisateur ne voit qu'une chose à la fois, zéro distraction</span></div>
+      <div class="verdict-row"><span class="verdict-icon">✓</span><span class="verdict-txt"><strong>Upload CV seul</strong> en étape 1 = micro-engagement fort, ancre l'utilisateur dès le début</span></div>
+      <div class="verdict-row"><span class="verdict-icon">✓</span><span class="verdict-txt"><strong>Progress bar</strong> crée un effet de momentum — l'utilisateur voit qu'il avance</span></div>
+      <div class="verdict-row"><span class="verdict-icon">↕</span><span class="verdict-txt"><strong>4 clics</strong> avant d'analyser — peut sembler long si l'utilisateur est pressé</span></div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="col-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="col-header">
+      <div class="col-title">C — 3 étapes</div>
+      <div class="col-sub">Requis / Optionnels / Lancer</div>
+    </div>
+    <div class="flow">
+      <div class="flow-step current">
+        <div class="fnum active">1</div>
+        <div><div class="fname">CV + Offre</div><div class="fdesc">Les deux requis ensemble</div></div>
+        <span class="ftag ftag-req">Requis</span>
+      </div>
+      <div class="flow-step">
+        <div class="fnum idle">2</div>
+        <div><div class="fname">Signaux</div><div class="fdesc">GitHub · LinkedIn · Lettre</div></div>
+        <span class="ftag ftag-opt">Optionnel</span>
+      </div>
+      <div class="flow-step">
+        <div class="fnum idle">3</div>
+        <div><div class="fname">Lancer</div><div class="fdesc">Récap + précision + CTA</div></div>
+        <span class="ftag ftag-go">Analyse →</span>
+      </div>
+    </div>
+    <div class="verdict" style="margin-top:4px">
+      <div class="verdict-row"><span class="verdict-icon">✓</span><span class="verdict-txt"><strong>3 clics</strong> seulement — plus rapide pour l'utilisateur expérimenté</span></div>
+      <div class="verdict-row"><span class="verdict-icon">✓</span><span class="verdict-txt"><strong>CV + Offre groupés</strong> — logique naturelle, c'est la candidature d'un bloc</span></div>
+      <div class="verdict-row"><span class="verdict-icon">✓</span><span class="verdict-txt"><strong>Étape 2 dédiée aux signaux</strong> = met en valeur leur importance sans les noyer dans le reste</span></div>
+      <div class="verdict-row"><span class="verdict-icon">↕</span><span class="verdict-txt"><strong>Étape 1 plus dense</strong> — deux champs à remplir. Reste gérable mais moins minimaliste</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top:16px;padding:14px 16px;background:#f7f5f2;border:1px solid #ebe8e3;border-radius:4px;">
+  <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:#6b6860;">Ma recommandation</span>
+  <p style="font-size:13px;color:#3a3834;margin:6px 0 0;line-height:1.5;">
+    <strong style="color:#1a1917">B si</strong> tu veux maximiser le taux de complétion et guider des utilisateurs qui pourraient être intimidés.
+    <strong style="color:#1a1917">C si</strong> ton audience est technique et préfère aller vite — la candidature + les signaux en deux blocs distincts est très lisible.
+  </p>
+</div>

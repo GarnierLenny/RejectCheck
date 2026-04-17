@@ -57,6 +57,7 @@ function AnalyzeContent() {
   const [analysisId, setAnalysisId] = useState<number | null>(null);
   const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -191,6 +192,7 @@ function AnalyzeContent() {
     setVisualLoadingDone(false);
     setAnalysisId(null);
     setReconstructedCv(null);
+    setFormStep(1);
   }
 
   async function handleRewrite() {
@@ -299,13 +301,54 @@ function AnalyzeContent() {
     { id: "interview",   label: "AI Interview", badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
+  const isFormView = !paywallReason && !result && !loading;
+
   return (
-    <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
-      <nav className="flex items-center justify-between px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
+    <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
+      <nav className="grid grid-cols-3 items-center px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
+        {/* Left: logo */}
         <Link href="/" className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
           <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
         </Link>
-        <div className="flex items-center gap-6">
+
+        {/* Center: step indicators (form only) */}
+        <div className="flex items-center justify-center">
+          {!result && !loading && !paywallReason && (
+            <div className="flex items-center gap-1.5">
+              {([
+                { n: 1 as const, label: "Application" },
+                { n: 2 as const, label: "Signals" },
+                { n: 3 as const, label: "Launch" },
+              ]).map(({ n, label }, i) => {
+                const state = formStep > n ? "done" : formStep === n ? "active" : "idle";
+                return (
+                  <div key={n} className="flex items-center gap-1.5">
+                    {i > 0 && (
+                      <div className={`w-5 h-px ${formStep > n ? "bg-rc-green" : "bg-rc-border"}`} />
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
+                        state === "done" ? "bg-rc-green text-white"
+                        : state === "active" ? "bg-rc-red text-white"
+                        : "bg-white border border-rc-border text-rc-hint"
+                      }`}>
+                        {state === "done" ? "✓" : n}
+                      </div>
+                      <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
+                        state === "done" ? "text-rc-green"
+                        : state === "active" ? "text-rc-red font-bold"
+                        : "text-rc-hint"
+                      }`}>{label}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right: auth + pricing */}
+        <div className="flex items-center justify-end gap-6">
           <AuthNavLink />
           <Link
             href="/pricing"
@@ -316,20 +359,20 @@ function AnalyzeContent() {
         </div>
       </nav>
 
-      <div className={`${result && visualLoadingDone ? "max-w-[1600px] w-[92%]" : "max-w-[1000px] w-full"} mx-auto pt-9 px-5 md:px-[32px] pb-[80px] transition-[max-width,width] duration-500`}>
+      <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
         {paywallReason ? (
           <PaywallScreen />
         ) : (!result || !visualLoadingDone) ? (
           (loading || (result && !visualLoadingDone)) ? (
-            <LoadingScreen 
-              currentStep={result ? "done" : currentStep} 
-              hasGithub={githubUsername.trim().length > 0} 
+            <LoadingScreen
+              currentStep={result ? "done" : currentStep}
+              hasGithub={githubUsername.trim().length > 0}
               hasLinkedin={liFile !== null}
               hasML={mlFile !== null || mlText.trim().length > 0}
               onFinished={() => setVisualLoadingDone(true)}
             />
           ) : (
-            <>
+            <div className="flex-1 flex flex-col">
               <UploadForm
                 cvFile={cvFile} setCvFile={setCvFile}
                 liFile={liFile} setLiFile={setLiFile}
@@ -338,8 +381,9 @@ function AnalyzeContent() {
                 jobDescription={jobDescription} setJobDescription={setJobDescription}
                 githubUsername={githubUsername} setGithubUsername={setGithubUsername}
                 onSubmit={handleSubmit} loading={false} error={error}
+                step={formStep} onStepChange={setFormStep}
               />
-            </>
+            </div>
           )
         ) : (
           <div>
@@ -414,7 +458,7 @@ function AnalyzeContent() {
         )}
       </div>
 
-      <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4 max-w-[100vw]">
+      <footer className={`border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4 max-w-[100vw] ${isFormView ? "hidden" : ""}`}>
         <div className="font-mono text-[13px] text-rc-muted">RejectCheck © 2026</div>
         <div className="flex gap-6">
           <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">Privacy</a>

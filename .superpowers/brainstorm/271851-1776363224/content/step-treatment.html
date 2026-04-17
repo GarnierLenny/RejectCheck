@@ -1,0 +1,172 @@
+<style>
+  .options-grid { display: flex; flex-direction: column; gap: 16px; margin-top: 12px; }
+  .opt-card {
+    border: 1.5px solid #d4cfc9; border-radius: 4px; overflow: hidden;
+    cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; background: #fff;
+  }
+  .opt-card:hover { border-color: #C93A39; box-shadow: 0 4px 20px rgba(201,58,57,0.1); }
+  .opt-card.selected { border-color: #C93A39; box-shadow: 0 0 0 3px rgba(201,58,57,0.15); }
+  .opt-preview { background: #f7f5f2; padding: 20px 24px; }
+  .opt-meta { padding: 12px 18px; border-top: 1px solid #ebe8e3; background: #fafaf9; }
+  .opt-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; color: #C93A39; }
+  .opt-desc { font-size: 12px; color: #6b6860; margin-top: 3px; line-height: 1.5; }
+
+  /* A — centered card */
+  .centered-wrap { display: flex; justify-content: center; }
+  .centered-card { background: #fff; border: 1px solid #d4cfc9; border-radius: 4px; padding: 24px 28px; width: 380px; }
+  .step-num { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #C93A39; display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
+  .step-num::before { content: ''; display: block; width: 14px; height: 1px; background: #C93A39; }
+  .step-h { font-size: 20px; font-weight: 700; color: #1a1917; letter-spacing: -0.01em; margin-bottom: 4px; }
+  .step-s { font-size: 12px; color: #6b6860; margin-bottom: 16px; }
+  .drop-big { border: 1.5px dashed rgba(201,58,57,0.4); background: rgba(201,58,57,0.025); border-radius: 4px; padding: 28px; text-align: center; }
+  .drop-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(201,58,57,0.08); border: 1px solid rgba(201,58,57,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+  .drop-t { font-size: 13px; color: #3a3834; font-weight: 500; }
+  .drop-h2 { font-family: 'Courier New', monospace; font-size: 9px; color: #6b6860; margin-top: 3px; }
+  .next-btn { width: 100%; background: rgba(201,58,57,0.08); border: 1.5px solid rgba(201,58,57,0.2); color: #C93A39; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 11px; border-radius: 3px; text-align: center; margin-top: 14px; opacity: 0.45; }
+  .mini-steps { display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 16px; }
+  .ms { width: 20px; height: 3px; border-radius: 2px; }
+  .ms.active { background: #C93A39; }
+  .ms.done { background: #3d6114; }
+  .ms.idle { background: #d4cfc9; }
+
+  /* B — full width */
+  .full-wrap { }
+  .full-header { padding: 14px 20px; border-bottom: 1px solid #ebe8e3; display: flex; align-items: center; gap: 12px; }
+  .full-steps { display: flex; align-items: center; gap: 0; flex: 1; }
+  .fs-item { display: flex; align-items: center; gap: 4px; }
+  .fs-dot { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-size: 8px; font-weight: 700; }
+  .fs-dot.active { background: #C93A39; color: #fff; }
+  .fs-dot.done { background: #3d6114; color: #fff; }
+  .fs-dot.idle { background: #fff; border: 1.5px solid #d4cfc9; color: #6b6860; }
+  .fs-lbl { font-family: 'Courier New', monospace; font-size: 8px; text-transform: uppercase; color: #6b6860; }
+  .fs-lbl.active { color: #C93A39; font-weight: 700; }
+  .fs-line { width: 20px; height: 1.5px; background: #d4cfc9; margin: 0 4px; }
+  .fs-line.done { background: #3d6114; }
+  .full-body { padding: 28px 24px; }
+  .full-h { font-size: 22px; font-weight: 700; color: #1a1917; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .full-s { font-size: 13px; color: #6b6860; margin-bottom: 18px; }
+  .drop-full { border: 1.5px dashed rgba(201,58,57,0.4); background: rgba(201,58,57,0.025); border-radius: 4px; padding: 36px; text-align: center; }
+
+  /* C — split */
+  .split-wrap { display: grid; grid-template-columns: 220px 1fr; min-height: 180px; }
+  .split-left-panel { background: #1a1917; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+  .split-step-label { font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: #C93A39; margin-bottom: 10px; }
+  .split-heading { font-size: 14px; font-weight: 700; color: #f7f5f2; line-height: 1.3; }
+  .split-why { font-size: 11px; color: #3a3834; margin-top: 8px; line-height: 1.5; }
+  .split-steps-list { margin-top: 14px; display: flex; flex-direction: column; gap: 5px; }
+  .ssl-item { display: flex; align-items: center; gap: 6px; font-family: 'Courier New', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .ssl-dot { width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 700; flex-shrink: 0; }
+  .ssl-active { background: #C93A39; color: #fff; }
+  .ssl-done { background: #3d6114; color: #fff; }
+  .ssl-idle { border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.3); }
+  .ssl-lbl-active { color: #f7f5f2; }
+  .ssl-lbl-idle { color: #3a3834; }
+  .split-right-panel { background: #fff; padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between; }
+</style>
+
+<h2>Style visuel de chaque étape</h2>
+<p class="subtitle">Comment chaque écran du wizard se présente à l'utilisateur</p>
+
+<div class="options-grid">
+
+  <!-- A — Centered card -->
+  <div class="opt-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="opt-preview">
+      <div class="centered-wrap">
+        <div class="centered-card">
+          <div class="mini-steps">
+            <div class="ms done"></div>
+            <div class="ms active"></div>
+            <div class="ms idle"></div>
+            <div class="ms idle"></div>
+          </div>
+          <div class="step-num">Étape 1 · Upload CV</div>
+          <div class="step-h">Ton CV</div>
+          <div class="step-s">PDF uniquement · 5MB max</div>
+          <div class="drop-big">
+            <div class="drop-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <div class="drop-t">Drop ton CV ici</div>
+            <div class="drop-h2">ou <span style="text-decoration:underline;text-decoration-style:dotted;color:#C93A39">parcourir</span></div>
+          </div>
+          <div class="next-btn">Continuer →</div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-meta">
+      <div class="opt-title">A — Carte centrée</div>
+      <div class="opt-desc">Chaque étape est une carte compacte centrée horizontalement. Clean, focused, minimaliste. L'attention va directement à l'action.</div>
+    </div>
+  </div>
+
+  <!-- B — Full width panel -->
+  <div class="opt-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="opt-preview" style="padding:0;">
+      <div class="full-wrap">
+        <div class="full-header" style="background:#fff;">
+          <div class="full-steps">
+            <div class="fs-item"><div class="fs-dot active">1</div><span class="fs-lbl active" style="margin-left:4px;">CV</span></div>
+            <div class="fs-line"></div>
+            <div class="fs-item"><div class="fs-dot idle">2</div><span class="fs-lbl" style="margin-left:4px;">Offre</span></div>
+            <div class="fs-line"></div>
+            <div class="fs-item"><div class="fs-dot idle">3</div><span class="fs-lbl" style="margin-left:4px;">Signaux</span></div>
+            <div class="fs-line"></div>
+            <div class="fs-item"><div class="fs-dot idle">4</div><span class="fs-lbl" style="margin-left:4px;">Lancer</span></div>
+          </div>
+        </div>
+        <div class="full-body" style="background:#f7f5f2;">
+          <div class="full-h">Uploade ton CV</div>
+          <div class="full-s">Le point de départ. L'analyse se construit autour de ce document.</div>
+          <div class="drop-full">
+            <div class="drop-icon" style="margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg></div>
+            <div class="drop-t">Drop ton CV ici</div>
+            <div class="drop-h2">PDF · max 5MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-meta">
+      <div class="opt-title">B — Pleine largeur</div>
+      <div class="opt-desc">La barre de progression en haut, le contenu de l'étape occupe toute la largeur. Plus aéré, plus dramatique. Chaque étape ressemble à une page à part entière.</div>
+    </div>
+  </div>
+
+  <!-- C — Split -->
+  <div class="opt-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="opt-preview" style="padding:0;">
+      <div class="split-wrap">
+        <div class="split-left-panel">
+          <div>
+            <div class="split-step-label">Étape 1 sur 4</div>
+            <div class="split-heading">Upload ton CV</div>
+            <div class="split-why">Le point de départ de l'analyse. Tout part de ce fichier.</div>
+          </div>
+          <div class="split-steps-list">
+            <div class="ssl-item"><div class="ssl-dot ssl-active">1</div><span class="ssl-lbl-active">CV</span></div>
+            <div class="ssl-item"><div class="ssl-dot ssl-idle">2</div><span class="ssl-lbl-idle">Offre d'emploi</span></div>
+            <div class="ssl-item"><div class="ssl-dot ssl-idle">3</div><span class="ssl-lbl-idle">Signaux</span></div>
+            <div class="ssl-item"><div class="ssl-dot ssl-idle">4</div><span class="ssl-lbl-idle">Lancer</span></div>
+          </div>
+        </div>
+        <div class="split-right-panel">
+          <div>
+            <div style="font-family:'Courier New',monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.12em;color:#6b6860;margin-bottom:10px;">Ton CV</div>
+            <div class="drop-big" style="padding:20px;">
+              <div class="drop-t" style="font-size:12px;">Drop ton CV ici</div>
+              <div class="drop-h2">PDF · max 5MB</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+            <div style="background:#C93A39;color:#fff;font-family:'Courier New',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:8px 14px;border-radius:3px;opacity:0.35;">Continuer →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="opt-meta">
+      <div class="opt-title">C — Split sombre/clair</div>
+      <div class="opt-desc">Panneau sombre à gauche avec le contexte de l'étape et la navigation, panneau blanc à droite avec l'input. Cohérent avec l'identité dark du produit.</div>
+    </div>
+  </div>
+
+</div>

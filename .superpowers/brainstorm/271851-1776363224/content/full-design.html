@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RejectCheck — Wizard Redesign</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f7f5f2; font-family: 'DM Sans', -apple-system, sans-serif; color: #1a1917; padding: 24px; }
+  h1 { font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6b6860; margin-bottom: 20px; }
+
+  .steps-flow { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; }
+  .sf-btn {
+    padding: 7px 16px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 9px;
+    letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; border: 1.5px solid #d4cfc9;
+    background: #fff; color: #6b6860; transition: all 0.15s;
+  }
+  .sf-btn.active { border-color: #C93A39; background: #C93A39; color: #fff; }
+  .sf-btn:hover:not(.active) { border-color: #C93A39; color: #C93A39; }
+  .sf-line { width: 24px; height: 1.5px; background: #d4cfc9; }
+
+  /* Wizard container */
+  .wizard {
+    border: 1px solid #d4cfc9;
+    overflow: hidden;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* Navbar */
+  .wiz-nav {
+    background: #fff;
+    border-bottom: 1px solid #d4cfc9;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .wiz-logo { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; color: #C93A39; display: flex; align-items: center; gap: 8px; }
+  .logo-dot { width: 8px; height: 8px; background: #C93A39; border-radius: 50%; }
+  .wiz-nav-steps { display: flex; align-items: center; gap: 4px; }
+  .nav-step { display: flex; align-items: center; gap: 5px; font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .ns-dot { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; }
+  .ns-dot.done { background: #3d6114; color: #fff; }
+  .ns-dot.active { background: #C93A39; color: #fff; }
+  .ns-dot.idle { background: #fff; border: 1.5px solid #d4cfc9; color: #6b6860; }
+  .ns-lbl.done { color: #3d6114; }
+  .ns-lbl.active { color: #C93A39; font-weight: 700; }
+  .ns-lbl.idle { color: #6b6860; }
+  .ns-line { width: 20px; height: 1.5px; }
+  .ns-line.done { background: #3d6114; }
+  .ns-line.idle { background: #d4cfc9; }
+
+  /* Split body */
+  .wiz-body { display: grid; grid-template-columns: 260px 1fr; min-height: 440px; }
+
+  /* Left dark panel */
+  .wiz-left {
+    background: #1a1917;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .wl-step-tag { font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; color: #C93A39; display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .wl-step-tag::before { content: ''; width: 12px; height: 1px; background: #C93A39; display: block; }
+  .wl-title { font-size: 20px; font-weight: 700; color: #f7f5f2; line-height: 1.2; letter-spacing: -0.01em; }
+  .wl-title em { color: #C93A39; font-style: italic; font-family: Georgia, serif; }
+  .wl-desc { font-size: 12px; color: #6b6860; margin-top: 10px; line-height: 1.65; }
+  .wl-hint { margin-top: 14px; padding: 10px 12px; background: rgba(201,58,57,0.08); border: 1px solid rgba(201,58,57,0.18); border-radius: 3px; }
+  .wl-hint-t { font-family: 'Courier New', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #C93A39; margin-bottom: 4px; }
+  .wl-hint-d { font-size: 11px; color: #6b6860; line-height: 1.5; }
+  .wl-steps-list { display: flex; flex-direction: column; gap: 8px; }
+  .wsl { display: flex; align-items: center; gap: 8px; }
+  .wsl-dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Courier New', monospace; font-size: 7px; font-weight: 700; flex-shrink: 0; }
+  .wsl-dot.active { background: #C93A39; color: #fff; }
+  .wsl-dot.done { background: #3d6114; color: #fff; }
+  .wsl-dot.idle { border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.2); }
+  .wsl-lbl { font-family: 'Courier New', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .wsl-lbl.active { color: #f7f5f2; font-weight: 600; }
+  .wsl-lbl.done { color: #639922; }
+  .wsl-lbl.idle { color: #3a3834; }
+
+  /* Right white panel */
+  .wiz-right {
+    background: #fff;
+    padding: 28px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 1px solid #d4cfc9;
+  }
+  .field-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6860; margin-bottom: 7px; display: flex; align-items: center; justify-content: space-between; }
+  .req-tag { font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: #C93A39; border: 1px solid rgba(201,58,57,0.3); padding: 1px 6px; border-radius: 2px; }
+  .opt-tag { color: #8a5700; border-color: rgba(138,87,0,0.3); font-family: 'Courier New', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; padding: 1px 6px; border-radius: 2px; border: 1px solid rgba(138,87,0,0.3); }
+
+  .drop-zone {
+    border: 1.5px dashed rgba(201,58,57,0.4);
+    background: rgba(201,58,57,0.025);
+    border-radius: 3px;
+    padding: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .drop-zone:hover { background: rgba(201,58,57,0.05); border-color: rgba(201,58,57,0.6); }
+  .dz-icon { width: 32px; height: 32px; border-radius: 6px; background: rgba(201,58,57,0.08); border: 1px solid rgba(201,58,57,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; }
+  .dz-t { font-size: 13px; color: #3a3834; font-weight: 500; }
+  .dz-t span { color: #C93A39; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
+  .dz-h { font-family: 'Courier New', monospace; font-size: 9px; color: #6b6860; margin-top: 3px; }
+
+  .drop-zone-li {
+    border: 1.5px dashed rgba(10,102,194,0.4);
+    background: rgba(10,102,194,0.04);
+    border-radius: 3px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .drop-zone-li:hover { background: rgba(10,102,194,0.08); }
+
+  textarea.wiz-ta {
+    width: 100%; background: #f7f5f2; border: 1px solid #d4cfc9; border-radius: 3px;
+    padding: 10px 12px; font-size: 12px; color: #6b6860; resize: none; font-family: inherit;
+    outline: none; transition: border-color 0.15s; line-height: 1.6;
+  }
+  textarea.wiz-ta:focus { border-color: rgba(201,58,57,0.3); }
+
+  .gh-input-wrap { position: relative; }
+  .gh-prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-family: 'Courier New', monospace; font-size: 10px; color: #6b6860; pointer-events: none; }
+  .gh-input { width: 100%; background: #f7f5f2; border: 1px solid #d4cfc9; border-radius: 3px; padding: 9px 10px 9px 80px; font-family: 'Courier New', monospace; font-size: 11px; color: #1a1917; outline: none; }
+
+  .fields-group { display: flex; flex-direction: column; gap: 16px; flex: 1; }
+  .field-block { display: flex; flex-direction: column; }
+
+  /* Accuracy bar */
+  .acc-bar { display: flex; align-items: center; gap: 8px; }
+  .acc-segs { display: flex; gap: 3px; }
+  .acc-seg { width: 28px; height: 3px; border-radius: 2px; }
+  .acc-seg.filled-red { background: #C93A39; }
+  .acc-seg.filled-green { background: #3d6114; }
+  .acc-seg.empty { background: #d4cfc9; }
+  .acc-lbl { font-family: 'Courier New', monospace; font-size: 9px; color: #6b6860; letter-spacing: 0.08em; }
+
+  /* Recap items */
+  .recap-list { display: flex; flex-direction: column; gap: 6px; }
+  .recap-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f7f5f2; border-radius: 3px; border: 1px solid #ebe8e3; }
+  .recap-icon { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .recap-name { font-size: 12px; font-weight: 600; color: #1a1917; }
+  .recap-val { font-family: 'Courier New', monospace; font-size: 9px; color: #6b6860; margin-top: 1px; }
+  .recap-check { margin-left: auto; font-size: 12px; }
+
+  /* Nav row */
+  .nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 16px; border-top: 1px solid #ebe8e3; }
+  .back-btn { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6860; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .back-btn:hover { color: #1a1917; }
+  .next-btn {
+    background: #C93A39; color: #fff; font-family: 'Courier New', monospace; font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase; padding: 10px 20px; border-radius: 3px;
+    cursor: pointer; display: flex; align-items: center; gap: 6px; position: relative; overflow: hidden;
+  }
+  .next-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+  .next-btn .shine { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); transform: translateX(-100%); }
+  .trust-line { display: flex; align-items: center; gap: 14px; }
+  .trust-item { font-family: 'Courier New', monospace; font-size: 8px; color: #6b6860; letter-spacing: 0.08em; display: flex; align-items: center; gap: 4px; }
+
+  /* Signal cards */
+  .signal-grid { display: flex; flex-direction: column; gap: 10px; }
+  .sig-card { border: 1px solid #d4cfc9; border-radius: 3px; overflow: hidden; }
+  .sig-card-header { padding: 10px 12px; display: flex; align-items: center; gap: 8px; background: #f7f5f2; border-bottom: 1px solid #ebe8e3; }
+  .sig-icon { width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .sig-name { font-size: 12px; font-weight: 600; color: #1a1917; }
+  .sig-sub { font-family: 'Courier New', monospace; font-size: 9px; color: #6b6860; }
+  .sig-card-body { padding: 10px 12px; }
+
+  /* Two-col layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* Pill toggle */
+  .toggle-wrap { display: flex; background: #f7f5f2; border: 1px solid #d4cfc9; border-radius: 4px; padding: 2px; width: fit-content; }
+  .toggle-opt { font-family: 'Courier New', monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; padding: 5px 10px; border-radius: 3px; cursor: pointer; color: #6b6860; }
+  .toggle-opt.active { background: #C93A39; color: #fff; }
+
+  /* Misc */
+  .gap-sm { height: 12px; }
+  .gap-md { height: 18px; }
+  .label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+
+  .hidden { display: none; }
+
+  .step-tab-indicator {
+    padding: 6px 0 0;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6b6860;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .step-tab-indicator span { color: #C93A39; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>RejectCheck — Nouveau wizard · Clique sur les étapes pour naviguer</h1>
+
+<!-- Step selector -->
+<div class="steps-flow">
+  <button class="sf-btn active" onclick="showStep(1, this)">Étape 1 — Candidature</button>
+  <div class="sf-line"></div>
+  <button class="sf-btn" onclick="showStep(2, this)">Étape 2 — Signaux</button>
+  <div class="sf-line"></div>
+  <button class="sf-btn" onclick="showStep(3, this)">Étape 3 — Lancer</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 1 — Candidature
+═══════════════════════════════════════════════ -->
+<div id="step1" class="wizard">
+  <!-- Navbar -->
+  <div class="wiz-nav">
+    <div class="wiz-logo"><div class="logo-dot"></div>RejectCheck</div>
+    <div class="wiz-nav-steps">
+      <div class="nav-step">
+        <div class="ns-dot active">1</div>
+        <span class="ns-lbl active">Candidature</span>
+      </div>
+      <div class="ns-line idle"></div>
+      <div class="nav-step">
+        <div class="ns-dot idle">2</div>
+        <span class="ns-lbl idle">Signaux</span>
+      </div>
+      <div class="ns-line idle"></div>
+      <div class="nav-step">
+        <div class="ns-dot idle">3</div>
+        <span class="ns-lbl idle">Lancer</span>
+      </div>
+    </div>
+    <div style="width:120px;"></div>
+  </div>
+  <!-- Body -->
+  <div class="wiz-body">
+    <!-- Left -->
+    <div class="wiz-left">
+      <div>
+        <div class="wl-step-tag">Étape 1 sur 3</div>
+        <div class="wl-title">Ta candidature<em>.</em></div>
+        <div class="wl-desc">CV + offre forment un tout indissociable. L'un sans l'autre, l'analyse ne peut pas cibler.</div>
+        <div class="wl-hint" style="margin-top:16px;">
+          <div class="wl-hint-t">Pourquoi l'offre complète ?</div>
+          <div class="wl-hint-d">Titre, stack, responsabilités, nice-to-haves — chaque ligne affecte le score ATS.</div>
+        </div>
+      </div>
+      <div class="wl-steps-list">
+        <div class="wsl"><div class="wsl-dot active">1</div><span class="wsl-lbl active">Candidature</span></div>
+        <div class="wsl"><div class="wsl-dot idle">2</div><span class="wsl-lbl idle">Signaux</span></div>
+        <div class="wsl"><div class="wsl-dot idle">3</div><span class="wsl-lbl idle">Lancer</span></div>
+      </div>
+    </div>
+    <!-- Right -->
+    <div class="wiz-right">
+      <div class="fields-group">
+        <div class="field-block">
+          <div class="label-row">
+            <span class="field-label" style="margin-bottom:0">Ton CV</span>
+            <span class="req-tag">Requis</span>
+          </div>
+          <div class="gap-sm"></div>
+          <div class="drop-zone">
+            <div class="dz-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            </div>
+            <div class="dz-t">Drop ton CV ou <span>parcourir</span></div>
+            <div class="dz-h">PDF · max 5MB</div>
+          </div>
+        </div>
+        <div class="field-block" style="flex:1;">
+          <div class="label-row">
+            <span class="field-label" style="margin-bottom:0">Offre d'emploi</span>
+            <span class="req-tag">Requis</span>
+          </div>
+          <div class="gap-sm"></div>
+          <textarea class="wiz-ta" style="flex:1;min-height:130px;" placeholder="Développeur Full Stack Senior — React / Node.js&#10;&#10;Requis : 5 ans XP, TypeScript, AWS, système distribués…&#10;Nice-to-have : Kubernetes, contributions open-source…"></textarea>
+          <div style="font-family:'Courier New',monospace;font-size:9px;color:#6b6860;margin-top:6px;">Plus elle est complète, plus le diagnostic est précis.</div>
+        </div>
+      </div>
+      <div class="nav-row">
+        <div></div>
+        <div class="next-btn disabled">Continuer <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 2 — Signaux
+═══════════════════════════════════════════════ -->
+<div id="step2" class="wizard hidden">
+  <div class="wiz-nav">
+    <div class="wiz-logo"><div class="logo-dot"></div>RejectCheck</div>
+    <div class="wiz-nav-steps">
+      <div class="nav-step">
+        <div class="ns-dot done">✓</div>
+        <span class="ns-lbl done">Candidature</span>
+      </div>
+      <div class="ns-line done"></div>
+      <div class="nav-step">
+        <div class="ns-dot active">2</div>
+        <span class="ns-lbl active">Signaux</span>
+      </div>
+      <div class="ns-line idle"></div>
+      <div class="nav-step">
+        <div class="ns-dot idle">3</div>
+        <span class="ns-lbl idle">Lancer</span>
+      </div>
+    </div>
+    <div style="width:120px;"></div>
+  </div>
+  <div class="wiz-body">
+    <div class="wiz-left">
+      <div>
+        <div class="wl-step-tag">Étape 2 sur 3</div>
+        <div class="wl-title">Signaux<em>.</em></div>
+        <div class="wl-desc">Chaque signal supplémentaire affine le diagnostic. GitHub révèle ce que le CV ne dit pas. LinkedIn confirme la cohérence.</div>
+        <div class="wl-hint" style="margin-top:16px;">
+          <div class="wl-hint-t">Tous optionnels</div>
+          <div class="wl-hint-d">Passe cette étape si tu veux. Tu peux toujours analyser avec CV + offre uniquement.</div>
+        </div>
+      </div>
+      <div class="wl-steps-list">
+        <div class="wsl"><div class="wsl-dot done">✓</div><span class="wsl-lbl done">Candidature</span></div>
+        <div class="wsl"><div class="wsl-dot active">2</div><span class="wsl-lbl active">Signaux</span></div>
+        <div class="wsl"><div class="wsl-dot idle">3</div><span class="wsl-lbl idle">Lancer</span></div>
+      </div>
+    </div>
+    <div class="wiz-right">
+      <div class="signal-grid">
+
+        <!-- GitHub -->
+        <div class="sig-card">
+          <div class="sig-card-header">
+            <div class="sig-icon" style="background:#1a1a1a;color:#fff;">GH</div>
+            <div>
+              <div class="sig-name">GitHub</div>
+              <div class="sig-sub">repos · langages · activité</div>
+            </div>
+            <div style="margin-left:auto;"><span class="opt-tag">+précision</span></div>
+          </div>
+          <div class="sig-card-body">
+            <div class="gh-input-wrap">
+              <span class="gh-prefix">github.com/</span>
+              <input type="text" class="gh-input" placeholder="username" />
+            </div>
+          </div>
+        </div>
+
+        <!-- LinkedIn -->
+        <div class="sig-card">
+          <div class="sig-card-header">
+            <div class="sig-icon" style="background:#0A66C2;color:#fff;">in</div>
+            <div>
+              <div class="sig-name">LinkedIn</div>
+              <div class="sig-sub">export profil PDF</div>
+            </div>
+            <div style="margin-left:auto;"><span class="opt-tag">+précision</span></div>
+          </div>
+          <div class="sig-card-body">
+            <div class="drop-zone-li">
+              <div style="font-size:12px;color:#5ba3d9;font-weight:500;">Drop l'export LinkedIn PDF</div>
+              <div style="font-family:'Courier New',monospace;font-size:9px;color:#6b6860;margin-top:3px;">Paramètres → Données → Obtenir une copie</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Motivation letter -->
+        <div class="sig-card">
+          <div class="sig-card-header">
+            <div class="sig-icon" style="background:rgba(201,58,57,0.08);color:#C93A39;border:1px solid rgba(201,58,57,0.2);">✉</div>
+            <div>
+              <div class="sig-name">Lettre de motivation</div>
+              <div class="sig-sub">PDF ou texte</div>
+            </div>
+            <div style="margin-left:auto;">
+              <div class="toggle-wrap">
+                <div class="toggle-opt active">PDF</div>
+                <div class="toggle-opt">Texte</div>
+              </div>
+            </div>
+          </div>
+          <div class="sig-card-body">
+            <div class="drop-zone" style="padding:12px;">
+              <div class="dz-t" style="font-size:12px;">Drop la lettre de motivation</div>
+              <div class="dz-h">ou <span style="color:#C93A39;text-decoration:underline;text-decoration-style:dotted;">parcourir</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="nav-row">
+        <div class="back-btn">← Retour</div>
+        <div class="next-btn">Continuer <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     STEP 3 — Lancer
+═══════════════════════════════════════════════ -->
+<div id="step3" class="wizard hidden">
+  <div class="wiz-nav">
+    <div class="wiz-logo"><div class="logo-dot"></div>RejectCheck</div>
+    <div class="wiz-nav-steps">
+      <div class="nav-step">
+        <div class="ns-dot done">✓</div>
+        <span class="ns-lbl done">Candidature</span>
+      </div>
+      <div class="ns-line done"></div>
+      <div class="nav-step">
+        <div class="ns-dot done">✓</div>
+        <span class="ns-lbl done">Signaux</span>
+      </div>
+      <div class="ns-line done"></div>
+      <div class="nav-step">
+        <div class="ns-dot active">3</div>
+        <span class="ns-lbl active">Lancer</span>
+      </div>
+    </div>
+    <div style="width:120px;"></div>
+  </div>
+  <div class="wiz-body">
+    <!-- Left: recap -->
+    <div class="wiz-left">
+      <div>
+        <div class="wl-step-tag">Étape 3 sur 3</div>
+        <div class="wl-title">Tout est prêt<em>.</em></div>
+        <div class="wl-desc">L'analyse prend ~45 secondes. Tu recevras un score, un radar compétences, une simulation ATS et plus.</div>
+      </div>
+      <div>
+        <div style="font-family:'Courier New',monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.12em;color:#6b6860;margin-bottom:10px;">Récapitulatif</div>
+        <div class="recap-list">
+          <div class="recap-item">
+            <div class="recap-icon" style="background:rgba(201,58,57,0.1);color:#C93A39;border:1px solid rgba(201,58,57,0.2);">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div>
+              <div class="recap-name" style="font-size:11px;color:#f7f5f2;">cv_senior_dev.pdf</div>
+              <div class="recap-val">248 KB · PDF</div>
+            </div>
+            <span class="recap-check" style="color:#3d6114;">✓</span>
+          </div>
+          <div class="recap-item">
+            <div class="recap-icon" style="background:rgba(201,58,57,0.1);color:#C93A39;border:1px solid rgba(201,58,57,0.2);">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+            </div>
+            <div>
+              <div class="recap-name" style="font-size:11px;color:#f7f5f2;">Offre d'emploi</div>
+              <div class="recap-val">847 mots · collée</div>
+            </div>
+            <span class="recap-check" style="color:#3d6114;">✓</span>
+          </div>
+          <div class="recap-item">
+            <div class="recap-icon" style="background:rgba(26,26,26,0.6);color:#fff;border:1px solid rgba(255,255,255,0.1);">GH</div>
+            <div>
+              <div class="recap-name" style="font-size:11px;color:#f7f5f2;">github.com/jdupont</div>
+              <div class="recap-val">Signal actif</div>
+            </div>
+            <span class="recap-check" style="color:#3d6114;">✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right: CTA -->
+    <div class="wiz-right" style="justify-content:space-between;">
+      <div>
+        <div style="font-family:'Courier New',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.14em;color:#6b6860;margin-bottom:10px;">Précision de l'analyse</div>
+        <div class="acc-bar" style="margin-bottom:6px;">
+          <div class="acc-segs">
+            <div class="acc-seg filled-green"></div>
+            <div class="acc-seg filled-green"></div>
+            <div class="acc-seg filled-green"></div>
+            <div class="acc-seg empty"></div>
+            <div class="acc-seg empty"></div>
+          </div>
+          <span class="acc-lbl">Précision améliorée</span>
+        </div>
+        <div style="font-size:11px;color:#6b6860;line-height:1.5;margin-bottom:20px;">Ajoute LinkedIn ou une lettre de motivation pour passer en <span style="color:#3d6114;font-weight:600;">signal complet</span>.</div>
+
+        <div style="padding:14px 16px;background:#f7f5f2;border:1px solid #ebe8e3;border-radius:3px;margin-bottom:20px;">
+          <div style="font-family:'Courier New',monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.12em;color:#6b6860;margin-bottom:8px;">Ce que tu vas recevoir</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#3a3834;"><span style="color:#C93A39;font-weight:700;">✦</span> Score de rejet global + verdict</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#3a3834;"><span style="color:#C93A39;font-weight:700;">✦</span> Simulation ATS + mots-clés manquants</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#3a3834;"><span style="color:#C93A39;font-weight:700;">✦</span> Radar compétences vs. poste</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#3a3834;"><span style="color:#C93A39;font-weight:700;">✦</span> Réécriture CV + Interview IA</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-family:'Courier New',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:#6b6860;">Coût</span>
+          <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(61,97,20,0.07);border:1px solid rgba(61,97,20,0.2);border-radius:3px;">
+            <span style="font-size:10px;color:#3d6114;">✦</span>
+            <span style="font-family:'Courier New',monospace;font-size:9px;color:#3d6114;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">1 crédit gratuit disponible</span>
+          </div>
+        </div>
+        <div style="width:100%;background:#C93A39;color:#fff;font-family:'Courier New',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:13px;border-radius:3px;text-align:center;cursor:pointer;position:relative;overflow:hidden;">
+          Lancer l'analyse
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" style="display:inline;margin-left:6px;vertical-align:middle;"><path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="trust-line" style="justify-content:center;margin-top:10px;">
+          <span class="trust-item"><span style="opacity:0.5;">⏱</span> ~45s</span>
+          <span class="trust-item"><span style="opacity:0.5;">🔒</span> Données non stockées</span>
+          <span class="trust-item"><span style="opacity:0.5;">←</span> <span onclick="showStep(1, document.querySelector('.sf-btn'))" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Modifier</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showStep(n, btn) {
+  document.querySelectorAll('.wizard').forEach(w => w.classList.add('hidden'));
+  document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('step' + n).classList.remove('hidden');
+  if (btn) btn.classList.add('active');
+}
+</script>
+</body>
+</html>
