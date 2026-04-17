@@ -1,5 +1,8 @@
+"use client";
+
 import type { AnalysisResult } from "../types";
 import { SectionHeader } from "../SectionHeader";
+import { useLanguage } from "../../../context/language";
 
 type Keyword = AnalysisResult["ats_simulation"]["critical_missing_keywords"][number];
 
@@ -13,6 +16,7 @@ type Props = {
 const ATS_THRESHOLD_FALLBACK = 70;
 
 function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword; checked: boolean; onToggle: () => void; accent: string; maxImpact: number }) {
+  const { t } = useLanguage();
   const impactPct = maxImpact > 0 ? Math.round((kw.score_impact / maxImpact) * 100) : 0;
   return (
     <label className="flex items-start gap-3 cursor-pointer group">
@@ -29,7 +33,7 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap mb-1.5">
           <span className={`text-[16px] font-medium transition-colors ${checked ? 'line-through text-rc-hint' : 'text-rc-text'}`}>{kw.keyword}</span>
-          <span className={`font-mono text-[11px] ${accent} px-1.5 py-0.5`}>{kw.jd_frequency}x in JD</span>
+          <span className={`font-mono text-[11px] ${accent} px-1.5 py-0.5`}>{kw.jd_frequency}{t.atsTab.inJd}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex-1 h-2 bg-rc-border/40 overflow-hidden">
@@ -53,6 +57,7 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
 }
 
 export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
+  const { t } = useLanguage();
   const atsThreshold = ats.threshold ?? ATS_THRESHOLD_FALLBACK;
   const missingKeywords = ats.critical_missing_keywords ?? [];
   const simulatedScore = Math.min(100, Math.round(
@@ -72,9 +77,9 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
       {/* ── SECTION 1: ATS Simulation ────────────────────── */}
       <div>
         <SectionHeader
-          label="Bot Filter"
+          label={t.atsTab.botFilter}
           labelColor={ats.would_pass ? "text-rc-green" : "text-rc-red"}
-          title={ats.would_pass ? "ATS Pass Estimated" : "ATS Rejection Likely"}
+          title={ats.would_pass ? t.atsTab.atsPassEstimated : t.atsTab.atsRejectionLikely}
           subtitle={ats.reason}
           meta={
             <div className="text-right shrink-0">
@@ -82,7 +87,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
                 {ats.score}<span className="text-[20px] text-rc-hint">/100</span>
               </div>
               <div className={`font-mono text-[12px] mt-1 font-semibold ${gapToThreshold > 0 ? 'text-rc-red' : 'text-rc-green'}`}>
-                {gapToThreshold > 0 ? `${gapToThreshold} pts below threshold` : `${Math.abs(gapToThreshold)} pts above threshold`}
+                {gapToThreshold > 0 ? `${gapToThreshold} ${t.atsTab.ptsBelow}` : `${Math.abs(gapToThreshold)} ${t.atsTab.ptsAbove}`}
               </div>
             </div>
           }
@@ -98,7 +103,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
               <div className="absolute z-10 flex flex-col items-center" style={{ left: `${atsThreshold}%`, top: '-6px', transform: 'translateX(-50%)' }}>
                 <div className="w-[4px] h-6 bg-rc-amber" />
                 <div className="absolute -top-6 font-mono text-[11px] text-rc-amber font-bold whitespace-nowrap bg-rc-amber/10 border border-rc-amber/30 px-2 py-1">
-                  min. {atsThreshold}
+                  {t.atsTab.minThreshold.replace('{threshold}', String(atsThreshold))}
                 </div>
               </div>
               <div
@@ -114,9 +119,9 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
             </div>
             {simulatedScore !== ats.score && (
               <div className="flex justify-between font-mono text-[11px]">
-                <span className="text-rc-hint">Current: {ats.score}</span>
+                <span className="text-rc-hint">{t.atsTab.current} {ats.score}</span>
                 <span className={`font-semibold ${simulatedScore >= atsThreshold ? 'text-rc-green' : 'text-rc-amber'}`}>
-                  Simulated: {simulatedScore} {simulatedScore >= atsThreshold ? '— would pass ✓' : ''}
+                  {t.atsTab.simulated} {simulatedScore} {simulatedScore >= atsThreshold ? t.atsTab.wouldPass : ''}
                 </span>
               </div>
             )}
@@ -127,7 +132,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
         <div className="flex items-start gap-3 p-4 bg-rc-surface border border-rc-border mt-4">
           <span className="font-mono text-[12px] text-rc-hint mt-0.5">?</span>
           <p className="font-mono text-[12px] text-rc-hint leading-relaxed">
-            <span className="text-rc-text font-bold">ATS (Applicant Tracking System)</span> — software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.
+            {t.atsTab.atsExplanation}
           </p>
         </div>
       </div>
@@ -135,12 +140,12 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
       {/* ── SECTION 2: Keyword Simulator ─────────────────── */}
       <div>
         <SectionHeader
-          label="Simulator"
-          title="Keyword Gap"
-          subtitle="Check keywords you can realistically add to your CV — your ATS score updates in real time."
+          label={t.atsTab.simulator}
+          title={t.atsTab.keywordGap}
+          subtitle={t.atsTab.keywordGapSubtitle}
           meta={
             checkedKeywords.size > 0
-              ? <button onClick={onReset} className="font-mono text-[11px] text-rc-hint hover:text-rc-red transition-colors uppercase tracking-wider">Reset</button>
+              ? <button onClick={onReset} className="font-mono text-[11px] text-rc-hint hover:text-rc-red transition-colors uppercase tracking-wider">{t.atsTab.reset}</button>
               : undefined
           }
         />
@@ -150,8 +155,8 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
             <div className="p-6 border-b border-rc-border">
               <div className="flex items-center gap-2 mb-5">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-red font-bold">Required</span>
-                <span className="font-mono text-[11px] text-rc-hint">— mentioned {requiredKws.reduce((s, k) => s + k.jd_frequency, 0)}x in job description</span>
+                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-red font-bold">{t.atsTab.required}</span>
+                <span className="font-mono text-[11px] text-rc-hint">— {t.atsTab.requiredMention.replace('{count}', String(requiredKws.reduce((s, k) => s + k.jd_frequency, 0)))}</span>
               </div>
               <div className="space-y-4">
                 {requiredKws.map((kw) => (
@@ -165,8 +170,8 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
             <div className="p-6">
               <div className="flex items-center gap-2 mb-5">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
-                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-amber font-bold">Preferred</span>
-                <span className="font-mono text-[11px] text-rc-hint">— bonus points, not eliminatory</span>
+                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-amber font-bold">{t.atsTab.preferred}</span>
+                <span className="font-mono text-[11px] text-rc-hint">— {t.atsTab.preferredNote}</span>
               </div>
               <div className="space-y-4">
                 {preferredKws.map((kw) => (

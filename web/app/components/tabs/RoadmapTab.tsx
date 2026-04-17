@@ -5,6 +5,7 @@ import { CheckCircle2, Circle } from "lucide-react";
 import type { AnalysisResult } from "../types";
 import { SectionHeader } from "../SectionHeader";
 import { getSeverityStyles } from "../types";
+import { useLanguage } from "../../../context/language";
 
 type Props = {
   result: AnalysisResult;
@@ -25,6 +26,7 @@ function stripMd(text: string): string {
 }
 
 export function RoadmapTab({ result }: Props) {
+  const { t } = useLanguage();
   const [done, setDone] = useState<Set<string>>(new Set());
 
   const toggle = (id: string) =>
@@ -101,22 +103,22 @@ export function RoadmapTab({ result }: Props) {
 
   const completion = items.length > 0 ? Math.round((done.size / items.length) * 100) : 100;
 
-  const groups = [
-    { key: "critical", label: "Critical",  desc: "get you binned before a human reads your CV",  color: "text-rc-red",  dot: "bg-rc-red",  border: "border-rc-red/20",   bg: "bg-rc-red/5"       },
-    { key: "major",    label: "Important", desc: "hurt your odds significantly",                  color: "text-rc-amber",dot: "bg-rc-amber",border: "border-rc-amber/20", bg: "bg-rc-amber/5"     },
-    { key: "minor",    label: "Minor",     desc: "polish once the above are done",                color: "text-rc-hint", dot: "bg-rc-hint", border: "border-rc-border/30",bg: "bg-rc-surface/10"  },
-  ] as const;
+  const groups: { key: PriorityItem["severity"]; label: string; desc: string; color: string; dot: string; border: string; bg: string }[] = [
+    { key: "critical", label: t.roadmapTab.groups.critical.label, desc: t.roadmapTab.groups.critical.desc, color: "text-rc-red",  dot: "bg-rc-red",  border: "border-rc-red/20",   bg: "bg-rc-red/5"       },
+    { key: "major",    label: t.roadmapTab.groups.major.label,    desc: t.roadmapTab.groups.major.desc,    color: "text-rc-amber",dot: "bg-rc-amber",border: "border-rc-amber/20", bg: "bg-rc-amber/5"     },
+    { key: "minor",    label: t.roadmapTab.groups.minor.label,    desc: t.roadmapTab.groups.minor.desc,    color: "text-rc-hint", dot: "bg-rc-hint", border: "border-rc-border/30",bg: "bg-rc-surface/10"  },
+  ];
 
   return (
     <div className="space-y-12">
       <SectionHeader
-        label="Your Roadmap"
-        title="Action Plan"
-        subtitle="Every gap from your analysis, prioritized. Critical items are the ones that get CVs rejected before a human reads them."
+        label={t.roadmapTab.yourRoadmap}
+        title={t.roadmapTab.actionPlan}
+        subtitle={t.roadmapTab.actionPlanSubtitle}
         meta={
           items.length > 0 ? (
             <div className="text-right">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">Done</span>
+              <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">{t.roadmapTab.done}</span>
               <span className={`font-mono font-bold text-[22px] ${completion === 100 ? "text-rc-green" : "text-rc-red"}`}>
                 {completion}%
               </span>
@@ -128,9 +130,9 @@ export function RoadmapTab({ result }: Props) {
       {items.length === 0 ? (
         <div className="p-12 text-center bg-rc-surface border border-rc-border border-dashed">
           <CheckCircle2 className="w-12 h-12 text-rc-green mx-auto mb-4 opacity-20" />
-          <h3 className="font-sans font-bold text-[22px] tracking-tight uppercase mb-2">No Issues Found</h3>
+          <h3 className="font-sans font-bold text-[22px] tracking-tight uppercase mb-2">{t.roadmapTab.noIssues.title}</h3>
           <p className="text-rc-muted text-[15px] mx-auto max-w-[300px] leading-relaxed">
-            Your application materials are already in top shape.
+            {t.roadmapTab.noIssues.desc}
           </p>
         </div>
       ) : (
@@ -146,7 +148,7 @@ export function RoadmapTab({ result }: Props) {
                     {group.label}
                   </span>
                   <span className="font-mono text-[11px] text-rc-hint">
-                    — {groupItems.length} item{groupItems.length !== 1 ? "s" : ""} that {group.desc}
+                    — {groupItems.length} {groupItems.length !== 1 ? t.roadmapTab.items : t.roadmapTab.item} {t.roadmapTab.that} {group.desc}
                   </span>
                 </div>
 

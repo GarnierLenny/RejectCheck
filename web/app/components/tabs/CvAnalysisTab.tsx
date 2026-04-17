@@ -5,6 +5,7 @@ import { IssueItem } from "../IssueItem";
 import { FixBlock } from "../FixBlock";
 import { SectionHeader } from "../SectionHeader";
 import { ArrowRight, CheckCircle2, XCircle, Link } from "lucide-react";
+import { useLanguage } from "../../../context/language";
 
 type Props = {
   result: AnalysisResult;
@@ -31,6 +32,7 @@ function getPhraseQuality(phrase: string): "good" | "weak" {
 }
 
 export function CvAnalysisTab({ result }: Props) {
+  const { t, locale } = useLanguage();
   const { seniority_analysis, cv_tone, correlation, audit } = result;
   const cv = audit.cv;
 
@@ -44,10 +46,10 @@ export function CvAnalysisTab({ result }: Props) {
       {/* ── SECTION 1: Profile Analysis ──────────────────── */}
       <div>
         <SectionHeader
-          label="CV Analysis"
+          label={t.cvAnalysisTab.cvAnalysis}
           labelColor="text-rc-red"
-          title="Profile Analysis"
-          subtitle="Seniority positioning, writing tone, and behavioral signals extracted from your CV."
+          title={t.cvAnalysisTab.profileAnalysis}
+          subtitle={t.cvAnalysisTab.profileSubtitle}
         />
 
         <div className="space-y-5">
@@ -55,21 +57,21 @@ export function CvAnalysisTab({ result }: Props) {
           {/* Seniority Gap card */}
           <div className="bg-rc-surface border border-rc-border p-6">
             <SectionHeader
-              label="Gap Detection"
-              title="Seniority Gap"
-              subtitle="Expected seniority for this role vs. the level your CV actually signals."
+              label={t.cvAnalysisTab.gapDetection}
+              title={t.cvAnalysisTab.seniorityGap}
+              subtitle={t.cvAnalysisTab.senioritySubtitle}
             />
 
             <div className="flex items-center gap-4 mb-6 max-w-lg">
               <div className="flex-1 text-center px-5 py-5 bg-rc-bg border border-rc-border">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-hint block mb-2">Expected</span>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-hint block mb-2">{t.cvAnalysisTab.expected}</span>
                 <span className="text-[22px] font-mono font-bold text-rc-text">{seniority_analysis.expected}</span>
               </div>
               <div className="shrink-0 text-rc-hint">
                 <ArrowRight size={18} strokeWidth={1.5} />
               </div>
               <div className="flex-1 text-center px-5 py-5 bg-rc-bg border border-rc-red/20">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-red block mb-2">Detected</span>
+                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-red block mb-2">{t.cvAnalysisTab.detected}</span>
                 <span className="text-[22px] font-mono font-bold text-rc-text">{seniority_analysis.detected}</span>
               </div>
             </div>
@@ -78,7 +80,7 @@ export function CvAnalysisTab({ result }: Props) {
               <div className="mb-4">
                 <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-green/5 text-rc-green border border-rc-green/20">
                   <span className="w-1.5 h-1.5 rounded-full bg-rc-green" />
-                  Strength: {seniority_analysis.strength}
+                  {t.cvAnalysisTab.strength} {seniority_analysis.strength}
                 </span>
               </div>
             )}
@@ -90,9 +92,9 @@ export function CvAnalysisTab({ result }: Props) {
           {/* Tone Audit card */}
           <div className="bg-rc-surface border border-rc-border p-6">
             <SectionHeader
-              label="Writing Style"
-              title="Tone Audit"
-              subtitle="Active vs. passive voice patterns across your bullet points and descriptions."
+              label={t.cvAnalysisTab.writingStyle}
+              title={t.cvAnalysisTab.toneAudit}
+              subtitle={t.cvAnalysisTab.toneSubtitle}
               meta={
                 <span className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 border ${TONE_BADGE[cv_tone.detected] ?? TONE_BADGE.mixed}`}>
                   {cv_tone.detected}
@@ -131,7 +133,7 @@ export function CvAnalysisTab({ result }: Props) {
               </div>
               <div>
                 <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-amber block mb-1.5 font-bold">
-                  Pattern detected — Tone × Seniority
+                  {t.cvAnalysisTab.patternDetected}
                 </span>
                 <p className="text-[17px] text-rc-muted leading-[1.7]">{correlation.explanation}</p>
               </div>
@@ -143,13 +145,13 @@ export function CvAnalysisTab({ result }: Props) {
       {/* ── SECTION 2: CV Forensic Audit ─────────────────── */}
       <div>
         <SectionHeader
-          label="Forensic Audit"
+          label={t.cvAnalysisTab.forensicAudit}
           labelColor="text-rc-red"
-          title="CV Issues"
-          subtitle={`${cv.issues.length} vulnerabilit${cv.issues.length !== 1 ? "ies" : "y"} identified across structure, content, and positioning.`}
+          title={t.cvAnalysisTab.cvIssues}
+          subtitle={t.cvAnalysisTab.cvIssuesSubtitle.replace('{count}', String(cv.issues.length)).replace(/\{plural\}/g, locale === 'fr' ? (cv.issues.length !== 1 ? 's' : '') : (cv.issues.length !== 1 ? 'ies' : 'y'))}
           meta={
             <div className="text-right">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-rc-hint block mb-1">Health Score</span>
+              <span className="font-mono text-[11px] uppercase tracking-wider text-rc-hint block mb-1">{t.cvAnalysisTab.healthScore}</span>
               <span className={`font-mono text-[28px] font-medium leading-none ${cv.score >= 80 ? 'text-rc-green' : cv.score >= 60 ? 'text-rc-amber' : 'text-rc-red'}`}>
                 {cv.score}%
               </span>

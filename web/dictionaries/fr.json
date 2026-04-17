@@ -1,0 +1,730 @@
+{
+  "common": {
+    "loading": "Chargement…",
+    "required": "Requis",
+    "optional": "Optionnel",
+    "back": "Retour",
+    "continue": "Continuer",
+    "close": "Fermer",
+    "error": "Erreur",
+    "success": "Succès",
+    "reset": "Réinitialiser",
+    "download": "Télécharger",
+    "processing": "Traitement...",
+    "analyzing": "Analyse en cours…",
+    "tryFree": "Essai gratuit →",
+    "pricing": "Tarifs",
+    "signIn": "Connexion",
+    "signUp": "Inscription",
+    "createAccount": "Créer un compte",
+    "currentPlan": "Plan actuel"
+  },
+  "navbar": {
+    "pricing": "Tarifs",
+    "tryFree": "Essai gratuit →"
+  },
+  "landing": {
+    "badge": "Pour les développeurs",
+    "hero": {
+      "title": "Découvrez pourquoi votre candidature a été rejetée",
+      "titleItalic": "avant qu'elle ne le soit.",
+      "subtitle": "Importez votre CV. En moins d'une minute : simulation ATS, radar de compétences, réécriture IA, entretien simulé. Adapté à l'offre exacte.",
+      "cta": "Analyser mon CV, gratuit",
+      "noDataStored": "Sans compte requis · Données non stockées",
+      "freeBadge": "Gratuit · Sans inscription"
+    },
+    "sections": {
+      "whatYouGet": "Ce que vous obtenez",
+      "diagnosticTitle": "Un {hl}diagnostic{/hl} complet, pas juste un score.",
+      "beyondCv": "Au-delà du CV",
+      "beyondTitle": "Votre CV n'est que {hl}la moitié{/hl} de l'histoire.",
+      "beyondDesc": "Les recruteurs vous cherchent sur Google. Nous auditons votre GitHub et LinkedIn avant eux, et signalons tout ce qui pourrait vous coûter l'entretien.",
+      "everyTab": "Chaque onglet, un outil",
+      "fixTitle": "{hl}Corrigez le problème{/hl}, ne vous contentez pas de le lire.",
+      "bridgeLabel": "Recommandation de projet",
+      "bridgeTitle": "Combler {hl}l'écart{/hl}.",
+      "bridgeDesc": "L'IA génère un projet personnalisé pour combler exactement vos lacunes de compétences, avec architecture, stack et critères de succès prêts à ajouter à votre CV.",
+      "bridgeCta": "Débloquer ce projet",
+      "coverLabel": "Lettre de motivation",
+      "coverTitle": "Une lettre qui vous ressemble, écrite pour décrocher le poste.",
+      "coverDesc": "Générée depuis votre CV, l'offre d'emploi et votre audit de signaux. Pas un modèle. Adaptée à l'entreprise et au poste exact.",
+      "coverCta": "Générer ma lettre de motivation",
+      "coverPremiumNote": "Lettre complète générée avec Premium, adaptée par entreprise et poste",
+      "bridgePremiumNote": "Feuille de route complète, étapes actionnables et conseil recruteur avec Premium"
+    },
+    "mockContent": {
+      "radar": {
+        "title": "Radar de compétences techniques",
+        "subtitle": "Cartographié par rapport aux exigences de l'offre",
+        "yourProfile": "Votre profil",
+        "jobRequirements": "Exigences du poste",
+        "gapDetected": "Écart détecté",
+        "gapDetail": "DevOps à 28%, le poste exige 65%",
+        "atsLabel": "Score ATS",
+        "atsWouldNotPass": "✗ Ne passerait pas le filtre ATS",
+        "missingKeywords": "Mots-clés critiques manquants",
+        "redFlagsLabel": "Signaux d'alerte",
+        "redFlagItems": [
+          "Gap de 3 ans dans l'emploi non expliqué",
+          "Aucun impact quantifié dans les bullets",
+          "Langage de séniorité absent"
+        ]
+      },
+      "github": {
+        "badges": ["Contributeur actif", "Projets OSS"],
+        "issues": [
+          { "severity": "critical", "label": "Les repos épinglés n'ont pas de README", "detail": "3 dépôts épinglés manquent de documentation. Signal négatif fort pour les postes seniors." },
+          { "severity": "major", "label": "Aucune configuration CI/CD détectée", "detail": "Aucun de vos dépôts n'inclut GitHub Actions ou des pipelines similaires." },
+          { "severity": "major", "label": "Gaps dans l'historique de commits > 6 mois", "detail": "3 gaps visibles suggèrent une activité irrégulière sur les 2 dernières années." }
+        ]
+      },
+      "linkedin": {
+        "badges": ["500+ connexions"],
+        "issues": [
+          { "severity": "major", "label": "Aucune recommandation reçue", "detail": "Pas de recommandations de collègues ou managers. Au niveau senior, la preuve sociale compte." },
+          { "severity": "major", "label": "Intitulé du poste actuel trop vague", "detail": "\"Développeur\" sans signal de séniorité ou de domaine. Les recruteurs ne peuvent pas évaluer le fit en un coup d'œil." },
+          { "severity": "major", "label": "Section résumé absente", "detail": "Le profil n'a pas de section À propos. Vous perdez la surface de matching de mots-clés la plus visible." }
+        ]
+      },
+      "atsCard": {
+        "label": "Filtre ATS",
+        "title": "Simulez le filtre avant le recruteur",
+        "desc": "Nous faisons passer votre CV dans une simulation ATS calée sur la fiche de poste. Chaque mot-clé manquant a une valeur en points — vous savez exactement quoi ajouter.",
+        "scoreLabel": "Score"
+      },
+      "rewriteCard": {
+        "label": "Améliorer le CV",
+        "title": "Votre CV, réécrit chirurgicalement",
+        "desc": "Un clic réécrit l'intégralité du CV : mots-clés injectés, ton passif converti, signaux de séniorité ajoutés. Exportez un PDF propre.",
+        "before": "Avant",
+        "after": "Après",
+        "beforeText": "\"Responsable du développement backend et travaillé sur les fonctionnalités API de la plateforme.\"",
+        "afterText": "Piloté l'architecture backend livrant 4 APIs REST core, réduisant la latence P95 de 40% sur 200K requêtes quotidiennes."
+      },
+      "interviewCard": {
+        "label": "Entretien IA",
+        "title": "Simulation d'entretien vocal de 10 minutes",
+        "desc": "Un intervieweur IA en temps réel, vocal et adapté au poste. Se termine par un débriefing noté sur la communication, la profondeur technique et les signaux de leadership.",
+        "aiLabel": "IA",
+        "youLabel": "Vous",
+        "aiQuestion": "\"Décrivez un système que vous avez conçu de zéro. Quels compromis avez-vous faits ?\"",
+        "youAnswer": "\"J'ai construit un service de notification temps réel gérant 50K events/sec...\"",
+        "axes": ["Profondeur technique", "Communication", "Signaux de leadership"]
+      },
+      "bridge": {
+        "headerLabel": "Combler l'écart · Recommandation de projet",
+        "level": "Avancé",
+        "projectTitle": "Plateforme Microservices Event-Driven Distribuée",
+        "projectDesc": "Construisez un système microservices prêt pour la production avec Docker, Kubernetes et une architecture event-driven via Kafka. Expose une expérience CI/CD concrète et comble le gap DevOps identifié dans votre radar.",
+        "architectureLabel": "Architecture",
+        "architectureText": "API Gateway → Service Auth → Service Order → Kafka → Service Notification + Service Inventaire. Chaque service conteneurisé avec Docker, orchestré via Kubernetes, déployé via GitHub Actions.",
+        "whatToBuildLabel": "Quoi construire",
+        "whatToBuild": [
+          "API Gateway avec auth JWT, rate limiting et routage des requêtes",
+          "Kafka producer/consumer pour la communication inter-services asynchrone",
+          "Pipeline CI/CD avec builds Docker automatisés et déploiements K8s",
+          "Tracing distribué avec OpenTelemetry et métriques Prometheus",
+          "Stratégie de déploiement rolling sans interruption avec health checks"
+        ],
+        "coreStackLabel": "Stack principale",
+        "advancedLabel": "Concepts avancés",
+        "successLabel": "Critères de succès",
+        "success": [
+          "Le système gère 10K req/s sous charge",
+          "Stack d'observabilité complète déployée",
+          "Déploiements sans interruption documentés"
+        ]
+      },
+      "coverLetter": {
+        "headerLabel": "Lettre de motivation · Senior Backend Engineer @ Stripe",
+        "date": "17 avril 2026",
+        "greeting": "Chère équipe de recrutement de Stripe,",
+        "p1": "Je postule au poste de Senior Backend Engineer spécialisé en systèmes distribués, un domaine dans lequel j'ai passé les quatre dernières années à construire des infrastructures haute disponibilité et event-driven. Dans mon entreprise actuelle, j'ai piloté la refonte de notre pipeline de paiement, réduisant la latence P99 de 340ms à 62ms sur 800K transactions quotidiennes.",
+        "p2": "Ce qui m'attire chez Stripe, c'est la culture engineering autour de la fiabilité et du design d'API. Votre récent article sur les clés d'idempotence a résonné avec un problème que j'ai résolu l'an dernier lors de notre migration monolithe vers microservices, garantissant une livraison exactly-once sur un système Kafka avec 15 consommateurs.",
+        "p3": "Je serais ravi d'échanger sur la façon dont mon expérience avec..."
+      }
+    },
+    "quote": {
+      "line1": "Candidatez comme un",
+      "word": "sniper",
+      "line2": "pas comme un spammeur.",
+      "subtitle": "Analyse gratuite · Sans compte requis",
+      "cta": "Analyser mon CV, c'est gratuit"
+    },
+    "stats": {
+      "atsFiltered": "des CVs filtrés par l'ATS avant qu'un humain ne les lise",
+      "passRate": "taux de succès à la première candidature",
+      "offerFromDiagnosis": "atteignent le stade de l'offre après correction des problèmes détectés"
+    },
+    "features": {
+      "title": "Chaque onglet, un outil",
+      "ats": {
+        "label": "Simulation ATS",
+        "title": "Filtre Bot",
+        "desc": "Scan de densité de mots-clés par rapport à l'offre d'emploi. Score exact, ce qui manque, et distance du seuil ATS."
+      },
+      "radar": {
+        "label": "Radar de compétences",
+        "title": "Écart de compétences",
+        "desc": "Correspondance de la stack technique vs. les exigences du poste. Visualisez ce que vous avez, ce qui manque, et l'écart."
+      },
+      "rewrite": {
+        "label": "Réécriture de CV",
+        "title": "Améliorer le CV",
+        "desc": "L'IA réécrit chirurgicalement votre CV — injecte les mots-clés manquants, corrige le ton passif, ajoute des signaux de séniorité. Téléchargez en PDF."
+      },
+      "interview": {
+        "label": "Entretien IA",
+        "title": "Entretien IA",
+        "desc": "Entretien vocal de 10 minutes adapté à ce poste et vos lacunes. Rapport de performance complet après."
+      }
+    },
+    "whatYouGet": {
+      "sectionLabel": "Ce que vous obtenez",
+      "title": "Au-delà du CV",
+      "subtitle": "La plupart des outils s'arrêtent aux mots-clés. RejectCheck lit les signaux de chaque couche de votre présence professionnelle.",
+      "github": {
+        "title": "Signal GitHub",
+        "desc": "Cadence de commits, diversité des langages, contributions open source — ce que votre CV ne dit pas sur votre profondeur technique réelle."
+      },
+      "linkedin": {
+        "title": "Signal LinkedIn",
+        "desc": "Recoupez votre CV avec votre profil LinkedIn. Incohérences, recommandations manquantes, complétude du profil."
+      },
+      "redFlags": {
+        "title": "Signaux d'alerte",
+        "desc": "Signaux comportementaux que les recruteurs expérimentés remarquent et mentionnent rarement : gaps inexpliqués, incohérences de ton."
+      },
+      "roadmap": {
+        "title": "Plan d'action",
+        "desc": "Chaque problème de chaque signal, priorisé par impact. Les éléments critiques en premier — ceux qui font rejeter les CVs avant d'être lus."
+      }
+    },
+    "cta": {
+      "title": "Arrêtez de deviner. Commencez à corriger.",
+      "subtitle": "Un scan gratuit. Sans compte requis.",
+      "button": "Analyser mon CV gratuitement"
+    },
+    "footer": {
+      "copyright": "© 2026 RejectCheck. Construit avec focus.",
+      "privacy": "Confidentialité",
+      "terms": "CGU",
+      "contact": "Contact"
+    }
+  },
+  "uploadForm": {
+    "steps": {
+      "step1": "Étape 1 sur 3",
+      "step2": "Étape 2 sur 3",
+      "step3": "Étape 3 sur 3",
+      "application": "Candidature",
+      "signals": "Signaux",
+      "launch": "Lancer"
+    },
+    "leftStep1": {
+      "title": "Votre candidature",
+      "description": "Le CV et l'offre sont indissociables. L'un sans l'autre, l'analyse ne peut pas cibler.",
+      "hintTitle": "Pourquoi l'offre complète ?",
+      "hintBody": "Titre, stack, responsabilités, nice-to-haves — chaque ligne affecte le score ATS."
+    },
+    "leftStep2": {
+      "title": "Signaux",
+      "description": "Chaque signal supplémentaire affine le diagnostic. GitHub révèle ce que le CV ne dit pas. LinkedIn confirme la cohérence.",
+      "hintTitle": "Tout est optionnel",
+      "hintBody": "Ignorez cette étape si vous voulez. Vous pouvez analyser avec CV + offre uniquement."
+    },
+    "leftStep3": {
+      "title": "Prêt",
+      "description": "L'analyse prend ~45 secondes. Score, radar de compétences, simulation ATS, réécriture de CV.",
+      "summary": "Récapitulatif"
+    },
+    "cv": {
+      "label": "Votre CV",
+      "dropPrompt": "Déposez votre CV ou",
+      "browse": "parcourir",
+      "format": "PDF · max 5 Mo"
+    },
+    "jobListing": {
+      "label": "Offre d'emploi",
+      "hint": "Plus l'offre est complète, plus le diagnostic est précis."
+    },
+    "github": {
+      "hint": "repos · langages · activité",
+      "precision": "+précision"
+    },
+    "linkedin": {
+      "hint": "export PDF du profil",
+      "dropPrompt": "Déposez votre export PDF LinkedIn",
+      "exportHint": "Paramètres → Données → Obtenir une copie",
+      "precision": "+précision"
+    },
+    "coverLetter": {
+      "label": "Lettre de motivation",
+      "hint": "PDF ou texte",
+      "dropPrompt": "Déposez votre lettre de motivation",
+      "browse": "parcourir",
+      "paste": "Collez votre lettre de motivation ici…"
+    },
+    "accuracy": {
+      "label": "Précision de l'analyse",
+      "basic": "Précision basique",
+      "enhanced": "Précision améliorée",
+      "full": "Signal complet"
+    },
+    "whatYouReceive": {
+      "title": "Ce que vous recevrez",
+      "items": [
+        "Score de rejet global + verdict",
+        "Simulation ATS + mots-clés manquants",
+        "Radar de compétences vs. poste",
+        "Réécriture CV + entretien IA"
+      ]
+    },
+    "cost": {
+      "label": "Coût",
+      "freeCredit": "1 crédit gratuit disponible"
+    },
+    "submit": {
+      "runAnalysis": "Lancer l'analyse",
+      "analyzing": "Analyse en cours…",
+      "duration": "~45s",
+      "dataNotStored": "Données non stockées",
+      "credit": "1 crédit"
+    },
+    "recap": {
+      "jobListing": "Offre d'emploi",
+      "words": "mots · collé",
+      "activeSignal": "Signal actif",
+      "linkedinPdf": "PDF LinkedIn",
+      "coverLetterPasted": "Texte collé"
+    }
+  },
+  "loadingScreen": {
+    "steps": {
+      "parsing_cv": "Analyse du CV",
+      "matching_skills": "Analyse de l'offre",
+      "analyzing_linkedin": "Signal LinkedIn",
+      "analyzing_github": "Signal GitHub",
+      "dual_ai_analysis": "Analytique Double-IA",
+      "finalizing": "Diagnostic final"
+    },
+    "gptTasks": ["Simulation ATS", "Lettre de motivation", "Audit ATS", "Signaux d'alerte", "Ton & Séniorité"],
+    "claudeTasks": ["Radar Tech", "Analyse Tech Fit", "Blueprint Projet"],
+    "gptThoughts": [
+      "Scan de la densité de mots-clés ATS...",
+      "Incohérence de formatage détectée dans l'en-tête",
+      "Évaluation du ton vs. signaux de séniorité...",
+      "Recoupement avec des profils similaires...",
+      "Gap d'emploi signalé pour contextualisation",
+      "Score d'impact des bullet points en dessous de la médiane",
+      "Fréquence des verbes d'action : insuffisante",
+      "Réalisations quantifiées : insuffisantes",
+      "Vérification du score de lisibilité recruteur...",
+      "Schéma de signal d'alerte détecté dans le parcours"
+    ],
+    "claudeThoughts": [
+      "Cartographie de la profondeur de la stack technique...",
+      "La cadence de commits suggère un fort ownership",
+      "Inférence de l'architecture système à partir du périmètre projet",
+      "Étendue vs. spécialisation : évaluation en cours...",
+      "Signal open source : esprit collaboratif",
+      "Courbe de maturité des frameworks détectée",
+      "Patterns d'architecture identifiés",
+      "Recoupement avec la description de poste...",
+      "Évaluation de la cohérence de la stack technologique",
+      "Gap de séniorité détecté dans les signaux de périmètre",
+      "Complexité du projet : évaluation des signaux de scalabilité",
+      "Patterns de contribution : analyse de l'impact..."
+    ]
+  },
+  "paywall": {
+    "badge": "Scan Gratuit Terminé",
+    "title": "Boostez votre",
+    "titleHighlight": "recherche d'emploi.",
+    "subtitle": "Vous avez vu les signaux d'alerte. Il est temps de les corriger et de décrocher votre prochain poste. Débloquez des analyses illimitées et des outils qui changent la donne.",
+    "getAccess": "Accès Illimité",
+    "backToAnalyzer": "Retour à l'analyseur",
+    "features": [
+      "Analyses approfondies illimitées",
+      "Optimisation CV prioritaire",
+      "Guide de suppression des signaux d'alerte",
+      "IA Entretien & Suivi"
+    ],
+    "waitlist": {
+      "label": "Ou rejoignez la liste d'attente pour les fonctionnalités en avant-première",
+      "placeholder": "nom@email.com",
+      "join": "Rejoindre",
+      "success": "Vous êtes sur la liste prioritaire."
+    }
+  },
+  "scoreSidebar": {
+    "overallRisk": "Score de risque global",
+    "tooltipText": "Probabilité de rejet agrégée basée sur les faiblesses du profil, les signaux ATS et les écarts de séniorité.",
+    "risk": "Risque",
+    "modelConfidence": "Confiance du modèle",
+    "newProfile": "Nouveau Profil",
+    "exporting": "Export en cours...",
+    "strength": {
+      "weak": "Faible",
+      "moderate": "Moyen",
+      "good": "Bon",
+      "strong": "Fort"
+    },
+    "verdicts": {
+      "Low": "Faible",
+      "Medium": "Moyen",
+      "High": "Élevé"
+    },
+    "breakdownLabels": {
+      "keyword_match": "Mots-clés",
+      "tech_stack_fit": "Stack Technique",
+      "experience_level": "Niveau d'Expérience",
+      "github_signal": "Signal GitHub",
+      "linkedin_signal": "Signal LinkedIn"
+    }
+  },
+  "technicalRadar": {
+    "label": "Cartographie",
+    "title": "Analyse des compétences",
+    "subtitle": "Votre niveau actuel vs. ce que le poste exige, mesuré sur chaque compétence clé.",
+    "targetJd": "Cible (offre)",
+    "yourProfile": "Votre profil",
+    "jobPriority": "Priorité poste",
+    "skillsRanked": "Compétences classées par importance",
+    "strategicRec": "Recommandation Stratégique",
+    "targetMet": "OBJECTIF ATTEINT",
+    "gap": "ÉCART",
+    "checkTargetMet": "✓ objectif atteint",
+    "ptsGap": "−{gap} pts d'écart",
+    "noGaps": "Aucun écart spécifique identifié pour ce niveau.",
+    "marketContext": "Contexte du marché",
+    "senioritySig": "Signaux de séniorité manquants"
+  },
+  "tabs": {
+    "skillGap": "Écart de compétences",
+    "atsFilter": "Filtre ATS",
+    "cvAnalysis": "Analyse CV",
+    "signals": "Signaux",
+    "redFlags": "Signaux d'alerte",
+    "roadmap": "Roadmap",
+    "project": "Projet",
+    "improveCv": "Améliorer le CV",
+    "aiInterview": "Entretien IA"
+  },
+  "analyzeNav": {
+    "pricing": "Tarifs →",
+    "steps": {
+      "application": "Candidature",
+      "signals": "Signaux",
+      "launch": "Lancer"
+    },
+    "anonymousCta": {
+      "title": "Ne perdez pas votre analyse",
+      "desc": "Inscrivez-vous pour sauvegarder ce résultat et suivre votre progression. Les analyses non enregistrées ne sont pas sauvegardées.",
+      "button": "Créer un compte"
+    },
+    "footer": {
+      "copyright": "RejectCheck © 2026",
+      "privacy": "Confidentialité",
+      "terms": "Conditions"
+    }
+  },
+  "atsTab": {
+    "botFilter": "Filtre Bot",
+    "atsPassEstimated": "Passage ATS Estimé",
+    "atsRejectionLikely": "Rejet ATS Probable",
+    "ptsBelow": "pts en dessous du seuil",
+    "ptsAbove": "pts au-dessus du seuil",
+    "current": "Actuel :",
+    "simulated": "Simulé :",
+    "wouldPass": "— passerait ✓",
+    "atsExplanation": "ATS (Applicant Tracking System) — logiciel qui filtre les CVs avant qu'un humain ne les lise. Il scanne les mots-clés correspondant à l'offre. Un score bas signifie que votre CV peut ne jamais atteindre un recruteur.",
+    "simulator": "Simulateur",
+    "keywordGap": "Mots-clés manquants",
+    "keywordGapSubtitle": "Cochez les mots-clés que vous pouvez réalistement ajouter à votre CV — votre score ATS se met à jour en temps réel.",
+    "reset": "Réinitialiser",
+    "required": "Requis",
+    "preferred": "Préféré",
+    "requiredMention": "mentionné {count}x dans l'offre",
+    "preferredNote": "points bonus, non éliminatoires",
+    "inJd": "x dans l'offre",
+    "pts": "+{pts} pts",
+    "minThreshold": "min. {threshold}"
+  },
+  "cvAnalysisTab": {
+    "cvAnalysis": "Analyse CV",
+    "profileAnalysis": "Analyse du Profil",
+    "profileSubtitle": "Positionnement en séniorité, ton d'écriture et signaux comportementaux extraits de votre CV.",
+    "gapDetection": "Détection d'écart",
+    "seniorityGap": "Écart de Séniorité",
+    "senioritySubtitle": "Séniorité attendue pour ce poste vs. le niveau que votre CV signale réellement.",
+    "expected": "Attendu",
+    "detected": "Détecté",
+    "strength": "Point fort :",
+    "writingStyle": "Style d'écriture",
+    "toneAudit": "Audit du Ton",
+    "toneSubtitle": "Patterns voix active vs. passive dans vos bullet points et descriptions.",
+    "patternDetected": "Schéma détecté — Ton × Séniorité",
+    "forensicAudit": "Audit Forensique",
+    "cvIssues": "Problèmes CV",
+    "cvIssuesSubtitle": "{count} vulnérabilité{plural} identifiée{plural} dans la structure, le contenu et le positionnement.",
+    "healthScore": "Score de santé"
+  },
+  "flagsTab": {
+    "recruiterAssessment": "Évaluation Recruteur",
+    "strongMatch": "Correspondance forte",
+    "partialMatch": "Correspondance partielle",
+    "weakMatch": "Correspondance faible",
+    "confidenceLabel": "de confiance",
+    "hiddenSignals": "Signaux cachés",
+    "recruiterIntuition": "Intuition Recruteur",
+    "recruiterIntuitionSubtitle": "{count} signal{plural} comportemental{plural} que les recruteurs expérimentés remarquent et mentionnent rarement.",
+    "redFlag": "Signal d'alerte",
+    "recruiterPerception": "Perception recruteur :",
+    "skillsChecklist": "Checklist Compétences",
+    "technicalRequirements": "Exigences Techniques",
+    "technicalSubtitle": "Compétences requises de l'offre comparées à votre CV.",
+    "matched": "correspondances",
+    "crucialExperienceGap": "Écart d'expérience crucial",
+    "breakdownLabels": {
+      "keyword_match": "Correspondance Mots-clés",
+      "tech_stack_fit": "Adéquation Stack Tech",
+      "experience_level": "Niveau d'Expérience",
+      "github_signal": "Signal GitHub",
+      "linkedin_signal": "Signal LinkedIn"
+    }
+  },
+  "signalsTab": {
+    "signalAnalysis": "Analyse des signaux",
+    "notProvided": "Non fourni",
+    "signalScore": "Score Signal",
+    "noIssuesDetected": "Aucun problème détecté — signal fort.",
+    "critical": "critique",
+    "major": "majeur",
+    "minor": "mineur",
+    "issuesDetected": "{count} problème{plural} détecté{plural}",
+    "githubEmpty": "Aucun nom d'utilisateur GitHub fourni — vérification technique approfondie ignorée.",
+    "githubCta": "Réanalysez avec votre nom d'utilisateur GitHub pour débloquer ce signal",
+    "linkedinEmpty": "Aucun PDF LinkedIn fourni — vérification croisée ignorée.",
+    "linkedinCta": "Exportez votre PDF LinkedIn (Paramètres → Confidentialité → Obtenir une copie) et réanalysez"
+  },
+  "roadmapTab": {
+    "yourRoadmap": "Votre Roadmap",
+    "actionPlan": "Plan d'action",
+    "actionPlanSubtitle": "Chaque lacune de votre analyse, priorisée. Les éléments critiques sont ceux qui font rejeter les CVs avant d'être lus.",
+    "done": "Fait",
+    "noIssues": {
+      "title": "Aucun problème trouvé",
+      "desc": "Vos documents de candidature sont déjà en excellent état."
+    },
+    "groups": {
+      "critical": {
+        "label": "Critique",
+        "desc": "font rejeter le CV avant qu'un humain ne le lise"
+      },
+      "major": {
+        "label": "Important",
+        "desc": "réduisent significativement vos chances"
+      },
+      "minor": {
+        "label": "Mineur",
+        "desc": "à peaufiner une fois les éléments ci-dessus corrigés"
+      }
+    },
+    "item": "élément",
+    "items": "éléments",
+    "that": "qui"
+  },
+  "improveTab": {
+    "premiumBadge": "Fonctionnalité Premium",
+    "premiumTitle": "Laissez l'IA réécrire votre CV",
+    "premiumDesc": "Basé sur chaque problème trouvé dans cette analyse, l'IA réécrit chirurgicalement votre CV — injecte les mots-clés manquants, corrige le ton passif et ajoute des signaux de séniorité. Téléchargez le résultat en PDF.",
+    "unlockButton": "Débloquer Améliorer CV",
+    "rewriting": "Réécriture de votre CV...",
+    "cvReady": "Votre CV amélioré est prêt.",
+    "regenerate": "Régénérer",
+    "yourImprovedCv": "✦ Votre CV amélioré",
+    "downloadPdf": "Télécharger le PDF",
+    "pdfNote": "Le PDF est formaté comme un CV standard. Ouvrez-le dans n'importe quel lecteur PDF ou envoyez-le directement aux recruteurs.",
+    "cvFixed": "Votre CV, corrigé.",
+    "cvFixedSubtitle": "Réécritures chirurgicales basées sur ce que ce scan a réellement trouvé",
+    "whatGetsRewritten": "Ce qui est réécrit",
+    "fixes": [
+      { "icon": "zap", "text": "Bullet points passifs **réécrits**. « responsable de » devient **Piloté**, **Construit**, **Réduit**." },
+      { "icon": "scan", "text": "**Mots-clés ATS manquants** injectés naturellement dans votre contenu existant. Aucun bourrage de mots-clés." },
+      { "icon": "trend", "text": "**Signaux de séniorité** ajoutés. Langage de périmètre, ownership et impact là où le scan a détecté des lacunes." },
+      { "icon": "warn", "text": "**Problèmes d'audit CV** traités. Corrections de structure et de clarté sur les sections signalées uniquement." }
+    ],
+    "noFabrication": "Rien n'est inventé. Chaque changement remonte à un problème spécifique trouvé dans ce scan. Votre voix reste intacte.",
+    "signInRequired": "Connectez-vous pour activer la réécriture de CV.",
+    "rewriteButton": "Réécrire mon CV"
+  },
+  "interviewTab": {
+    "premiumBadge": "Fonctionnalité Premium",
+    "premiumTitle": "Simulez votre entretien d'embauche",
+    "premiumDesc": "Un entretien vocal IA de 10 minutes adapté à ce poste spécifique, basé sur les lacunes et signaux d'alerte de votre analyse. Obtenez un rapport de performance complet après.",
+    "unlockButton": "Débloquer l'Entretien IA",
+    "liveInterview": "Entretien en direct",
+    "endEarly": "Terminer",
+    "processing": "Traitement...",
+    "listening": "Écoute en cours...",
+    "waiting": "En attente...",
+    "analysing": "Analyse de votre entretien...",
+    "noAttemptSelected": "Aucune tentative sélectionnée",
+    "noAttemptDesc": "Sélectionnez une tentative passée à gauche pour voir son analyse, ou démarrez un nouvel entretien.",
+    "startInterview": "Démarrer l'entretien",
+    "allowMicrophone": "Autoriser le microphone",
+    "newAttempt": "Nouvelle tentative",
+    "noInterviewsYet": "Aucun entretien pour l'instant. Démarrez votre première session ci-dessus.",
+    "attempt": "tentative",
+    "attempts": "tentatives",
+    "performance": "Performance",
+    "strengths": "Points forts",
+    "toImprove": "À améliorer",
+    "questionFeedback": "Feedback par question",
+    "yourAnswer": "Votre réponse",
+    "feedback": "Feedback",
+    "verdicts": {
+      "good": "Bon",
+      "average": "Moyen",
+      "poor": "À améliorer"
+    },
+    "sessionInfo": "6 questions · 10 min · Français"
+  },
+  "pricing": {
+    "badge": "Nos Offres",
+    "title": "Choisissez votre",
+    "titleHighlight": "carburant carrière.",
+    "subtitle": "Du premier rejet à l'offre de vos rêves.",
+    "subtitleLine2": "Prenez l'avantage que vous méritez.",
+    "recommended": "Recommandé",
+    "currentPlan": "Plan actuel",
+    "downgradeToFree": "Passer au gratuit",
+    "footer": {
+      "support": "Support rapide · Paiement sécurisé via Stripe · Annulez à tout moment",
+      "copyright": "© 2026 RejectCheck. Construit avec focus.",
+      "privacy": "Confidentialité",
+      "terms": "CGU",
+      "contact": "Contact"
+    },
+    "plans": {
+      "free": {
+        "name": "REJETÉ",
+        "period": "/à vie",
+        "description": "Parfait pour un premier bilan de réalité.",
+        "features": [
+          "1 analyse approfondie",
+          "Simulation ATS",
+          "Audit d'écart de séniorité",
+          "Analyse du ton du CV",
+          "Détail du score",
+          "Signaux d'alerte cachés",
+          "Corrections actionnables",
+          "Export PDF / Markdown"
+        ],
+        "cta": "Commencer gratuitement"
+      },
+      "shortlisted": {
+        "name": "PRÉSÉLECTIONNÉ",
+        "period": "/mois",
+        "description": "Pour les candidats sérieux qui itèrent jusqu'à la victoire.",
+        "features": [
+          "Tout dans REJETÉ",
+          "Analyses illimitées",
+          "Suivi d'évolution du score",
+          "Historique des analyses",
+          "Entretien IA (bientôt)",
+          "Mode Réécriture CV (bientôt)"
+        ],
+        "cta": "Être présélectionné"
+      },
+      "hired": {
+        "name": "RECRUTÉ",
+        "period": "/mois",
+        "description": "Puissance maximale. Nous garantissons votre succès.",
+        "features": [
+          "Tout dans PRÉSÉLECTIONNÉ",
+          "Gestionnaire de versions CV (bientôt)",
+          "Score de fit via URL (bientôt)",
+          "Analyse des patterns de rejet (bientôt)",
+          "Suivi des candidatures (bientôt)",
+          "Vérification du salaire réel (bientôt)",
+          "Extension Chrome (bientôt)"
+        ],
+        "cta": "Être recruté",
+        "guarantee": "Recruté ? Nous remboursons votre mois en cours."
+      }
+    },
+    "errors": {
+      "paymentCancelled": "Paiement annulé. Vous pouvez réessayer quand vous êtes prêt.",
+      "checkoutFailed": "Échec du paiement. Veuillez réessayer.",
+      "noCheckoutUrl": "Impossible d'obtenir l'URL de paiement. Veuillez réessayer.",
+      "processing": "Traitement..."
+    }
+  },
+  "login": {
+    "signIn": "Connexion",
+    "signUp": "S'inscrire",
+    "createAccount": "Créer un compte",
+    "welcomeBack": "Bon retour.",
+    "getStarted": "Commencer.",
+    "signInDesc": "Connectez-vous pour accéder à votre abonnement et à votre historique d'analyses.",
+    "signUpDesc": "Créez un compte pour débloquer les avantages de l'abonnement.",
+    "email": "Email",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "noAccount": "Pas de compte ?",
+    "haveAccount": "Vous avez déjà un compte ?",
+    "privacyLink": "Politique de confidentialité & RGPD →",
+    "confirmEmail": "Vérifiez votre email pour confirmer votre compte, puis connectez-vous.",
+    "tryFree": "Essai gratuit →"
+  },
+  "account": {
+    "title": "Compte",
+    "subscription": "Abonnement",
+    "history": "Historique des analyses",
+    "signOut": "Déconnexion",
+    "noHistory": "Aucune analyse pour l'instant.",
+    "startAnalysis": "Démarrez votre première analyse",
+    "plan": "Plan",
+    "status": "Statut",
+    "active": "Actif",
+    "expired": "Expiré",
+    "inactive": "Inactif",
+    "expiresOn": "Expire le",
+    "managePlan": "Gérer le plan",
+    "viewAnalysis": "Voir l'analyse",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette analyse ?",
+    "save": "Enregistrer",
+    "nextBilling": "Prochain paiement",
+    "upgrade": "Mettre à niveau",
+    "manage": "Gérer l'abonnement",
+    "actions": "Actions rapides",
+    "deleteAccount": "Supprimer le compte",
+    "analysisHistory": "Historique des analyses",
+    "results": "résultats",
+    "noResults": "Aucune analyse pour l'instant. Lancez votre premier scan.",
+    "startNewAnalysis": "Nouvelle analyse",
+    "details": "Détails",
+    "exportReport": "Exporter le rapport",
+    "deleteAnalysis": "Supprimer l'analyse",
+    "aiInterviews": "Entretiens IA",
+    "interviewLabel": "Entretien",
+    "view": "Voir →",
+    "analyze": "Analyser",
+    "stats": {
+      "analyses": "Analyses",
+      "risk": "Risque moy.",
+      "jobs": "Offres"
+    }
+  },
+  "privacy": {
+    "title": "Politique de confidentialité (RGPD)",
+    "sections": {
+      "commitment": "Engagement pour la vie privée",
+      "dataCollected": "Données collectées",
+      "aiProcessing": "IA & Traitement des données",
+      "deletion": "Droit à la suppression"
+    }
+  }
+}

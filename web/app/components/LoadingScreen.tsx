@@ -1,7 +1,10 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Zap, Cpu, Search, FileText } from "lucide-react";
 import { Openai, Anthropic, Github, Linkedin } from "react-bootstrap-icons";
+import { useLanguage } from "../../context/language";
 
 type Props = {
   currentStep: string | null;
@@ -14,41 +17,14 @@ type Props = {
 type StepStatus = "pending" | "running" | "done" | "skipped";
 
 const STEPS_CONFIG = [
-  { id: "parsing_cv",         label: "CV Parsing",           Icon: FileText,  lane: "center" },
-  { id: "matching_skills",    label: "Job Analysis",          Icon: Search,    lane: "center" },
-  { id: "analyzing_linkedin", label: "LinkedIn Signal",       Icon: Linkedin,  lane: "center" },
-  { id: "analyzing_github",   label: "GitHub Signal",         Icon: Github,    lane: "center" },
-  { id: "dual_ai_analysis",   label: "Split-Brain Analytics", Icon: Zap,       lane: "split"  },
-  { id: "finalizing",         label: "Final Diagnostic",      Icon: Sparkles,  lane: "center" },
-] as const;
-
-const GPT_TASKS    = ["ATS Simulation", "Motivation Letter", "ATS Audit", "Red Flags", "Tone & Seniority"];
-const CLAUDE_TASKS = ["Tech Radar", "Tech Fit Analysis", "Project Blueprint"];
-
-const GPT_THOUGHTS = [
-  "Scanning ATS keyword density...",
-  "Detected formatting inconsistency in header",
-  "Evaluating tone vs. seniority signals...",
-  "Cross-referencing similar profiles...",
-  "Employment gap flagged for contextualization",
-  "Bullet point impact score below median",
-  "Action verb frequency: insufficient",
-  "Quantified achievements: sparse",
-  "Checking recruiter readability score...",
-  "Red flag pattern detected in job history",
+  { id: "parsing_cv"         as const, Icon: FileText,  lane: "center" as const },
+  { id: "matching_skills"    as const, Icon: Search,    lane: "center" as const },
+  { id: "analyzing_linkedin" as const, Icon: Linkedin,  lane: "center" as const },
+  { id: "analyzing_github"   as const, Icon: Github,    lane: "center" as const },
+  { id: "dual_ai_analysis"   as const, Icon: Zap,       lane: "split"  as const },
+  { id: "finalizing"         as const, Icon: Sparkles,  lane: "center" as const },
 ];
 
-const CLAUDE_THOUGHTS = [
-  "Mapping depth of technical stack...",
-  "Commit cadence suggests strong ownership",
-  "Inferring system design from project scope",
-  "Breadth vs. specialization: assessing...",
-  "Open source signal: collaborative mindset",
-  "Framework maturity curve detected",
-  "Architecture patterns identified",
-  "Cross-referencing job description fit...",
-  "Evaluating technology stack coherence",
-];
 
 function useTypewriter(thoughts: string[], speed: number, active: boolean) {
   const [displayed,  setDisplayed]  = useState("");
@@ -86,7 +62,13 @@ const GET_X = (idx: number) => {
 const MERGE_X = GET_X(4) + 5 * SUB_W + 30;
 
 export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFinished }: Props) {
+  const { t } = useLanguage();
   const config = { hasGithub, hasLinkedin, hasML };
+
+  const GPT_TASKS    = t.loadingScreen.gptTasks as string[];
+  const CLAUDE_TASKS = t.loadingScreen.claudeTasks as string[];
+  const GPT_THOUGHTS    = t.loadingScreen.gptThoughts as string[];
+  const CLAUDE_THOUGHTS = t.loadingScreen.claudeThoughts as string[];
 
   const [internalStepIdx, setInternalStepIdx] = useState(0);
   const [gptP,            setGptP]            = useState(0);
@@ -359,7 +341,7 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
                   className={isDone ? "text-white" : isActive ? "text-rc-red" : "text-rc-hint"} />
                 <text x="0" y="-24" textAnchor="middle"
                   className={`font-mono text-[10px] ${isDone || isActive ? "fill-rc-text font-bold" : "fill-rc-hint"}`}>
-                  {step.label}
+                  {t.loadingScreen.steps[step.id as keyof typeof t.loadingScreen.steps]}
                 </text>
                 {isDone && (
                   <motion.circle initial={{ scale: 0 }} animate={{ scale: 1 }}

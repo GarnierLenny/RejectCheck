@@ -79,6 +79,7 @@ export class AnalyzeService {
     githubInfo: string;
     linkedinText: string;
     motivationLetterText: string;
+    locale?: string;
   }): Promise<{
     technical_analysis: AnalyzeResponse['technical_analysis'];
     project_recommendation: AnalyzeResponse['project_recommendation'];
@@ -87,7 +88,7 @@ export class AnalyzeService {
     audit_github: AnalyzeResponse['audit']['github'];
     audit_linkedin: AnalyzeResponse['audit']['linkedin'];
   }> {
-    const { jobText, cvText, githubInfo, linkedinText, motivationLetterText } = data;
+    const { jobText, cvText, githubInfo, linkedinText, motivationLetterText, locale } = data;
     const technicalPrompt = this.configService.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
 
     console.log(`[AnalyzeService] Requesting Technical Analysis from Claude 3.5 Sonnet...`);
@@ -294,7 +295,9 @@ export class AnalyzeService {
         messages: [
           {
             role: "user",
-            content: `Perform a technical gap analysis.
+            content: `Respond entirely in ${locale === 'fr' ? 'French' : 'English'}.
+
+Perform a technical gap analysis.
 
           JOB DESCRIPTION:
           ${jobText}
@@ -341,8 +344,9 @@ export class AnalyzeService {
     motivationLetterBuffer?: Buffer;
     motivationLetterText?: string;
     githubUsername?: string;
+    locale?: string;
   }, onStep?: (step: string) => void): Promise<{ result: AnalyzeResponse; cvText: string; motivationLetterText: string }> {
-    const { cvBuffer, jobDescription, linkedinBuffer, motivationLetterBuffer, motivationLetterText: mlText, githubUsername } = data;
+    const { cvBuffer, jobDescription, linkedinBuffer, motivationLetterBuffer, motivationLetterText: mlText, githubUsername, locale } = data;
 
     if (!cvBuffer) {
       throw new BadRequestException('CV is required');
@@ -420,8 +424,10 @@ export class AnalyzeService {
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Analyze this application for the following job.
-  
+            content: `Respond entirely in ${locale === 'fr' ? 'French' : 'English'}.
+
+Analyze this application for the following job.
+
             JOB DESCRIPTION:
             ${jobText}
   
@@ -436,7 +442,7 @@ export class AnalyzeService {
           },
         ],
       }),
-      this.getTechnicalAnalysisWithClaude({ jobText, cvText, githubInfo, linkedinText, motivationLetterText })
+      this.getTechnicalAnalysisWithClaude({ jobText, cvText, githubInfo, linkedinText, motivationLetterText, locale })
     ]);
 
     if (gptResult.status === 'rejected') {
@@ -594,7 +600,7 @@ export class AnalyzeService {
     return this.stripeService.checkSubscription(email);
   }
 
-  async rewriteCv(analysisId: number, email: string): Promise<RewriteResponse> {
+  async rewriteCv(analysisId: number, email: string, locale = 'en'): Promise<RewriteResponse> {
     const analysis = await (this.prisma as any).analysis.findFirst({
       where: { id: analysisId, email, result: { not: Prisma.DbNull } },
     });
@@ -618,7 +624,9 @@ export class AnalyzeService {
       ?.map((i: any) => `[${i.severity.toUpperCase()}] ${i.what} — ${i.why}`)
       ?.join('\n  - ') || 'none';
 
-    const systemPrompt = `You are an expert CV writer. You receive an original CV and a detailed analysis of its weaknesses. Your job is to rewrite the FULL CV, fixing every issue identified.
+    const systemPrompt = `Respond entirely in ${locale === 'fr' ? 'French' : 'English'}.
+
+You are an expert CV writer. You receive an original CV and a detailed analysis of its weaknesses. Your job is to rewrite the FULL CV, fixing every issue identified.
 
 Output ONLY the rewritten CV — no preamble, no commentary, no explanation. Start directly with the candidate's name or first section.
 

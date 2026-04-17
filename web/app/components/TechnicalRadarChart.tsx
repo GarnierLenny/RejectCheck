@@ -12,12 +12,15 @@ import {
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "./types";
 import { SectionHeader } from "./SectionHeader";
+import { useLanguage } from "../../context/language";
 
 interface Props {
   data: AnalysisResult["technical_analysis"];
 }
 
 export function TechnicalRadarChart({ data }: Props) {
+  const { t } = useLanguage();
+  const tr = t.technicalRadar;
   const chartData = data.skills.map((s) => ({
     subject: s.name,
     current: s.current,
@@ -30,18 +33,18 @@ export function TechnicalRadarChart({ data }: Props) {
   return (
     <div className="relative group py-4">
       <SectionHeader
-        label="Skill Mapping"
-        title="Skill Gap Analysis"
-        subtitle="Your current level vs. what the job requires, measured across each key skill."
+        label={tr.label}
+        title={tr.title}
+        subtitle={tr.subtitle}
         meta={
           <div className="flex gap-6">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full border-2 border-rc-amber bg-rc-amber/10" />
-              <span className="font-mono text-[12px] uppercase tracking-wider text-rc-muted">Target (JD)</span>
+              <span className="font-mono text-[12px] uppercase tracking-wider text-rc-muted">{tr.targetJd}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-rc-red" />
-              <span className="font-mono text-[12px] uppercase tracking-wider text-rc-muted">Your Profile</span>
+              <span className="font-mono text-[12px] uppercase tracking-wider text-rc-muted">{tr.yourProfile}</span>
             </div>
           </div>
         }
@@ -111,9 +114,9 @@ export function TechnicalRadarChart({ data }: Props) {
             <div>
               <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-red font-bold flex items-center gap-1.5 mb-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-                Job Priority
+                {tr.jobPriority}
               </h4>
-              <p className="font-mono text-[11px] text-rc-hint">Skills ranked by importance</p>
+              <p className="font-mono text-[11px] text-rc-hint">{tr.skillsRanked}</p>
             </div>
             <ol className="flex flex-col gap-1.5">
               {(data.skill_priority ?? data.skills?.map(s => s.name) ?? []).map((name, i) => {
@@ -128,7 +131,7 @@ export function TechnicalRadarChart({ data }: Props) {
                       <span className="font-mono text-[11px] text-rc-text leading-tight">{name}</span>
                       {skill && (
                         <span className={`font-mono text-[9px] font-bold ${isOk ? 'text-rc-green' : 'text-rc-amber'}`}>
-                          {isOk ? '✓ target met' : `−${gap} pts gap`}
+                          {isOk ? tr.checkTargetMet : tr.ptsGap.replace('{gap}', String(gap))}
                         </span>
                       )}
                     </div>
@@ -146,7 +149,7 @@ export function TechnicalRadarChart({ data }: Props) {
                 <path d="M12 2v20M2 12h20M12 2a10 10 0 0 1 10 10M12 2A10 10 0 0 0 2 12M22 12a10 10 0 0 1-10 10M2 12a10 10 0 0 0 10 10" />
               </svg>
             </div>
-            <h3 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red mb-4 font-bold">Strategic Recommendation</h3>
+            <h3 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red mb-4 font-bold">{tr.strategicRec}</h3>
             <div className="text-[17px] text-rc-text leading-[1.7] font-sans italic [&_strong]:font-semibold [&_strong]:not-italic [&_em]:italic [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
               <ReactMarkdown>{data.recommendation}</ReactMarkdown>
             </div>
@@ -161,7 +164,7 @@ export function TechnicalRadarChart({ data }: Props) {
                   <div className="flex items-center justify-between">
                     <span className="text-rc-text font-mono text-[11px] uppercase tracking-wider font-semibold">{s.name}</span>
                     <span className={`px-2.5 py-1 rounded text-[9px] font-bold ${isOk ? 'bg-rc-green/10 text-rc-green border border-rc-green/30' : 'bg-rc-amber/10 text-rc-amber border border-rc-amber/20'}`}>
-                      {isOk ? 'TARGET MET' : 'GAP'}
+                      {isOk ? tr.targetMet : tr.gap}
                     </span>
                   </div>
                   <div className="flex items-end justify-between">
@@ -180,7 +183,7 @@ export function TechnicalRadarChart({ data }: Props) {
             <div className="bg-rc-surface border border-rc-border rounded p-6">
               <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-amber mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
-                Market Context
+                {tr.marketContext}
               </h4>
               <div className="text-[16px] text-rc-text leading-[1.7] [&_strong]:font-semibold [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
                 <ReactMarkdown>{data.market_context}</ReactMarkdown>
@@ -189,7 +192,7 @@ export function TechnicalRadarChart({ data }: Props) {
             <div className="bg-rc-surface border border-rc-border rounded p-6">
               <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-red mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-                Missing Seniority Signals
+                {tr.senioritySig}
               </h4>
               <ul className="space-y-2">
                 {data.seniority_signals.map((sig, i) => (
@@ -201,7 +204,7 @@ export function TechnicalRadarChart({ data }: Props) {
                   </li>
                 ))}
                 {data.seniority_signals.length === 0 && (
-                  <li className="text-sm text-rc-hint italic text-rc-muted">No specific gaps identified for this level.</li>
+                  <li className="text-sm text-rc-hint italic text-rc-muted">{tr.noGaps}</li>
                 )}
               </ul>
             </div>

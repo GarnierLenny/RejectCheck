@@ -7,6 +7,7 @@ export const AnalyzeRequestSchema = z.object({
   motivationLetterText: z.string().max(20000, 'Motivation letter is too long').optional(),
   email: z.string().email().optional(),
   isRegistered: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional(),
+  locale: z.enum(['en', 'fr']).optional().default('en'),
 });
 
 export class AnalyzeRequestDto extends createZodDto(AnalyzeRequestSchema) {}
