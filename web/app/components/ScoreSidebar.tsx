@@ -1,6 +1,7 @@
 import type { AnalysisResult } from "./types";
 import { Tooltip } from "./Tooltip";
 import { Download, FileDown, RotateCcw } from "lucide-react";
+import { useLanguage } from "../../context/language";
 
 type Props = {
   result: AnalysisResult;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExportingPdf }: Props) {
+  const { t } = useLanguage();
   const scoreTextClass =
     result.score >= 70 ? "text-rc-red"
     : result.score >= 40 ? "text-rc-amber"
@@ -26,8 +28,8 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
       {/* Top bar: label + export actions */}
       <div className="px-8 py-4 border-b border-rc-border bg-rc-surface-hero flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[12px] tracking-[0.15em] uppercase text-rc-hint">Overall Risk Score</span>
-          <Tooltip text="Aggregate rejection probability based on profile weaknesses, ATS flags, and seniority gaps.">
+          <span className="font-mono text-[12px] tracking-[0.15em] uppercase text-rc-hint">{t.scoreSidebar.overallRisk}</span>
+          <Tooltip text={t.scoreSidebar.tooltipText}>
             <div className="cursor-help opacity-40 hover:opacity-100 transition-opacity">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                 <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
@@ -43,7 +45,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
             className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
           >
             <FileDown size={12} className="text-rc-red" />
-            {isExportingPdf ? "Exporting..." : "PDF"}
+            {isExportingPdf ? t.scoreSidebar.exporting : "PDF"}
           </button>
           <button
             onClick={onExportMd}
@@ -64,7 +66,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
           </div>
           <div className="mt-5 mb-6">
             <span className={`font-mono text-[13px] px-4 py-1.5 border uppercase tracking-widest ${scoreTextClass} border-current`}>
-              {result.verdict} Risk
+              {result.verdict} {t.scoreSidebar.risk}
             </span>
           </div>
           <div className="h-[4px] bg-rc-text/10 w-full overflow-hidden">
@@ -86,10 +88,10 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
                 );
               } else {
                 const [text, cls] =
-                  val <= 30 ? ["Weak",     "text-rc-red bg-rc-red/10 border-rc-red/20"] :
-                  val <= 60 ? ["Moderate", "text-rc-amber bg-rc-amber/10 border-rc-amber/20"] :
-                  val <= 80 ? ["Good",     "text-rc-green bg-rc-green/10 border-rc-green/20"] :
-                              ["Strong",   "text-rc-green bg-rc-green/10 border-rc-green/20"];
+                  val <= 30 ? [t.scoreSidebar.strength.weak,     "text-rc-red bg-rc-red/10 border-rc-red/20"] :
+                  val <= 60 ? [t.scoreSidebar.strength.moderate, "text-rc-amber bg-rc-amber/10 border-rc-amber/20"] :
+                  val <= 80 ? [t.scoreSidebar.strength.good,     "text-rc-green bg-rc-green/10 border-rc-green/20"] :
+                              [t.scoreSidebar.strength.strong,   "text-rc-green bg-rc-green/10 border-rc-green/20"];
                 badge = (
                   <span className={`font-mono text-[11px] uppercase tracking-wider px-2.5 py-1 border ${cls}`}>
                     {text}
@@ -122,7 +124,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
       {/* Footer: confidence + reset */}
       <div className="px-8 py-5 border-t border-rc-border bg-rc-surface-hero flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <p className="text-[14px] text-rc-muted leading-snug max-w-[680px]">
-          <span className="font-semibold text-rc-text">Model confidence {result.confidence.score}%</span>
+          <span className="font-semibold text-rc-text">{t.scoreSidebar.modelConfidence} {result.confidence.score}%</span>
           {" — "}
           {result.confidence.reason}
         </p>
@@ -132,7 +134,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
           className="flex items-center gap-2 font-mono text-[12px] text-rc-hint hover:text-rc-text transition-colors uppercase tracking-wider shrink-0"
         >
           <RotateCcw size={13} />
-          New Profile
+          {t.scoreSidebar.newProfile}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useLanguage } from "../../context/language";
 
 type Props = {
   cvFile: File | null;
@@ -24,7 +25,6 @@ type Props = {
 
 type AccuracyLevel = {
   segments: number;
-  label: string;
   color: string;
 };
 
@@ -36,10 +36,10 @@ function getAccuracy(cvFile: File | null, jd: string, github: string, liFile: Fi
 
   const score = (hasCV ? 1 : 0) + (hasJD ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
 
-  if (score <= 1) return { segments: 1, label: "Basic precision", color: "bg-rc-red" };
-  if (score === 2) return { segments: 2, label: "Basic precision", color: "bg-rc-red" };
-  if (score === 3) return { segments: 3, label: "Enhanced precision", color: "bg-rc-amber" };
-  return { segments: 5, label: "Full signal", color: "bg-rc-green" };
+  if (score <= 1) return { segments: 1, color: "bg-rc-red" };
+  if (score === 2) return { segments: 2, color: "bg-rc-red" };
+  if (score === 3) return { segments: 3, color: "bg-rc-amber" };
+  return { segments: 5, color: "bg-rc-green" };
 }
 
 /* ── Left panel helpers ──────────────────────────────────────────────────── */
@@ -54,10 +54,11 @@ function HintBox({ title, body }: { title: string; body: string }) {
 }
 
 function StepList({ current }: { current: 1 | 2 | 3 }) {
+  const { t } = useLanguage();
   const items: { n: 1 | 2 | 3; label: string }[] = [
-    { n: 1, label: "Application" },
-    { n: 2, label: "Signals" },
-    { n: 3, label: "Launch" },
+    { n: 1, label: t.uploadForm.steps.application },
+    { n: 2, label: t.uploadForm.steps.signals },
+    { n: 3, label: t.uploadForm.steps.launch },
   ];
   return (
     <div className="flex flex-col gap-2">
@@ -104,23 +105,25 @@ function LeftPanel({ stepTag, title, description, hint }: {
 }
 
 function LeftStep1() {
+  const { t } = useLanguage();
   return (
     <LeftPanel
-      stepTag="Step 1 of 3"
-      title={<>Your application<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-      description="CV and job listing are inseparable. One without the other, the analysis can't target."
-      hint={{ title: "Why the full listing?", body: "Title, stack, responsibilities, nice-to-haves — every line affects the ATS score." }}
+      stepTag={t.uploadForm.steps.step1}
+      title={<>{t.uploadForm.leftStep1.title}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
+      description={t.uploadForm.leftStep1.description}
+      hint={{ title: t.uploadForm.leftStep1.hintTitle, body: t.uploadForm.leftStep1.hintBody }}
     />
   );
 }
 
 function LeftStep2() {
+  const { t } = useLanguage();
   return (
     <LeftPanel
-      stepTag="Step 2 of 3"
-      title={<>Signals<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-      description="Each additional signal sharpens the diagnosis. GitHub reveals what the CV doesn't say. LinkedIn confirms consistency."
-      hint={{ title: "All optional", body: "Skip this step if you want. You can analyze with CV + listing only." }}
+      stepTag={t.uploadForm.steps.step2}
+      title={<>{t.uploadForm.steps.signals}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
+      description={t.uploadForm.leftStep2.description}
+      hint={{ title: t.uploadForm.leftStep2.hintTitle, body: t.uploadForm.leftStep2.hintBody }}
     />
   );
 }
@@ -129,28 +132,29 @@ function LeftStep3({ cvFile, jobDescription, githubUsername, liFile, mlFile, mlT
   cvFile: File | null; jobDescription: string; githubUsername: string;
   liFile: File | null; mlFile: File | null; mlText: string;
 }) {
+  const { t } = useLanguage();
   const recap = [
     cvFile ? { icon: "CV", name: cvFile.name, val: `${(cvFile.size / 1024).toFixed(0)} KB · PDF` } : null,
-    jobDescription.trim() ? { icon: "JD", name: "Job listing", val: `${jobDescription.trim().split(/\s+/).length} words · pasted` } : null,
-    githubUsername.trim() ? { icon: "GH", name: `github.com/${githubUsername}`, val: "Active signal" } : null,
-    liFile ? { icon: "in", name: liFile.name, val: "LinkedIn PDF" } : null,
-    (mlFile || mlText.trim()) ? { icon: "✉", name: mlFile ? mlFile.name : "Cover letter", val: mlFile ? "PDF" : "Pasted text" } : null,
+    jobDescription.trim() ? { icon: "JD", name: t.uploadForm.recap.jobListing, val: `${jobDescription.trim().split(/\s+/).length} ${t.uploadForm.recap.words}` } : null,
+    githubUsername.trim() ? { icon: "GH", name: `github.com/${githubUsername}`, val: t.uploadForm.recap.activeSignal } : null,
+    liFile ? { icon: "in", name: liFile.name, val: t.uploadForm.recap.linkedinPdf } : null,
+    (mlFile || mlText.trim()) ? { icon: "✉", name: mlFile ? mlFile.name : t.uploadForm.coverLetter.label, val: mlFile ? "PDF" : t.uploadForm.recap.coverLetterPasted } : null,
   ].filter((x): x is { icon: string; name: string; val: string } => x !== null);
 
   return (
     <div>
       <div className="font-mono text-[8px] tracking-[0.18em] uppercase text-rc-red flex items-center gap-1.5 mb-4">
         <div className="w-3 h-px bg-rc-red" />
-        Step 3 of 3
+        {t.uploadForm.steps.step3}
       </div>
       <div className="text-[20px] font-bold text-[#f7f5f2] leading-[1.2] tracking-[-0.01em]">
-        All set<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em>
+        {t.uploadForm.leftStep3.title}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em>
       </div>
       <p className="text-[12px] text-white/55 mt-2.5 leading-[1.65]">
-        Analysis takes ~45 seconds. Score, skills radar, ATS simulation, CV rewrite.
+        {t.uploadForm.leftStep3.description}
       </p>
       <div className="mt-5">
-        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-white/40 mb-2">Summary</div>
+        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-white/40 mb-2">{t.uploadForm.leftStep3.summary}</div>
         <div className="flex flex-col gap-1.5">
           {recap.map((item, i) => (
             <div key={i} className="flex items-center gap-2 px-2.5 py-2 bg-white/[0.04] border border-white/[0.06] rounded">
@@ -175,14 +179,15 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
   fileRef: React.RefObject<HTMLInputElement | null>;
   jobDescription: string; setJobDescription: (v: string) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="grid grid-cols-2 gap-6 flex-1">
 
       {/* CV Upload — left column */}
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Your CV</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Required</span>
+          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.cv.label}</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">{t.common.required}</span>
         </div>
         {!cvFile ? (
           <div
@@ -199,9 +204,9 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
             </div>
             <div className="text-center">
               <p className="text-[13px] text-rc-muted group-hover:text-rc-text transition-colors font-medium">
-                Drop your CV or <span className="text-rc-red underline decoration-dotted underline-offset-2">browse</span>
+                {t.uploadForm.cv.dropPrompt} <span className="text-rc-red underline decoration-dotted underline-offset-2">{t.uploadForm.cv.browse}</span>
               </p>
-              <p className="font-mono text-[10px] text-rc-hint mt-0.5">PDF · max 5MB</p>
+              <p className="font-mono text-[10px] text-rc-hint mt-0.5">{t.uploadForm.cv.format}</p>
             </div>
           </div>
         ) : (
@@ -226,8 +231,8 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
       {/* Job listing — right column */}
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">Job listing</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">Required</span>
+          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.jobListing.label}</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">{t.common.required}</span>
         </div>
         <textarea
           value={jobDescription}
@@ -235,7 +240,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           placeholder={"Senior Full Stack Developer — React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
           className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-none outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
         />
-        <p className="font-mono text-[9px] text-rc-hint mt-1.5">The more complete, the more precise the diagnosis.</p>
+        <p className="font-mono text-[9px] text-rc-hint mt-1.5">{t.uploadForm.jobListing.hint}</p>
       </div>
 
     </div>
@@ -257,6 +262,7 @@ function RightStep2({
   mlText: string; setMlText: (v: string) => void;
   mlMode: "file" | "text"; setMlMode: (m: "file" | "text") => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-3 flex-1">
 
@@ -268,9 +274,9 @@ function RightStep2({
           </div>
           <div className="flex-1">
             <div className="text-[12px] font-medium text-rc-text">GitHub</div>
-            <p className="font-mono text-[9px] text-rc-hint">repos · languages · activity</p>
+            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.github.hint}</p>
           </div>
-          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">+precision</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">{t.uploadForm.github.precision}</span>
         </div>
         <div className="px-3 py-2.5">
           <div className="relative">
@@ -294,9 +300,9 @@ function RightStep2({
           </div>
           <div className="flex-1">
             <div className="text-[12px] font-medium text-rc-text">LinkedIn</div>
-            <p className="font-mono text-[9px] text-rc-hint">profile PDF export</p>
+            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.hint}</p>
           </div>
-          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">+precision</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">{t.uploadForm.linkedin.precision}</span>
         </div>
         <div className="px-3 py-2.5">
           {!liFile ? (
@@ -304,8 +310,8 @@ function RightStep2({
               onClick={() => liRef.current?.click()}
               className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
             >
-              <p className="text-[12px] text-[#5ba3d9] font-medium">Drop your LinkedIn PDF export</p>
-              <span className="font-mono text-[9px] text-rc-hint">Settings → Data → Get a copy</span>
+              <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
+              <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
@@ -330,8 +336,8 @@ function RightStep2({
             </svg>
           </div>
           <div className="flex-1">
-            <div className="text-[12px] font-medium text-rc-text">Cover letter</div>
-            <p className="font-mono text-[9px] text-rc-hint">PDF or text</p>
+            <div className="text-[12px] font-medium text-rc-text">{t.uploadForm.coverLetter.label}</div>
+            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.coverLetter.hint}</p>
           </div>
           <div className="flex bg-rc-surface border border-rc-border rounded p-0.5">
             <button onClick={() => setMlMode("file")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "file" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>PDF</button>
@@ -346,8 +352,8 @@ function RightStep2({
                   onClick={() => mlRef.current?.click()}
                   className="border border-rc-border border-dashed hover:border-rc-red/30 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-rc-bg hover:bg-rc-red/[0.025]"
                 >
-                  <p className="text-[12px] text-rc-muted font-medium">Drop your cover letter</p>
-                  <span className="font-mono text-[9px] text-rc-hint">or <span className="text-rc-red decoration-dotted underline">browse</span></span>
+                  <p className="text-[12px] text-rc-muted font-medium">{t.uploadForm.coverLetter.dropPrompt}</p>
+                  <span className="font-mono text-[9px] text-rc-hint">or <span className="text-rc-red decoration-dotted underline">{t.uploadForm.coverLetter.browse}</span></span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
@@ -365,7 +371,7 @@ function RightStep2({
               value={mlText}
               onChange={(e) => { setMlText(e.target.value); setMlFile(null); }}
               onBlur={() => { if (mlText.trim()) setMlFile(null); }}
-              placeholder="Paste your cover letter here…"
+              placeholder={t.uploadForm.coverLetter.paste}
               className="w-full bg-rc-bg border border-rc-border focus:border-rc-red/20 rounded px-3 py-2.5 text-rc-text text-[12px] min-h-[80px] resize-y outline-none transition-colors placeholder:text-rc-hint/50"
             />
           )}
@@ -381,32 +387,34 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
   onSubmit: (e: React.MouseEvent<HTMLButtonElement>) => void;
   loading: boolean; error: string | null; hasRequired: boolean;
 }) {
+  const { t } = useLanguage();
+  const accuracyLabel = accuracy.segments <= 2
+    ? t.uploadForm.accuracy.basic
+    : accuracy.segments === 3
+    ? t.uploadForm.accuracy.enhanced
+    : t.uploadForm.accuracy.full;
+
   return (
     <div className="flex flex-col flex-1">
       <div className="flex-1">
         {/* Accuracy */}
         <div className="mb-5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-rc-hint mb-2">Analysis precision</div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-rc-hint mb-2">{t.uploadForm.accuracy.label}</div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className={`h-[3px] w-7 rounded-full transition-all duration-300 ${i <= accuracy.segments ? accuracy.color : "bg-rc-border"}`} />
               ))}
             </div>
-            <span className="font-mono text-[9px] text-rc-hint">{accuracy.label}</span>
+            <span className="font-mono text-[9px] text-rc-hint">{accuracyLabel}</span>
           </div>
         </div>
 
         {/* What you'll get */}
         <div className="p-4 bg-rc-bg border border-rc-border rounded mb-5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint mb-3">What you'll receive</div>
+          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint mb-3">{t.uploadForm.whatYouReceive.title}</div>
           <div className="flex flex-col gap-2">
-            {[
-              "Global rejection score + verdict",
-              "ATS simulation + missing keywords",
-              "Skills radar vs. position",
-              "CV rewrite + AI interview",
-            ].map((item) => (
+            {(t.uploadForm.whatYouReceive.items as string[]).map((item) => (
               <div key={item} className="flex items-center gap-2 text-[12px] text-rc-muted">
                 <span className="text-rc-red font-bold text-[10px]">✦</span>
                 {item}
@@ -419,10 +427,10 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
       {/* CTA */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint">Cost</span>
+          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint">{t.uploadForm.cost.label}</span>
           <div className="flex items-center gap-1.5 px-2 py-1 bg-rc-green/8 border border-rc-green/20 rounded">
             <span className="text-[10px] text-rc-green">✦</span>
-            <span className="font-mono text-[9px] text-rc-green font-medium uppercase tracking-tight">1 free credit available</span>
+            <span className="font-mono text-[9px] text-rc-green font-medium uppercase tracking-tight">{t.uploadForm.cost.freeCredit}</span>
           </div>
         </div>
 
@@ -438,11 +446,11 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
                   <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
                   <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                Analyzing…
+                {t.uploadForm.submit.analyzing}
               </>
             ) : (
               <>
-                Run analysis
+                {t.uploadForm.submit.runAnalysis}
                 <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
                   <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -456,9 +464,9 @@ function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
 
         <div className="flex items-center justify-center gap-4 mt-2.5">
           {[
-            { icon: "⏱", text: "~45s" },
-            { icon: "🔒", text: "Data not stored" },
-            { icon: "✦", text: "1 credit" },
+            { icon: "⏱", text: t.uploadForm.submit.duration },
+            { icon: "🔒", text: t.uploadForm.submit.dataNotStored },
+            { icon: "✦", text: t.uploadForm.submit.credit },
           ].map(({ icon, text }) => (
             <span key={text} className="font-mono text-[8px] text-rc-hint flex items-center gap-1">
               <span className="opacity-50">{icon}</span>{text}
@@ -488,6 +496,7 @@ export function UploadForm({
   onSubmit, loading, error,
   step, onStepChange,
 }: Props) {
+  const { t } = useLanguage();
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
   const fileRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLInputElement>(null);
@@ -558,7 +567,7 @@ export function UploadForm({
                 <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
                   <path d="M12 7H2M6.5 3L2 7l4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                Back
+                {t.common.back}
               </button>
             ) : <div />}
 
@@ -569,7 +578,7 @@ export function UploadForm({
                 disabled={step === 1 && !hasStep1}
                 className="bg-rc-red text-white font-mono text-[10px] tracking-[0.14em] uppercase px-5 py-2.5 rounded flex items-center gap-2 transition-all hover:bg-[#c93a39] hover:shadow-[0_4px_16px_rgba(201,58,57,0.25)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-rc-red"
               >
-                Continue
+                {t.common.continue}
                 <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
                   <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>

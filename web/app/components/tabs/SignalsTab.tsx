@@ -1,8 +1,11 @@
+"use client";
+
 import ReactMarkdown from "react-markdown";
 import { Github, Linkedin } from "react-bootstrap-icons";
 import type { AnalysisResult } from "../types";
 import { IssueItem } from "../IssueItem";
 import { SectionHeader } from "../SectionHeader";
+import { useLanguage } from "../../../context/language";
 
 type SignalData = AnalysisResult["audit"]["github"] | AnalysisResult["audit"]["linkedin"];
 
@@ -24,6 +27,7 @@ function SignalSection({
   emptyMessage: string;
   ctaText: string;
 }) {
+  const { t } = useLanguage();
   const criticalCount = issues.filter(i => i.severity === "critical").length;
   const majorCount    = issues.filter(i => i.severity === "major").length;
   const minorCount    = issues.filter(i => i.severity === "minor").length;
@@ -31,12 +35,12 @@ function SignalSection({
   return (
     <div>
       <SectionHeader
-        label="Signal Analysis"
+        label={t.signalsTab.signalAnalysis}
         title={title}
-        subtitle={hasData ? `${issues.length} issue${issues.length !== 1 ? "s" : ""} detected` : "Not provided"}
+        subtitle={hasData ? t.signalsTab.issuesDetected.replace('{count}', String(issues.length)).replace(/\{plural\}/g, issues.length !== 1 ? 's' : '') : t.signalsTab.notProvided}
         meta={
           <div className="text-right">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">Signal Score</span>
+            <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">{t.signalsTab.signalScore}</span>
             <span className={`font-mono text-[26px] font-medium ${score === null ? 'text-rc-hint' : score >= 70 ? 'text-rc-green' : score >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
               {score !== null ? `${score}%` : "N/A"}
             </span>
@@ -60,17 +64,17 @@ function SignalSection({
               <div className="flex items-center gap-2 flex-wrap">
                 {criticalCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-red/5 border border-rc-red/20 text-rc-red">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />{criticalCount} critical
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />{criticalCount} {t.signalsTab.critical}
                   </span>
                 )}
                 {majorCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-amber/5 border border-rc-amber/20 text-rc-amber">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />{majorCount} major
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />{majorCount} {t.signalsTab.major}
                   </span>
                 )}
                 {minorCount > 0 && (
                   <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-surface/10 border border-rc-border/30 text-rc-hint">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rc-hint" />{minorCount} minor
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-hint" />{minorCount} {t.signalsTab.minor}
                   </span>
                 )}
               </div>
@@ -95,7 +99,7 @@ function SignalSection({
             </div>
           ) : (
             <p className="font-mono text-[12px] text-rc-hint italic text-center py-10 uppercase tracking-wider">
-              No issues detected — strong signal.
+              {t.signalsTab.noIssuesDetected}
             </p>
           )}
         </div>
@@ -106,6 +110,7 @@ function SignalSection({
 }
 
 export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) {
+  const { t } = useLanguage();
   // Derive hasData from actual content — handles history-loaded results where state vars are empty
   const githubHasData = hasGithub || github.score !== null || github.issues.length > 0 || github.strengths.length > 0;
   const linkedinHasData = hasLinkedin || linkedin.score !== null || linkedin.issues.length > 0 || linkedin.strengths.length > 0;
@@ -118,8 +123,8 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
         strengths={github.strengths}
         issues={github.issues}
         hasData={githubHasData}
-        emptyMessage="No GitHub username provided — deep technical verification skipped."
-        ctaText="Re-analyze with your GitHub username to unlock signal"
+        emptyMessage={t.signalsTab.githubEmpty}
+        ctaText={t.signalsTab.githubCta}
       />
       <SignalSection
         title={<span className="flex items-center gap-2.5"><Linkedin size={20} className="text-rc-text" />LinkedIn Signal</span>}
@@ -127,8 +132,8 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) 
         strengths={linkedin.strengths}
         issues={linkedin.issues}
         hasData={linkedinHasData}
-        emptyMessage="No LinkedIn PDF provided — cross-reference verification skipped."
-        ctaText="Export your LinkedIn PDF (Settings → Data Privacy → Get a copy) and re-analyze"
+        emptyMessage={t.signalsTab.linkedinEmpty}
+        ctaText={t.signalsTab.linkedinCta}
       />
     </div>
   );

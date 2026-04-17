@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LoadingScreen } from "../../components/LoadingScreen";
+import { LoadingScreen } from "../../../components/LoadingScreen";
 
 const DEBUG_STEPS = [
   "parsing_cv",
@@ -34,15 +34,15 @@ export default function LoadingDebugPage() {
           <span className="bg-rc-green/20 text-rc-green px-2 py-0.5 rounded">LinkedIn: ON</span>
           <span className="bg-rc-green/20 text-rc-green px-2 py-0.5 rounded">ML: ON</span>
         </div>
-        <button 
+        <button
           onClick={() => setStepIndex(0)}
           className="mt-2 w-full py-1 bg-white/10 hover:bg-white/20 rounded border border-white/10 transition-colors"
         >
           Restart Loop
         </button>
       </div>
-      
-      <LoadingScreen 
+
+      <LoadingScreen
         currentStep={DEBUG_STEPS[stepIndex]}
         hasGithub={true}
         hasLinkedin={true}

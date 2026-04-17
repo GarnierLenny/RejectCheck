@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useInterviewHistory } from "../../../lib/queries";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Mic, RotateCcw, Loader2, ChevronDown, ChevronUp, Play, Clock, TrendingUp } from "lucide-react";
+import { useLanguage } from "../../../context/language";
 
 type InterviewTabProps = {
   isPremium: boolean;
@@ -51,10 +52,11 @@ function scoreBgClass(score: number) {
 }
 
 function VerdictChip({ verdict }: { verdict: "good" | "average" | "poor" }) {
+  const { t } = useLanguage();
   const map = {
-    good: { label: "Good", cls: "bg-green-500/10 text-green-400 border-green-500/20" },
-    average: { label: "Average", cls: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-    poor: { label: "To improve", cls: "bg-rc-red/10 text-rc-red border-rc-red/20" },
+    good:    { label: t.interviewTab.verdicts.good,    cls: "bg-green-500/10 text-green-400 border-green-500/20" },
+    average: { label: t.interviewTab.verdicts.average, cls: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    poor:    { label: t.interviewTab.verdicts.poor,    cls: "bg-rc-red/10 text-rc-red border-rc-red/20" },
   };
   const { label, cls } = map[verdict];
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full border font-mono text-[9px] tracking-widest uppercase font-bold ${cls}`}>{label}</span>;
@@ -62,6 +64,7 @@ function VerdictChip({ verdict }: { verdict: "good" | "average" | "poor" }) {
 
 function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewAnalysis; attemptNumber: number; date: string }) {
   const [expandedQ, setExpandedQ] = useState<number | null>(null);
+  const { t } = useLanguage();
   const globalScore = Math.round(analysis.axes.reduce((s, a) => s + a.score, 0) / analysis.axes.length);
 
   return (
@@ -84,7 +87,7 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
 
       {/* Axes */}
       <div>
-        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-3">Performance</p>
+        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-3">{t.interviewTab.performance}</p>
         <div className="space-y-3">
           {analysis.axes.map((axis, i) => (
             <div key={i}>
@@ -104,7 +107,7 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
       {/* Strengths + improvements */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-green-500/5 border border-green-500/15 rounded-xl p-4">
-          <p className="font-mono text-[9px] tracking-widest uppercase text-green-400 mb-2.5">Strengths</p>
+          <p className="font-mono text-[9px] tracking-widest uppercase text-green-400 mb-2.5">{t.interviewTab.strengths}</p>
           <ul className="space-y-2">
             {analysis.keyStrengths.map((s, i) => (
               <li key={i} className="flex gap-1.5 text-[12px] text-rc-text leading-snug">
@@ -114,7 +117,7 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
           </ul>
         </div>
         <div className="bg-rc-red/5 border border-rc-red/15 rounded-xl p-4">
-          <p className="font-mono text-[9px] tracking-widest uppercase text-rc-red mb-2.5">To improve</p>
+          <p className="font-mono text-[9px] tracking-widest uppercase text-rc-red mb-2.5">{t.interviewTab.toImprove}</p>
           <ul className="space-y-2">
             {analysis.keyImprovements.map((s, i) => (
               <li key={i} className="flex gap-1.5 text-[12px] text-rc-text leading-snug">
@@ -127,7 +130,7 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
 
       {/* Question feedback */}
       <div>
-        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-3">Question feedback</p>
+        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-3">{t.interviewTab.questionFeedback}</p>
         <div className="border border-rc-border rounded-xl overflow-hidden divide-y divide-rc-border">
           {analysis.questionFeedback.map((qf, i) => (
             <div key={i}>
@@ -142,11 +145,11 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
               {expandedQ === i && (
                 <div className="px-4 pb-4 space-y-2 bg-rc-bg/40">
                   <div className="rounded-lg border border-rc-border p-3">
-                    <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint mb-1">Your answer</p>
+                    <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint mb-1">{t.interviewTab.yourAnswer}</p>
                     <p className="text-[12px] text-rc-muted italic leading-relaxed">{qf.answer}</p>
                   </div>
                   <div className="rounded-lg border border-rc-border p-3">
-                    <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint mb-1">Feedback</p>
+                    <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint mb-1">{t.interviewTab.feedback}</p>
                     <p className="text-[12px] text-rc-text leading-relaxed">{qf.comment}</p>
                   </div>
                 </div>
@@ -160,28 +163,29 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
 }
 
 function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void; micGranted: boolean; onRequestMic: () => void }) {
+  const { t } = useLanguage();
   return (
     <div className="h-full flex flex-col items-center justify-center gap-6 px-8 text-center">
       <div className="w-16 h-16 rounded-full bg-rc-surface border border-rc-border flex items-center justify-center">
         <TrendingUp className="w-7 h-7 text-rc-muted" />
       </div>
       <div>
-        <p className="text-[15px] font-medium text-rc-text mb-1">No attempt selected</p>
-        <p className="text-[13px] text-rc-hint">Select a past attempt on the left to view its analysis, or start a new interview.</p>
+        <p className="text-[15px] font-medium text-rc-text mb-1">{t.interviewTab.noAttemptSelected}</p>
+        <p className="text-[13px] text-rc-hint">{t.interviewTab.noAttemptDesc}</p>
       </div>
       {micGranted ? (
         <button
           onClick={onStart}
           className="flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-lg shadow-rc-red/20"
         >
-          <Play className="w-3.5 h-3.5" />Start interview
+          <Play className="w-3.5 h-3.5" />{t.interviewTab.startInterview}
         </button>
       ) : (
         <button
           onClick={onRequestMic}
           className="flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-lg shadow-rc-red/20"
         >
-          <Mic className="w-3.5 h-3.5" />Allow microphone
+          <Mic className="w-3.5 h-3.5" />{t.interviewTab.allowMicrophone}
         </button>
       )}
     </div>
@@ -190,6 +194,7 @@ function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void
 
 export function InterviewTab({ isPremium, analysisId, email, accessToken, defaultInterviewId }: InterviewTabProps) {
   const queryClient = useQueryClient();
+  const { t, localePath } = useLanguage();
   const { data: historyData = [] } = useInterviewHistory();
   const history = historyData as AttemptHistory[];
 
@@ -387,14 +392,14 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rc-red/40 to-transparent" />
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/5 border border-rc-red/10 mb-6">
             <Sparkles className="w-3.5 h-3.5 text-rc-red" />
-            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">Premium Feature</span>
+            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">{t.interviewTab.premiumBadge}</span>
           </div>
-          <h3 className="text-2xl font-bold text-rc-text mb-3 tracking-tight">Simulate your job interview</h3>
+          <h3 className="text-2xl font-bold text-rc-text mb-3 tracking-tight">{t.interviewTab.premiumTitle}</h3>
           <p className="text-[15px] text-rc-muted mb-8 leading-relaxed">
-            A 10-minute AI voice interview tailored to this specific job, based on the gaps and red flags from your analysis. Get a full performance report after.
+            {t.interviewTab.premiumDesc}
           </p>
-          <Link href="/pricing" className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20 no-underline font-bold">
-            Unlock AI Interview <ArrowRight className="w-4 h-4" />
+          <Link href={localePath("/pricing")} className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20 no-underline font-bold">
+            {t.interviewTab.unlockButton} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -409,7 +414,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-rc-red animate-pulse" />
-            <span className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">Live interview</span>
+            <span className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">{t.interviewTab.liveInterview}</span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-rc-hint" />
@@ -432,20 +437,20 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 h-6">
             {isProcessing ? (
-              <><Loader2 className="w-3.5 h-3.5 text-rc-muted animate-spin" /><span className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">Processing...</span></>
+              <><Loader2 className="w-3.5 h-3.5 text-rc-muted animate-spin" /><span className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">{t.interviewTab.processing}</span></>
             ) : isListening ? (
               <>
                 <div className="flex gap-0.5 items-end h-4">
                   {[...Array(5)].map((_, i) => <div key={i} className="w-0.5 bg-rc-red rounded-full animate-bounce" style={{ height: `${[8, 14, 10, 16, 6][i]}px`, animationDelay: `${i * 0.1}s` }} />)}
                 </div>
-                <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red">Listening...</span>
+                <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red">{t.interviewTab.listening}</span>
               </>
             ) : (
-              <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint">Waiting...</span>
+              <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint">{t.interviewTab.waiting}</span>
             )}
           </div>
           <button onClick={completeInterview} className="font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-muted transition-colors">
-            End early
+            {t.interviewTab.endEarly}
           </button>
         </div>
       </div>
@@ -457,7 +462,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-4">
         <Loader2 className="w-7 h-7 text-rc-red animate-spin" />
-        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">Analysing your interview...</p>
+        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">{t.interviewTab.analysing}</p>
       </div>
     );
   }
@@ -488,7 +493,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-md shadow-rc-red/20 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Play className="w-3.5 h-3.5" />
-              {history.length > 0 ? "New attempt" : "Start interview"}
+              {history.length > 0 ? t.interviewTab.newAttempt : t.interviewTab.startInterview}
             </button>
           ) : (
             <button
@@ -496,11 +501,11 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-md shadow-rc-red/20"
             >
               <Mic className="w-3.5 h-3.5" />
-              Allow microphone
+              {t.interviewTab.allowMicrophone}
             </button>
           )}
           {micGranted && (
-            <p className="text-center font-mono text-[9px] text-rc-hint mt-2 tracking-wide">6 questions · 10 min · English</p>
+            <p className="text-center font-mono text-[9px] text-rc-hint mt-2 tracking-wide">{t.interviewTab.sessionInfo}</p>
           )}
         </div>
 
@@ -508,12 +513,12 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
         <div className="flex-1 overflow-y-auto">
           {history.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center py-8">
-              <p className="text-[12px] text-rc-hint leading-relaxed">No interviews yet. Start your first session above.</p>
+              <p className="text-[12px] text-rc-hint leading-relaxed">{t.interviewTab.noInterviewsYet}</p>
             </div>
           ) : (
             <>
               <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint px-4 pt-3 pb-2">
-                {history.length} attempt{history.length > 1 ? "s" : ""}
+                {history.length} {history.length > 1 ? t.interviewTab.attempts : t.interviewTab.attempt}
               </p>
               {history.map((h, i) => {
                 const isSelected = h.id === selectedAttemptId;
@@ -555,7 +560,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
               onClick={() => { setInterviewState("idle"); setLiveAnalysis(null); }}
               className="w-full flex items-center justify-center gap-1.5 py-2 font-mono text-[9px] tracking-widest uppercase text-rc-muted hover:text-rc-text border border-rc-border rounded-lg transition-colors"
             >
-              <RotateCcw className="w-3 h-3" /> New attempt
+              <RotateCcw className="w-3 h-3" /> {t.interviewTab.newAttempt}
             </button>
           </div>
         )}
