@@ -369,7 +369,36 @@
       "moderate": "Moderate",
       "good": "Good",
       "strong": "Strong"
+    },
+    "verdicts": {
+      "Low": "Low",
+      "Medium": "Medium",
+      "High": "High"
+    },
+    "breakdownLabels": {
+      "keyword_match": "Keyword Match",
+      "tech_stack_fit": "Tech Stack Fit",
+      "experience_level": "Experience Level",
+      "github_signal": "GitHub Signal",
+      "linkedin_signal": "LinkedIn Signal"
     }
+  },
+  "technicalRadar": {
+    "label": "Skill Mapping",
+    "title": "Skill Gap Analysis",
+    "subtitle": "Your current level vs. what the job requires, measured across each key skill.",
+    "targetJd": "Target (JD)",
+    "yourProfile": "Your Profile",
+    "jobPriority": "Job Priority",
+    "skillsRanked": "Skills ranked by importance",
+    "strategicRec": "Strategic Recommendation",
+    "targetMet": "TARGET MET",
+    "gap": "GAP",
+    "checkTargetMet": "✓ target met",
+    "ptsGap": "−{gap} pts gap",
+    "noGaps": "No specific gaps identified for this level.",
+    "marketContext": "Market Context",
+    "senioritySig": "Missing Seniority Signals"
   },
   "tabs": {
     "skillGap": "Skill Gap",

@@ -369,7 +369,36 @@
       "moderate": "Moyen",
       "good": "Bon",
       "strong": "Fort"
+    },
+    "verdicts": {
+      "Low": "Faible",
+      "Medium": "Moyen",
+      "High": "Élevé"
+    },
+    "breakdownLabels": {
+      "keyword_match": "Mots-clés",
+      "tech_stack_fit": "Stack Technique",
+      "experience_level": "Niveau d'Expérience",
+      "github_signal": "Signal GitHub",
+      "linkedin_signal": "Signal LinkedIn"
     }
+  },
+  "technicalRadar": {
+    "label": "Cartographie",
+    "title": "Analyse des compétences",
+    "subtitle": "Votre niveau actuel vs. ce que le poste exige, mesuré sur chaque compétence clé.",
+    "targetJd": "Cible (offre)",
+    "yourProfile": "Votre profil",
+    "jobPriority": "Priorité poste",
+    "skillsRanked": "Compétences classées par importance",
+    "strategicRec": "Recommandation Stratégique",
+    "targetMet": "OBJECTIF ATTEINT",
+    "gap": "ÉCART",
+    "checkTargetMet": "✓ objectif atteint",
+    "ptsGap": "−{gap} pts d'écart",
+    "noGaps": "Aucun écart spécifique identifié pour ce niveau.",
+    "marketContext": "Contexte du marché",
+    "senioritySig": "Signaux de séniorité manquants"
   },
   "tabs": {
     "skillGap": "Écart de compétences",

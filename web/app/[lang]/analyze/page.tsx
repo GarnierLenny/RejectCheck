@@ -24,6 +24,7 @@ import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } fr
 import { useAuth } from "../../../context/auth";
 import { useSubscription, useAnalysis } from "../../../lib/queries";
 import { useLanguage } from "../../../context/language";
+import { LangSwitcher } from "../../components/LangSwitcher";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
@@ -345,8 +346,8 @@ function AnalyzeContent() {
           )}
         </div>
 
-        {/* Right: auth + pricing */}
-        <div className="flex items-center justify-end gap-6">
+        {/* Right: auth + pricing + lang */}
+        <div className="flex items-center justify-end gap-4">
           <AuthNavLink />
           <Link
             href={localePath("/pricing")}
@@ -354,6 +355,7 @@ function AnalyzeContent() {
           >
             {t.analyzeNav.pricing}
           </Link>
+          <LangSwitcher />
         </div>
       </nav>
 

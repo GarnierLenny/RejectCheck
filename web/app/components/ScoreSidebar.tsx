@@ -66,7 +66,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
           </div>
           <div className="mt-5 mb-6">
             <span className={`font-mono text-[13px] px-4 py-1.5 border uppercase tracking-widest ${scoreTextClass} border-current`}>
-              {result.verdict} {t.scoreSidebar.risk}
+              {t.scoreSidebar.verdicts[result.verdict] ?? result.verdict} {t.scoreSidebar.risk}
             </span>
           </div>
           <div className="h-[4px] bg-rc-text/10 w-full overflow-hidden">
@@ -78,7 +78,8 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
         <div className="flex-1 px-8 py-8">
           <div className="space-y-5">
             {Object.entries(result.breakdown).map(([key, val]) => {
-              const label = key.replace(/_/g, ' ');
+              const bl = t.scoreSidebar.breakdownLabels;
+              const label = bl[key as keyof typeof bl] ?? key.replace(/_/g, ' ');
               let badge: React.ReactNode;
               if (val === null) {
                 badge = (
