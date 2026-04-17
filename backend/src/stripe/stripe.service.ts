@@ -49,7 +49,8 @@ export class StripeService {
 
     if (event.type === 'checkout.session.completed') {
       const session: any = event.data.object;
-      const email: string | undefined = session.customer_details?.email || session.metadata?.email;
+      // Use only the Stripe-verified email, never the client-controlled metadata.email
+      const email: string | undefined = session.customer_details?.email ?? undefined;
       const plan: string | undefined = session.metadata?.plan;
       const customerId: string | undefined =
         typeof session.customer === 'string' ? session.customer : session.customer?.id;

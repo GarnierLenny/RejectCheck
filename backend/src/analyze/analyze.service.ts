@@ -48,11 +48,12 @@ export class AnalyzeService {
   private async fetchGithubData(username: string) {
     try {
       const headers = { 'User-Agent': 'RejectCheck-App' };
-      const profileRes = await fetch(`https://api.github.com/users/${username}`, { headers });
+      const encodedUsername = encodeURIComponent(username);
+      const profileRes = await fetch(`https://api.github.com/users/${encodedUsername}`, { headers });
       if (!profileRes.ok) return null;
       const profile = await profileRes.json();
 
-      const reposRes = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=10`, { headers });
+      const reposRes = await fetch(`https://api.github.com/users/${encodedUsername}/repos?sort=updated&per_page=10`, { headers });
       const repos = reposRes.ok ? await reposRes.json() : [];
 
       return {

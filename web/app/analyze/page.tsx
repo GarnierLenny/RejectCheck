@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,6 +22,7 @@ import { InterviewTab } from "../components/tabs/InterviewTab";
 import { TechnicalRadarChart } from "../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../utils/export";
 import { useAuth } from "../../context/auth";
+import { useSubscription, useAnalysis } from "../../lib/queries";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
@@ -31,7 +32,7 @@ type StoredSubscription = { plan: string; email: string; expiry: number };
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [jobDescription, setJobDescription] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [liFile, setLiFile] = useState<File | null>(null);
@@ -61,8 +62,16 @@ function AnalyzeContent() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
+  const urlId = searchParams.get('id') ? parseInt(searchParams.get('id')!) : null;
+
+  const { data: subscriptionData } = useSubscription();
+  const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(urlId);
+
+  // Bootstrap localStorage subscription on mount
+  const bootstrappedRef = useRef(false);
   useEffect(() => {
-    // Check for stored subscription
+    if (bootstrappedRef.current) return;
+    bootstrappedRef.current = true;
     try {
       const stored = localStorage.getItem('rc_subscription');
       if (stored) {
@@ -74,54 +83,48 @@ function AnalyzeContent() {
           localStorage.removeItem('rc_subscription');
         }
       }
-    } catch {
-      // ignore parse errors
-    }
+    } catch { /* ignore */ }
+  }, []);
 
-    // Sync subscription status from server if user is logged in
-    if (user?.email) {
-      fetch(`${apiUrl}/api/stripe/subscription?email=${user.email}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data?.status === 'active') {
-            const sub: StoredSubscription = {
-              plan: data.plan,
-              email: user.email!,
-              expiry: new Date(data.currentPeriodEnd).getTime(),
-            };
-            localStorage.setItem('rc_subscription', JSON.stringify(sub));
-            setActiveSubscription(sub);
-            setPaywallReason(null);
-          }
-        })
-        .catch(err => console.error("[Analyze] Error syncing sub:", err));
+  // Sync server subscription into local state + localStorage
+  useEffect(() => {
+    if (!subscriptionData || !user?.email) return;
+    if (subscriptionData.status === 'active') {
+      const sub: StoredSubscription = {
+        plan: subscriptionData.plan,
+        email: user.email,
+        expiry: new Date(subscriptionData.currentPeriodEnd).getTime(),
+      };
+      localStorage.setItem('rc_subscription', JSON.stringify(sub));
+      setActiveSubscription(sub);
+      setPaywallReason(null);
     }
-    // If there is an ID in the URL, fetch that analysis
-    const id = searchParams.get('id');
-    if (id && user?.email) {
-      setLoading(true);
-      fetch(`${apiUrl}/api/analyze/${id}?email=${user.email}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Analysis not found");
-          return res.json();
-        })
-        .then(data => {
-          setResult(data.result);
-          setJobDescription(data.jobDescription || "");
-          setAnalysisId(parseInt(id));
-          if (data.result?.rewrite) {
-            setReconstructedCv(data.result.rewrite.reconstructed_cv ?? null);
-          }
-          setVisualLoadingDone(true);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error("[Analyze] Error loading by ID:", err);
-          setError(err.message);
-          setLoading(false);
-        });
+  }, [subscriptionData, user]);
+
+  // Load analysis by ID from query cache into local state
+  useEffect(() => {
+    if (!savedAnalysis) return;
+    setResult(savedAnalysis.result);
+    setJobDescription(savedAnalysis.jobDescription || '');
+    if (urlId) setAnalysisId(urlId);
+    if (savedAnalysis.rewrite) {
+      setReconstructedCv(savedAnalysis.rewrite.reconstructed_cv ?? null);
     }
-  }, [searchParams, user, apiUrl]);
+    setVisualLoadingDone(true);
+    setLoading(false);
+  }, [savedAnalysis]);
+
+  useEffect(() => {
+    if (!urlId) return;
+    setLoading(loadingById);
+  }, [loadingById, urlId]);
+
+  useEffect(() => {
+    if (!isAnalysisError) return;
+    const msg = analysisError instanceof Error ? analysisError.message : 'Analysis not found';
+    setError(msg);
+    setLoading(false);
+  }, [isAnalysisError, analysisError]);
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -197,7 +200,7 @@ function AnalyzeContent() {
 
   async function handleRewrite() {
     const email = activeSubscription?.email || user?.email;
-    if (!analysisId || !email) return;
+    if (!analysisId || !email || !session?.access_token) return;
 
     // Show loading screen — keep old sections visible underneath in case of failure
     setIsRewriting(true);
@@ -205,8 +208,11 @@ function AnalyzeContent() {
     try {
       const res = await fetch(`${apiUrl}/api/analyze/rewrite`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysisId, email }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ analysisId }),
       });
 
       if (!res.ok || !res.body) {
@@ -435,6 +441,7 @@ function AnalyzeContent() {
                 isPremium={!!activeSubscription}
                 analysisId={analysisId}
                 email={activeSubscription?.email || user?.email || null}
+                accessToken={session?.access_token ?? null}
                 defaultInterviewId={searchParams.get("interviewId") ? Number(searchParams.get("interviewId")) : null}
               />
             )}

@@ -54,16 +54,17 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
 
 export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
   const atsThreshold = ats.threshold ?? ATS_THRESHOLD_FALLBACK;
+  const missingKeywords = ats.critical_missing_keywords ?? [];
   const simulatedScore = Math.min(100, Math.round(
     ats.score + Array.from(checkedKeywords).reduce((sum, kw) => {
-      const found = ats.critical_missing_keywords.find(k => k.keyword === kw);
+      const found = missingKeywords.find(k => k.keyword === kw);
       return sum + (found?.score_impact ?? 0);
     }, 0)
   ));
   const gapToThreshold = atsThreshold - simulatedScore;
-  const requiredKws = [...ats.critical_missing_keywords.filter(k => k.required)].sort((a, b) => b.score_impact - a.score_impact);
-  const preferredKws = [...ats.critical_missing_keywords.filter(k => !k.required)].sort((a, b) => b.score_impact - a.score_impact);
-  const maxImpact = Math.max(...ats.critical_missing_keywords.map(k => k.score_impact), 1);
+  const requiredKws = [...missingKeywords.filter(k => k.required)].sort((a, b) => b.score_impact - a.score_impact);
+  const preferredKws = [...missingKeywords.filter(k => !k.required)].sort((a, b) => b.score_impact - a.score_impact);
+  const maxImpact = Math.max(...missingKeywords.map(k => k.score_impact), 1);
 
   return (
     <div className="space-y-12">

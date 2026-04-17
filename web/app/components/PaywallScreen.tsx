@@ -10,10 +10,6 @@ export function PaywallScreen() {
   const [email, setEmail] = useState('');
   const [state, setState] = useState<SubmitState>('idle');
 
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [adminKey, setAdminKey] = useState('');
-  const [adminError, setAdminError] = useState(false);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
@@ -30,26 +26,6 @@ export function PaywallScreen() {
       else setState('error');
     } catch {
       setState('error');
-    }
-  }
-
-  async function handleAdminReset(e: React.FormEvent) {
-    setAdminError(false);
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
-      const res = await fetch(`${apiUrl}/api/admin/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: adminKey }),
-      });
-      if (res.ok) {
-        localStorage.removeItem('rc_free_used');
-        window.location.reload();
-      } else {
-        setAdminError(true);
-      }
-    } catch {
-      setAdminError(true);
     }
   }
 
@@ -136,28 +112,6 @@ export function PaywallScreen() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-rc-border/50 text-center">
-          {showAdmin ? (
-            <form onSubmit={handleAdminReset} className="flex gap-2 max-w-[300px] mx-auto">
-              <input 
-                type="password" 
-                placeholder="Admin Key" 
-                value={adminKey}
-                onChange={(e) => setAdminKey(e.target.value)}
-                className={`flex-1 bg-rc-bg border ${adminError ? 'border-rc-red/50' : 'border-rc-border'} rounded-lg px-3 py-2 text-[12px] font-mono outline-none`}
-                autoFocus
-              />
-              <button type="submit" className="bg-rc-text text-white px-4 py-2 rounded-lg text-[11px] font-mono uppercase">Reset</button>
-            </form>
-          ) : (
-            <button 
-              onClick={() => setShowAdmin(true)}
-              className="font-mono text-[9px] uppercase tracking-[0.2em] text-rc-hint hover:text-rc-muted transition-colors font-bold"
-            >
-              Admin Access
-            </button>
-          )}
-        </div>
       </div>
     </div>
   );

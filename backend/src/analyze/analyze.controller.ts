@@ -1,4 +1,4 @@
-import { Controller, Post, Get, UseInterceptors, UploadedFiles, Body, Res, Req, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, UseInterceptors, UseGuards, UploadedFiles, Body, Res, Req, BadRequestException } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags, ApiOkResponse, ApiBody } from '@nestjs/swagger';
@@ -6,6 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { AnalyzeService } from './analyze.service';
 import { AnalyzeRequestSchema, AnalyzeRequestDto } from './dto/analyze-request.dto';
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
+import { SupabaseGuard } from '../auth/supabase.guard';
+import { AuthEmail } from '../auth/auth-email.decorator';
 
 @ApiTags('Analyze')
 @Controller('api/analyze')
@@ -15,6 +17,7 @@ export class AnalyzeController {
     private readonly configService: ConfigService,
   ) {}
 
+  /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
   @Post()
   @ApiOperation({ summary: 'Analyze a CV against a job description' })
   @ApiConsumes('multipart/form-data')
@@ -26,10 +29,10 @@ export class AnalyzeController {
     { name: 'motivationLetter', maxCount: 1 },
   ]))
   async analyze(
-    @UploadedFiles() files: { 
-      cv?: Express.Multer.File[], 
-      linkedin?: Express.Multer.File[], 
-      motivationLetter?: Express.Multer.File[] 
+    @UploadedFiles() files: {
+      cv?: Express.Multer.File[],
+      linkedin?: Express.Multer.File[],
+      motivationLetter?: Express.Multer.File[]
     },
     @Body() body: unknown,
     @Res() res: any,
@@ -50,10 +53,9 @@ export class AnalyzeController {
       // 1. Check Usage Limit
       const limit = await this.analyzeService.checkUsageLimit(email, ip);
       if (!limit.allowed) {
-        // Return 402 Payment Required for limit reached
-        return res.status(402).json({ 
-          message: 'Analysis limit reached. Upgrade to continue.', 
-          code: 'LIMIT_REACHED' 
+        return res.status(402).json({
+          message: 'Analysis limit reached. Upgrade to continue.',
+          code: 'LIMIT_REACHED'
         });
       }
 
@@ -93,46 +95,49 @@ export class AnalyzeController {
       }
       write({ step: 'error', message: err.message || 'Analysis failed', code: err.response?.code });
     } finally {
-      res.end();
+      if (!res.writableEnded) res.end();
     }
   }
 
+  @UseGuards(SupabaseGuard)
   @Get('history')
-  @ApiOperation({ summary: 'Get analysis history for a user' })
+  @ApiOperation({ summary: 'Get analysis history for the authenticated user' })
   @ApiOkResponse({ type: [AnalyzeResponseDto] })
-  async getHistory(@Query('email') email: string) {
-    if (!email) throw new BadRequestException('Email is required');
+  async getHistory(@AuthEmail() email: string) {
     return this.analyzeService.getHistory(email);
   }
 
+  @UseGuards(SupabaseGuard)
   @Get('profile')
-  @ApiOperation({ summary: 'Get user profile' })
-  async getProfile(@Query('email') email: string) {
-    console.log("[AnalyzeController] GET /profile for", email);
-    if (!email) throw new BadRequestException('Email is required');
+  @ApiOperation({ summary: 'Get profile of the authenticated user' })
+  async getProfile(@AuthEmail() email: string) {
     return this.analyzeService.getProfile(email);
   }
 
+  @UseGuards(SupabaseGuard)
   @Post('profile')
-  @ApiOperation({ summary: 'Update user profile' })
-  async updateProfile(@Body() body: { email: string; username?: string; avatarUrl?: string }) {
-    console.log("[AnalyzeController] POST /profile for", body.email);
-    if (!body.email) throw new BadRequestException('Email is required');
-    return this.analyzeService.updateProfile(body.email, {
+  @ApiOperation({ summary: 'Update profile of the authenticated user' })
+  async updateProfile(
+    @AuthEmail() email: string,
+    @Body() body: { username?: string; avatarUrl?: string },
+  ) {
+    return this.analyzeService.updateProfile(email, {
       username: body.username,
       avatarUrl: body.avatarUrl,
     });
   }
 
+  @UseGuards(SupabaseGuard)
   @Post('rewrite')
-  @ApiOperation({ summary: 'Rewrite a CV based on a previous analysis' })
+  @ApiOperation({ summary: 'Rewrite a CV based on a previous analysis (premium)' })
   async rewrite(
-    @Body() body: { analysisId: number; email: string },
+    @AuthEmail() email: string,
+    @Body() body: { analysisId: number },
     @Res() res: any,
   ) {
-    const { analysisId, email } = body;
-    if (!analysisId || !email) {
-      return res.status(400).json({ message: 'analysisId and email are required' });
+    const { analysisId } = body;
+    if (!analysisId) {
+      return res.status(400).json({ message: 'analysisId is required' });
     }
 
     const isPremium = await this.analyzeService.checkPremium(email);
@@ -157,36 +162,40 @@ export class AnalyzeController {
         write({ step: 'error', message: err.message || 'Rewrite failed' });
       }
     } finally {
-      res.end();
+      if (!res.writableEnded) res.end();
     }
   }
 
+  @UseGuards(SupabaseGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Get a specific analysis by ID' })
+  @ApiOperation({ summary: 'Get a specific analysis by ID (must belong to the authenticated user)' })
   @ApiOkResponse({ type: AnalyzeResponseDto })
-  async getAnalysis(@Req() req: Request, @Query('email') email: any, @Res() res: any) {
+  async getAnalysis(
+    @AuthEmail() email: string,
+    @Req() req: Request,
+    @Res() res: any,
+  ) {
     const { id: rawId } = req.params;
     const id = parseInt(rawId as string);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    const emailStr = String(email || '');
-    if (!emailStr) throw new BadRequestException('Email is required');
-    
-    console.log("[AnalyzeController] GET /:id", id, "for", emailStr);
-    const analysis = await this.analyzeService.getAnalysisById(id, emailStr);
+
+    const analysis = await this.analyzeService.getAnalysisById(id, email);
     if (!analysis) return res.status(404).json({ message: 'Analysis not found' });
-    
+
     return res.json(analysis);
   }
 
-  @Post(':id/delete') // Using POST for compatibility or @Delete if supported by frontend fetch easily
-  @ApiOperation({ summary: 'Delete an analysis' })
-  async deleteAnalysis(@Req() req: Request, @Query('email') email: any) {
+  @UseGuards(SupabaseGuard)
+  @Post(':id/delete')
+  @ApiOperation({ summary: 'Delete an analysis (must belong to the authenticated user)' })
+  async deleteAnalysis(
+    @AuthEmail() email: string,
+    @Req() req: Request,
+  ) {
     const { id: rawId } = req.params;
     const id = parseInt(rawId as string);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    const emailStr = String(email || '');
-    if (!emailStr) throw new BadRequestException('Email is required');
 
-    return this.analyzeService.deleteAnalysis(id, emailStr);
+    return this.analyzeService.deleteAnalysis(id, email);
   }
 }

@@ -17,7 +17,7 @@ export const CompleteSchema = z.object({
 });
 
 export const TranscriptEntrySchema = z.object({
-  role: z.enum(['ai', 'user']),
+  role: z.enum(['ai', 'user', 'meta']),
   content: z.string(),
   questionIndex: z.number().int(),
 });

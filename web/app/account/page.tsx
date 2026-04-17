@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "../../lib/supabase";
-import type { User } from "@supabase/supabase-js";
+import { useAuth } from "../../context/auth";
+import { useSubscription, useAnalysisHistory, useProfile, useInterviewHistory } from "../../lib/queries";
+import { useDeleteAnalysis, useUpdateProfile } from "../../lib/mutations";
 import { SuccessModal } from "../components/SuccessModal";
 import {
   FileText,
@@ -15,7 +17,6 @@ import {
   LogOut,
   Trash2,
   ArrowRight,
-  ShieldCheck,
   Star,
   Trophy,
   Zap,
@@ -34,121 +35,81 @@ type HistoryItem = {
   result: any;
 };
 
-type InterviewAttempt = {
-  id: number;
-  analysisId: number;
-  createdAt: string;
-  globalScore: number | null;
-};
-
-type Profile = {
-  username: string | null;
-  avatarUrl: string | null;
-};
-
-type Subscription = {
-  plan: string;
-  status: string;
-  currentPeriodEnd: string;
-} | null;
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
-
 function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [subscription, setSubscription] = useState<Subscription>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [interviewHistory, setInterviewHistory] = useState<InterviewAttempt[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingSub, setLoadingSub] = useState(false);
-  const [loadingHistory, setLoadingHistory] = useState(false);
+  const { user, session, loading: authLoading } = useAuth();
+
+  // Queries
+  const { data: subscription } = useSubscription();
+  const { data: profile } = useProfile();
+  const { data: history = [], isLoading: loadingHistory } = useAnalysisHistory();
+  const { data: interviewHistory = [] } = useInterviewHistory();
+
+  // Mutations
+  const deleteAnalysis = useDeleteAnalysis();
+  const updateProfile = useUpdateProfile();
+
+  // UI state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
   const [exportItem, setExportItem] = useState<HistoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, router]);
+
+  // Show success modal on ?success=true
   useEffect(() => {
     if (searchParams.get("success") === "true") {
       setShowSuccessModal(true);
     }
+  }, [searchParams]);
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) {
-        router.replace("/login");
-        return;
-      }
-      const currentUser = data.session.user;
-      setUser(currentUser);
+  // Sync active subscription to localStorage
+  useEffect(() => {
+    if (!subscription || !user?.email) return;
+    if (subscription.status === "active") {
+      localStorage.setItem("rc_subscription", JSON.stringify({
+        plan: subscription.plan,
+        email: user.email,
+        expiry: new Date(subscription.currentPeriodEnd).getTime(),
+      }));
+    }
+  }, [subscription, user]);
 
-      if (currentUser.email) {
-        setLoadingSub(true);
-        setLoadingHistory(true);
-        
-        // Parallel fetch for sub, history and profile
-        Promise.all([
-          fetch(`${apiUrl}/api/stripe/subscription?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : null),
-          fetch(`${apiUrl}/api/analyze/history?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : []),
-          fetch(`${apiUrl}/api/analyze/profile?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : null),
-          fetch(`${apiUrl}/api/interview/history?email=${encodeURIComponent(currentUser.email)}`).then(r => r.ok ? r.json() : []),
-        ]).then(([subData, historyData, profileData, interviewData]) => {
-          if (subData) {
-            setSubscription(subData);
-            if (subData.status === 'active') {
-              localStorage.setItem('rc_subscription', JSON.stringify({
-                plan: subData.plan,
-                email: currentUser.email,
-                expiry: new Date(subData.currentPeriodEnd).getTime(),
-              }));
-            }
-          }
-          setHistory(historyData);
-          setProfile(profileData);
-          setInterviewHistory(Array.isArray(interviewData) ? interviewData : []);
+  // Profile sync: DB ↔ Supabase auth metadata
+  useEffect(() => {
+    if (!profile || !user) return;
+    const metaUsername = user.user_metadata?.username;
 
-          // If profile missing username but metadata has it, sync to DB
-          const metaUsername = currentUser.user_metadata?.username;
-          if (profileData && !profileData.username && metaUsername) {
-            handleUpdateProfile({ username: metaUsername });
-          }
-          
-          // If DB has username but metadata is different, sync to metadata
-          if (profileData?.username && profileData.username !== metaUsername) {
-            supabase.auth.updateUser({
-              data: { username: profileData.username }
-            }).then(() => {
-              // Refresh user state to reflect metadata change mapping to initials
-              supabase.auth.getUser().then(({ data: { user: updatedUser } }) => {
-                if (updatedUser) setUser(updatedUser);
-              });
-            });
-          }
+    // DB missing username but metadata has it → push to DB
+    if (!profile.username && metaUsername) {
+      updateProfile.mutate({ username: metaUsername });
+    }
 
-          setLoadingSub(false);
-          setLoadingHistory(false);
-        }).catch(() => {
-          setLoadingSub(false);
-          setLoadingHistory(false);
-        });
-      }
-      setLoading(false);
-    });
-  }, [searchParams, router, supabase.auth]);
+    // DB has different username from metadata → push to metadata
+    if (profile.username && profile.username !== metaUsername) {
+      supabase.auth.updateUser({ data: { username: profile.username } });
+    }
+  }, [profile, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Close dropdown on click outside
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClick = () => setActiveMenuId(null);
-    window.addEventListener('click', handleClick);
-    return () => window.removeEventListener('click', handleClick);
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
   }, []);
 
   async function handleDelete(e: React.MouseEvent, id: number) {
@@ -158,12 +119,7 @@ function AccountPageContent() {
 
     setIsDeleting(id);
     try {
-      const res = await fetch(`${apiUrl}/api/analyze/${id}/delete?email=${encodeURIComponent(user?.email || "")}`, {
-        method: 'POST',
-      });
-      if (res.ok) {
-        setHistory(prev => prev.filter(item => item.id !== id));
-      }
+      await deleteAnalysis.mutateAsync(id);
     } catch (err) {
       console.error("Delete failed:", err);
     } finally {
@@ -179,33 +135,20 @@ function AccountPageContent() {
     setActiveMenuId(null);
   }
 
-  async function handleUpdateProfile(data: Partial<Profile>) {
+  async function handleUpdateProfile(data: { username?: string; avatarUrl?: string }) {
     if (!user?.email) return;
-    console.log("[Profile] Updating with data:", data);
     try {
-      const res = await fetch(`${apiUrl}/api/analyze/profile`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: user.email, ...data })
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        console.log("[Profile] Updated success:", updated);
-        setProfile(updated);
+      await updateProfile.mutateAsync(data);
 
-        // Sync to Supabase Auth metadata
-        if (data.avatarUrl || data.username) {
-          console.log("[Profile] Syncing to Auth metadata...");
-          const { error: authError } = await supabase.auth.updateUser({
-            data: {
-              ...(data.avatarUrl && { avatar_url: data.avatarUrl }),
-              ...(data.username && { username: data.username }),
-            }
-          });
-          if (authError) console.error("[Profile] Auth sync error:", authError);
-        }
-      } else {
-        console.error("[Profile] Update failed:", await res.text());
+      // Sync to Supabase auth metadata
+      if (data.avatarUrl || data.username) {
+        const { error: authError } = await supabase.auth.updateUser({
+          data: {
+            ...(data.avatarUrl && { avatar_url: data.avatarUrl }),
+            ...(data.username && { username: data.username }),
+          },
+        });
+        if (authError) console.error("[Profile] Auth sync error:", authError);
       }
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -222,23 +165,23 @@ function AccountPageContent() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      const { error: uploadError, data } = await supabase.storage
-        .from('avatars')
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from("avatars")
         .getPublicUrl(filePath);
 
       await handleUpdateProfile({ avatarUrl: publicUrl });
     } catch (err: any) {
-      alert(`Error uploading image: ${err.message || "Unknown error"}. Check if the 'avatars' bucket exists in Supabase.`);
+      alert(`Error uploading image: ${err.message || "Unknown error"}.`);
       console.error("[Avatar Upload Error]", err);
     } finally {
       setUploading(false);
@@ -248,11 +191,11 @@ function AccountPageContent() {
   async function handleSignOut() {
     setSigningOut(true);
     await supabase.auth.signOut();
-    localStorage.removeItem('rc_subscription');
+    localStorage.removeItem("rc_subscription");
     router.push("/");
   }
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-rc-bg flex items-center justify-center">
         <span className="font-mono text-[11px] tracking-widest uppercase text-rc-hint animate-pulse">Loading…</span>
@@ -260,19 +203,18 @@ function AccountPageContent() {
     );
   }
 
-  const planLabel = (subscription?.plan || "Rejected").toUpperCase();
+  if (!user) return null;
+
   const isActive = subscription?.status === "active";
+  const planLabel = (subscription?.plan || "Rejected").toUpperCase();
   const periodEnd = subscription?.currentPeriodEnd
     ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
+        day: "numeric", month: "long", year: "numeric",
       })
     : null;
 
-  // Stats calculation
   const totalAnalyses = history.length;
-  const avgRiskScore = totalAnalyses > 0 
+  const avgRiskScore = totalAnalyses > 0
     ? Math.round(history.reduce((acc, curr) => acc + (curr.result?.score || 0), 0) / totalAnalyses)
     : 0;
   const jobsTargeted = new Set(history.map(h => h.result?.job_details?.title || h.jobDescription)).size;
@@ -283,8 +225,9 @@ function AccountPageContent() {
     return "border-rc-red/30 text-rc-red bg-rc-red/5";
   };
 
-  const displayName = profile?.username || user?.user_metadata?.username || user?.email?.split('@')[0] || "User";
+  const displayName = profile?.username || user.user_metadata?.username || user.email?.split("@")[0] || "User";
   const userInitials = displayName.substring(0, 2).toUpperCase();
+  const avatarUrl = profile?.avatarUrl || user.user_metadata?.avatar_url;
 
   return (
     <div className="min-h-screen bg-rc-bg text-rc-text font-sans flex flex-col items-center">
@@ -296,13 +239,10 @@ function AccountPageContent() {
         <div className="flex items-center gap-6">
           <Link href="/analyze" className="font-mono text-[11px] tracking-widest uppercase text-rc-hint hover:text-rc-text transition-colors no-underline">Analyze</Link>
           <Link href="/pricing" className="font-mono text-[11px] tracking-widest uppercase text-rc-red hover:opacity-80 transition-opacity no-underline">Pricing</Link>
-          <Link
-            href="/account"
-            className="flex items-center gap-2.5 group no-underline"
-          >
+          <Link href="/account" className="flex items-center gap-2.5 group no-underline">
             <div className="w-8 h-8 rounded-full bg-rc-red/5 border border-rc-red/10 flex items-center justify-center text-[11px] font-black text-rc-red group-hover:bg-rc-red/10 transition-colors overflow-hidden">
-              {profile?.avatarUrl ? (
-                <img src={profile.avatarUrl} alt="PP" className="w-full h-full object-cover" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="PP" className="w-full h-full object-cover" />
               ) : (
                 userInitials
               )}
@@ -313,16 +253,16 @@ function AccountPageContent() {
 
       <div className="max-w-[1200px] w-full px-5 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* LEFT COLUMN: Sidebar (4/12) */}
+
+          {/* LEFT COLUMN */}
           <div className="lg:col-span-4 space-y-6">
-            
+
             {/* Profile Card */}
             <div className="bg-white border border-rc-border rounded-[24px] overflow-hidden shadow-sm p-8 text-center">
               <div className="relative w-24 h-24 mx-auto mb-6 group cursor-pointer" onClick={handleAvatarClick}>
                 <div className="w-full h-full rounded-full bg-rc-red/5 border border-rc-red/10 flex items-center justify-center text-rc-red text-3xl font-black shadow-inner overflow-hidden relative">
-                  {profile?.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
                     userInitials
                   )}
@@ -335,12 +275,12 @@ function AccountPageContent() {
                     <div className="w-5 h-5 border-2 border-rc-red border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
                 />
               </div>
 
@@ -350,61 +290,34 @@ function AccountPageContent() {
                     <input
                       type="text"
                       value={tempName}
-                      onChange={(e) => setTempName(e.target.value)}
+                      onChange={e => setTempName(e.target.value)}
                       className="w-full text-center bg-rc-bg border border-rc-red/20 rounded-lg px-3 py-1 text-sm font-bold outline-none focus:border-rc-red/50"
                       autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleUpdateProfile({ username: tempName });
-                          setIsEditingName(false);
-                        } else if (e.key === 'Escape') {
-                          setIsEditingName(false);
-                          setTempName(displayName);
-                        }
+                      onKeyDown={e => {
+                        if (e.key === "Enter") { handleUpdateProfile({ username: tempName }); setIsEditingName(false); }
+                        else if (e.key === "Escape") { setIsEditingName(false); setTempName(displayName); }
                       }}
                     />
                     <div className="flex gap-2">
-                      <button 
-                        onClick={() => {
-                          handleUpdateProfile({ username: tempName });
-                          setIsEditingName(false);
-                        }}
-                        className="text-[10px] font-mono uppercase tracking-widest text-rc-red hover:underline"
-                      >
-                        Save
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setIsEditingName(false);
-                          setTempName(displayName);
-                        }}
-                        className="text-[10px] font-mono uppercase tracking-widest text-rc-hint hover:underline"
-                      >
-                        Cancel
-                      </button>
+                      <button onClick={() => { handleUpdateProfile({ username: tempName }); setIsEditingName(false); }} className="text-[10px] font-mono uppercase tracking-widest text-rc-red hover:underline">Save</button>
+                      <button onClick={() => { setIsEditingName(false); setTempName(displayName); }} className="text-[10px] font-mono uppercase tracking-widest text-rc-hint hover:underline">Cancel</button>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="flex items-center justify-center gap-2 group-hover:translate-x-2 transition-transform">
                       <h1 className="text-xl font-bold tracking-tight text-rc-text truncate">{displayName}</h1>
-                      <button 
-                        onClick={() => {
-                          setTempName(displayName);
-                          setIsEditingName(true);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rc-bg rounded-md"
-                      >
+                      <button onClick={() => { setTempName(displayName); setIsEditingName(true); }} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rc-bg rounded-md">
                         <UserIcon className="w-3.5 h-3.5 text-rc-hint" />
                       </button>
                     </div>
-                    <p className="text-rc-hint font-medium text-xs truncate">{user?.email}</p>
+                    <p className="text-rc-hint font-medium text-xs truncate">{user.email}</p>
                   </>
                 )}
               </div>
 
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rc-red/5 border border-rc-red/10 mb-8">
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-rc-red animate-pulse' : 'bg-rc-hint'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-rc-red animate-pulse" : "bg-rc-hint"}`} />
                 <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">{planLabel}</span>
               </div>
 
@@ -437,7 +350,7 @@ function AccountPageContent() {
             <div className="bg-white border border-rc-border rounded-[24px] p-6 shadow-sm space-y-4">
               <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-hint font-bold">Subscription</p>
               <div className="space-y-1">
-                <p className="text-sm font-bold text-rc-text">{planLabel} {isActive ? 'Active' : 'Expired'}</p>
+                <p className="text-sm font-bold text-rc-text">{planLabel} {isActive ? "Active" : "Expired"}</p>
                 {isActive && periodEnd && (
                   <p className="text-[11px] text-rc-muted font-mono">Next billing: {periodEnd}</p>
                 )}
@@ -464,7 +377,7 @@ function AccountPageContent() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: History (8/12) */}
+          {/* RIGHT COLUMN */}
           <div className="lg:col-span-8 space-y-10">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
@@ -486,16 +399,16 @@ function AccountPageContent() {
                   <Link href="/analyze" className="inline-flex items-center gap-2 px-6 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90">Start New Analysis <ArrowRight className="w-3 h-3" /></Link>
                 </div>
               ) : (
-                history.map((item) => {
+                history.map(item => {
                   const jobTitle = item.result?.job_details?.title || "Developer";
                   const company = item.result?.job_details?.company || "Unknown Company";
                   const score = item.result?.score ?? 0;
-                  
+
                   return (
                     <div key={item.id} className="relative group">
-                      <Link 
+                      <Link
                         href={`/analyze?id=${item.id}`}
-                        className={`flex items-center justify-between p-6 bg-white border border-rc-border rounded-[24px] hover:border-rc-red/20 group/card transition-all no-underline shadow-sm ${isDeleting === item.id ? 'opacity-50 pointer-events-none' : ''}`}
+                        className={`flex items-center justify-between p-6 bg-white border border-rc-border rounded-[24px] hover:border-rc-red/20 group/card transition-all no-underline shadow-sm ${isDeleting === item.id ? "opacity-50 pointer-events-none" : ""}`}
                       >
                         <div className="flex items-center gap-6">
                           <div className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-black shadow-sm transition-transform group-hover/card:scale-105 ${getScoreColor(score)}`}>
@@ -506,7 +419,7 @@ function AccountPageContent() {
                               {jobTitle} <span className="text-rc-hint/50 font-normal group-hover/card:text-rc-red/30">•</span> {company}
                             </h3>
                             <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
-                              <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' })}
+                              <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                             </p>
                           </div>
                         </div>
@@ -516,32 +429,20 @@ function AccountPageContent() {
                         </div>
                       </Link>
 
-                      {/* Menu Button */}
-                      <button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setActiveMenuId(activeMenuId === item.id ? null : item.id);
-                        }}
-                        className={`absolute right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-xl hover:bg-rc-bg transition-all z-20 border border-transparent hover:border-rc-border ${activeMenuId === item.id ? 'bg-rc-bg border-rc-border text-rc-red' : 'text-rc-hint'}`}
+                      <button
+                        onClick={e => { e.preventDefault(); e.stopPropagation(); setActiveMenuId(activeMenuId === item.id ? null : item.id); }}
+                        className={`absolute right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-xl hover:bg-rc-bg transition-all z-20 border border-transparent hover:border-rc-border ${activeMenuId === item.id ? "bg-rc-bg border-rc-border text-rc-red" : "text-rc-hint"}`}
                       >
                         <MoreVertical className="w-5 h-5" />
                       </button>
 
-                      {/* Dropdown Menu */}
                       {activeMenuId === item.id && (
-                        <div className="absolute right-12 top-[calc(50%+20px)] w-48 bg-white border border-rc-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            onClick={(e) => handleOpenExport(e, item)}
-                            className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-bg text-rc-text transition-colors border-b border-rc-border group/item"
-                          >
+                        <div className="absolute right-12 top-[calc(50%+20px)] w-48 bg-white border border-rc-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200" onClick={e => e.stopPropagation()}>
+                          <button onClick={e => handleOpenExport(e, item)} className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-bg text-rc-text transition-colors border-b border-rc-border group/item">
                             <Download className="w-4 h-4 text-rc-red group-hover/item:scale-110 transition-transform" />
                             <span className="font-semibold">Export Report</span>
                           </button>
-                          <button 
-                            onClick={(e) => handleDelete(e, item.id)}
-                            className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-red/5 text-rc-red transition-colors group/del"
-                          >
+                          <button onClick={e => handleDelete(e, item.id)} className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-red/5 text-rc-red transition-colors group/del">
                             <Trash2 className="w-4 h-4 group-hover/del:rotate-12 transition-transform" />
                             <span className="font-semibold">Delete Analysis</span>
                           </button>
@@ -598,9 +499,7 @@ function AccountPageContent() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red opacity-0 group-hover/card:opacity-100 transition-all">
-                            View
-                          </span>
+                          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red opacity-0 group-hover/card:opacity-100 transition-all">View</span>
                           <ChevronRight className="w-4 h-4 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
                         </div>
                       </Link>
@@ -612,22 +511,14 @@ function AccountPageContent() {
           </div>
         </div>
 
-        {/* Footer info */}
         <div className="pt-12 pb-24 text-center space-y-2 opacity-30">
-          <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint">RejectCheck Premium • SECURE SESSION</p>
-          <p className="text-[10px] text-rc-muted">ID: {user?.id} • UTC: {new Date().toISOString()}</p>
+          <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint">RejectCheck Premium · SECURE SESSION</p>
+          <p className="text-[10px] text-rc-muted">ID: {user.id} · UTC: {new Date().toISOString()}</p>
         </div>
       </div>
 
-      {showSuccessModal && (
-        <SuccessModal onClose={() => setShowSuccessModal(false)} />
-      )}
-
-      <ExportModal 
-        isOpen={!!exportItem} 
-        onClose={() => setExportItem(null)} 
-        result={exportItem?.result || null} 
-      />
+      {showSuccessModal && <SuccessModal onClose={() => setShowSuccessModal(false)} />}
+      <ExportModal isOpen={!!exportItem} onClose={() => setExportItem(null)} result={exportItem?.result || null} />
     </div>
   );
 }

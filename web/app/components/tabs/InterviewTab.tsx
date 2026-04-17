@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useInterviewHistory } from "../../../lib/queries";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Mic, RotateCcw, Loader2, ChevronDown, ChevronUp, Play, Clock, TrendingUp } from "lucide-react";
 
@@ -8,6 +10,7 @@ type InterviewTabProps = {
   isPremium: boolean;
   analysisId: number | null;
   email: string | null;
+  accessToken: string | null;
   defaultInterviewId?: number | null;
 };
 
@@ -185,11 +188,14 @@ function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void
   );
 }
 
-export function InterviewTab({ isPremium, analysisId, email, defaultInterviewId }: InterviewTabProps) {
+export function InterviewTab({ isPremium, analysisId, email, accessToken, defaultInterviewId }: InterviewTabProps) {
+  const queryClient = useQueryClient();
+  const { data: historyData = [] } = useInterviewHistory();
+  const history = historyData as AttemptHistory[];
+
   const [interviewState, setInterviewState] = useState<InterviewState>("idle");
   const [micGranted, setMicGranted] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [history, setHistory] = useState<AttemptHistory[]>([]);
   const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(INTERVIEW_DURATION);
   const [isListening, setIsListening] = useState(false);
@@ -212,22 +218,14 @@ export function InterviewTab({ isPremium, analysisId, email, defaultInterviewId 
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  const fetchHistory = useCallback(() => {
-    if (!email) return;
-    fetch(`${apiUrl}/api/interview/history?email=${encodeURIComponent(email)}`)
-      .then(r => r.json())
-      .then((data: AttemptHistory[]) => {
-        setHistory(data);
-        setSelectedAttemptId(prev => {
-          // Prefer defaultInterviewId, then keep existing, then most recent
-          if (defaultInterviewId && data.some(h => h.id === defaultInterviewId)) return defaultInterviewId;
-          return prev ?? (data.length > 0 ? data[0].id : null);
-        });
-      })
-      .catch(() => {});
-  }, [email, defaultInterviewId]);
-
-  useEffect(() => { fetchHistory(); }, [fetchHistory]);
+  // Sync selectedAttemptId when history loads or defaultInterviewId changes
+  useEffect(() => {
+    if (history.length === 0) return;
+    setSelectedAttemptId(prev => {
+      if (defaultInterviewId && history.some(h => h.id === defaultInterviewId)) return defaultInterviewId;
+      return prev ?? history[0].id;
+    });
+  }, [history, defaultInterviewId]);
 
   const playAudio = useCallback((base64: string) => new Promise<void>(resolve => {
     if (currentAudioRef.current) currentAudioRef.current.pause();
@@ -251,36 +249,42 @@ export function InterviewTab({ isPremium, analysisId, email, defaultInterviewId 
   }, [stopVad]);
 
   const completeInterview = useCallback(async () => {
-    if (!interviewIdRef.current || !email) return;
+    if (!interviewIdRef.current || !email || !accessToken) return;
     if (timerRef.current) clearInterval(timerRef.current);
     setInterviewState("loading");
     try {
       const res = await fetch(`${apiUrl}/api/interview/complete`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ interviewId: interviewIdRef.current, email }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ interviewId: interviewIdRef.current }),
       });
       if (!res.ok) throw new Error();
       const data: InterviewAnalysis = await res.json();
       setLiveAnalysis(data);
       setInterviewState("done");
-      fetchHistory();
+      queryClient.invalidateQueries({ queryKey: ['interview-history'] });
     } catch {
       setInterviewState("done");
     }
-  }, [email, fetchHistory]);
+  }, [email, accessToken, queryClient]);
 
   const sendAnswer = useCallback(async (audioBlob: Blob) => {
-    if (!interviewIdRef.current || !email) return;
+    if (!interviewIdRef.current || !email || !accessToken) return;
     setIsListening(false);
     setIsProcessing(true);
     try {
       const fd = new FormData();
       fd.append("audio", audioBlob, "audio.webm");
       fd.append("interviewId", String(interviewIdRef.current));
-      fd.append("email", email);
       fd.append("questionIndex", String(questionIndexRef.current));
-      const res = await fetch(`${apiUrl}/api/interview/answer`, { method: "POST", body: fd });
+      const res = await fetch(`${apiUrl}/api/interview/answer`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: fd,
+      });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setMessages(prev => [...prev, { role: "user", content: data.transcript }]);
@@ -340,7 +344,7 @@ export function InterviewTab({ isPremium, analysisId, email, defaultInterviewId 
   }, []);
 
   const startInterview = useCallback(async () => {
-    if (!analysisId || !email) return;
+    if (!analysisId || !email || !accessToken) return;
     setInterviewState("in_progress");
     setMessages([]);
     setTimeLeft(INTERVIEW_DURATION);
@@ -349,8 +353,11 @@ export function InterviewTab({ isPremium, analysisId, email, defaultInterviewId 
     try {
       const res = await fetch(`${apiUrl}/api/interview/start`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ analysisId, email }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ analysisId }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();

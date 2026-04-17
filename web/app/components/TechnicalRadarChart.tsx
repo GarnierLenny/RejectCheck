@@ -116,7 +116,7 @@ export function TechnicalRadarChart({ data }: Props) {
               <p className="font-mono text-[11px] text-rc-hint">Skills ranked by importance</p>
             </div>
             <ol className="flex flex-col gap-1.5">
-              {(data.skill_priority ?? data.skills.map(s => s.name)).map((name, i) => {
+              {(data.skill_priority ?? data.skills?.map(s => s.name) ?? []).map((name, i) => {
                 const skill = skillMap[name];
                 const gap = skill ? skill.expected - skill.current : 0;
                 const isOk = gap <= 0;

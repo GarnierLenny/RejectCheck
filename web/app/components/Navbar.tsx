@@ -6,7 +6,7 @@ import { AuthNavLink } from "./AuthNavLink";
 import { useAuth } from "../../context/auth";
 
 export function Navbar() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <nav className="flex items-center justify-between px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border bg-white/50 backdrop-blur-md sticky top-0 z-50">
@@ -20,7 +20,7 @@ export function Navbar() {
       </Link>
       
       <div className="flex items-center gap-3">
-        {!user && (
+        {!user && !loading && (
           <>
             <Link
               href="/pricing"
@@ -33,7 +33,7 @@ export function Navbar() {
         
         <AuthNavLink />
         
-        {!user && (
+        {!user && !loading && (
           <Link
             href="/analyze"
             className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"

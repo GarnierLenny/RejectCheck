@@ -84,7 +84,12 @@ export class InterviewService {
       ],
     });
 
-    const plan = JSON.parse(planResponse.choices[0].message.content ?? '{}');
+    let plan: any;
+    try {
+      plan = JSON.parse(planResponse.choices[0].message.content ?? '{}');
+    } catch {
+      throw new BadRequestException('Failed to parse interview questions from AI response');
+    }
     const questions: string[] = plan.questions ?? [];
     if (questions.length === 0) throw new BadRequestException('Failed to generate interview questions');
 
@@ -136,7 +141,14 @@ export class InterviewService {
     // Rebuild transcript
     const transcript = (attempt.transcript as TranscriptEntry[]) ?? [];
     const metaEntry = transcript.find((e: any) => e.role === 'meta');
-    const questions: string[] = metaEntry ? JSON.parse(metaEntry.content).questions : [];
+    let questions: string[] = [];
+    if (metaEntry) {
+      try {
+        questions = JSON.parse(metaEntry.content).questions ?? [];
+      } catch {
+        throw new BadRequestException('Interview state is corrupted');
+      }
+    }
     const conversationEntries = transcript.filter((e: any) => e.role !== 'meta');
 
     const updatedTranscript = [
@@ -175,7 +187,12 @@ export class InterviewService {
         ],
       });
 
-      const decision = JSON.parse(decisionResponse.choices[0].message.content ?? '{}');
+      let decision: any;
+      try {
+        decision = JSON.parse(decisionResponse.choices[0].message.content ?? '{}');
+      } catch {
+        decision = { action: 'done' };
+      }
 
       if (decision.action !== 'done' && decision.message) {
         const nextQuestionIndex = decision.action === 'next' ? (decision.nextQuestionIndex ?? questionIndex + 1) : questionIndex;

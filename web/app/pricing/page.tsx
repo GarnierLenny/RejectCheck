@@ -6,10 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../../context/auth";
 import { AuthNavLink } from "../components/AuthNavLink";
+import { useSubscription } from "../../lib/queries";
+import { useCreateCheckout } from "../../lib/mutations";
 import { Check, ShieldCheck, Zap, Star, Trophy, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
 const plans = [
   {
@@ -80,28 +80,17 @@ function PricingContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<'shortlisted' | 'hired' | null>(null);
-  const [activePlan, setActivePlan] = useState<string | null>(null);
 
-  // Fetch current subscription status
+  const { data: subscription } = useSubscription();
+  const createCheckout = useCreateCheckout();
+
+  const activePlan = subscription?.status === 'active' ? subscription.plan : null;
+
   useEffect(() => {
-    // Check for error param from Stripe
     if (searchParams.get("error") === "true") {
-      toast.error("Payment cancelled. You can try again when you're ready.", {
-        duration: 5000,
-      });
+      toast.error("Payment cancelled. You can try again when you're ready.", { duration: 5000 });
     }
-
-    if (user?.email) {
-      fetch(`${apiUrl}/api/stripe/subscription?email=${user.email}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data?.status === 'active') {
-            setActivePlan(data.plan);
-          }
-        })
-        .catch(err => console.error("[Pricing] Error fetching sub:", err));
-    }
-  }, [user, searchParams]);
+  }, [searchParams]);
 
   async function handlePaidPlan(plan: 'shortlisted' | 'hired') {
     if (!user) {
@@ -112,36 +101,17 @@ function PricingContent() {
     if (activePlan === plan) return;
 
     setLoadingPlan(plan);
-    console.log(`[Pricing] Initiating checkout for plan: ${plan}, email: ${user.email}, api: ${apiUrl}`);
-    
     try {
-      const res = await fetch(`${apiUrl}/api/stripe/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, email: user.email }),
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`[Pricing] Checkout fetch failed: ${res.status} ${res.statusText}`, errorText);
-        alert(`Failed to initiate checkout: ${res.statusText}. Please check the console.`);
-        setLoadingPlan(null);
-        return;
-      }
-
-      const data = await res.json();
-      console.log(`[Pricing] Checkout response:`, data);
-      
+      const data = await createCheckout.mutateAsync({ plan, email: user.email });
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error(`[Pricing] No URL in checkout response:`, data);
-        alert("Failed to get checkout URL. Please try again.");
+        toast.error("Failed to get checkout URL. Please try again.");
         setLoadingPlan(null);
       }
     } catch (err) {
-      console.error(`[Pricing] Checkout error:`, err);
-      // alert(`An error occurred during checkout: ${err instanceof Error ? err.message : String(err)}`);
+      console.error('[Pricing] Checkout error:', err);
+      toast.error("Checkout failed. Please try again.");
       setLoadingPlan(null);
     }
   }
