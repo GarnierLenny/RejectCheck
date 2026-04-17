@@ -48,7 +48,7 @@ function HintBox({ title, body }: { title: string; body: string }) {
   return (
     <div className="mt-4 px-3 py-2.5 bg-rc-red/8 border border-rc-red/[0.18] rounded">
       <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-rc-red mb-1">{title}</div>
-      <div className="text-[11px] text-rc-hint leading-relaxed">{body}</div>
+      <div className="text-[11px] text-white/50 leading-relaxed">{body}</div>
     </div>
   );
 }
@@ -75,7 +75,7 @@ function StepList({ current }: { current: 1 | 2 | 3 }) {
             <span className={`font-mono text-[9px] uppercase tracking-[0.08em] ${
               state === "done" ? "text-rc-green"
               : state === "active" ? "text-white font-semibold"
-              : "text-[#3a3834]"
+              : "text-white/30"
             }`}>{label}</span>
           </div>
         );
@@ -97,7 +97,7 @@ function LeftPanel({ stepTag, title, description, hint }: {
         {stepTag}
       </div>
       <div className="text-[20px] font-bold text-[#f7f5f2] leading-[1.2] tracking-[-0.01em]">{title}</div>
-      <p className="text-[12px] text-rc-hint mt-2.5 leading-[1.65]">{description}</p>
+      <p className="text-[12px] text-white/55 mt-2.5 leading-[1.65]">{description}</p>
       <HintBox title={hint.title} body={hint.body} />
     </div>
   );
@@ -146,18 +146,18 @@ function LeftStep3({ cvFile, jobDescription, githubUsername, liFile, mlFile, mlT
       <div className="text-[20px] font-bold text-[#f7f5f2] leading-[1.2] tracking-[-0.01em]">
         All set<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em>
       </div>
-      <p className="text-[12px] text-rc-hint mt-2.5 leading-[1.65]">
+      <p className="text-[12px] text-white/55 mt-2.5 leading-[1.65]">
         Analysis takes ~45 seconds. Score, skills radar, ATS simulation, CV rewrite.
       </p>
       <div className="mt-5">
-        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-[#3a3834] mb-2">Summary</div>
+        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-white/40 mb-2">Summary</div>
         <div className="flex flex-col gap-1.5">
           {recap.map((item, i) => (
             <div key={i} className="flex items-center gap-2 px-2.5 py-2 bg-white/[0.04] border border-white/[0.06] rounded">
               <div className="w-5 h-5 rounded flex items-center justify-center font-mono text-[7px] font-bold bg-white/10 text-[#f7f5f2] shrink-0">{item.icon}</div>
               <div className="flex-1 min-w-0">
                 <div className="text-[11px] font-medium text-[#f7f5f2] truncate">{item.name}</div>
-                <div className="font-mono text-[9px] text-[#3a3834]">{item.val}</div>
+                <div className="font-mono text-[9px] text-white/40">{item.val}</div>
               </div>
               <span className="text-rc-green text-[11px]">✓</span>
             </div>
