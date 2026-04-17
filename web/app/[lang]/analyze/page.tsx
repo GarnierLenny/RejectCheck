@@ -34,7 +34,7 @@ type StoredSubscription = { plan: string; email: string; expiry: number };
 function AnalyzeContent() {
   const searchParams = useSearchParams();
   const { user, session } = useAuth();
-  const { t, localePath } = useLanguage();
+  const { t, localePath, locale } = useLanguage();
   const [jobDescription, setJobDescription] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [liFile, setLiFile] = useState<File | null>(null);
@@ -139,6 +139,7 @@ function AnalyzeContent() {
     const emailToSend = activeSubscription?.email || user?.email || email;
     if (emailToSend) formData.append("email", emailToSend);
     formData.append("isRegistered", String(!!user));
+    formData.append("locale", locale);
 
     setLoading(true);
     setError(null);
@@ -210,7 +211,7 @@ function AnalyzeContent() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ analysisId }),
+        body: JSON.stringify({ analysisId, locale }),
       });
 
       if (!res.ok || !res.body) {

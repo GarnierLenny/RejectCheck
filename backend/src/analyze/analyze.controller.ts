@@ -42,7 +42,7 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { jobDescription, githubUsername, motivationLetterText, email, isRegistered } = parsed.data;
+    const { jobDescription, githubUsername, motivationLetterText, email, isRegistered, locale } = parsed.data;
 
     // Capture IP: primary from x-forwarded-for, fallback to req.ip
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
@@ -72,6 +72,7 @@ export class AnalyzeController {
           motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
           motivationLetterText,
           githubUsername,
+          locale,
         },
         (step) => write({ step }),
       );
@@ -132,10 +133,10 @@ export class AnalyzeController {
   @ApiOperation({ summary: 'Rewrite a CV based on a previous analysis (premium)' })
   async rewrite(
     @AuthEmail() email: string,
-    @Body() body: { analysisId: number },
+    @Body() body: { analysisId: number; locale?: string },
     @Res() res: any,
   ) {
-    const { analysisId } = body;
+    const { analysisId, locale = 'en' } = body;
     if (!analysisId) {
       return res.status(400).json({ message: 'analysisId is required' });
     }
@@ -154,7 +155,7 @@ export class AnalyzeController {
 
     try {
       write({ step: 'rewriting' });
-      const rewriteResult = await this.analyzeService.rewriteCv(analysisId, email);
+      const rewriteResult = await this.analyzeService.rewriteCv(analysisId, email, locale);
       await this.analyzeService.saveRewrite(analysisId, email, rewriteResult);
       write({ step: 'done', reconstructed_cv: rewriteResult.reconstructed_cv });
     } catch (err: any) {
