@@ -246,7 +246,13 @@
     },
     "jobListing": {
       "label": "Job listing",
-      "hint": "The more complete, the more precise the diagnosis."
+      "hint": "The more complete, the more precise the diagnosis.",
+      "warnings": {
+        "tooShort": "Job description seems too short for a reliable analysis",
+        "invalidContent": "This doesn't look like a job description",
+        "promptInjection": "Invalid content detected",
+        "invertedFields": "This looks like a CV, not a job description"
+      }
     },
     "github": {
       "hint": "repos · languages · activity",
