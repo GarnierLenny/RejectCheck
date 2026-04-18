@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useLanguage } from "../../context/language";
+import { useJdValidation } from "../hooks/useJdValidation";
+import type { JdWarningKey } from "../hooks/useJdValidation";
 
 type Props = {
   cvFile: File | null;
@@ -180,6 +182,11 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
   jobDescription: string; setJobDescription: (v: string) => void;
 }) {
   const { t } = useLanguage();
+  const warningKey = useJdValidation(jobDescription);
+  const warningText = warningKey
+    ? (t.uploadForm.jobListing.warnings as Record<JdWarningKey, string>)[warningKey]
+    : null;
+
   return (
     <div className="grid grid-cols-2 gap-6 flex-1">
 
@@ -240,7 +247,11 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           placeholder={"Senior Full Stack Developer — React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
           className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-none outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
         />
-        <p className="font-mono text-[9px] text-rc-hint mt-1.5">{t.uploadForm.jobListing.hint}</p>
+        {warningText ? (
+          <p className="font-mono text-[9px] text-rc-amber mt-1.5">{warningText}</p>
+        ) : (
+          <p className="font-mono text-[9px] text-rc-hint mt-1.5">{t.uploadForm.jobListing.hint}</p>
+        )}
       </div>
 
     </div>
