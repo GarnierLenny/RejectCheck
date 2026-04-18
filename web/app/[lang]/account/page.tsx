@@ -28,6 +28,15 @@ import {
   Mic,
 } from "lucide-react";
 import { ExportModal } from "../../components/ExportModal";
+import { Github, Linkedin } from "react-bootstrap-icons";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+} from "recharts";
 
 type HistoryItem = {
   id: number;
@@ -35,6 +44,18 @@ type HistoryItem = {
   createdAt: string;
   result: any;
 };
+
+type AccountTab = "overview" | "analyses" | "interviews" | "applications" | "settings";
+
+const ACCOUNT_TABS: { id: AccountTab; label: string }[] = [
+  { id: "overview",      label: "Overview" },
+  { id: "analyses",      label: "Analyses" },
+  { id: "interviews",    label: "Interviews" },
+  { id: "applications",  label: "Applications" },
+  { id: "settings",      label: "Settings" },
+];
+
+const VALID_ACCOUNT_TABS: AccountTab[] = ["overview", "analyses", "interviews", "applications", "settings"];
 
 function AccountPageContent() {
   const router = useRouter();
@@ -52,6 +73,7 @@ function AccountPageContent() {
   const { data: profile } = useProfile();
   const { data: analysisData, isLoading: loadingHistory } = useAnalysisHistory(analysisPage);
   const { data: interviewData } = useInterviewHistory(interviewPage);
+  const { data: summaryData } = useAnalysisHistory(1);
 
   const history = analysisData?.data ?? [];
   const interviewHistory = interviewData?.data ?? [];
@@ -67,6 +89,18 @@ function AccountPageContent() {
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
   const [exportItem, setExportItem] = useState<HistoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
+
+  const [activeTab, setActiveTab] = useState<AccountTab>(() => {
+    const t = searchParams.get("tab");
+    return VALID_ACCOUNT_TABS.includes(t as AccountTab) ? (t as AccountTab) : "overview";
+  });
+
+  function handleTabChange(tab: AccountTab) {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -221,6 +255,11 @@ function AccountPageContent() {
   const totalInterviews = interviewData?.total ?? 0;
   const totalInterviewPages = Math.ceil(totalInterviews / 10);
 
+  const summaryPage1 = summaryData?.data ?? [];
+  const overviewAvgRisk = summaryPage1.length > 0
+    ? Math.round(summaryPage1.reduce((acc, curr) => acc + (curr.result?.score || 0), 0) / summaryPage1.length)
+    : null;
+
   const getScoreColor = (score: number) => {
     if (score < 40) return "border-rc-green/30 text-rc-green bg-rc-green/5";
     if (score < 70) return "border-rc-amber/40 text-rc-amber bg-rc-amber/5";
@@ -253,7 +292,550 @@ function AccountPageContent() {
         </div>
       </nav>
 
-      <div className="max-w-[1200px] w-full px-5 py-12">
+      <div className="max-w-[1200px] w-full px-5 pt-0 pb-12">
+
+        {/* Tab navigation bar */}
+        <div className="border-b border-rc-border mb-8">
+          <div className="flex overflow-x-auto tabs-scrollbar">
+            {ACCOUNT_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`shrink-0 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
+                  activeTab === tab.id
+                    ? "border-rc-red text-rc-red font-bold"
+                    : "border-transparent text-rc-muted hover:text-rc-text"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab content — placeholders */}
+        <div className="text-rc-hint font-mono text-sm">
+          {activeTab === "overview" && (() => {
+            // ── Radar data (Task A) ──────────────────────────────────────────
+            // Aggregate real skills from technical_analysis.skills[]
+            // { name, current: 0-10, expected: 0-10 }
+            // Track absolute current score (0-10), not ratio vs expected
+            // strength = avgCurrent/10 * 100 → 70% means 7/10 regardless of target
+            // Split compound names like "TypeScript / JavaScript" → ["typescript", "javascript"]
+            // so they merge correctly with standalone entries
+            const splitSkillName = (name: string): string[] =>
+              name.split(/\s*[\/&+]\s*|\s+and\s+/i)
+                .map(s => s.trim().toLowerCase())
+                .filter(s => s.length > 1);
+
+            const skillMap = new Map<string, { totalCurrent: number; count: number }>();
+            for (const item of summaryPage1) {
+              const skills: { name: string; current: number; expected: number }[] =
+                item.result?.technical_analysis?.skills ?? [];
+              for (const s of skills) {
+                if (!s.name) continue;
+                for (const key of splitSkillName(s.name)) {
+                  const existing = skillMap.get(key);
+                  if (existing) {
+                    existing.totalCurrent += s.current;
+                    existing.count += 1;
+                  } else {
+                    skillMap.set(key, { totalCurrent: s.current, count: 1 });
+                  }
+                }
+              }
+            }
+
+            // Top skills by frequency, up to 6
+            const topSkills = Array.from(skillMap.entries())
+              .sort((a, b) => b[1].count - a[1].count)
+              .slice(0, 6)
+              .map(([key, { totalCurrent, count }]) => ({
+                subject: key.charAt(0).toUpperCase() + key.slice(1),
+                strength: Math.round((totalCurrent / count / 10) * 100),
+              }));
+
+            // Fixed axes: GitHub Signal + LinkedIn Signal from breakdown (inverted)
+            const fixedAxes: { subject: string; strength: number | null }[] = [];
+            for (const item of summaryPage1) {
+              const bd = item.result?.breakdown;
+              if (!bd) continue;
+              if (bd.github_signal !== null && bd.github_signal !== undefined) {
+                const existing = fixedAxes.find(a => a.subject === "GitHub");
+                if (existing) {
+                  existing.strength = existing.strength !== null
+                    ? Math.round((existing.strength + (100 - bd.github_signal)) / 2)
+                    : 100 - bd.github_signal;
+                } else {
+                  fixedAxes.push({ subject: "GitHub", strength: 100 - bd.github_signal });
+                }
+              }
+              if (bd.linkedin_signal !== null && bd.linkedin_signal !== undefined) {
+                const existing = fixedAxes.find(a => a.subject === "LinkedIn");
+                if (existing) {
+                  existing.strength = existing.strength !== null
+                    ? Math.round((existing.strength + (100 - bd.linkedin_signal)) / 2)
+                    : 100 - bd.linkedin_signal;
+                } else {
+                  fixedAxes.push({ subject: "LinkedIn", strength: 100 - bd.linkedin_signal });
+                }
+              }
+              break; // one pass for fixed axes average — simplify for page-1 data
+            }
+            // Rebuild fixed axes as proper average
+            const ghVals = summaryPage1
+              .map(i => i.result?.breakdown?.github_signal)
+              .filter((v): v is number => v !== null && v !== undefined);
+            const liVals = summaryPage1
+              .map(i => i.result?.breakdown?.linkedin_signal)
+              .filter((v): v is number => v !== null && v !== undefined);
+            const fixedFinal: { subject: string; strength: number }[] = [];
+            if (ghVals.length > 0)
+              fixedFinal.push({ subject: "GitHub", strength: Math.round(100 - ghVals.reduce((a,b) => a+b,0)/ghVals.length) });
+            if (liVals.length > 0)
+              fixedFinal.push({ subject: "LinkedIn", strength: Math.round(100 - liVals.reduce((a,b) => a+b,0)/liVals.length) });
+
+            // GitHub/LinkedIn — raw values are already strength scores (higher = better)
+            // matching FlagsTab display logic: ≥70 green, ≥50 amber, <50 red
+            const ghScore = ghVals.length > 0
+              ? Math.round(ghVals.reduce((a,b) => a+b,0) / ghVals.length)
+              : null;
+            const liScore = liVals.length > 0
+              ? Math.round(liVals.reduce((a,b) => a+b,0) / liVals.length)
+              : null;
+
+            const radarPlotData = topSkills.length >= 3
+              ? topSkills
+              : (() => {
+                  // Fallback: use breakdown dimensions inverted
+                  const FALLBACK = [
+                    { key: "keyword_match",    label: "Keywords" },
+                    { key: "tech_stack_fit",   label: "Tech Stack" },
+                    { key: "experience_level", label: "Experience" },
+                  ] as const;
+                  return FALLBACK.map(({ key, label }) => {
+                    const vals = summaryPage1
+                      .map(i => i.result?.breakdown?.[key])
+                      .filter((v): v is number => v !== null && v !== undefined);
+                    const avg = vals.length > 0 ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+                    return { subject: label, strength: avg !== null ? Math.round(100-avg) : 0 };
+                  });
+                })();
+
+            const radarAnalysisCount = summaryPage1.filter(i => i.result?.technical_analysis?.skills?.length > 0).length;
+
+            // ── Risk color ───────────────────────────────────────────────────
+            const riskColor = overviewAvgRisk === null
+              ? "text-rc-hint"
+              : overviewAvgRisk > 60 ? "text-rc-red"
+              : overviewAvgRisk >= 40 ? "text-rc-amber"
+              : "text-rc-green";
+
+            return (
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+
+                {/* ── Left column (40%) ───────────────────────────────────── */}
+                <div className="w-full md:w-[40%] shrink-0 flex flex-col gap-4">
+
+                  {/* Plan card */}
+                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-6 space-y-5">
+                    {/* Profile */}
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="relative w-16 h-16 rounded-full cursor-pointer group/avatar shrink-0"
+                        onClick={handleAvatarClick}
+                      >
+                        <div className="w-full h-full rounded-full bg-rc-red/5 border border-rc-red/10 flex items-center justify-center text-lg font-black text-rc-red overflow-hidden">
+                          {avatarUrl
+                            ? <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            : userInitials
+                          }
+                        </div>
+                        <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                          <Camera className="w-4 h-4 text-white" />
+                        </div>
+                        {uploading && (
+                          <div className="absolute inset-0 rounded-full bg-white/60 flex items-center justify-center">
+                            <div className="w-4 h-4 border-2 border-rc-red border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-rc-text text-sm leading-tight truncate">{displayName}</p>
+                        <p className="font-mono text-[10px] text-rc-hint truncate">{user.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[rgba(0,0,0,0.06)]" />
+
+                    {/* Plan + renewal */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">Current plan</p>
+                        {isActive && periodEnd
+                          ? <p className="font-mono text-[11px] text-rc-muted">Renews <span className="text-rc-text font-semibold">{periodEnd}</span></p>
+                          : <p className="font-mono text-[11px] text-rc-hint">No active subscription</p>
+                        }
+                      </div>
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rc-red/5 border border-rc-red/10 shrink-0">
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-rc-red animate-pulse" : "bg-rc-hint"}`} />
+                        <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-red font-bold">{planLabel}</span>
+                      </div>
+                    </div>
+                    <Link
+                      href={localePath("/pricing")}
+                      className="font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-red transition-colors no-underline"
+                    >
+                      Manage subscription →
+                    </Link>
+                  </div>
+
+                  {/* Stat cards — compact grid */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { icon: <FileText className="w-3.5 h-3.5 text-rc-hint" />, value: totalAnalyses, label: "Analyses", color: "text-rc-text" },
+                      { icon: <Mic className="w-3.5 h-3.5 text-rc-hint" />,      value: totalInterviews, label: "Interviews", color: "text-rc-text" },
+                      { icon: <Zap className="w-3.5 h-3.5 text-rc-hint" />,      value: overviewAvgRisk ?? "—", label: "Avg risk", color: riskColor },
+                    ].map(({ icon, value, label, color }) => (
+                      <div key={label} className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
+                        {icon}
+                        <p className={`text-2xl font-black leading-none ${color}`}>{value}</p>
+                        <p className="font-mono text-[8px] tracking-widest uppercase text-rc-hint">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Recent analyses */}
+                  {summaryPage1.length > 0 && (
+                    <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Recent</p>
+                        <button
+                          onClick={() => handleTabChange("analyses")}
+                          className="font-mono text-[9px] tracking-widest uppercase text-rc-hint hover:text-rc-red transition-colors"
+                        >
+                          View full history →
+                        </button>
+                      </div>
+                      {summaryPage1.slice(0, 3).map((item, i) => {
+                        const title = item.result?.job_details?.title || "Developer";
+                        const company = item.result?.job_details?.company || "—";
+                        const score = item.result?.score ?? 0;
+                        const scoreClass = score < 40
+                          ? "text-rc-green border-rc-green/30 bg-rc-green/5"
+                          : score < 70
+                          ? "text-rc-amber border-rc-amber/40 bg-rc-amber/5"
+                          : "text-rc-red border-rc-red/30 bg-rc-red/5";
+                        return (
+                          <Link
+                            key={item.id}
+                            href={localePath(`/analyze?id=${item.id}`)}
+                            className={`flex items-center gap-3 px-4 py-3 hover:bg-[#faf9f7] transition-colors no-underline group ${i < 2 ? "border-b border-[rgba(0,0,0,0.04)]" : ""}`}
+                          >
+                            <div className={`w-9 h-9 shrink-0 rounded-lg border flex items-center justify-center font-black text-[11px] ${scoreClass}`}>
+                              {score}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[12px] text-rc-text leading-tight truncate group-hover:text-rc-red transition-colors">{title}</p>
+                              <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>
+                            </div>
+                            <ChevronRight className="w-3.5 h-3.5 text-rc-hint/30 group-hover:text-rc-red shrink-0 ml-auto transition-colors" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* CTA */}
+                  <Link
+                    href={localePath("/analyze")}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
+                  >
+                    New Analysis <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+
+                {/* ── Right column (60%) ───────────────────────────────────── */}
+                <div className="w-full md:flex-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Skill strength profile</p>
+                    <p className="font-mono text-[10px] text-rc-hint">
+                      Based on {radarAnalysisCount} {radarAnalysisCount === 1 ? "analysis" : "analyses"}
+                    </p>
+                  </div>
+
+                  {radarAnalysisCount === 0 ? (
+                    <div className="h-[420px] flex flex-col items-center justify-center gap-5">
+                      <p className="font-mono text-[11px] text-rc-hint text-center">Run your first analysis to see your skill profile.</p>
+                      <Link
+                        href={localePath("/analyze")}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
+                      >
+                        New Analysis <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="h-[420px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart cx="50%" cy="50%" outerRadius="58%" data={radarPlotData}>
+                          <PolarGrid stroke="rgba(0,0,0,0.08)" strokeDasharray="3 3" />
+                          <PolarAngleAxis
+                            dataKey="subject"
+                            tick={{ fill: "#6b6860", fontSize: 11, fontFamily: "monospace", fontWeight: 500 }}
+                          />
+                          <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
+                          <Radar
+                            dataKey="strength"
+                            stroke="#D94040"
+                            strokeWidth={2}
+                            fill="rgba(217,64,64,0.15)"
+                            animationDuration={1200}
+                            animationEasing="ease-out"
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+
+                  {/* Signals strength */}
+                  {(ghScore !== null || liScore !== null) && (() => {
+                    const signals = [
+                      { label: "GitHub",   score: ghScore,   icon: <Github className="w-4 h-4" /> },
+                      { label: "LinkedIn", score: liScore,   icon: <Linkedin className="w-4 h-4" /> },
+                    ].filter(s => s.score !== null) as { label: string; score: number; icon: React.ReactNode }[];
+
+                    const barColor = (s: number) =>
+                      s >= 70 ? "bg-rc-green" : s >= 50 ? "bg-rc-amber" : "bg-rc-red";
+                    const textColor = (s: number) =>
+                      s >= 70 ? "text-rc-green" : s >= 50 ? "text-rc-amber" : "text-rc-red";
+
+                    return (
+                      <div className="border-t border-[rgba(0,0,0,0.06)] pt-5 space-y-4">
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Signals strength</p>
+                        <div className="space-y-4">
+                          {signals.map(({ label, score, icon }) => (
+                            <div key={label} className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-rc-muted">
+                                  {icon}
+                                  <span className="font-mono text-[11px] uppercase tracking-widest">{label}</span>
+                                </div>
+                                <span className={`font-mono text-[12px] font-bold ${textColor(score)}`}>
+                                  {score}<span className="text-rc-hint font-normal"> / 100</span>
+                                </span>
+                              </div>
+                              <div className="h-1.5 w-full bg-[#f0ede9] rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-700 ${barColor(score)}`}
+                                  style={{ width: `${score}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+              </div>
+            );
+          })()}
+          {activeTab === "analyses" && (
+            <div className="space-y-10">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
+                  <LayoutGrid className="w-5 h-5 text-rc-red" /> {t.account.analysisHistory}
+                </h2>
+                <div className="h-px flex-1 bg-rc-border" />
+                <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">{totalAnalyses} {t.account.results}</p>
+              </div>
+
+              <div className="space-y-4">
+                {loadingHistory ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <div key={i} className="h-24 bg-rc-surface rounded-[24px] animate-pulse" />)}
+                  </div>
+                ) : totalAnalyses === 0 ? (
+                  <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
+                    <FileText className="w-12 h-12 text-rc-hint/20 mx-auto" />
+                    <p className="text-rc-muted font-medium">{t.account.noResults}</p>
+                    <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-6 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90">{t.account.startNewAnalysis} <ArrowRight className="w-3 h-3" /></Link>
+                  </div>
+                ) : (
+                  history.map(item => {
+                    const jobTitle = item.result?.job_details?.title || "Developer";
+                    const company = item.result?.job_details?.company || "Unknown Company";
+                    const score = item.result?.score ?? 0;
+
+                    return (
+                      <div key={item.id} className="relative group">
+                        <Link
+                          href={localePath(`/analyze?id=${item.id}`)}
+                          className={`flex items-center justify-between p-6 bg-white border border-rc-border rounded-[24px] hover:border-rc-red/20 group/card transition-all no-underline shadow-sm ${isDeleting === item.id ? "opacity-50 pointer-events-none" : ""}`}
+                        >
+                          <div className="flex items-center gap-6">
+                            <div className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-black shadow-sm transition-transform group-hover/card:scale-105 ${getScoreColor(score)}`}>
+                              {score}
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="font-bold text-rc-text tracking-tight flex items-center gap-2 group-hover/card:text-rc-red transition-colors">
+                                {jobTitle} <span className="text-rc-hint/50 font-normal group-hover/card:text-rc-red/30">•</span> {company}
+                              </h3>
+                              <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
+                                <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 pr-12">
+                            <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint opacity-10 font-bold group-hover/card:opacity-100 group-hover/card:text-rc-red transition-all">{t.account.details}</span>
+                            <ChevronRight className="w-5 h-5 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
+                          </div>
+                        </Link>
+
+                        <button
+                          onClick={e => { e.preventDefault(); e.stopPropagation(); setActiveMenuId(activeMenuId === item.id ? null : item.id); }}
+                          className={`absolute right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-xl hover:bg-rc-bg transition-all z-20 border border-transparent hover:border-rc-border ${activeMenuId === item.id ? "bg-rc-bg border-rc-border text-rc-red" : "text-rc-hint"}`}
+                        >
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+
+                        {activeMenuId === item.id && (
+                          <div className="absolute right-12 top-[calc(50%+20px)] w-48 bg-white border border-rc-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200" onClick={e => e.stopPropagation()}>
+                            <button onClick={e => handleOpenExport(e, item)} className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-bg text-rc-text transition-colors border-b border-rc-border group/item">
+                              <Download className="w-4 h-4 text-rc-red group-hover/item:scale-110 transition-transform" />
+                              <span className="font-semibold">{t.account.exportReport}</span>
+                            </button>
+                            <button onClick={e => handleDelete(e, item.id)} className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-red/5 text-rc-red transition-colors group/del">
+                              <Trash2 className="w-4 h-4 group-hover/del:rotate-12 transition-transform" />
+                              <span className="font-semibold">{t.account.deleteAnalysis}</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+
+                {totalAnalysisPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                      Page {analysisPage} / {totalAnalysisPages}
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        disabled={analysisPage === 1}
+                        onClick={() => setAnalysisPage(p => p - 1)}
+                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        ← Prev
+                      </button>
+                      <button
+                        disabled={analysisPage === totalAnalysisPages}
+                        onClick={() => setAnalysisPage(p => p + 1)}
+                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {activeTab === "interviews" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
+                  <Mic className="w-5 h-5 text-rc-red" /> {t.account.aiInterviews}
+                </h2>
+                <div className="h-px flex-1 bg-rc-border" />
+                <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                  {totalInterviews} {totalInterviews > 1 ? t.interviewTab.attempts : t.interviewTab.attempt}
+                </p>
+              </div>
+
+              {totalInterviews === 0 ? (
+                <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
+                  <Mic className="w-12 h-12 text-rc-hint/20 mx-auto" />
+                  <p className="text-rc-muted font-medium">No interviews yet.</p>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {interviewHistory.map((attempt, i) => {
+                      const score = attempt.globalScore;
+                      const scoreColor = score === null
+                        ? "border-rc-border text-rc-hint bg-rc-surface"
+                        : score >= 7 ? "border-green-500/30 text-green-400 bg-green-500/5"
+                        : score >= 4 ? "border-amber-500/30 text-amber-400 bg-amber-500/5"
+                        : "border-rc-red/30 text-rc-red bg-rc-red/5";
+                      const globalIndex = totalInterviews - ((interviewPage - 1) * 10) - i;
+
+                      return (
+                        <Link
+                          key={attempt.id}
+                          href={localePath(`/analyze?id=${attempt.analysisId}&tab=interview&interviewId=${attempt.id}`)}
+                          className="flex items-center justify-between p-5 bg-white border border-rc-border rounded-[20px] hover:border-rc-red/20 transition-all no-underline shadow-sm group/card"
+                        >
+                          <div className="flex items-center gap-5">
+                            <div className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-lg font-black ${scoreColor}`}>
+                              {score !== null ? score : "—"}
+                            </div>
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-rc-text tracking-tight group-hover/card:text-rc-red transition-colors">
+                                {t.account.interviewLabel} #{globalIndex}
+                              </p>
+                              <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
+                                <Clock className="w-3 h-3" />
+                                {new Date(attempt.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                                {" · "}
+                                {new Date(attempt.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red opacity-0 group-hover/card:opacity-100 transition-all">{t.account.view}</span>
+                            <ChevronRight className="w-4 h-4 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+
+                  {totalInterviewPages > 1 && (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                        Page {interviewPage} / {totalInterviewPages}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={interviewPage === 1}
+                          onClick={() => setInterviewPage(p => p - 1)}
+                          className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          ← Prev
+                        </button>
+                        <button
+                          disabled={interviewPage === totalInterviewPages}
+                          onClick={() => setInterviewPage(p => p + 1)}
+                          className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+          {activeTab === "applications" && <div>Applications</div>}
+          {activeTab === "settings"     && <div>Settings</div>}
+        </div>
+
+        {/* PRESERVED — will be wired into tabs */}
+        <div className="hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* LEFT COLUMN */}
@@ -379,188 +961,9 @@ function AccountPageContent() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div className="lg:col-span-8 space-y-10">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
-                <LayoutGrid className="w-5 h-5 text-rc-red" /> {t.account.analysisHistory}
-              </h2>
-              <div className="h-px flex-1 bg-rc-border" />
-              <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">{totalAnalyses} {t.account.results}</p>
-            </div>
-
-            <div className="space-y-4">
-              {loadingHistory ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => <div key={i} className="h-24 bg-rc-surface rounded-[24px] animate-pulse" />)}
-                </div>
-              ) : totalAnalyses === 0 ? (
-                <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
-                  <FileText className="w-12 h-12 text-rc-hint/20 mx-auto" />
-                  <p className="text-rc-muted font-medium">{t.account.noResults}</p>
-                  <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-6 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90">{t.account.startNewAnalysis} <ArrowRight className="w-3 h-3" /></Link>
-                </div>
-              ) : (
-                history.map(item => {
-                  const jobTitle = item.result?.job_details?.title || "Developer";
-                  const company = item.result?.job_details?.company || "Unknown Company";
-                  const score = item.result?.score ?? 0;
-
-                  return (
-                    <div key={item.id} className="relative group">
-                      <Link
-                        href={localePath(`/analyze?id=${item.id}`)}
-                        className={`flex items-center justify-between p-6 bg-white border border-rc-border rounded-[24px] hover:border-rc-red/20 group/card transition-all no-underline shadow-sm ${isDeleting === item.id ? "opacity-50 pointer-events-none" : ""}`}
-                      >
-                        <div className="flex items-center gap-6">
-                          <div className={`w-14 h-14 rounded-2xl border-2 flex items-center justify-center text-xl font-black shadow-sm transition-transform group-hover/card:scale-105 ${getScoreColor(score)}`}>
-                            {score}
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="font-bold text-rc-text tracking-tight flex items-center gap-2 group-hover/card:text-rc-red transition-colors">
-                              {jobTitle} <span className="text-rc-hint/50 font-normal group-hover/card:text-rc-red/30">•</span> {company}
-                            </h3>
-                            <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
-                              <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4 pr-12">
-                          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint opacity-10 font-bold group-hover/card:opacity-100 group-hover/card:text-rc-red transition-all">{t.account.details}</span>
-                          <ChevronRight className="w-5 h-5 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
-                        </div>
-                      </Link>
-
-                      <button
-                        onClick={e => { e.preventDefault(); e.stopPropagation(); setActiveMenuId(activeMenuId === item.id ? null : item.id); }}
-                        className={`absolute right-6 top-1/2 -translate-y-1/2 p-2.5 rounded-xl hover:bg-rc-bg transition-all z-20 border border-transparent hover:border-rc-border ${activeMenuId === item.id ? "bg-rc-bg border-rc-border text-rc-red" : "text-rc-hint"}`}
-                      >
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
-
-                      {activeMenuId === item.id && (
-                        <div className="absolute right-12 top-[calc(50%+20px)] w-48 bg-white border border-rc-border rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200" onClick={e => e.stopPropagation()}>
-                          <button onClick={e => handleOpenExport(e, item)} className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-bg text-rc-text transition-colors border-b border-rc-border group/item">
-                            <Download className="w-4 h-4 text-rc-red group-hover/item:scale-110 transition-transform" />
-                            <span className="font-semibold">{t.account.exportReport}</span>
-                          </button>
-                          <button onClick={e => handleDelete(e, item.id)} className="w-full flex items-center gap-3 px-5 py-3.5 text-sm hover:bg-rc-red/5 text-rc-red transition-colors group/del">
-                            <Trash2 className="w-4 h-4 group-hover/del:rotate-12 transition-transform" />
-                            <span className="font-semibold">{t.account.deleteAnalysis}</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-
-              {totalAnalysisPages > 1 && (
-                <div className="flex items-center justify-between pt-2">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                    Page {analysisPage} / {totalAnalysisPages}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      disabled={analysisPage === 1}
-                      onClick={() => setAnalysisPage(p => p - 1)}
-                      className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      ← Prev
-                    </button>
-                    <button
-                      disabled={analysisPage === totalAnalysisPages}
-                      onClick={() => setAnalysisPage(p => p + 1)}
-                      className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      Next →
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Interview History */}
-            {totalInterviews > 0 && (
-              <div className="space-y-6 pt-4">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
-                    <Mic className="w-5 h-5 text-rc-red" /> {t.account.aiInterviews}
-                  </h2>
-                  <div className="h-px flex-1 bg-rc-border" />
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                    {totalInterviews} {totalInterviews > 1 ? t.interviewTab.attempts : t.interviewTab.attempt}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  {interviewHistory.map((attempt, i) => {
-                    const score = attempt.globalScore;
-                    const scoreColor = score === null
-                      ? "border-rc-border text-rc-hint bg-rc-surface"
-                      : score >= 7 ? "border-green-500/30 text-green-400 bg-green-500/5"
-                      : score >= 4 ? "border-amber-500/30 text-amber-400 bg-amber-500/5"
-                      : "border-rc-red/30 text-rc-red bg-rc-red/5";
-                    const globalIndex = totalInterviews - ((interviewPage - 1) * 10) - i;
-
-                    return (
-                      <Link
-                        key={attempt.id}
-                        href={localePath(`/analyze?id=${attempt.analysisId}&tab=interview&interviewId=${attempt.id}`)}
-                        className="flex items-center justify-between p-5 bg-white border border-rc-border rounded-[20px] hover:border-rc-red/20 transition-all no-underline shadow-sm group/card"
-                      >
-                        <div className="flex items-center gap-5">
-                          <div className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-lg font-black ${scoreColor}`}>
-                            {score !== null ? score : "—"}
-                          </div>
-                          <div className="space-y-0.5">
-                            <p className="font-bold text-rc-text tracking-tight group-hover/card:text-rc-red transition-colors">
-                              {t.account.interviewLabel} #{globalIndex}
-                            </p>
-                            <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
-                              <Clock className="w-3 h-3" />
-                              {new Date(attempt.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                              {" · "}
-                              {new Date(attempt.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red opacity-0 group-hover/card:opacity-100 transition-all">{t.account.view}</span>
-                          <ChevronRight className="w-4 h-4 text-rc-hint/30 group-hover/card:text-rc-red transition-all" />
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                {totalInterviewPages > 1 && (
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                      Page {interviewPage} / {totalInterviewPages}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        disabled={interviewPage === 1}
-                        onClick={() => setInterviewPage(p => p - 1)}
-                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        ← Prev
-                      </button>
-                      <button
-                        disabled={interviewPage === totalInterviewPages}
-                        onClick={() => setInterviewPage(p => p + 1)}
-                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        Next →
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
+
+        </div>{/* end hidden preserved content */}
 
         <div className="pt-12 pb-24 text-center space-y-2 opacity-30">
           <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint">RejectCheck Premium · SECURE SESSION</p>
