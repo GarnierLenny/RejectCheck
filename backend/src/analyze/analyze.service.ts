@@ -678,15 +678,20 @@ ${analysis.cvText}`;
     }
   }
 
-  async getHistory(email: string) {
-    if (!email) return [];
-    return (this.prisma as any).analysis.findMany({
-      where: { 
-        email,
-        result: { not: Prisma.DbNull }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+  async getHistory(email: string, page: number, limit: number) {
+    if (!email) return { data: [], total: 0 };
+    const skip = (page - 1) * limit;
+    const where = { email, result: { not: Prisma.DbNull } };
+    const [data, total] = await Promise.all([
+      (this.prisma as any).analysis.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      (this.prisma as any).analysis.count({ where }),
+    ]);
+    return { data, total };
   }
 
   async getAnalysisById(id: number, email: string) {

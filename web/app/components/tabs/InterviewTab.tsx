@@ -195,8 +195,8 @@ function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void
 export function InterviewTab({ isPremium, analysisId, email, accessToken, defaultInterviewId }: InterviewTabProps) {
   const queryClient = useQueryClient();
   const { t, localePath } = useLanguage();
-  const { data: historyData = [] } = useInterviewHistory();
-  const history = historyData as AttemptHistory[];
+  const { data: historyResponse } = useInterviewHistory(1);
+  const history = (historyResponse?.data ?? []) as AttemptHistory[];
 
   const [interviewState, setInterviewState] = useState<InterviewState>("idle");
   const [micGranted, setMicGranted] = useState(false);

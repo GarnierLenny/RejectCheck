@@ -303,14 +303,21 @@ Analyze this interview and call submit_interview_analysis with your structured e
     return parsed.data;
   }
 
-  async history(email: string) {
-    const attempts = await (this.prisma as any).interviewAttempt.findMany({
-      where: { email },
-      orderBy: { createdAt: 'desc' },
-      select: { id: true, analysisId: true, analysis: true, createdAt: true },
-    });
+  async history(email: string, page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const where = { email };
+    const [attempts, total] = await Promise.all([
+      (this.prisma as any).interviewAttempt.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, analysisId: true, analysis: true, createdAt: true },
+        skip,
+        take: limit,
+      }),
+      (this.prisma as any).interviewAttempt.count({ where }),
+    ]);
 
-    return attempts.map((a: any) => {
+    const data = attempts.map((a: any) => {
       const analysis = a.analysis as any;
       let globalScore: number | null = null;
       if (analysis?.axes?.length > 0) {
@@ -325,5 +332,7 @@ Analyze this interview and call submit_interview_analysis with your structured e
         analysis: analysis ?? null,
       };
     });
+
+    return { data, total };
   }
 }

@@ -45,10 +45,16 @@ function AccountPageContent() {
 
   const { user, session, loading: authLoading } = useAuth();
 
+  const [analysisPage, setAnalysisPage] = useState(1);
+  const [interviewPage, setInterviewPage] = useState(1);
+
   const { data: subscription } = useSubscription();
   const { data: profile } = useProfile();
-  const { data: history = [], isLoading: loadingHistory } = useAnalysisHistory();
-  const { data: interviewHistory = [] } = useInterviewHistory();
+  const { data: analysisData, isLoading: loadingHistory } = useAnalysisHistory(analysisPage);
+  const { data: interviewData } = useInterviewHistory(interviewPage);
+
+  const history = analysisData?.data ?? [];
+  const interviewHistory = interviewData?.data ?? [];
 
   const deleteAnalysis = useDeleteAnalysis();
   const updateProfile = useUpdateProfile();
@@ -112,6 +118,7 @@ function AccountPageContent() {
     setIsDeleting(id);
     try {
       await deleteAnalysis.mutateAsync(id);
+      setAnalysisPage(1);
     } catch (err) {
       console.error("Delete failed:", err);
     } finally {
@@ -204,11 +211,15 @@ function AccountPageContent() {
       })
     : null;
 
-  const totalAnalyses = history.length;
-  const avgRiskScore = totalAnalyses > 0
-    ? Math.round(history.reduce((acc, curr) => acc + (curr.result?.score || 0), 0) / totalAnalyses)
+  const totalAnalyses = analysisData?.total ?? 0;
+  const avgRiskScore = history.length > 0
+    ? Math.round(history.reduce((acc, curr) => acc + (curr.result?.score || 0), 0) / history.length)
     : 0;
   const jobsTargeted = new Set(history.map(h => h.result?.job_details?.title || h.jobDescription)).size;
+
+  const totalAnalysisPages = Math.ceil(totalAnalyses / 10);
+  const totalInterviews = interviewData?.total ?? 0;
+  const totalInterviewPages = Math.ceil(totalInterviews / 10);
 
   const getScoreColor = (score: number) => {
     if (score < 40) return "border-rc-green/30 text-rc-green bg-rc-green/5";
@@ -383,7 +394,7 @@ function AccountPageContent() {
                 <div className="space-y-4">
                   {[1, 2, 3].map(i => <div key={i} className="h-24 bg-rc-surface rounded-[24px] animate-pulse" />)}
                 </div>
-              ) : history.length === 0 ? (
+              ) : totalAnalyses === 0 ? (
                 <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
                   <FileText className="w-12 h-12 text-rc-hint/20 mx-auto" />
                   <p className="text-rc-muted font-medium">{t.account.noResults}</p>
@@ -443,10 +454,34 @@ function AccountPageContent() {
                   );
                 })
               )}
+
+              {totalAnalysisPages > 1 && (
+                <div className="flex items-center justify-between pt-2">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                    Page {analysisPage} / {totalAnalysisPages}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={analysisPage === 1}
+                      onClick={() => setAnalysisPage(p => p - 1)}
+                      className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ← Prev
+                    </button>
+                    <button
+                      disabled={analysisPage === totalAnalysisPages}
+                      onClick={() => setAnalysisPage(p => p + 1)}
+                      className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Interview History */}
-            {interviewHistory.length > 0 && (
+            {totalInterviews > 0 && (
               <div className="space-y-6 pt-4">
                 <div className="flex items-center justify-between gap-4">
                   <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
@@ -454,7 +489,7 @@ function AccountPageContent() {
                   </h2>
                   <div className="h-px flex-1 bg-rc-border" />
                   <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                    {interviewHistory.length} {interviewHistory.length > 1 ? t.interviewTab.attempts : t.interviewTab.attempt}
+                    {totalInterviews} {totalInterviews > 1 ? t.interviewTab.attempts : t.interviewTab.attempt}
                   </p>
                 </div>
 
@@ -466,6 +501,7 @@ function AccountPageContent() {
                       : score >= 7 ? "border-green-500/30 text-green-400 bg-green-500/5"
                       : score >= 4 ? "border-amber-500/30 text-amber-400 bg-amber-500/5"
                       : "border-rc-red/30 text-rc-red bg-rc-red/5";
+                    const globalIndex = totalInterviews - ((interviewPage - 1) * 10) - i;
 
                     return (
                       <Link
@@ -479,7 +515,7 @@ function AccountPageContent() {
                           </div>
                           <div className="space-y-0.5">
                             <p className="font-bold text-rc-text tracking-tight group-hover/card:text-rc-red transition-colors">
-                              {t.account.interviewLabel} #{interviewHistory.length - i}
+                              {t.account.interviewLabel} #{globalIndex}
                             </p>
                             <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
                               <Clock className="w-3 h-3" />
@@ -497,6 +533,30 @@ function AccountPageContent() {
                     );
                   })}
                 </div>
+
+                {totalInterviewPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                      Page {interviewPage} / {totalInterviewPages}
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        disabled={interviewPage === 1}
+                        onClick={() => setInterviewPage(p => p - 1)}
+                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        ← Prev
+                      </button>
+                      <button
+                        disabled={interviewPage === totalInterviewPages}
+                        onClick={() => setInterviewPage(p => p + 1)}
+                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
