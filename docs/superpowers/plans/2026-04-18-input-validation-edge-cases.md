@@ -549,3 +549,7 @@ git commit -m "feat: harden system prompts against invalid job description input
 - `validateJobDescription` return type is a discriminated union `{ valid: true } | { valid: false; reason: string }` — controller narrows with `if (!jdValidation.valid)` ✓
 
 **No placeholders:** All steps contain actual code. ✓
+
+## Deployment Notes
+
+- `backend/.env`: `SYSTEM_ANALYZE_PROMPT` and `SYSTEM_TECHNICAL_PROMPT` have been updated with the hardening instruction (not committed — .env is gitignored). Apply the same instruction to production env vars.
