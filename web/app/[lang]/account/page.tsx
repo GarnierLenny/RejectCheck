@@ -68,6 +68,8 @@ function AccountPageContent() {
 
   const [analysisPage, setAnalysisPage] = useState(1);
   const [interviewPage, setInterviewPage] = useState(1);
+  const [analysisSearch, setAnalysisSearch] = useState("");
+  const [interviewSearch, setInterviewSearch] = useState("");
 
   const { data: subscription } = useSubscription();
   const { data: profile } = useProfile();
@@ -143,6 +145,9 @@ function AccountPageContent() {
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
   }, []);
+
+  useEffect(() => { setAnalysisPage(1); }, [analysisSearch]);
+  useEffect(() => { setInterviewPage(1); }, [interviewSearch]);
 
   async function handleDelete(e: React.MouseEvent, id: number) {
     e.preventDefault();
@@ -641,14 +646,39 @@ function AccountPageContent() {
               </div>
             );
           })()}
-          {activeTab === "analyses" && (
-            <div className="space-y-10">
+          {activeTab === "analyses" && (() => {
+            const filteredHistory = analysisSearch.trim()
+              ? history.filter(item => {
+                  const q = analysisSearch.toLowerCase();
+                  const title = (item.result?.job_details?.title || "").toLowerCase();
+                  const company = (item.result?.job_details?.company || "").toLowerCase();
+                  return title.includes(q) || company.includes(q);
+                })
+              : history;
+
+            return (
+            <div className="space-y-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
                   <LayoutGrid className="w-5 h-5 text-rc-red" /> {t.account.analysisHistory}
                 </h2>
                 <div className="h-px flex-1 bg-rc-border" />
                 <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">{totalAnalyses} {t.account.results}</p>
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={analysisSearch}
+                  onChange={e => setAnalysisSearch(e.target.value)}
+                  placeholder="Search by job title or company…"
+                  className="w-full bg-white border border-rc-border rounded-xl px-4 py-2.5 pl-9 font-mono text-[12px] text-rc-text placeholder:text-rc-hint outline-none focus:border-rc-red/40 transition-colors"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rc-hint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                {analysisSearch && (
+                  <button onClick={() => setAnalysisSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-rc-hint hover:text-rc-text transition-colors font-mono text-[10px]">✕</button>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -662,8 +692,12 @@ function AccountPageContent() {
                     <p className="text-rc-muted font-medium">{t.account.noResults}</p>
                     <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-6 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90">{t.account.startNewAnalysis} <ArrowRight className="w-3 h-3" /></Link>
                   </div>
+                ) : filteredHistory.length === 0 ? (
+                  <div className="p-12 text-center bg-white border border-rc-border rounded-[24px] border-dashed">
+                    <p className="text-rc-muted font-mono text-[12px]">No results for "{analysisSearch}"</p>
+                  </div>
                 ) : (
-                  history.map(item => {
+                  filteredHistory.map(item => {
                     const jobTitle = item.result?.job_details?.title || "Developer";
                     const company = item.result?.job_details?.company || "Unknown Company";
                     const score = item.result?.score ?? 0;
@@ -717,33 +751,54 @@ function AccountPageContent() {
                   })
                 )}
 
-                {totalAnalysisPages > 1 && (
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                      Page {analysisPage} / {totalAnalysisPages}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        disabled={analysisPage === 1}
-                        onClick={() => setAnalysisPage(p => p - 1)}
-                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        ← Prev
-                      </button>
-                      <button
-                        disabled={analysisPage === totalAnalysisPages}
-                        onClick={() => setAnalysisPage(p => p + 1)}
-                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        Next →
-                      </button>
-                    </div>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                    Page {analysisPage} / {Math.max(1, totalAnalysisPages)}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={analysisPage === 1}
+                      onClick={() => setAnalysisPage(p => p - 1)}
+                      className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ← Prev
+                    </button>
+                    <button
+                      disabled={analysisPage >= Math.max(1, totalAnalysisPages)}
+                      onClick={() => setAnalysisPage(p => p + 1)}
+                      className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Next →
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
-          )}
-          {activeTab === "interviews" && (
+            );
+          })()}
+          {activeTab === "interviews" && (() => {
+            // Build a lookup map: analysisId → { title, company }
+            // Uses nested `analysis` field if the API returns it, falls back to loaded pages
+            const analysisLookup = new Map<number, { title: string; company: string }>();
+            for (const item of [...summaryPage1, ...history]) {
+              analysisLookup.set(item.id, {
+                title:   item.result?.job_details?.title   || "",
+                company: item.result?.job_details?.company || "",
+              });
+            }
+
+            const filteredInterviews = interviewSearch.trim()
+              ? interviewHistory.filter(attempt => {
+                  const q = interviewSearch.toLowerCase();
+                  const meta = analysisLookup.get(attempt.analysisId);
+                  const title   = (attempt.analysis?.result?.job_details?.title   || meta?.title   || "").toLowerCase();
+                  const company = (attempt.analysis?.result?.job_details?.company || meta?.company || "").toLowerCase();
+                  const date    = new Date(attempt.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }).toLowerCase();
+                  return title.includes(q) || company.includes(q) || date.includes(q);
+                })
+              : interviewHistory;
+
+            return (
             <div className="space-y-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
@@ -755,6 +810,21 @@ function AccountPageContent() {
                 </p>
               </div>
 
+              {/* Search */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={interviewSearch}
+                  onChange={e => setInterviewSearch(e.target.value)}
+                  placeholder="Search by date…"
+                  className="w-full bg-white border border-rc-border rounded-xl px-4 py-2.5 pl-9 font-mono text-[12px] text-rc-text placeholder:text-rc-hint outline-none focus:border-rc-red/40 transition-colors"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rc-hint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                {interviewSearch && (
+                  <button onClick={() => setInterviewSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-rc-hint hover:text-rc-text transition-colors font-mono text-[10px]">✕</button>
+                )}
+              </div>
+
               {totalInterviews === 0 ? (
                 <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
                   <Mic className="w-12 h-12 text-rc-hint/20 mx-auto" />
@@ -763,7 +833,7 @@ function AccountPageContent() {
               ) : (
                 <>
                   <div className="space-y-3">
-                    {interviewHistory.map((attempt, i) => {
+                    {filteredInterviews.map((attempt, i) => {
                       const score = attempt.globalScore;
                       const scoreColor = score === null
                         ? "border-rc-border text-rc-hint bg-rc-surface"
@@ -771,6 +841,9 @@ function AccountPageContent() {
                         : score >= 4 ? "border-amber-500/30 text-amber-400 bg-amber-500/5"
                         : "border-rc-red/30 text-rc-red bg-rc-red/5";
                       const globalIndex = totalInterviews - ((interviewPage - 1) * 10) - i;
+                      const meta = analysisLookup.get(attempt.analysisId);
+                      const jobTitle   = attempt.analysis?.result?.job_details?.title   || meta?.title   || null;
+                      const jobCompany = attempt.analysis?.result?.job_details?.company || meta?.company || null;
 
                       return (
                         <Link
@@ -784,7 +857,10 @@ function AccountPageContent() {
                             </div>
                             <div className="space-y-0.5">
                               <p className="font-bold text-rc-text tracking-tight group-hover/card:text-rc-red transition-colors">
-                                {t.account.interviewLabel} #{globalIndex}
+                                {jobTitle
+                                  ? <>{jobTitle}{jobCompany && <span className="text-rc-hint/60 font-normal"> · {jobCompany}</span>} <span className="text-rc-hint font-normal text-[11px]">#{globalIndex}</span></>
+                                  : <>{t.account.interviewLabel} #{globalIndex}</>
+                                }
                               </p>
                               <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
                                 <Clock className="w-3 h-3" />
@@ -803,33 +879,32 @@ function AccountPageContent() {
                     })}
                   </div>
 
-                  {totalInterviewPages > 1 && (
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                        Page {interviewPage} / {totalInterviewPages}
-                      </span>
-                      <div className="flex gap-2">
-                        <button
-                          disabled={interviewPage === 1}
-                          onClick={() => setInterviewPage(p => p - 1)}
-                          className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          ← Prev
-                        </button>
-                        <button
-                          disabled={interviewPage === totalInterviewPages}
-                          onClick={() => setInterviewPage(p => p + 1)}
-                          className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          Next →
-                        </button>
-                      </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                      Page {interviewPage} / {Math.max(1, totalInterviewPages)}
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        disabled={interviewPage === 1}
+                        onClick={() => setInterviewPage(p => p - 1)}
+                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        ← Prev
+                      </button>
+                      <button
+                        disabled={interviewPage >= Math.max(1, totalInterviewPages)}
+                        onClick={() => setInterviewPage(p => p + 1)}
+                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        Next →
+                      </button>
                     </div>
-                  )}
+                  </div>
                 </>
               )}
             </div>
-          )}
+            );
+          })()}
           {activeTab === "applications" && <div>Applications</div>}
           {activeTab === "settings"     && <div>Settings</div>}
         </div>
