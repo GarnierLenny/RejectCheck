@@ -8,6 +8,7 @@ import { AnalyzeRequestSchema, AnalyzeRequestDto } from './dto/analyze-request.d
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { validateJobDescription } from './analyze.utils';
 
 @ApiTags('Analyze')
 @Controller('api/analyze')
@@ -57,6 +58,12 @@ export class AnalyzeController {
           message: 'Analysis limit reached. Upgrade to continue.',
           code: 'LIMIT_REACHED'
         });
+      }
+
+      // 2. Validate job description content
+      const jdValidation = validateJobDescription(jobDescription);
+      if (!jdValidation.valid) {
+        return res.status(422).json({ message: jdValidation.reason });
       }
 
       res.setHeader('Content-Type', 'text/event-stream');
