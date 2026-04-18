@@ -48,8 +48,10 @@ function checkJd(text: string): JdWarningKey | null {
     const wl = w.toLowerCase();
     freq[wl] = (freq[wl] ?? 0) + 1;
   }
-  const maxFreq = Math.max(...Object.values(freq));
-  if (maxFreq / words.length > 0.25) return "invalidContent";
+  if (Object.keys(freq).length > 0) {
+    const maxFreq = Math.max(...Object.values(freq));
+    if (maxFreq / words.length > 0.25) return "invalidContent";
+  }
 
   return null;
 }
@@ -62,6 +64,10 @@ export function useJdValidation(text: string): JdWarningKey | null {
   const [warningKey, setWarningKey] = useState<JdWarningKey | null>(null);
 
   useEffect(() => {
+    if (!text.trim()) {
+      setWarningKey(null);
+      return;
+    }
     const timer = setTimeout(() => {
       setWarningKey(checkJd(text));
     }, 500);
