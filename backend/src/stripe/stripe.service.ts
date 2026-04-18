@@ -13,17 +13,26 @@ export class StripeService {
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
-    this.stripe = new StripeLib(this.configService.get<string>('STRIPE_SECRET_KEY')!, {
-      apiVersion: '2024-06-20' as any,
-    });
+    this.stripe = new StripeLib(
+      this.configService.get<string>('STRIPE_SECRET_KEY')!,
+      {
+        apiVersion: '2024-06-20' as any,
+      },
+    );
   }
 
-  async createCheckoutSession(plan: 'shortlisted' | 'hired', customerEmail?: string) {
-    const priceId = plan === 'shortlisted'
-      ? this.configService.get<string>('STRIPE_SHORTLISTED_PRICE_ID')!
-      : this.configService.get<string>('STRIPE_HIRED_PRICE_ID')!;
+  async createCheckoutSession(
+    plan: 'shortlisted' | 'hired',
+    customerEmail?: string,
+  ) {
+    const priceId =
+      plan === 'shortlisted'
+        ? this.configService.get<string>('STRIPE_SHORTLISTED_PRICE_ID')!
+        : this.configService.get<string>('STRIPE_HIRED_PRICE_ID')!;
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://rejectcheck.com';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') ||
+      'https://rejectcheck.com';
 
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -38,11 +47,17 @@ export class StripeService {
   }
 
   async handleWebhook(payload: Buffer, signature: string) {
-    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET')!;
+    const webhookSecret = this.configService.get<string>(
+      'STRIPE_WEBHOOK_SECRET',
+    )!;
     let event: any;
 
     try {
-      event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+      event = this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        webhookSecret,
+      );
     } catch (err) {
       throw new Error(`Webhook signature verification failed: ${err}`);
     }
@@ -50,14 +65,19 @@ export class StripeService {
     if (event.type === 'checkout.session.completed') {
       const session: any = event.data.object;
       // Use only the Stripe-verified email, never the client-controlled metadata.email
-      const email: string | undefined = session.customer_details?.email ?? undefined;
+      const email: string | undefined =
+        session.customer_details?.email ?? undefined;
       const plan: string | undefined = session.metadata?.plan;
       const customerId: string | undefined =
-        typeof session.customer === 'string' ? session.customer : session.customer?.id;
+        typeof session.customer === 'string'
+          ? session.customer
+          : session.customer?.id;
 
       if (email && plan && customerId && session.subscription) {
         const subscriptionId: string =
-          typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+          typeof session.subscription === 'string'
+            ? session.subscription
+            : session.subscription.id;
         const sub = await this.stripe.subscriptions.retrieve(subscriptionId);
 
         await this.prisma.subscription.upsert({

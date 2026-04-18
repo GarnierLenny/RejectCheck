@@ -6,6 +6,6 @@ import { StripeModule } from '../stripe/stripe.module';
 @Module({
   imports: [StripeModule],
   controllers: [AnalyzeController],
-  providers: [AnalyzeService]
+  providers: [AnalyzeService],
 })
 export class AnalyzeModule {}

@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
@@ -22,14 +27,18 @@ export class SupabaseGuard implements CanActivate {
     const authHeader: string | undefined = request.headers['authorization'];
 
     if (!authHeader?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or malformed Authorization header');
+      throw new UnauthorizedException(
+        'Missing or malformed Authorization header',
+      );
     }
 
     const token = authHeader.slice(7);
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
 
     if (!supabaseUrl) {
-      throw new UnauthorizedException('Server authentication is not configured');
+      throw new UnauthorizedException(
+        'Server authentication is not configured',
+      );
     }
 
     try {
@@ -39,10 +48,15 @@ export class SupabaseGuard implements CanActivate {
       });
 
       if (!payload.email) {
-        throw new UnauthorizedException('Token does not contain an email claim');
+        throw new UnauthorizedException(
+          'Token does not contain an email claim',
+        );
       }
 
-      request.authUser = { email: payload.email as string, sub: payload.sub as string };
+      request.authUser = {
+        email: payload.email as string,
+        sub: payload.sub as string,
+      };
       return true;
     } catch (err: any) {
       throw new UnauthorizedException(err?.message ?? 'Invalid token');

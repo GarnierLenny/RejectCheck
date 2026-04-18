@@ -4,30 +4,44 @@ import { z } from 'zod';
 export const FixSchema = z.object({
   summary: z.string(),
   steps: z.array(z.string()).min(1).max(5),
-  example: z.object({
-    before: z.string(),
-    after: z.string(),
-  }).nullable(),
-  project_idea: z.object({
-    name: z.string(),
-    description: z.string(),
-    endpoints: z.array(z.string()),
-    bonus: z.string().nullable(),
-    proves: z.string(),
-  }).nullable(),
+  example: z
+    .object({
+      before: z.string(),
+      after: z.string(),
+    })
+    .nullable(),
+  project_idea: z
+    .object({
+      name: z.string(),
+      description: z.string(),
+      endpoints: z.array(z.string()),
+      bonus: z.string().nullable(),
+      proves: z.string(),
+    })
+    .nullable(),
   time_required: z.string(),
 });
 
 export const IssueSchema = z.object({
   severity: z.enum(['critical', 'major', 'minor']),
-  category: z.enum(['keywords', 'impact', 'seniority', 'stack', 'format', 'tone', 'consistency']),
+  category: z.enum([
+    'keywords',
+    'impact',
+    'seniority',
+    'stack',
+    'format',
+    'tone',
+    'consistency',
+  ]),
   what: z.string(),
   why: z.string(),
   fix: FixSchema,
 });
 
 // Claude sometimes returns a string instead of an array — coerce gracefully
-const strOrArr = z.union([z.array(z.string()), z.string()]).transform(v => Array.isArray(v) ? v : [v]);
+const strOrArr = z
+  .union([z.array(z.string()), z.string()])
+  .transform((v) => (Array.isArray(v) ? v : [v]));
 
 export const ProjectRecommendationSchema = z.object({
   name: z.string(),
@@ -68,13 +82,15 @@ export const AnalyzeResponseSchema = z.object({
     score: z.number().min(0).max(100),
     threshold: z.number().min(0).max(100),
     reason: z.string(),
-    critical_missing_keywords: z.array(z.object({
-      keyword: z.string(),
-      jd_frequency: z.number(),
-      required: z.boolean(),
-      sections_missing: z.array(z.string()),
-      score_impact: z.number(),
-    })),
+    critical_missing_keywords: z.array(
+      z.object({
+        keyword: z.string(),
+        jd_frequency: z.number(),
+        required: z.boolean(),
+        sections_missing: z.array(z.string()),
+        score_impact: z.number(),
+      }),
+    ),
   }),
   seniority_analysis: z.object({
     expected: z.string(),
@@ -105,19 +121,23 @@ export const AnalyzeResponseSchema = z.object({
       strengths: z.array(z.string()),
     }),
     jd_match: z.object({
-      required_skills: z.array(z.object({
-        skill: z.string(),
-        found: z.boolean(),
-        evidence: z.string().nullable(),
-      })),
+      required_skills: z.array(
+        z.object({
+          skill: z.string(),
+          found: z.boolean(),
+          evidence: z.string().nullable(),
+        }),
+      ),
       experience_gap: z.string().nullable(),
     }),
   }),
-  hidden_red_flags: z.array(z.object({
-    flag: z.string(),
-    perception: z.string(),
-    fix: FixSchema,
-  })),
+  hidden_red_flags: z.array(
+    z.object({
+      flag: z.string(),
+      perception: z.string(),
+      fix: FixSchema,
+    }),
+  ),
   correlation: z.object({
     detected: z.boolean(),
     explanation: z.string(),

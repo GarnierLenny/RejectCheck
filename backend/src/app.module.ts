@@ -12,7 +12,7 @@ import { InterviewModule } from './interview/interview.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '.env.local']
+      envFilePath: ['.env', '.env.local'],
     }),
     PrismaModule,
     AnalyzeModule,
@@ -24,4 +24,3 @@ import { InterviewModule } from './interview/interview.module';
   providers: [AppService],
 })
 export class AppModule {}
-

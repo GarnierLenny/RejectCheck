@@ -1,10 +1,31 @@
-import { Controller, Post, Get, UseInterceptors, UseGuards, UploadedFiles, Body, Res, Req, BadRequestException, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UseInterceptors,
+  UseGuards,
+  UploadedFiles,
+  Body,
+  Res,
+  Req,
+  BadRequestException,
+  Query,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiOperation, ApiTags, ApiOkResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+  ApiOkResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AnalyzeService } from './analyze.service';
-import { AnalyzeRequestSchema, AnalyzeRequestDto } from './dto/analyze-request.dto';
+import {
+  AnalyzeRequestSchema,
+  AnalyzeRequestDto,
+} from './dto/analyze-request.dto';
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
@@ -24,16 +45,19 @@ export class AnalyzeController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: AnalyzeRequestDto })
   @ApiOkResponse({ type: AnalyzeResponseDto })
-  @UseInterceptors(FileFieldsInterceptor([
-    { name: 'cv', maxCount: 1 },
-    { name: 'linkedin', maxCount: 1 },
-    { name: 'motivationLetter', maxCount: 1 },
-  ]))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'cv', maxCount: 1 },
+      { name: 'linkedin', maxCount: 1 },
+      { name: 'motivationLetter', maxCount: 1 },
+    ]),
+  )
   async analyze(
-    @UploadedFiles() files: {
-      cv?: Express.Multer.File[],
-      linkedin?: Express.Multer.File[],
-      motivationLetter?: Express.Multer.File[]
+    @UploadedFiles()
+    files: {
+      cv?: Express.Multer.File[];
+      linkedin?: Express.Multer.File[];
+      motivationLetter?: Express.Multer.File[];
     },
     @Body() body: unknown,
     @Res() res: any,
@@ -43,12 +67,21 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { jobDescription, githubUsername, motivationLetterText, email, isRegistered, locale } = parsed.data;
+    const {
+      jobDescription,
+      githubUsername,
+      motivationLetterText,
+      email,
+      isRegistered,
+      locale,
+    } = parsed.data;
 
     // Capture IP: primary from x-forwarded-for, fallback to req.ip
-    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
 
-    const write = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+    const write = (data: object) =>
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
       // 1. Check Usage Limit
@@ -56,7 +89,7 @@ export class AnalyzeController {
       if (!limit.allowed) {
         return res.status(402).json({
           message: 'Analysis limit reached. Upgrade to continue.',
-          code: 'LIMIT_REACHED'
+          code: 'LIMIT_REACHED',
         });
       }
 
@@ -71,7 +104,11 @@ export class AnalyzeController {
       res.setHeader('Connection', 'keep-alive');
       res.flushHeaders();
 
-      const { result, cvText: parsedCv, motivationLetterText: parsedMl } = await this.analyzeService.analyzeApplication(
+      const {
+        result,
+        cvText: parsedCv,
+        motivationLetterText: parsedMl,
+      } = await this.analyzeService.analyzeApplication(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           jobDescription,
@@ -101,7 +138,11 @@ export class AnalyzeController {
       if (!res.headersSent) {
         return res.status(err.status || 500).json({ message: err.message });
       }
-      write({ step: 'error', message: err.message || 'Analysis failed', code: err.response?.code });
+      write({
+        step: 'error',
+        message: err.message || 'Analysis failed',
+        code: err.response?.code,
+      });
     } finally {
       if (!res.writableEnded) res.end();
     }
@@ -140,7 +181,9 @@ export class AnalyzeController {
 
   @UseGuards(SupabaseGuard)
   @Post('rewrite')
-  @ApiOperation({ summary: 'Rewrite a CV based on a previous analysis (premium)' })
+  @ApiOperation({
+    summary: 'Rewrite a CV based on a previous analysis (premium)',
+  })
   async rewrite(
     @AuthEmail() email: string,
     @Body() body: { analysisId: number; locale?: string },
@@ -153,7 +196,10 @@ export class AnalyzeController {
 
     const isPremium = await this.analyzeService.checkPremium(email);
     if (!isPremium) {
-      return res.status(402).json({ message: 'Premium subscription required', code: 'PREMIUM_REQUIRED' });
+      return res.status(402).json({
+        message: 'Premium subscription required',
+        code: 'PREMIUM_REQUIRED',
+      });
     }
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -161,11 +207,16 @@ export class AnalyzeController {
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    const write = (data: object) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+    const write = (data: object) =>
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
       write({ step: 'rewriting' });
-      const rewriteResult = await this.analyzeService.rewriteCv(analysisId, email, locale);
+      const rewriteResult = await this.analyzeService.rewriteCv(
+        analysisId,
+        email,
+        locale,
+      );
       await this.analyzeService.saveRewrite(analysisId, email, rewriteResult);
       write({ step: 'done', reconstructed_cv: rewriteResult.reconstructed_cv });
     } catch (err: any) {
@@ -179,7 +230,10 @@ export class AnalyzeController {
 
   @UseGuards(SupabaseGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Get a specific analysis by ID (must belong to the authenticated user)' })
+  @ApiOperation({
+    summary:
+      'Get a specific analysis by ID (must belong to the authenticated user)',
+  })
   @ApiOkResponse({ type: AnalyzeResponseDto })
   async getAnalysis(
     @AuthEmail() email: string,
@@ -191,18 +245,18 @@ export class AnalyzeController {
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
 
     const analysis = await this.analyzeService.getAnalysisById(id, email);
-    if (!analysis) return res.status(404).json({ message: 'Analysis not found' });
+    if (!analysis)
+      return res.status(404).json({ message: 'Analysis not found' });
 
     return res.json(analysis);
   }
 
   @UseGuards(SupabaseGuard)
   @Post(':id/delete')
-  @ApiOperation({ summary: 'Delete an analysis (must belong to the authenticated user)' })
-  async deleteAnalysis(
-    @AuthEmail() email: string,
-    @Req() req: Request,
-  ) {
+  @ApiOperation({
+    summary: 'Delete an analysis (must belong to the authenticated user)',
+  })
+  async deleteAnalysis(@AuthEmail() email: string, @Req() req: Request) {
     const { id: rawId } = req.params;
     const id = parseInt(rawId as string);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');

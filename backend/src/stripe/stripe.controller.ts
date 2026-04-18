@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Body, Req, Headers, BadRequestException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  Req,
+  Headers,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { StripeService } from './stripe.service';
@@ -11,7 +20,9 @@ export class StripeController {
 
   /** Public — creates a checkout session (email is optional, used for pre-filling Stripe form). */
   @Post('checkout')
-  async createCheckout(@Body() body: { plan: 'shortlisted' | 'hired'; email?: string }) {
+  async createCheckout(
+    @Body() body: { plan: 'shortlisted' | 'hired'; email?: string },
+  ) {
     return this.stripeService.createCheckoutSession(body.plan, body.email);
   }
 

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
@@ -24,8 +29,12 @@ export class InterviewService {
     private prisma: PrismaService,
     private stripeService: StripeService,
   ) {
-    this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
-    this.anthropic = new Anthropic({ apiKey: this.configService.get<string>('ANTHROPIC_API_KEY') });
+    this.openai = new OpenAI({
+      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+    });
+    this.anthropic = new Anthropic({
+      apiKey: this.configService.get<string>('ANTHROPIC_API_KEY'),
+    });
   }
 
   private async checkPremium(email: string): Promise<void> {
@@ -57,13 +66,15 @@ export class InterviewService {
     });
     if (!analysis) throw new BadRequestException('Analysis not found');
 
-    const result = analysis.result as any;
+    const result = analysis.result;
 
     // Build a concise context from the existing analysis for question generation
     const context = {
       jobDescription: analysis.jobDescription?.slice(0, 3000) ?? '',
-      topSkillGaps: result.skill_gaps?.slice(0, 5)?.map((s: any) => s.skill ?? s) ?? [],
-      redFlags: result.red_flags?.slice(0, 3)?.map((f: any) => f.flag ?? f) ?? [],
+      topSkillGaps:
+        result.skill_gaps?.slice(0, 5)?.map((s: any) => s.skill ?? s) ?? [],
+      redFlags:
+        result.red_flags?.slice(0, 3)?.map((f: any) => f.flag ?? f) ?? [],
       atsScore: result.ats_simulation?.overall_ats_score ?? null,
       seniority: result.seniority_assessment?.detected_level ?? null,
     };
@@ -88,10 +99,13 @@ export class InterviewService {
     try {
       plan = JSON.parse(planResponse.choices[0].message.content ?? '{}');
     } catch {
-      throw new BadRequestException('Failed to parse interview questions from AI response');
+      throw new BadRequestException(
+        'Failed to parse interview questions from AI response',
+      );
     }
     const questions: string[] = plan.questions ?? [];
-    if (questions.length === 0) throw new BadRequestException('Failed to generate interview questions');
+    if (questions.length === 0)
+      throw new BadRequestException('Failed to generate interview questions');
 
     const firstQuestion = questions[0];
     const audioBase64 = await this.generateTts(firstQuestion);
@@ -100,7 +114,9 @@ export class InterviewService {
       data: {
         email,
         analysisId,
-        transcript: [{ role: 'ai', content: firstQuestion, questionIndex: 0 }] as any,
+        transcript: [
+          { role: 'ai', content: firstQuestion, questionIndex: 0 },
+        ] as any,
         analysis: null,
       },
     });
@@ -110,7 +126,11 @@ export class InterviewService {
       where: { id: attempt.id },
       data: {
         transcript: [
-          { role: 'meta', content: JSON.stringify({ questions }), questionIndex: -1 },
+          {
+            role: 'meta',
+            content: JSON.stringify({ questions }),
+            questionIndex: -1,
+          },
           { role: 'ai', content: firstQuestion, questionIndex: 0 },
         ] as any,
       },
@@ -122,14 +142,21 @@ export class InterviewService {
     };
   }
 
-  async answer(interviewId: number, email: string, audioBuffer: Buffer, questionIndex: number) {
+  async answer(
+    interviewId: number,
+    email: string,
+    audioBuffer: Buffer,
+    questionIndex: number,
+  ) {
     const attempt = await (this.prisma as any).interviewAttempt.findFirst({
       where: { id: interviewId, email },
     });
     if (!attempt) throw new BadRequestException('Interview not found');
 
     // Transcribe audio
-    const file = new File([new Uint8Array(audioBuffer)], 'audio.webm', { type: 'audio/webm' });
+    const file = new File([new Uint8Array(audioBuffer)], 'audio.webm', {
+      type: 'audio/webm',
+    });
     const transcription = await this.openai.audio.transcriptions.create({
       model: 'whisper-1',
       file,
@@ -149,23 +176,34 @@ export class InterviewService {
         throw new BadRequestException('Interview state is corrupted');
       }
     }
-    const conversationEntries = transcript.filter((e: any) => e.role !== 'meta');
+    const conversationEntries = transcript.filter(
+      (e: any) => e.role !== 'meta',
+    );
 
     const updatedTranscript = [
-      ...(transcript.filter((e: any) => e.role === 'meta')),
+      ...transcript.filter((e: any) => e.role === 'meta'),
       ...conversationEntries,
       { role: 'user', content: userText, questionIndex },
     ];
 
     // Build conversation for GPT to decide next move
     const followUpCount = conversationEntries.filter(
-      (e: any) => e.role === 'ai' && e.questionIndex === questionIndex && e !== conversationEntries.find((x: any) => x.role === 'ai' && x.questionIndex === questionIndex),
+      (e: any) =>
+        e.role === 'ai' &&
+        e.questionIndex === questionIndex &&
+        e !==
+          conversationEntries.find(
+            (x: any) => x.role === 'ai' && x.questionIndex === questionIndex,
+          ),
     ).length;
 
     const isLastQuestion = questionIndex >= questions.length - 1;
     const maxFollowUpsReached = followUpCount >= 2;
 
-    const conversationHistory: Array<{ role: 'assistant' | 'user'; content: string }> = conversationEntries.map((e: any) => ({
+    const conversationHistory: Array<{
+      role: 'assistant' | 'user';
+      content: string;
+    }> = conversationEntries.map((e: any) => ({
       role: e.role === 'ai' ? 'assistant' : 'user',
       content: e.content,
     }));
@@ -189,14 +227,23 @@ export class InterviewService {
 
       let decision: any;
       try {
-        decision = JSON.parse(decisionResponse.choices[0].message.content ?? '{}');
+        decision = JSON.parse(
+          decisionResponse.choices[0].message.content ?? '{}',
+        );
       } catch {
         decision = { action: 'done' };
       }
 
       if (decision.action !== 'done' && decision.message) {
-        const nextQuestionIndex = decision.action === 'next' ? (decision.nextQuestionIndex ?? questionIndex + 1) : questionIndex;
-        const aiEntry = { role: 'ai' as const, content: decision.message, questionIndex: nextQuestionIndex };
+        const nextQuestionIndex =
+          decision.action === 'next'
+            ? (decision.nextQuestionIndex ?? questionIndex + 1)
+            : questionIndex;
+        const aiEntry = {
+          role: 'ai' as const,
+          content: decision.message,
+          questionIndex: nextQuestionIndex,
+        };
         updatedTranscript.push(aiEntry);
         const audioBase64 = await this.generateTts(decision.message);
         nextMessage = { text: decision.message, audioBase64 };
@@ -218,14 +265,19 @@ export class InterviewService {
     if (!attempt) throw new BadRequestException('Interview not found');
 
     const transcript = (attempt.transcript as any[]) ?? [];
-    const conversationEntries = transcript.filter((e: any) => e.role !== 'meta');
+    const conversationEntries = transcript.filter(
+      (e: any) => e.role !== 'meta',
+    );
 
     if (conversationEntries.length < 2) {
       throw new BadRequestException('Interview is too short to analyze');
     }
 
     const formattedTranscript = conversationEntries
-      .map((e: any) => `[${e.role === 'ai' ? 'Interviewer' : 'Candidate'}]: ${e.content}`)
+      .map(
+        (e: any) =>
+          `[${e.role === 'ai' ? 'Interviewer' : 'Candidate'}]: ${e.content}`,
+      )
       .join('\n\n');
 
     const response = await this.anthropic.messages.create({
@@ -257,7 +309,10 @@ export class InterviewService {
                   properties: {
                     question: { type: 'string' },
                     answer: { type: 'string' },
-                    verdict: { type: 'string', enum: ['good', 'average', 'poor'] },
+                    verdict: {
+                      type: 'string',
+                      enum: ['good', 'average', 'poor'],
+                    },
                     comment: { type: 'string' },
                   },
                   required: ['question', 'answer', 'verdict', 'comment'],
@@ -267,7 +322,13 @@ export class InterviewService {
               keyStrengths: { type: 'array', items: { type: 'string' } },
               keyImprovements: { type: 'array', items: { type: 'string' } },
             },
-            required: ['axes', 'questionFeedback', 'globalVerdict', 'keyStrengths', 'keyImprovements'],
+            required: [
+              'axes',
+              'questionFeedback',
+              'globalVerdict',
+              'keyStrengths',
+              'keyImprovements',
+            ],
           },
         },
       ],
@@ -318,10 +379,13 @@ Analyze this interview and call submit_interview_analysis with your structured e
     ]);
 
     const data = attempts.map((a: any) => {
-      const analysis = a.analysis as any;
+      const analysis = a.analysis;
       let globalScore: number | null = null;
       if (analysis?.axes?.length > 0) {
-        const sum = analysis.axes.reduce((acc: number, ax: any) => acc + (ax.score ?? 0), 0);
+        const sum = analysis.axes.reduce(
+          (acc: number, ax: any) => acc + (ax.score ?? 0),
+          0,
+        );
         globalScore = Math.round(sum / analysis.axes.length);
       }
       return {

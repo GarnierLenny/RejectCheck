@@ -18,22 +18,34 @@ describe('validateJobDescription', () => {
   });
 
   it('blocks text with > 40% special characters', () => {
-    const jd = '!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^ a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d';
+    const jd =
+      '!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^ a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d';
     const result = validateJobDescription(jd);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe('Content does not appear to be a job description');
+    expect(result.reason).toBe(
+      'Content does not appear to be a job description',
+    );
   });
 
   it('returns invalid for empty input', () => {
-    expect(validateJobDescription('')).toEqual({ valid: false, reason: 'Job description too short' });
-    expect(validateJobDescription('   ')).toEqual({ valid: false, reason: 'Job description too short' });
+    expect(validateJobDescription('')).toEqual({
+      valid: false,
+      reason: 'Job description too short',
+    });
+    expect(validateJobDescription('   ')).toEqual({
+      valid: false,
+      reason: 'Job description too short',
+    });
   });
 
   it('blocks text where one word repeats more than 25% of total', () => {
-    const repeated = Array(35).fill('spam').join(' ') + ' some other words to pad the count';
+    const repeated =
+      Array(35).fill('spam').join(' ') + ' some other words to pad the count';
     const result = validateJobDescription(repeated);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe('Content does not appear to be a job description');
+    expect(result.reason).toBe(
+      'Content does not appear to be a job description',
+    );
   });
 
   it('blocks prompt injection patterns', () => {
@@ -51,6 +63,8 @@ describe('validateJobDescription', () => {
     Looking for new opportunities in a fast-growing startup environment.`;
     const result = validateJobDescription(jd);
     expect(result.valid).toBe(false);
-    expect(result.reason).toBe('Content appears to be a CV, not a job description');
+    expect(result.reason).toBe(
+      'Content appears to be a CV, not a job description',
+    );
   });
 });

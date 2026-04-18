@@ -25,17 +25,21 @@ export const TranscriptEntrySchema = z.object({
 export type TranscriptEntry = z.infer<typeof TranscriptEntrySchema>;
 
 export const InterviewAnalysisSchema = z.object({
-  axes: z.array(z.object({
-    name: z.string(),
-    score: z.number().min(0).max(10),
-    feedback: z.string(),
-  })),
-  questionFeedback: z.array(z.object({
-    question: z.string(),
-    answer: z.string(),
-    verdict: z.enum(['good', 'average', 'poor']),
-    comment: z.string(),
-  })),
+  axes: z.array(
+    z.object({
+      name: z.string(),
+      score: z.number().min(0).max(10),
+      feedback: z.string(),
+    }),
+  ),
+  questionFeedback: z.array(
+    z.object({
+      question: z.string(),
+      answer: z.string(),
+      verdict: z.enum(['good', 'average', 'poor']),
+      comment: z.string(),
+    }),
+  ),
   globalVerdict: z.string(),
   keyStrengths: z.array(z.string()),
   keyImprovements: z.array(z.string()),

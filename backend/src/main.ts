@@ -6,10 +6,15 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
-  
+
   const configService = app.get(ConfigService);
-  const corsOriginEnv = configService.get<string>('CORS_ORIGIN') || 'https://rejectcheck.com,https://www.rejectcheck.com,http://localhost:3000';
-  const corsOrigins = corsOriginEnv.split(',').map(o => o.trim()).filter(o => o.length > 0);
+  const corsOriginEnv =
+    configService.get<string>('CORS_ORIGIN') ||
+    'https://rejectcheck.com,https://www.rejectcheck.com,http://localhost:3000';
+  const corsOrigins = corsOriginEnv
+    .split(',')
+    .map((o) => o.trim())
+    .filter((o) => o.length > 0);
 
   app.enableCors({
     origin: corsOrigins,
@@ -23,7 +28,7 @@ async function bootstrap() {
     .setDescription('The RejectCheck application analysis API')
     .setVersion('1.0')
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   const cleanedDocument = cleanupOpenApiDoc(document);
   SwaggerModule.setup('docs', app, cleanedDocument);

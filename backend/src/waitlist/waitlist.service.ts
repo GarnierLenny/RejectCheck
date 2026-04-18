@@ -9,7 +9,8 @@ export class WaitlistService {
     try {
       await this.prisma.waitlist.create({ data: { email } });
     } catch (err: any) {
-      if (err.code === 'P2002') throw new ConflictException('Email already registered');
+      if (err.code === 'P2002')
+        throw new ConflictException('Email already registered');
       throw err;
     }
   }
