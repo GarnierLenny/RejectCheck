@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, UploadedFile, UseInterceptors, BadRequestException, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { InterviewService } from './interview.service';
@@ -50,7 +50,11 @@ export class InterviewController {
 
   @Get('history')
   @ApiOperation({ summary: 'Get past interview attempts for the authenticated user' })
-  async history(@AuthEmail() email: string) {
-    return this.interviewService.history(email);
+  async history(
+    @AuthEmail() email: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    return this.interviewService.history(email, +page, +limit);
   }
 }

@@ -22,6 +22,11 @@ export type HistoryItem = {
   result: any;
 };
 
+export type PaginatedResponse<T> = {
+  data: T[];
+  total: number;
+};
+
 export type InterviewAttempt = {
   id: number;
   analysisId: number;
@@ -63,30 +68,30 @@ export function useProfile() {
   });
 }
 
-export function useAnalysisHistory() {
+export function useAnalysisHistory(page: number) {
   const { session } = useAuth();
   const token = session?.access_token;
   const userId = session?.user?.id;
 
   return useQuery({
-    queryKey: ['analysis-history', userId],
+    queryKey: ['analysis-history', userId, page],
     queryFn: () =>
-      apiFetch<HistoryItem[]>('/api/analyze/history', {
+      apiFetch<PaginatedResponse<HistoryItem>>(`/api/analyze/history?page=${page}&limit=10`, {
         headers: authHeaders(token!),
       }),
     enabled: !!token && !!userId,
   });
 }
 
-export function useInterviewHistory() {
+export function useInterviewHistory(page: number) {
   const { session } = useAuth();
   const token = session?.access_token;
   const userId = session?.user?.id;
 
   return useQuery({
-    queryKey: ['interview-history', userId],
+    queryKey: ['interview-history', userId, page],
     queryFn: () =>
-      apiFetch<InterviewAttempt[]>('/api/interview/history', {
+      apiFetch<PaginatedResponse<InterviewAttempt>>(`/api/interview/history?page=${page}&limit=10`, {
         headers: authHeaders(token!),
       }),
     enabled: !!token && !!userId,

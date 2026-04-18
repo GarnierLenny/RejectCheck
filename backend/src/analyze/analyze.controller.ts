@@ -1,4 +1,4 @@
-import { Controller, Post, Get, UseInterceptors, UseGuards, UploadedFiles, Body, Res, Req, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, UseInterceptors, UseGuards, UploadedFiles, Body, Res, Req, BadRequestException, Query } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags, ApiOkResponse, ApiBody } from '@nestjs/swagger';
@@ -103,9 +103,12 @@ export class AnalyzeController {
   @UseGuards(SupabaseGuard)
   @Get('history')
   @ApiOperation({ summary: 'Get analysis history for the authenticated user' })
-  @ApiOkResponse({ type: [AnalyzeResponseDto] })
-  async getHistory(@AuthEmail() email: string) {
-    return this.analyzeService.getHistory(email);
+  async getHistory(
+    @AuthEmail() email: string,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    return this.analyzeService.getHistory(email, +page, +limit);
   }
 
   @UseGuards(SupabaseGuard)
