@@ -18,10 +18,15 @@ describe('validateJobDescription', () => {
   });
 
   it('blocks text with > 40% special characters', () => {
-    const jd = '!@#$%^&*()!@#$%^&*()!@#$%^&*() some words here !@#$%^&*()!@#$%^&*()!@#$%^&*()!@#$%^&*() abc def ghi jkl mno pqr stu vwx yz abc def ghi jkl mno pqr stu';
+    const jd = '!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^!@#$%^ a b c d e f g h i j k l m n o p q r s t u v w x y z a b c d';
     const result = validateJobDescription(jd);
     expect(result.valid).toBe(false);
     expect(result.reason).toBe('Content does not appear to be a job description');
+  });
+
+  it('returns invalid for empty input', () => {
+    expect(validateJobDescription('')).toEqual({ valid: false, reason: 'Job description too short' });
+    expect(validateJobDescription('   ')).toEqual({ valid: false, reason: 'Job description too short' });
   });
 
   it('blocks text where one word repeats more than 25% of total', () => {
