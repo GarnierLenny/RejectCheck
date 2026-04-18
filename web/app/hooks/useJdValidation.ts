@@ -9,7 +9,7 @@ export type JdWarningKey =
 const INJECTION_PATTERNS = [
   "ignore previous",
   "you are now",
-  "disregard",
+  "disregard all",
   "system:",
   "<|",
 ];

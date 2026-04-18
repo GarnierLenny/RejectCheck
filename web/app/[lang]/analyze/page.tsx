@@ -155,6 +155,13 @@ function AnalyzeContent() {
         return;
       }
 
+      if (res.status === 422) {
+        const body = await res.json();
+        setError(body.message ?? 'Invalid job description');
+        setLoading(false);
+        return;
+      }
+
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
