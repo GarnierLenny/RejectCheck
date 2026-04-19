@@ -21,7 +21,7 @@ const INTERVIEW_AXES = [
 
 @Injectable()
 export class InterviewService {
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
   private anthropic: Anthropic;
 
   constructor(
@@ -29,9 +29,10 @@ export class InterviewService {
     private prisma: PrismaService,
     private stripeService: StripeService,
   ) {
-    this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-    });
+    const openaiKey = this.configService.get<string>('OPENAI_API_KEY');
+    if (openaiKey) {
+      this.openai = new OpenAI({ apiKey: openaiKey });
+    }
     this.anthropic = new Anthropic({
       apiKey: this.configService.get<string>('ANTHROPIC_API_KEY'),
     });
@@ -48,6 +49,7 @@ export class InterviewService {
   }
 
   private async generateTts(text: string): Promise<string> {
+    if (!this.openai) return '';
     const response = await this.openai.audio.speech.create({
       model: 'tts-1',
       voice: 'alloy',
@@ -79,29 +81,33 @@ export class InterviewService {
       seniority: result.seniority_assessment?.detected_level ?? null,
     };
 
-    const planResponse = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      response_format: { type: 'json_object' },
-      messages: [
+    const planResponse = await this.anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: `You are a senior technical recruiter conducting a job interview. Based on the candidate's analysis, generate exactly 6 interview questions in English that cover: motivation/fit (1), key experiences (2), identified technical gaps (1-2), handling difficult situations (1). Each question should be open-ended and tailored to the specific job and candidate profile.`,
+      tools: [
         {
-          role: 'system',
-          content: `You are a senior technical recruiter conducting a job interview. Based on the candidate's analysis, generate exactly 6 interview questions in English that cover: motivation/fit (1), key experiences (2), identified technical gaps (1-2), handling difficult situations (1). Each question should be open-ended and tailored to the specific job and candidate profile. Return JSON: { "questions": ["q1", "q2", "q3", "q4", "q5", "q6"] }`,
-        },
-        {
-          role: 'user',
-          content: `Job context: ${JSON.stringify(context)}`,
+          name: 'submit_questions',
+          description: 'Submit the generated interview questions',
+          input_schema: {
+            type: 'object' as const,
+            properties: {
+              questions: { type: 'array', items: { type: 'string' }, minItems: 6, maxItems: 6 },
+            },
+            required: ['questions'],
+          },
         },
       ],
+      tool_choice: { type: 'tool', name: 'submit_questions' },
+      messages: [{ role: 'user', content: `Job context: ${JSON.stringify(context)}` }],
     });
 
     let plan: any;
-    try {
-      plan = JSON.parse(planResponse.choices[0].message.content ?? '{}');
-    } catch {
-      throw new BadRequestException(
-        'Failed to parse interview questions from AI response',
-      );
+    const toolUseBlock = planResponse.content.find((c) => c.type === 'tool_use');
+    if (toolUseBlock && toolUseBlock.type === 'tool_use') {
+      plan = toolUseBlock.input;
+    } else {
+      throw new BadRequestException('Failed to parse interview questions from AI response');
     }
     const questions: string[] = plan.questions ?? [];
     if (questions.length === 0)
@@ -154,6 +160,7 @@ export class InterviewService {
     if (!attempt) throw new BadRequestException('Interview not found');
 
     // Transcribe audio
+    if (!this.openai) throw new BadRequestException('Audio transcription is not available');
     const file = new File([new Uint8Array(audioBuffer)], 'audio.webm', {
       type: 'audio/webm',
     });
@@ -211,26 +218,37 @@ export class InterviewService {
     let nextMessage: { text: string; audioBase64: string } | null = null;
 
     if (!isLastQuestion || !maxFollowUpsReached) {
-      const decisionResponse = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        temperature: 0.6,
-        response_format: { type: 'json_object' },
-        messages: [
+      const decisionResponse = await this.anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        system: `You are a senior recruiter conducting a structured job interview in English. You have a list of questions to ask: ${JSON.stringify(questions)}. Current question index: ${questionIndex}. Follow-ups already asked for this question: ${followUpCount}/2. Rules: If the candidate's answer is vague or incomplete AND follow-ups < 2, ask ONE specific follow-up question. Otherwise, move to the next question (index ${questionIndex + 1}). If all questions done, return done.`,
+        tools: [
           {
-            role: 'system',
-            content: `You are a senior recruiter conducting a structured job interview in English. You have a list of questions to ask: ${JSON.stringify(questions)}. Current question index: ${questionIndex}. Follow-ups already asked for this question: ${followUpCount}/2. Rules: If the candidate's answer is vague or incomplete AND follow-ups < 2, ask ONE specific follow-up question. Otherwise, move to the next question (index ${questionIndex + 1}). If all questions done, return null. Return JSON: { "action": "followup"|"next"|"done", "nextQuestionIndex": number|null, "message": string|null }`,
+            name: 'submit_decision',
+            description: 'Submit the interview next-step decision',
+            input_schema: {
+              type: 'object' as const,
+              properties: {
+                action: { type: 'string', enum: ['followup', 'next', 'done'] },
+                nextQuestionIndex: { type: 'number' },
+                message: { type: 'string' },
+              },
+              required: ['action'],
+            },
           },
+        ],
+        tool_choice: { type: 'tool', name: 'submit_decision' },
+        messages: [
           ...conversationHistory,
           { role: 'user', content: userText },
         ],
       });
 
       let decision: any;
-      try {
-        decision = JSON.parse(
-          decisionResponse.choices[0].message.content ?? '{}',
-        );
-      } catch {
+      const decisionTool = decisionResponse.content.find((c) => c.type === 'tool_use');
+      if (decisionTool && decisionTool.type === 'tool_use') {
+        decision = decisionTool.input;
+      } else {
         decision = { action: 'done' };
       }
 

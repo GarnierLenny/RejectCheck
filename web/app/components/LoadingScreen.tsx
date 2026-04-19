@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Zap, Cpu, Search, FileText } from "lucide-react";
-import { Openai, Anthropic, Github, Linkedin } from "react-bootstrap-icons";
+import { Anthropic, Github, Linkedin } from "react-bootstrap-icons";
 import { useLanguage } from "../../context/language";
 
 type Props = {
@@ -48,11 +48,10 @@ function useTypewriter(thoughts: string[], speed: number, active: boolean) {
 }
 
 // ---------- Horizontal pipeline layout ----------
-const CY     = 155;  // Center Y (spine of the pipeline)
-const LANE_H = 85;   // Vertical distance from center to GPT / Claude tracks
-const X0     = 50;   // Starting X
-const W      = 120;  // Width per main step
-const SUB_W  = 95;   // Width per AI sub-node
+const CY    = 155;  // Center Y (spine of the pipeline)
+const X0    = 50;   // Starting X
+const W     = 120;  // Width per main step
+const SUB_W = 95;   // Width per sub-node
 
 const GET_X = (idx: number) => {
   if (idx <= 4) return X0 + idx * W;
@@ -61,17 +60,16 @@ const GET_X = (idx: number) => {
 
 const MERGE_X = GET_X(4) + 5 * SUB_W + 30;
 
+const CLAUDE_TASKS_COUNT = 5;
+
 export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFinished }: Props) {
   const { t } = useLanguage();
   const config = { hasGithub, hasLinkedin, hasML };
 
-  const GPT_TASKS    = t.loadingScreen.gptTasks as string[];
-  const CLAUDE_TASKS = t.loadingScreen.claudeTasks as string[];
-  const GPT_THOUGHTS    = t.loadingScreen.gptThoughts as string[];
+  const CLAUDE_TASKS    = t.loadingScreen.claudeTasks as string[];
   const CLAUDE_THOUGHTS = t.loadingScreen.claudeThoughts as string[];
 
   const [internalStepIdx, setInternalStepIdx] = useState(0);
-  const [gptP,            setGptP]            = useState(0);
   const [claudeP,         setClaudeP]         = useState(0);
   const [isFullyDone,     setIsFullyDone]     = useState(false);
 
@@ -97,18 +95,17 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
     return () => clearInterval(timer);
   }, [backendIdx, isFullyDone]);
 
-  // 2. AI progression
+  // 2. Claude sub-task progression
   useEffect(() => {
     if (internalStepIdx === 4) {
-      const g = setInterval(() => setGptP(p => p < 5 ? p + 1 : p), 4500 + Math.random() * 1500);
-      const c = setInterval(() => setClaudeP(p => p < 3 ? p + 1 : p), 7000 + Math.random() * 2000);
-      return () => { clearInterval(g); clearInterval(c); };
+      const c = setInterval(() => setClaudeP(p => p < CLAUDE_TASKS_COUNT ? p + 1 : p), 5500 + Math.random() * 2000);
+      return () => clearInterval(c);
     }
   }, [internalStepIdx]);
 
   // 3. Finalization
   useEffect(() => {
-    const virtualSplitDone = gptP === 5 && claudeP === 3;
+    const virtualSplitDone = claudeP === CLAUDE_TASKS_COUNT;
     if (internalStepIdx === 4 && virtualSplitDone) {
       const t = setTimeout(() => setInternalStepIdx(5), 1500);
       return () => clearTimeout(t);
@@ -117,7 +114,7 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
       const t = setTimeout(() => { setIsFullyDone(true); onFinished?.(); }, 3000);
       return () => clearTimeout(t);
     }
-  }, [internalStepIdx, gptP, claudeP, isFullyDone, onFinished]);
+  }, [internalStepIdx, claudeP, isFullyDone, onFinished]);
 
   function getVisualStatus(stepId: string, idx: number): StepStatus {
     const step = STEPS_CONFIG[idx];
@@ -129,15 +126,14 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
     return "pending";
   }
 
-  const virtualSplitDone = gptP === 5 && claudeP === 3;
-  const splitActive   = internalStepIdx >= 4 && !isFullyDone;
-  const gptThought    = useTypewriter(GPT_THOUGHTS,    35, splitActive);
-  const claudeThought = useTypewriter(CLAUDE_THOUGHTS, 42, splitActive);
+  const virtualSplitDone = claudeP === CLAUDE_TASKS_COUNT;
+  const splitActive      = internalStepIdx >= 4 && !isFullyDone;
+  const claudeThought    = useTypewriter(CLAUDE_THOUGHTS, 38, splitActive);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[85vh] py-12 bg-rc-bg transition-colors duration-700">
       <div className="relative w-full max-w-[1200px] flex justify-center">
-        <svg width="1100" height="290" className="overflow-visible">
+        <svg width="1100" height="230" className="overflow-visible">
           <defs>
             <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -153,38 +149,18 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
               const x = GET_X(i);
               if (i < 4) {
                 const nextX = GET_X(i + 1);
-                if (i === 3) {
-                  return (
-                    <g key="skel-fork">
-                      <path d={`M ${x},${CY} C ${x+25},${CY} ${nextX},${CY-LANE_H+20} ${nextX},${CY-LANE_H}`} fill="none" stroke="#cbd5e1" strokeWidth="2.5" />
-                      <path d={`M ${x},${CY} C ${x+25},${CY} ${nextX},${CY+LANE_H-20} ${nextX},${CY+LANE_H}`} fill="none" stroke="#cbd5e1" strokeWidth="2.5" />
-                    </g>
-                  );
-                }
                 return <line key={`skel-line-${i}`} x1={x} y1={CY} x2={nextX} y2={CY} stroke="#cbd5e1" strokeWidth="2.5" />;
               }
               return null;
             })}
-            {/* GPT sub-thread (above) */}
+            {/* Claude sub-task thread */}
             {[0,1,2,3,4].map(idx => (
-              <line key={`skel-sub-g-${idx}`}
-                x1={GET_X(4)+idx*SUB_W} y1={CY-LANE_H}
-                x2={GET_X(4)+(idx+1)*SUB_W} y2={CY-LANE_H}
+              <line key={`skel-sub-c-${idx}`}
+                x1={GET_X(4)+idx*SUB_W} y1={CY}
+                x2={GET_X(4)+(idx+1)*SUB_W} y2={CY}
                 stroke="#cbd5e1" strokeWidth="2" strokeDasharray="3 3" />
             ))}
-            {/* Claude sub-thread (below) */}
-            {[0,1,2].map(idx => {
-              const subW = (5 * SUB_W) / 3;
-              return (
-                <line key={`skel-sub-c-${idx}`}
-                  x1={GET_X(4)+idx*subW} y1={CY+LANE_H}
-                  x2={GET_X(4)+(idx+1)*subW} y2={CY+LANE_H}
-                  stroke="#cbd5e1" strokeWidth="2" strokeDasharray="3 3" />
-              );
-            })}
-            {/* Merge paths */}
-            <path d={`M ${GET_X(4)+5*SUB_W},${CY-LANE_H} C ${GET_X(4)+5*SUB_W+20},${CY-LANE_H} ${MERGE_X},${CY-20} ${MERGE_X},${CY}`} fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5 5" />
-            <path d={`M ${GET_X(4)+5*SUB_W},${CY+LANE_H} C ${GET_X(4)+5*SUB_W+20},${CY+LANE_H} ${MERGE_X},${CY+20} ${MERGE_X},${CY}`} fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5 5" />
+            {/* Post-merge to finalizing */}
             <line x1={MERGE_X} y1={CY} x2={GET_X(5)} y2={CY} stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5 5" />
           </g>
 
@@ -197,18 +173,6 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
               const isActive = status === "running";
               const isDone   = status === "done";
               const opacity  = isActive || isDone ? 1 : 0;
-              if (i === 3) {
-                return (
-                  <g key="active-fork">
-                    <motion.path animate={{ stroke: "#e24b4a", opacity }}
-                      d={`M ${x1},${CY} C ${x1+25},${CY} ${x2},${CY-LANE_H+20} ${x2},${CY-LANE_H}`}
-                      fill="none" strokeWidth="2.5" />
-                    <motion.path animate={{ stroke: "#e24b4a", opacity }}
-                      d={`M ${x1},${CY} C ${x1+25},${CY} ${x2},${CY+LANE_H-20} ${x2},${CY+LANE_H}`}
-                      fill="none" strokeWidth="2.5" />
-                  </g>
-                );
-              }
               return (
                 <motion.line key={`active-line-${i}`}
                   x1={x1} y1={CY} x2={x2} y2={CY}
@@ -218,40 +182,20 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
             return null;
           })}
 
-          {/* 3. SIMULATED SPLIT PROGRESSION */}
+          {/* 3. SIMULATED CLAUDE PROGRESSION */}
           {[0,1,2,3,4].map(idx => {
             const xStart      = GET_X(4) + idx * SUB_W;
             const xEnd        = GET_X(4) + (idx + 1) * SUB_W;
             const dualRunning = internalStepIdx >= 4;
             return (
-              <motion.path key={`gpt-seg-${idx}`}
-                animate={{ stroke: "#e24b4a", opacity: dualRunning && gptP >= idx ? 1 : 0 }}
-                d={`M ${xStart},${CY-LANE_H} L ${xEnd},${CY-LANE_H}`}
-                fill="none" strokeWidth="2.5" strokeDasharray="4 4" />
-            );
-          })}
-          {[0,1,2].map(idx => {
-            const subW        = (5 * SUB_W) / 3;
-            const xStart      = GET_X(4) + idx * subW;
-            const xEnd        = GET_X(4) + (idx + 1) * subW;
-            const dualRunning = internalStepIdx >= 4;
-            return (
               <motion.path key={`claude-seg-${idx}`}
                 animate={{ stroke: "#e24b4a", opacity: dualRunning && claudeP >= idx ? 1 : 0 }}
-                d={`M ${xStart},${CY+LANE_H} L ${xEnd},${CY+LANE_H}`}
+                d={`M ${xStart},${CY} L ${xEnd},${CY}`}
                 fill="none" strokeWidth="2.5" strokeDasharray="4 4" />
             );
           })}
 
-          {/* Merge active paths */}
-          <motion.path
-            animate={{ stroke: "#e24b4a", opacity: virtualSplitDone ? 1 : 0 }}
-            d={`M ${GET_X(4)+5*SUB_W},${CY-LANE_H} C ${GET_X(4)+5*SUB_W+20},${CY-LANE_H} ${MERGE_X},${CY-20} ${MERGE_X},${CY}`}
-            fill="none" strokeWidth="2.5" strokeDasharray="5 5" />
-          <motion.path
-            animate={{ stroke: "#e24b4a", opacity: virtualSplitDone ? 1 : 0 }}
-            d={`M ${GET_X(4)+5*SUB_W},${CY+LANE_H} C ${GET_X(4)+5*SUB_W+20},${CY+LANE_H} ${MERGE_X},${CY+20} ${MERGE_X},${CY}`}
-            fill="none" strokeWidth="2.5" strokeDasharray="5 5" />
+          {/* Post-merge active path */}
           <motion.line
             x1={MERGE_X} y1={CY} x2={GET_X(5)} y2={CY}
             animate={{ stroke: "#e24b4a", opacity: virtualSplitDone && internalStepIdx === 5 ? 1 : 0 }}
@@ -268,50 +212,20 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
               const dualRunning = status === "running" || status === "done";
               return (
                 <g key="split-heads">
-                  {/* GPT head — above the spine */}
-                  <g transform={`translate(${x}, ${CY - LANE_H})`}>
-                    <motion.circle r="18" fill={gptP === 5 || isDone ? "#e24b4a" : "white"}
-                      stroke={dualRunning ? "#e24b4a" : "#e5e7eb"} strokeWidth="2.5"
-                      animate={{ opacity: 1 }} />
-                    <Openai size={16} x="-8" y="-8"
-                      className={gptP === 5 || isDone ? "text-white" : dualRunning ? "text-rc-red" : "text-rc-hint"} />
-                    <text x="0" y="-26" textAnchor="middle"
-                      className={`font-mono text-[10px] font-bold uppercase ${dualRunning ? "fill-rc-red" : "fill-rc-hint"}`}>
-                      GPT-4o
-                    </text>
-                    {GPT_TASKS.map((task, idx) => {
-                      const sx     = (idx + 1) * SUB_W;
-                      const sDone  = gptP > idx || isDone;
-                      const sActive = dualRunning && gptP === idx;
-                      return (
-                        <g key={`gt-${idx}`} transform={`translate(${sx}, 0)`}>
-                          <circle r="6" fill="white" stroke="#e5e7eb" strokeWidth="2" opacity="0.3" />
-                          <motion.circle r="6" fill={sDone ? "#e24b4a" : "white"}
-                            stroke={sDone || sActive ? "#e24b4a" : "#e5e7eb"} strokeWidth="2"
-                            animate={{ opacity: 1 }} />
-                          <text x="0" y="-14" textAnchor="middle"
-                            className={`font-mono text-[8px] uppercase tracking-tight ${sDone || sActive ? "fill-rc-text font-bold" : "fill-rc-hint opacity-40"}`}>
-                            {task}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </g>
-                  {/* Claude head — below the spine */}
-                  <g transform={`translate(${x}, ${CY + LANE_H})`}>
-                    <motion.circle r="18" fill={claudeP === 3 || isDone ? "#e24b4a" : "white"}
+                  {/* Claude head — center spine */}
+                  <g transform={`translate(${x}, ${CY})`}>
+                    <motion.circle r="18" fill={claudeP === CLAUDE_TASKS_COUNT || isDone ? "#e24b4a" : "white"}
                       stroke={dualRunning ? "#e24b4a" : "#e5e7eb"} strokeWidth="2.5"
                       animate={{ opacity: 1 }} />
                     <Anthropic size={16} x="-8" y="-8"
-                      className={claudeP === 3 || isDone ? "text-white" : dualRunning ? "text-rc-red" : "text-rc-hint"} />
-                    <text x="0" y="30" textAnchor="middle"
+                      className={claudeP === CLAUDE_TASKS_COUNT || isDone ? "text-white" : dualRunning ? "text-rc-red" : "text-rc-hint"} />
+                    <text x="0" y="-26" textAnchor="middle"
                       className={`font-mono text-[10px] font-bold uppercase ${dualRunning ? "fill-rc-red" : "fill-rc-hint"}`}>
-                      Claude 3.5
+                      Claude Sonnet
                     </text>
                     {CLAUDE_TASKS.map((task, idx) => {
-                      const SUB_W_CLAUDE = (5 * SUB_W) / 3;
-                      const sx     = (idx + 1) * SUB_W_CLAUDE;
-                      const sDone  = claudeP > idx || isDone;
+                      const sx      = (idx + 1) * SUB_W;
+                      const sDone   = claudeP > idx || isDone;
                       const sActive = dualRunning && claudeP === idx;
                       return (
                         <g key={`ct-${idx}`} transform={`translate(${sx}, 0)`}>
@@ -319,7 +233,7 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
                           <motion.circle r="6" fill={sDone ? "#e24b4a" : "white"}
                             stroke={sDone || sActive ? "#e24b4a" : "#e5e7eb"} strokeWidth="2"
                             animate={{ opacity: 1 }} />
-                          <text x="0" y="20" textAnchor="middle"
+                          <text x="0" y="-14" textAnchor="middle"
                             className={`font-mono text-[8px] uppercase tracking-tight ${sDone || sActive ? "fill-rc-text font-bold" : "fill-rc-hint opacity-40"}`}>
                             {task}
                           </text>
@@ -350,22 +264,14 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
               </g>
             );
           })}
-          {/* 5. THOUGHTS */}
+          {/* 5. THOUGHT TYPEWRITER */}
           {splitActive && (
-            <>
-              <text
-                x={GET_X(4) + (5 * SUB_W) / 2} y={CY - LANE_H - 42}
-                textAnchor="middle" className="font-mono text-[9px] fill-rc-hint italic"
-              >
-                {gptThought}▋
-              </text>
-              <text
-                x={GET_X(4) + (5 * SUB_W) / 2} y={CY + LANE_H + 50}
-                textAnchor="middle" className="font-mono text-[9px] fill-rc-hint italic"
-              >
-                {claudeThought}▋
-              </text>
-            </>
+            <text
+              x={GET_X(4) + (5 * SUB_W) / 2} y={CY + 48}
+              textAnchor="middle" className="font-mono text-[9px] fill-rc-hint italic"
+            >
+              {claudeThought}▋
+            </text>
           )}
         </svg>
       </div>
@@ -374,7 +280,7 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
         <div className="flex items-center gap-3 bg-rc-surface/50 px-6 py-2.5 rounded-xl border border-rc-border">
           <Cpu size={14} className="text-rc-hint" />
           <p className="font-mono text-[9px] text-rc-hint tracking-wide italic text-center px-4">
-            Parallel AI Engines Synchronized : Specialized Technical Audit in Progress
+            Claude Sonnet · Deep Technical Analysis in Progress
           </p>
         </div>
       </motion.div>

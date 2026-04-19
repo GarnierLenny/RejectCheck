@@ -5,9 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
 import { PDFParse } from 'pdf-parse';
-import { z } from 'zod';
 import {
   AnalyzeResponseSchema,
   AnalyzeResponse,
@@ -25,7 +23,6 @@ const MAX_TEXT_CHARS = 12000;
 
 @Injectable()
 export class AnalyzeService {
-  private openai: OpenAI;
   private anthropic: Anthropic;
 
   constructor(
@@ -33,15 +30,6 @@ export class AnalyzeService {
     private prisma: PrismaService,
     private stripeService: StripeService,
   ) {
-    const prompt = this.configService.get<string>('SYSTEM_ANALYZE_PROMPT');
-    console.log(
-      `[AnalyzeService] Constructor: SYSTEM_ANALYZE_PROMPT loaded. Length: ${prompt?.length ?? 0}`,
-    );
-    if (prompt)
-      console.log(`[AnalyzeService] Prompt Start: "${prompt.slice(0, 50)}..."`);
-    this.openai = new OpenAI({
-      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-    });
     this.anthropic = new Anthropic({
       apiKey: this.configService.get<string>('ANTHROPIC_API_KEY'),
     });
@@ -109,412 +97,258 @@ export class AnalyzeService {
     linkedinText: string;
     motivationLetterText: string;
     locale?: string;
-  }): Promise<{
-    technical_analysis: AnalyzeResponse['technical_analysis'];
-    project_recommendation: AnalyzeResponse['project_recommendation'];
-    scores: {
-      tech_stack_fit: number;
-      github_signal: number | null;
-      linkedin_signal: number | null;
-    };
-    overall: {
-      score: number;
-      verdict: 'Low' | 'Medium' | 'High';
-      confidence: { score: number; reason: string };
-    };
-    audit_github: AnalyzeResponse['audit']['github'];
-    audit_linkedin: AnalyzeResponse['audit']['linkedin'];
-    job_details: { title: string; company: string };
-  }> {
-    const {
-      jobText,
-      cvText,
-      githubInfo,
-      linkedinText,
-      motivationLetterText,
-      locale,
-    } = data;
-    const technicalPrompt = this.configService.get<string>(
-      'SYSTEM_TECHNICAL_PROMPT',
-    )!;
+  }): Promise<AnalyzeResponse> {
+    const { jobText, cvText, githubInfo, linkedinText, motivationLetterText, locale } = data;
+    const technicalPrompt = this.configService.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
 
-    console.log(
-      `[AnalyzeService] Requesting Technical Analysis from Claude 3.5 Sonnet...`,
-    );
+    console.log(`[AnalyzeService] Requesting full analysis from Claude...`);
+
+    const FIX_SCHEMA = {
+      type: 'object' as const,
+      properties: {
+        summary: { type: 'string' as const },
+        steps: { type: 'array' as const, items: { type: 'string' as const } },
+        example: {
+          anyOf: [
+            { type: 'null' as const },
+            {
+              type: 'object' as const,
+              properties: {
+                before: { type: 'string' as const },
+                after: { type: 'string' as const },
+              },
+              required: ['before', 'after'],
+            },
+          ],
+        },
+        project_idea: {
+          anyOf: [
+            { type: 'null' as const },
+            {
+              type: 'object' as const,
+              properties: {
+                name: { type: 'string' as const },
+                description: { type: 'string' as const },
+                endpoints: { type: 'array' as const, items: { type: 'string' as const } },
+                bonus: { anyOf: [{ type: 'null' as const }, { type: 'string' as const }] },
+                proves: { type: 'string' as const },
+              },
+              required: ['name', 'description', 'endpoints', 'bonus', 'proves'],
+            },
+          ],
+        },
+        time_required: { type: 'string' as const },
+      },
+      required: ['summary', 'steps', 'example', 'project_idea', 'time_required'],
+    };
+
+    const ISSUE_SCHEMA = {
+      type: 'object' as const,
+      properties: {
+        severity: { type: 'string' as const, enum: ['critical', 'major', 'minor'] },
+        category: {
+          type: 'string' as const,
+          enum: ['keywords', 'impact', 'seniority', 'stack', 'format', 'tone', 'consistency'],
+        },
+        what: { type: 'string' as const },
+        why: { type: 'string' as const },
+        fix: FIX_SCHEMA,
+      },
+      required: ['severity', 'category', 'what', 'why', 'fix'],
+    };
+
+    const AUDIT_SCHEMA = (description: string) => ({
+      type: 'object' as const,
+      description,
+      properties: {
+        score: { type: ['number', 'null'] as any, minimum: 0, maximum: 100 },
+        strengths: { type: 'array' as const, items: { type: 'string' as const } },
+        issues: { type: 'array' as const, items: ISSUE_SCHEMA },
+      },
+      required: ['score', 'issues', 'strengths'],
+    });
 
     try {
       const msg = await this.anthropic.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 8192,
+        max_tokens: 16000,
         temperature: 0.1,
         system: technicalPrompt,
         tools: [
           {
-            name: 'submit_technical_analysis',
-            description:
-              'Submit the completed technical gap analysis as structured data.',
+            name: 'submit_analysis',
+            description: 'Submit the completed full application analysis as structured data.',
             input_schema: {
               type: 'object' as const,
               properties: {
                 technical_analysis: {
-                  type: 'object',
+                  type: 'object' as const,
                   properties: {
-                    reasoning: { type: 'string' },
+                    reasoning: { type: 'string' as const },
                     skill_priority: {
-                      type: 'array',
-                      description:
-                        'The 5 skill names ordered from most to least critical for THIS specific job',
-                      items: { type: 'string' },
+                      type: 'array' as const,
+                      description: 'The 5 skill names ordered from most to least critical for THIS specific job',
+                      items: { type: 'string' as const },
                       minItems: 5,
                       maxItems: 5,
                     },
                     skills: {
-                      type: 'array',
+                      type: 'array' as const,
                       items: {
-                        type: 'object',
+                        type: 'object' as const,
                         properties: {
-                          name: { type: 'string' },
-                          expected: { type: 'number' },
-                          current: { type: 'number' },
-                          evidence: { type: 'string' },
+                          name: { type: 'string' as const },
+                          expected: { type: 'number' as const },
+                          current: { type: 'number' as const },
+                          evidence: { type: 'string' as const },
                         },
                         required: ['name', 'expected', 'current', 'evidence'],
                       },
                       minItems: 5,
                       maxItems: 5,
                     },
-                    recommendation: { type: 'string' },
-                    market_context: { type: 'string' },
-                    seniority_signals: {
-                      type: 'array',
-                      items: { type: 'string' },
-                    },
+                    recommendation: { type: 'string' as const },
+                    market_context: { type: 'string' as const },
+                    seniority_signals: { type: 'array' as const, items: { type: 'string' as const } },
                   },
-                  required: [
-                    'reasoning',
-                    'skill_priority',
-                    'skills',
-                    'recommendation',
-                    'market_context',
-                    'seniority_signals',
-                  ],
+                  required: ['reasoning', 'skill_priority', 'skills', 'recommendation', 'market_context', 'seniority_signals'],
                 },
                 project_recommendation: {
-                  type: 'object',
+                  type: 'object' as const,
                   properties: {
-                    name: { type: 'string' },
-                    description: { type: 'string' },
-                    technologies: { type: 'array', items: { type: 'string' } },
-                    key_features: { type: 'array', items: { type: 'string' } },
-                    architecture: { type: 'string' },
-                    advanced_concepts: {
-                      type: 'array',
-                      items: { type: 'string' },
-                    },
-                    success_criteria: {
-                      type: 'array',
-                      items: { type: 'string' },
-                    },
-                    difficulty_level: { type: 'string' },
-                    why_it_matters: { type: 'string' },
-                    what_matters: { type: 'array', items: { type: 'string' } },
+                    name: { type: 'string' as const },
+                    description: { type: 'string' as const },
+                    technologies: { type: 'array' as const, items: { type: 'string' as const } },
+                    key_features: { type: 'array' as const, items: { type: 'string' as const } },
+                    architecture: { type: 'string' as const },
+                    advanced_concepts: { type: 'array' as const, items: { type: 'string' as const } },
+                    success_criteria: { type: 'array' as const, items: { type: 'string' as const } },
+                    difficulty_level: { type: 'string' as const, enum: ['Intermediate', 'Advanced', 'Expert'] },
+                    why_it_matters: { type: 'string' as const },
+                    what_matters: { type: 'array' as const, items: { type: 'string' as const } },
                   },
-                  required: [
-                    'name',
-                    'description',
-                    'technologies',
-                    'key_features',
-                    'architecture',
-                    'advanced_concepts',
-                    'success_criteria',
-                    'difficulty_level',
-                    'why_it_matters',
-                    'what_matters',
-                  ],
-                },
-                scores: {
-                  type: 'object',
-                  properties: {
-                    tech_stack_fit: {
-                      type: 'number',
-                      description: 'Tech stack fit score 0-100',
-                    },
-                    github_signal: {
-                      type: ['number', 'null'],
-                      description:
-                        'GitHub profile strength 0-100, null if not provided',
-                    },
-                    linkedin_signal: {
-                      type: ['number', 'null'],
-                      description:
-                        'LinkedIn profile strength for this role 0-100, null if not provided',
-                    },
-                  },
-                  required: [
-                    'tech_stack_fit',
-                    'github_signal',
-                    'linkedin_signal',
-                  ],
+                  required: ['name', 'description', 'technologies', 'key_features', 'architecture', 'advanced_concepts', 'success_criteria', 'difficulty_level', 'why_it_matters', 'what_matters'],
                 },
                 overall: {
-                  type: 'object',
-                  description:
-                    'Holistic overall rejection risk assessment combining all signals',
+                  type: 'object' as const,
+                  description: 'Holistic overall rejection risk assessment combining all signals',
                   properties: {
-                    score: {
-                      type: 'number',
-                      minimum: 0,
-                      maximum: 100,
-                      description:
-                        'Overall rejection risk: 0=strong match (low risk), 100=very weak match (high risk)',
-                    },
-                    verdict: {
-                      type: 'string',
-                      enum: ['Low', 'Medium', 'High'],
-                      description:
-                        'Low=strong candidate, Medium=partial match, High=weak match',
-                    },
+                    score: { type: 'number' as const, minimum: 0, maximum: 100, description: 'Overall rejection risk: 0=strong match (low risk), 100=very weak match (high risk)' },
+                    verdict: { type: 'string' as const, enum: ['Low', 'Medium', 'High'], description: 'Low=strong candidate, Medium=partial match, High=weak match' },
                     confidence: {
-                      type: 'object',
+                      type: 'object' as const,
                       properties: {
-                        score: { type: 'number', minimum: 0, maximum: 100 },
-                        reason: {
-                          type: 'string',
-                          description:
-                            'One sentence explaining the confidence level',
-                        },
+                        score: { type: 'number' as const, minimum: 0, maximum: 100 },
+                        reason: { type: 'string' as const, description: 'One sentence explaining the confidence level' },
                       },
                       required: ['score', 'reason'],
                     },
                   },
                   required: ['score', 'verdict', 'confidence'],
                 },
-                audit_github: {
-                  type: 'object',
-                  description:
-                    'GitHub profile audit. score=null and empty arrays if GitHub not provided.',
+                keyword_match: { type: 'number' as const, description: '0-100: presence and density of key JD keywords in the CV.' },
+                experience_level: { type: 'number' as const, description: '0-100: candidate seniority vs JD requirements.' },
+                tech_stack_fit: { type: 'number' as const, description: "0-100: how well the candidate's tech stack matches the JD." },
+                github_signal: { type: ['number', 'null'] as any, description: 'GitHub profile strength 0-100, null if not provided.' },
+                linkedin_signal: { type: ['number', 'null'] as any, description: 'LinkedIn profile strength 0-100, null if not provided.' },
+                ats_simulation: {
+                  type: 'object' as const,
                   properties: {
-                    score: {
-                      type: ['number', 'null'],
-                      minimum: 0,
-                      maximum: 100,
-                    },
-                    strengths: { type: 'array', items: { type: 'string' } },
-                    issues: {
-                      type: 'array',
+                    would_pass: { type: 'boolean' as const },
+                    score: { type: 'number' as const, minimum: 0, maximum: 100 },
+                    threshold: { type: 'number' as const, minimum: 0, maximum: 100 },
+                    reason: { type: 'string' as const },
+                    critical_missing_keywords: {
+                      type: 'array' as const,
                       items: {
-                        type: 'object',
+                        type: 'object' as const,
                         properties: {
-                          severity: {
-                            type: 'string',
-                            enum: ['critical', 'major', 'minor'],
-                          },
-                          category: {
-                            type: 'string',
-                            enum: [
-                              'keywords',
-                              'impact',
-                              'seniority',
-                              'stack',
-                              'format',
-                              'tone',
-                              'consistency',
-                            ],
-                          },
-                          what: { type: 'string' },
-                          why: { type: 'string' },
-                          fix: {
-                            type: 'object',
-                            properties: {
-                              summary: { type: 'string' },
-                              steps: {
-                                type: 'array',
-                                items: { type: 'string' },
-                              },
-                              example: {
-                                anyOf: [
-                                  { type: 'null' },
-                                  {
-                                    type: 'object',
-                                    properties: {
-                                      before: { type: 'string' },
-                                      after: { type: 'string' },
-                                    },
-                                    required: ['before', 'after'],
-                                  },
-                                ],
-                              },
-                              project_idea: {
-                                anyOf: [
-                                  { type: 'null' },
-                                  {
-                                    type: 'object',
-                                    properties: {
-                                      name: { type: 'string' },
-                                      description: { type: 'string' },
-                                      endpoints: {
-                                        type: 'array',
-                                        items: { type: 'string' },
-                                      },
-                                      bonus: {
-                                        anyOf: [
-                                          { type: 'null' },
-                                          { type: 'string' },
-                                        ],
-                                      },
-                                      proves: { type: 'string' },
-                                    },
-                                    required: [
-                                      'name',
-                                      'description',
-                                      'endpoints',
-                                      'bonus',
-                                      'proves',
-                                    ],
-                                  },
-                                ],
-                              },
-                              time_required: { type: 'string' },
-                            },
-                            required: [
-                              'summary',
-                              'steps',
-                              'example',
-                              'project_idea',
-                              'time_required',
-                            ],
-                          },
+                          keyword: { type: 'string' as const },
+                          jd_frequency: { type: 'number' as const },
+                          required: { type: 'boolean' as const },
+                          sections_missing: { type: 'array' as const, items: { type: 'string' as const } },
+                          score_impact: { type: 'number' as const },
                         },
-                        required: [
-                          'severity',
-                          'category',
-                          'what',
-                          'why',
-                          'fix',
-                        ],
+                        required: ['keyword', 'jd_frequency', 'required', 'sections_missing', 'score_impact'],
                       },
                     },
                   },
-                  required: ['score', 'issues', 'strengths'],
+                  required: ['would_pass', 'score', 'threshold', 'reason', 'critical_missing_keywords'],
                 },
-                audit_linkedin: {
-                  type: 'object',
-                  description:
-                    'LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided.',
+                seniority_analysis: {
+                  type: 'object' as const,
                   properties: {
-                    score: {
-                      type: ['number', 'null'],
-                      minimum: 0,
-                      maximum: 100,
-                    },
-                    strengths: { type: 'array', items: { type: 'string' } },
-                    issues: {
-                      type: 'array',
+                    expected: { type: 'string' as const },
+                    detected: { type: 'string' as const },
+                    gap: { type: 'string' as const },
+                    strength: { type: 'string' as const },
+                    fix: FIX_SCHEMA,
+                  },
+                  required: ['expected', 'detected', 'gap', 'strength', 'fix'],
+                },
+                cv_tone: {
+                  type: 'object' as const,
+                  properties: {
+                    detected: { type: 'string' as const, enum: ['passive', 'active', 'mixed'] },
+                    examples: { type: 'array' as const, items: { type: 'string' as const } },
+                    fix: FIX_SCHEMA,
+                  },
+                  required: ['detected', 'examples', 'fix'],
+                },
+                audit_cv: AUDIT_SCHEMA('CV structure, content and positioning audit.'),
+                audit_github: AUDIT_SCHEMA('GitHub profile audit. score=null and empty arrays if GitHub not provided.'),
+                audit_linkedin: AUDIT_SCHEMA('LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided.'),
+                audit_jd_match: {
+                  type: 'object' as const,
+                  description: 'Required skills from JD vs CV evidence.',
+                  properties: {
+                    required_skills: {
+                      type: 'array' as const,
                       items: {
-                        type: 'object',
+                        type: 'object' as const,
                         properties: {
-                          severity: {
-                            type: 'string',
-                            enum: ['critical', 'major', 'minor'],
-                          },
-                          category: {
-                            type: 'string',
-                            enum: [
-                              'keywords',
-                              'impact',
-                              'seniority',
-                              'stack',
-                              'format',
-                              'tone',
-                              'consistency',
-                            ],
-                          },
-                          what: { type: 'string' },
-                          why: { type: 'string' },
-                          fix: {
-                            type: 'object',
-                            properties: {
-                              summary: { type: 'string' },
-                              steps: {
-                                type: 'array',
-                                items: { type: 'string' },
-                              },
-                              example: {
-                                anyOf: [
-                                  { type: 'null' },
-                                  {
-                                    type: 'object',
-                                    properties: {
-                                      before: { type: 'string' },
-                                      after: { type: 'string' },
-                                    },
-                                    required: ['before', 'after'],
-                                  },
-                                ],
-                              },
-                              project_idea: {
-                                anyOf: [
-                                  { type: 'null' },
-                                  {
-                                    type: 'object',
-                                    properties: {
-                                      name: { type: 'string' },
-                                      description: { type: 'string' },
-                                      endpoints: {
-                                        type: 'array',
-                                        items: { type: 'string' },
-                                      },
-                                      bonus: {
-                                        anyOf: [
-                                          { type: 'null' },
-                                          { type: 'string' },
-                                        ],
-                                      },
-                                      proves: { type: 'string' },
-                                    },
-                                    required: [
-                                      'name',
-                                      'description',
-                                      'endpoints',
-                                      'bonus',
-                                      'proves',
-                                    ],
-                                  },
-                                ],
-                              },
-                              time_required: { type: 'string' },
-                            },
-                            required: [
-                              'summary',
-                              'steps',
-                              'example',
-                              'project_idea',
-                              'time_required',
-                            ],
-                          },
+                          skill: { type: 'string' as const },
+                          found: { type: 'boolean' as const },
+                          evidence: { anyOf: [{ type: 'null' as const }, { type: 'string' as const }] },
                         },
-                        required: [
-                          'severity',
-                          'category',
-                          'what',
-                          'why',
-                          'fix',
-                        ],
+                        required: ['skill', 'found', 'evidence'],
                       },
                     },
+                    experience_gap: { anyOf: [{ type: 'null' as const }, { type: 'string' as const }] },
                   },
-                  required: ['score', 'issues', 'strengths'],
+                  required: ['required_skills', 'experience_gap'],
+                },
+                hidden_red_flags: {
+                  type: 'array' as const,
+                  description: 'Subtle signals that would concern a senior recruiter.',
+                  items: {
+                    type: 'object' as const,
+                    properties: {
+                      flag: { type: 'string' as const },
+                      perception: { type: 'string' as const },
+                      fix: FIX_SCHEMA,
+                    },
+                    required: ['flag', 'perception', 'fix'],
+                  },
+                },
+                correlation: {
+                  type: 'object' as const,
+                  properties: {
+                    detected: { type: 'boolean' as const },
+                    explanation: { type: 'string' as const },
+                  },
+                  required: ['detected', 'explanation'],
                 },
                 job_details: {
-                  type: 'object',
+                  type: 'object' as const,
                   description: 'Extracted job title and company from the job description.',
                   properties: {
                     title: {
-                      type: 'string',
+                      type: 'string' as const,
                       description: 'Role type only, no seniority. E.g. "Front-End Developer", "Back-End Developer", "Full-Stack Developer", "DevOps Engineer", "Mobile Developer", "ML Engineer", "Data Engineer", "Security Engineer", "Software Engineer". Never return "Developer" alone or "N/A".',
                     },
                     company: {
-                      type: 'string',
+                      type: 'string' as const,
                       description: 'Company name from the job description. Use "Unknown Company" if not found. Never return an empty string or "N/A".',
                     },
                   },
@@ -524,68 +358,94 @@ export class AnalyzeService {
               required: [
                 'technical_analysis',
                 'project_recommendation',
-                'scores',
                 'overall',
+                'keyword_match',
+                'experience_level',
+                'tech_stack_fit',
+                'github_signal',
+                'linkedin_signal',
+                'ats_simulation',
+                'seniority_analysis',
+                'cv_tone',
+                'audit_cv',
                 'audit_github',
                 'audit_linkedin',
+                'audit_jd_match',
+                'hidden_red_flags',
+                'correlation',
                 'job_details',
               ],
             },
           },
         ],
-        tool_choice: { type: 'tool', name: 'submit_technical_analysis' },
+        tool_choice: { type: 'tool', name: 'submit_analysis' },
         messages: [
           {
             role: 'user',
             content: `Respond entirely in ${locale === 'fr' ? 'French' : 'English'}.
 
-Perform a technical gap analysis.
+Perform a complete application analysis.
 
-          JOB DESCRIPTION:
-          ${jobText}
+JOB DESCRIPTION:
+${jobText}
 
-          ---
+---
 
-          CANDIDATE EVIDENCE:
-          CV / RESUME:
-          ${cvText}
+CANDIDATE EVIDENCE:
+CV / RESUME:
+${cvText}
 
-          GITHUB PROJECTS: ${githubInfo || 'None provided'}
-          LINKEDIN SKILLS: ${linkedinText || 'None provided'}
-          MOTIVATION LETTER: ${motivationLetterText || 'None provided'}
+GITHUB PROJECTS: ${githubInfo || 'None provided'}
+LINKEDIN SKILLS: ${linkedinText || 'None provided'}
+MOTIVATION LETTER: ${motivationLetterText || 'None provided'}
 
-          Formatting rules:
-          - Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals): bold key terms, italics for nuance, short bullet lists where helpful.
-          - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.
-
-          Also compute the following fields:
-          - scores.linkedin_signal: 0-100 signal strength of the LinkedIn profile for this specific role. Set null if LinkedIn was not provided.
-          - overall: holistic rejection risk score (0=strong match/low risk, 100=very weak match/high risk), verdict (Low/Medium/High), and confidence. Consider all available signals: technical skills, CV quality, GitHub activity, LinkedIn coherence. Low verdict = strong candidate with low rejection risk.
-          - audit_github: if GitHub data is provided above, score the profile (0-100), list up to 3 issues and strengths. If GitHub was not provided, set score=null, issues=[], strengths=[].
-          - audit_linkedin: if LinkedIn profile is provided above, score it (0-100), identify inconsistencies or gaps vs the CV and job requirements. If LinkedIn was not provided, set score=null, issues=[], strengths=[].`,
+Formatting rules:
+- Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals): bold key terms, italics for nuance, short bullet lists where helpful.
+- In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`,
           },
         ],
       });
 
-      const toolUse = msg.content.find(
-        (block: any) => block.type === 'tool_use',
-      );
+      const toolUse = msg.content.find((block: any) => block.type === 'tool_use');
       if (!toolUse || (toolUse as any).type !== 'tool_use') {
-        console.error(
-          '[Claude] No tool_use block in response:',
-          JSON.stringify(msg.content).slice(0, 300),
-        );
-        throw new InternalServerErrorException('Technical Analysis failed');
+        console.error('[Claude] No tool_use block in response:', JSON.stringify(msg.content).slice(0, 300));
+        throw new InternalServerErrorException('Analysis failed');
       }
-      return (toolUse as any).input;
+
+      const i = (toolUse as any).input;
+      const result: AnalyzeResponse = {
+        score: i.overall.score,
+        verdict: i.overall.verdict,
+        confidence: i.overall.confidence,
+        breakdown: {
+          keyword_match: i.keyword_match,
+          tech_stack_fit: i.tech_stack_fit,
+          experience_level: i.experience_level,
+          github_signal: i.github_signal,
+          linkedin_signal: i.linkedin_signal,
+        },
+        ats_simulation: i.ats_simulation,
+        seniority_analysis: i.seniority_analysis,
+        cv_tone: i.cv_tone,
+        audit: {
+          cv: i.audit_cv,
+          github: i.audit_github,
+          linkedin: i.audit_linkedin,
+          jd_match: i.audit_jd_match,
+        },
+        hidden_red_flags: i.hidden_red_flags,
+        correlation: i.correlation,
+        job_details: i.job_details,
+        technical_analysis: i.technical_analysis,
+        project_recommendation: i.project_recommendation,
+      };
+      return AnalyzeResponseSchema.parse(result);
     } catch (apiErr: any) {
-      console.error(
-        '[Claude] Anthropic API call failed:',
-        apiErr?.message || apiErr,
-      );
-      throw new InternalServerErrorException('Technical Analysis failed');
+      console.error('[Claude] API call failed:', apiErr?.message || apiErr);
+      throw new InternalServerErrorException('Analysis failed');
     }
   }
+
 
   async analyzeApplication(
     data: {
@@ -652,186 +512,18 @@ Perform a technical gap analysis.
       }
     }
 
-    onStep?.('running_ats');
 
-    // Define the restricted schema for GPT-4o (No Technical Fields)
-    const GPTAnalysisSchema = AnalyzeResponseSchema.omit({
-      project_recommendation: true,
-      technical_analysis: true,
-    }).extend({
-      breakdown: z.object({
-        keyword_match: z.number(),
-        experience_level: z.number(),
-        linkedin_signal: z.number().nullable(),
-      }),
-    });
-
-    // Signal the start of the parallel dual-intelligence analysis
     onStep?.('dual_ai_analysis');
 
-    const systemPrompt = this.configService.get<string>(
-      'SYSTEM_ANALYZE_PROMPT',
-    )!;
-    console.log(
-      `[AnalyzeService] Sending request to OpenAI with RESTRICTED schema.`,
-    );
-
-    // Run both analyses in parallel using allSettled for robustness
-    const [gptResult, claudeResult] = await Promise.allSettled([
-      this.openai.chat.completions.create({
-        model: 'gpt-4o',
-        response_format: {
-          type: 'json_schema',
-          json_schema: {
-            name: 'gpt_analysis_response',
-            strict: true,
-            schema: z.toJSONSchema(GPTAnalysisSchema),
-          },
-        },
-        temperature: 0.3,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `Respond entirely in ${locale === 'fr' ? 'French' : 'English'}.
-
-Analyze this application for the following job.
-
-            JOB DESCRIPTION:
-            ${jobText}
-  
-            ---
-  
-            CANDIDATE CV:
-            ${cvText}
-  
-            ${motivationLetterText ? `---\nMOTIVATION LETTER:\n${motivationLetterText}` : ''}
-            ${linkedinText ? `---\nLINKEDIN PROFILE:\n${linkedinText}` : ''}
-            ${githubInfo ? `---\nGITHUB DATA:\n${githubInfo}` : ''}`,
-          },
-        ],
-      }),
-      this.getTechnicalAnalysisWithClaude({
-        jobText,
-        cvText,
-        githubInfo,
-        linkedinText,
-        motivationLetterText,
-        locale,
-      }),
-    ]);
-
-    if (gptResult.status === 'rejected') {
-      console.error('OpenAI Primary Analysis failed:', gptResult.reason);
-      throw new InternalServerErrorException('Primary Analysis failed');
-    }
-
-    const raw = gptResult.value.choices[0]?.message?.content;
-    if (!raw)
-      throw new InternalServerErrorException('Empty response from OpenAI');
-
-    try {
-      const gptParsed = JSON.parse(raw);
-
-      // Initialize full response structure with GPT data
-      const fullResponse: any = {
-        ...gptParsed,
-        // Reconstruct breakdown — will be overridden by Claude if available
-        breakdown: {
-          ...gptParsed.breakdown,
-          tech_stack_fit: 0,
-          github_signal: null,
-        },
-      };
-
-      // Merge Claude's results if successful
-      if (claudeResult.status === 'fulfilled') {
-        const cv = claudeResult.value;
-        fullResponse.technical_analysis = cv.technical_analysis;
-        fullResponse.project_recommendation = cv.project_recommendation;
-
-        // Claude owns the Overall Risk calculation
-        fullResponse.score = cv.overall.score;
-        fullResponse.verdict = cv.overall.verdict;
-        fullResponse.confidence = cv.overall.confidence;
-
-        // Claude owns job_details extraction (more reliable than GPT)
-        fullResponse.job_details = cv.job_details;
-
-        // Merge audit scores: prefer Claude's value, fall back to GPT's if Claude returned null
-        const mergedAuditGithub = {
-          ...cv.audit_github,
-          score:
-            cv.audit_github.score ?? gptParsed.audit?.github?.score ?? null,
-        };
-        const mergedAuditLinkedin = {
-          ...cv.audit_linkedin,
-          score:
-            cv.audit_linkedin.score ?? gptParsed.audit?.linkedin?.score ?? null,
-        };
-
-        // Full breakdown with all 5 signals — cross-sync scores with audit values as fallback
-        fullResponse.breakdown = {
-          keyword_match: gptParsed.breakdown?.keyword_match ?? 0,
-          experience_level: gptParsed.breakdown?.experience_level ?? 0,
-          tech_stack_fit: cv.scores.tech_stack_fit,
-          github_signal: cv.scores.github_signal ?? mergedAuditGithub.score,
-          linkedin_signal:
-            cv.scores.linkedin_signal ??
-            gptParsed.breakdown?.linkedin_signal ??
-            mergedAuditLinkedin.score,
-        };
-
-        // Claude owns GitHub + LinkedIn audits (with GPT fallback for scores)
-        fullResponse.audit = {
-          ...gptParsed.audit,
-          github: mergedAuditGithub,
-          linkedin: mergedAuditLinkedin,
-        };
-      } else {
-        console.error(
-          'Claude analysis failed, using GPT fallback for overall risk and signals',
-        );
-        const placeholder = {
-          name: 'Technical Analysis Unavailable',
-          expected: 5,
-          current: 0,
-          evidence: 'Technical engine was unavailable for this scan.',
-        };
-        fullResponse.technical_analysis = {
-          reasoning: 'Technical analysis was unavailable for this run.',
-          skill_priority: [],
-          skills: [
-            placeholder,
-            placeholder,
-            placeholder,
-            placeholder,
-            placeholder,
-          ],
-          recommendation: '',
-          market_context: 'Unavailable',
-          seniority_signals: [],
-        };
-        fullResponse.project_recommendation = {
-          name: 'Analysis Incomplete',
-          description: 'Technical engine was unavailable.',
-          technologies: [],
-          key_features: [],
-          architecture: '',
-          advanced_concepts: [],
-          success_criteria: [],
-          difficulty_level: 'Intermediate',
-          why_it_matters: '',
-          what_matters: [],
-        };
-      }
-
-      const result = AnalyzeResponseSchema.parse(fullResponse);
-      return { result, cvText, motivationLetterText };
-    } catch (err) {
-      console.error('Zod validation or JSON error:', err, raw);
-      throw new InternalServerErrorException('Invalid AI response format');
-    }
+    const result = await this.getTechnicalAnalysisWithClaude({
+      jobText,
+      cvText,
+      githubInfo,
+      linkedinText,
+      motivationLetterText,
+      locale,
+    });
+    return { result, cvText, motivationLetterText };
   }
 
   async checkUsageLimit(
@@ -1008,25 +700,24 @@ ORIGINAL CV:
 ${analysis.cvText}`;
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o',
+      const msg = await this.anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 8192,
         temperature: 0.3,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }],
       });
 
       const reconstructed_cv =
-        completion.choices[0]?.message?.content?.trim() ?? '';
-      console.log(`[GPT] rewriteCv returned ${reconstructed_cv.length} chars`);
+        (msg.content.find((b) => b.type === 'text') as any)?.text?.trim() ?? '';
+      console.log(`[Claude] rewriteCv returned ${reconstructed_cv.length} chars`);
 
       if (!reconstructed_cv)
-        throw new InternalServerErrorException('GPT returned empty CV');
+        throw new InternalServerErrorException('Claude returned empty CV');
 
       return RewriteResponseSchema.parse({ reconstructed_cv });
     } catch (err: any) {
-      console.error('[GPT] rewriteCv failed:', err?.message || err);
+      console.error('[Claude] rewriteCv failed:', err?.message || err);
       throw new InternalServerErrorException('CV rewrite failed');
     }
   }
