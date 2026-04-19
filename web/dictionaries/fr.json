@@ -722,7 +722,36 @@
       "analyses": "Analyses",
       "risk": "Risque moy.",
       "jobs": "Offres"
-    }
+    },
+    "tabs": {
+      "overview": "Vue d'ensemble",
+      "analyses": "Analyses",
+      "interviews": "Entretiens",
+      "applications": "Candidatures",
+      "settings": "Paramètres"
+    },
+    "overview": {
+      "currentPlan": "Plan actuel",
+      "renews": "Renouvellement",
+      "noActiveSub": "Aucun abonnement actif",
+      "avgRisk": "Risque moy.",
+      "recent": "Récent",
+      "viewFullHistory": "Voir tout l'historique →",
+      "skillStrengthProfile": "Profil de compétences",
+      "basedOn": "Basé sur",
+      "analysis": "analyse",
+      "analyses": "analyses",
+      "firstAnalysisCta": "Lancez votre première analyse pour voir votre profil de compétences.",
+      "signalsStrength": "Force des signaux",
+      "manageSubscription": "Gérer l'abonnement →",
+      "newAnalysis": "Nouvelle analyse"
+    },
+    "search": {
+      "analysesPlaceholder": "Rechercher par poste ou entreprise…",
+      "interviewsPlaceholder": "Rechercher un entretien…",
+      "noResults": "Aucun résultat pour"
+    },
+    "noInterviewsYet": "Aucun entretien pour l'instant."
   },
   "privacy": {
     "title": "Politique de confidentialité (RGPD)",

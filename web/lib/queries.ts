@@ -18,6 +18,8 @@ export type Profile = {
 export type HistoryItem = {
   id: number;
   jobDescription: string;
+  jobLabel?: string;
+  company?: string;
   createdAt: string;
   result: any;
 };
@@ -106,7 +108,7 @@ export function useAnalysis(id: number | null) {
   return useQuery({
     queryKey: ['analysis', id, userId],
     queryFn: () =>
-      apiFetch<{ result: any; jobDescription: string; rewrite?: any }>(
+      apiFetch<{ result: any; jobDescription: string; jobLabel?: string; company?: string; rewrite?: any }>(
         `/api/analyze/${id}`,
         { headers: authHeaders(token!) },
       ),

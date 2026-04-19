@@ -124,6 +124,7 @@ export class AnalyzeService {
     };
     audit_github: AnalyzeResponse['audit']['github'];
     audit_linkedin: AnalyzeResponse['audit']['linkedin'];
+    job_details: { title: string; company: string };
   }> {
     const {
       jobText,
@@ -504,6 +505,21 @@ export class AnalyzeService {
                   },
                   required: ['score', 'issues', 'strengths'],
                 },
+                job_details: {
+                  type: 'object',
+                  description: 'Extracted job title and company from the job description.',
+                  properties: {
+                    title: {
+                      type: 'string',
+                      description: 'Role type only, no seniority. E.g. "Front-End Developer", "Back-End Developer", "Full-Stack Developer", "DevOps Engineer", "Mobile Developer", "ML Engineer", "Data Engineer", "Security Engineer", "Software Engineer". Never return "Developer" alone or "N/A".',
+                    },
+                    company: {
+                      type: 'string',
+                      description: 'Company name from the job description. Use "Unknown Company" if not found. Never return an empty string or "N/A".',
+                    },
+                  },
+                  required: ['title', 'company'],
+                },
               },
               required: [
                 'technical_analysis',
@@ -512,6 +528,7 @@ export class AnalyzeService {
                 'overall',
                 'audit_github',
                 'audit_linkedin',
+                'job_details',
               ],
             },
           },
@@ -738,6 +755,9 @@ Analyze this application for the following job.
         fullResponse.verdict = cv.overall.verdict;
         fullResponse.confidence = cv.overall.confidence;
 
+        // Claude owns job_details extraction (more reliable than GPT)
+        fullResponse.job_details = cv.job_details;
+
         // Merge audit scores: prefer Claude's value, fall back to GPT's if Claude returned null
         const mergedAuditGithub = {
           ...cv.audit_github,
@@ -847,6 +867,7 @@ Analyze this application for the following job.
     email?: string;
     ip?: string;
     jobDescription: string;
+    jobLabel?: string;
     cvText?: string;
     motivationLetter?: string;
     result: any;
@@ -856,11 +877,16 @@ Analyze this application for the following job.
       email,
       ip,
       jobDescription,
+      jobLabel,
       cvText,
       motivationLetter,
       result,
       isRegistered,
     } = data;
+
+    // Use user-provided label, or fall back to AI-extracted job title
+    const resolvedLabel = jobLabel?.trim() || result.job_details?.title || null;
+    const resolvedCompany = result.job_details?.company?.trim() || 'Unknown Company';
 
     if (isRegistered && email) {
       // Registered User: Store everything
@@ -869,6 +895,8 @@ Analyze this application for the following job.
           email,
           ip: ip ?? null,
           jobDescription,
+          jobLabel: resolvedLabel,
+          company: resolvedCompany,
           cvText: cvText ?? null,
           motivationLetter: motivationLetter ?? null,
           result: result,

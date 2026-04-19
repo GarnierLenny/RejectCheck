@@ -69,6 +69,7 @@ export class AnalyzeController {
     }
     const {
       jobDescription,
+      jobLabel,
       githubUsername,
       motivationLetterText,
       email,
@@ -126,6 +127,7 @@ export class AnalyzeController {
         email,
         ip,
         jobDescription,
+        jobLabel,
         cvText: parsedCv,
         motivationLetter: parsedMl,
         result,

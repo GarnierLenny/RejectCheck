@@ -722,7 +722,36 @@
       "analyses": "Analyses",
       "risk": "Avg risk",
       "jobs": "Jobs"
-    }
+    },
+    "tabs": {
+      "overview": "Overview",
+      "analyses": "Analyses",
+      "interviews": "Interviews",
+      "applications": "Applications",
+      "settings": "Settings"
+    },
+    "overview": {
+      "currentPlan": "Current plan",
+      "renews": "Renews",
+      "noActiveSub": "No active subscription",
+      "avgRisk": "Avg risk",
+      "recent": "Recent",
+      "viewFullHistory": "View full history →",
+      "skillStrengthProfile": "Skill strength profile",
+      "basedOn": "Based on",
+      "analysis": "analysis",
+      "analyses": "analyses",
+      "firstAnalysisCta": "Run your first analysis to see your skill profile.",
+      "signalsStrength": "Signals strength",
+      "manageSubscription": "Manage subscription →",
+      "newAnalysis": "New Analysis"
+    },
+    "search": {
+      "analysesPlaceholder": "Search by job title or company…",
+      "interviewsPlaceholder": "Search interview…",
+      "noResults": "No results for"
+    },
+    "noInterviewsYet": "No interviews yet."
   },
   "privacy": {
     "title": "Privacy Policy (GDPR)",

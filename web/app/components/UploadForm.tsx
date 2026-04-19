@@ -252,6 +252,8 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         ) : (
           <p className="font-mono text-[9px] text-rc-hint mt-1.5">{t.uploadForm.jobListing.hint}</p>
         )}
+
+
       </div>
 
     </div>
