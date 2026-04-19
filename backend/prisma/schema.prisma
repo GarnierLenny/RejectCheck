@@ -25,16 +25,41 @@ model Subscription {
 }
 
 model Analysis {
-  id               Int      @id @default(autoincrement())
-  email            String?  // Registered users only
-  ip               String?  // Anonymous tracking
-  jobDescription   String?  // Registered users only
-  jobLabel         String?  // User-defined label for easy identification
-  company          String?  // AI-extracted company name
-  cvText           String?  // Registered users only
-  motivationLetter String?  // Registered users only
-  result           Json?    // Registered users only
-  createdAt        DateTime @default(now())
+  id               Int          @id @default(autoincrement())
+  email            String?      // Registered users only
+  ip               String?      // Anonymous tracking
+  jobDescription   String?      // Registered users only
+  jobLabel         String?      // User-defined label for easy identification
+  company          String?      // AI-extracted company name
+  cvText           String?      // Registered users only
+  motivationLetter String?      // Registered users only
+  result           Json?        // Registered users only
+  createdAt        DateTime     @default(now())
+  application      Application?
+}
+
+model Application {
+  id                  Int       @id @default(autoincrement())
+  email               String
+  jobTitle            String
+  company             String
+  status              String    @default("applied")
+  appliedAt           DateTime  @default(now())
+  notes               String?
+  analysisId          Int?      @unique
+  analysis            Analysis? @relation(fields: [analysisId], references: [id])
+  seniority           String?
+  pay                 String?
+  officeLocation      String?
+  workSetting         String?
+  contractType        String?
+  languagesRequired   String?
+  yearsOfExperience   String?
+  companyStage        String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([email, jobTitle, company])
 }
 
 model Profile {

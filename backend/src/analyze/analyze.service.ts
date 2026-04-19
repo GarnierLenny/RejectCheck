@@ -341,7 +341,7 @@ export class AnalyzeService {
                 },
                 job_details: {
                   type: 'object' as const,
-                  description: 'Extracted job title and company from the job description.',
+                  description: 'Structured metadata extracted from the job description.',
                   properties: {
                     title: {
                       type: 'string' as const,
@@ -351,8 +351,45 @@ export class AnalyzeService {
                       type: 'string' as const,
                       description: 'Company name from the job description. Use "Unknown Company" if not found. Never return an empty string or "N/A".',
                     },
+                    seniority: {
+                      type: 'string' as const,
+                      enum: ['junior', 'junior-mid', 'mid', 'mid-senior', 'senior', 'not-mentioned'],
+                      description: 'Seniority level targeted by the JD. Use "not-mentioned" if absent.',
+                    },
+                    pay: {
+                      anyOf: [{ type: 'string' as const }, { type: 'null' as const }],
+                      description: 'Salary or daily rate as a free string (e.g. "45-55k€", "TJM 600€"). null if not mentioned.',
+                    },
+                    office_location: {
+                      anyOf: [{ type: 'string' as const }, { type: 'null' as const }],
+                      description: 'City or address (e.g. "Paris 8e", "Lyon"). null if fully remote or not mentioned.',
+                    },
+                    work_setting: {
+                      type: 'string' as const,
+                      enum: ['full-remote', 'on-site', 'hybrid', 'not-mentioned'],
+                      description: 'Remote/office policy.',
+                    },
+                    contract_type: {
+                      type: 'string' as const,
+                      enum: ['CDI', 'CDD', 'freelance', 'internship', 'apprenticeship', 'not-mentioned'],
+                      description: 'Type of contract.',
+                    },
+                    languages_required: {
+                      type: 'string' as const,
+                      enum: ['french-only', 'english-only', 'bilingual', 'not-mentioned'],
+                      description: '"bilingual" = both French and English explicitly required.',
+                    },
+                    years_of_experience: {
+                      anyOf: [{ type: 'string' as const }, { type: 'null' as const }],
+                      description: 'Years of experience explicitly required (e.g. "3-5 ans", "2+ years"). null if not mentioned.',
+                    },
+                    company_stage: {
+                      type: 'string' as const,
+                      enum: ['startup', 'scale-up', 'sme', 'enterprise', 'not-mentioned'],
+                      description: 'Company stage inferred from headcount, funding, or brand recognition.',
+                    },
                   },
-                  required: ['title', 'company'],
+                  required: ['title', 'company', 'seniority', 'pay', 'office_location', 'work_setting', 'contract_type', 'languages_required', 'years_of_experience', 'company_stage'],
                 },
               },
               required: [
@@ -579,6 +616,18 @@ Formatting rules:
     // Use user-provided label, or fall back to AI-extracted job title
     const resolvedLabel = jobLabel?.trim() || result.job_details?.title || null;
     const resolvedCompany = result.job_details?.company?.trim() || 'Unknown Company';
+    const jd = result.job_details ?? {};
+    const notMentioned = (v: string | null | undefined) => (v === 'not-mentioned' ? null : (v ?? null));
+    const jobMeta = {
+      seniority:          notMentioned(jd.seniority),
+      pay:                jd.pay ?? null,
+      officeLocation:     jd.office_location ?? null,
+      workSetting:        notMentioned(jd.work_setting),
+      contractType:       notMentioned(jd.contract_type),
+      languagesRequired:  notMentioned(jd.languages_required),
+      yearsOfExperience:  jd.years_of_experience ?? null,
+      companyStage:       notMentioned(jd.company_stage),
+    };
 
     if (isRegistered && email) {
       // Registered User: Store everything
@@ -594,6 +643,30 @@ Formatting rules:
           result: result,
         },
       });
+      await (this.prisma as any).application.upsert({
+        where: {
+          email_jobTitle_company: {
+            email,
+            jobTitle: resolvedLabel || 'Unknown',
+            company: resolvedCompany,
+          },
+        },
+        update: {
+          analysisId: created.id,
+          updatedAt: new Date(),
+          ...jobMeta,
+        },
+        create: {
+          email,
+          jobTitle: resolvedLabel || 'Unknown',
+          company: resolvedCompany,
+          status: 'applied',
+          appliedAt: new Date(),
+          analysisId: created.id,
+          ...jobMeta,
+        },
+      });
+
       return { id: created.id };
     } else {
       // Anonymous User: Store ONLY IP and createdAt (by default)
