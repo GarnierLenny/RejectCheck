@@ -311,23 +311,10 @@
       "matching_skills": "Analyse de l'offre",
       "analyzing_linkedin": "Signal LinkedIn",
       "analyzing_github": "Signal GitHub",
-      "dual_ai_analysis": "Analytique Double-IA",
+      "dual_ai_analysis": "Analyse Approfondie",
       "finalizing": "Diagnostic final"
     },
-    "gptTasks": ["Simulation ATS", "Lettre de motivation", "Audit ATS", "Signaux d'alerte", "Ton & Séniorité"],
-    "claudeTasks": ["Radar Tech", "Analyse Tech Fit", "Blueprint Projet"],
-    "gptThoughts": [
-      "Scan de la densité de mots-clés ATS...",
-      "Incohérence de formatage détectée dans l'en-tête",
-      "Évaluation du ton vs. signaux de séniorité...",
-      "Recoupement avec des profils similaires...",
-      "Gap d'emploi signalé pour contextualisation",
-      "Score d'impact des bullet points en dessous de la médiane",
-      "Fréquence des verbes d'action : insuffisante",
-      "Réalisations quantifiées : insuffisantes",
-      "Vérification du score de lisibilité recruteur...",
-      "Schéma de signal d'alerte détecté dans le parcours"
-    ],
+    "claudeTasks": ["Simulation ATS", "Signaux d'alerte", "Ton & Séniorité", "Analyse Tech Fit", "Blueprint Projet"],
     "claudeThoughts": [
       "Cartographie de la profondeur de la stack technique...",
       "La cadence de commits suggère un fort ownership",

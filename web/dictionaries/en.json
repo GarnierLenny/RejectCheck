@@ -311,23 +311,10 @@
       "matching_skills": "Job Analysis",
       "analyzing_linkedin": "LinkedIn Signal",
       "analyzing_github": "GitHub Signal",
-      "dual_ai_analysis": "Split-Brain Analytics",
+      "dual_ai_analysis": "Deep Analysis",
       "finalizing": "Final Diagnostic"
     },
-    "gptTasks": ["ATS Simulation", "Motivation Letter", "ATS Audit", "Red Flags", "Tone & Seniority"],
-    "claudeTasks": ["Tech Radar", "Tech Fit Analysis", "Project Blueprint"],
-    "gptThoughts": [
-      "Scanning ATS keyword density...",
-      "Detected formatting inconsistency in header",
-      "Evaluating tone vs. seniority signals...",
-      "Cross-referencing similar profiles...",
-      "Employment gap flagged for contextualization",
-      "Bullet point impact score below median",
-      "Action verb frequency: insufficient",
-      "Quantified achievements: sparse",
-      "Checking recruiter readability score...",
-      "Red flag pattern detected in job history"
-    ],
+    "claudeTasks": ["ATS Simulation", "Red Flags", "Tone & Seniority", "Tech Fit", "Project Blueprint"],
     "claudeThoughts": [
       "Mapping depth of technical stack...",
       "Commit cadence suggests strong ownership",
