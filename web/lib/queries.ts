@@ -37,6 +37,31 @@ export type InterviewAttempt = {
   analysis?: any;
 };
 
+export type Application = {
+  id: number;
+  jobTitle: string;
+  company: string;
+  status: string;
+  appliedAt: string;
+  notes?: string | null;
+  analysisId?: number | null;
+  seniority?: string | null;
+  pay?: string | null;
+  officeLocation?: string | null;
+  workSetting?: string | null;
+  contractType?: string | null;
+  languagesRequired?: string | null;
+  yearsOfExperience?: string | null;
+  companyStage?: string | null;
+  analysis?: {
+    id: number;
+    jobLabel?: string | null;
+    company?: string | null;
+    createdAt: string;
+    result: any;
+  } | null;
+};
+
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 
 export function useSubscription() {
@@ -94,6 +119,21 @@ export function useInterviewHistory(page: number) {
     queryKey: ['interview-history', userId, page],
     queryFn: () =>
       apiFetch<PaginatedResponse<InterviewAttempt>>(`/api/interview/history?page=${page}&limit=10`, {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+  });
+}
+
+export function useApplications() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+
+  return useQuery({
+    queryKey: ['applications', userId],
+    queryFn: () =>
+      apiFetch<Application[]>('/api/applications', {
         headers: authHeaders(token!),
       }),
     enabled: !!token && !!userId,

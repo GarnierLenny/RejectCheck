@@ -6,8 +6,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "../../../lib/supabase";
 import { useAuth } from "../../../context/auth";
-import { useSubscription, useAnalysisHistory, useProfile, useInterviewHistory } from "../../../lib/queries";
-import { useDeleteAnalysis, useUpdateProfile } from "../../../lib/mutations";
+import { useSubscription, useAnalysisHistory, useProfile, useInterviewHistory, useApplications } from "../../../lib/queries";
+import { useDeleteAnalysis, useUpdateProfile, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../lib/mutations";
+import { ApplicationsTab } from "../../components/tabs/ApplicationsTab";
 import { SuccessModal } from "../../components/SuccessModal";
 import { useLanguage } from "../../../context/language";
 import {
@@ -138,6 +139,11 @@ function AccountPageContent() {
 
   const deleteAnalysis = useDeleteAnalysis();
   const updateProfile = useUpdateProfile();
+  const { data: applicationsData, isLoading: applicationsLoading } = useApplications();
+  const applications = applicationsData ?? [];
+  const createApplication = useCreateApplication();
+  const updateApplication = useUpdateApplication();
+  const deleteApplication = useDeleteApplication();
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -1087,7 +1093,16 @@ function AccountPageContent() {
             </div>
             );
           })()}
-          {activeTab === "applications" && <div>Applications</div>}
+          {activeTab === "applications" && (
+            <ApplicationsTab
+              applications={applications}
+              applicationsLoading={applicationsLoading}
+              history={history}
+              onCreateApplication={d => createApplication.mutateAsync(d as any)}
+              onUpdateApplication={d => updateApplication.mutateAsync(d as any)}
+              onDeleteApplication={id => deleteApplication.mutateAsync(id)}
+            />
+          )}
           {activeTab === "settings"     && <div>Settings</div>}
         </div>
 

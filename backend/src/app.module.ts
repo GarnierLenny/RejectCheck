@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { StripeModule } from './stripe/stripe.module';
 import { InterviewModule } from './interview/interview.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { InterviewModule } from './interview/interview.module';
     WaitlistModule,
     StripeModule,
     InterviewModule,
+    ApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
