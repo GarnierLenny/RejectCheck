@@ -22,7 +22,7 @@ import { InterviewTab } from "../../components/tabs/InterviewTab";
 import { TechnicalRadarChart } from "../../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../utils/export";
 import { useAuth } from "../../../context/auth";
-import { useSubscription, useAnalysis } from "../../../lib/queries";
+import { useSubscription, useAnalysis, useProfile, useSavedCvs } from "../../../lib/queries";
 import { useLanguage } from "../../../context/language";
 import { LangSwitcher } from "../../components/LangSwitcher";
 import { toast } from "sonner";
@@ -68,6 +68,8 @@ function AnalyzeContent() {
   const urlId = searchParams.get('id') ? parseInt(searchParams.get('id')!) : null;
 
   const { data: subscriptionData } = useSubscription();
+  const { data: profile } = useProfile();
+  const { data: savedCvs } = useSavedCvs();
   const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(urlId);
 
   const bootstrappedRef = useRef(false);
@@ -113,6 +115,11 @@ function AnalyzeContent() {
     setVisualLoadingDone(true);
     setLoading(false);
   }, [savedAnalysis]);
+
+  useEffect(() => {
+    if (!profile?.githubUsername || githubUsername) return;
+    setGithubUsername(profile.githubUsername);
+  }, [profile]);
 
   useEffect(() => {
     if (!urlId) return;
@@ -389,6 +396,8 @@ function AnalyzeContent() {
                 githubUsername={githubUsername} setGithubUsername={setGithubUsername}
                 onSubmit={handleSubmit} loading={false} error={error}
                 step={formStep} onStepChange={setFormStep}
+                savedCvFiles={savedCvs}
+                savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
               />
             </div>
           )

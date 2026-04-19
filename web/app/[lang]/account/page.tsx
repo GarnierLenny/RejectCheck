@@ -8,6 +8,8 @@ import { createClient } from "../../../lib/supabase";
 import { useAuth } from "../../../context/auth";
 import { useSubscription, useAnalysisHistory, useProfile, useInterviewHistory } from "../../../lib/queries";
 import { useDeleteAnalysis, useUpdateProfile } from "../../../lib/mutations";
+import { ApplicationsTab } from "../../components/tabs/ApplicationsTab";
+import { SettingsTab } from "../../components/tabs/SettingsTab";
 import { SuccessModal } from "../../components/SuccessModal";
 import { useLanguage } from "../../../context/language";
 import {
@@ -117,7 +119,7 @@ function AccountPageContent() {
   const searchParams = useSearchParams();
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { t, localePath } = useLanguage();
+  const { t, localePath, locale } = useLanguage();
 
   const { user, session, loading: authLoading } = useAuth();
 
@@ -1087,8 +1089,19 @@ function AccountPageContent() {
             </div>
             );
           })()}
-          {activeTab === "applications" && <div>Applications</div>}
-          {activeTab === "settings"     && <div>Settings</div>}
+          {activeTab === "applications" && (
+            <ApplicationsTab lang={locale} />
+          )}
+          {activeTab === "settings" && (
+            <SettingsTab
+              profile={profile ?? null}
+              profileLoading={false}
+              subscription={subscription ?? null}
+              session={session}
+              onSignOut={handleSignOut}
+              lang={locale}
+            />
+          )}
         </div>
 
         {/* PRESERVED — will be wired into tabs */}

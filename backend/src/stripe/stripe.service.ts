@@ -121,6 +121,27 @@ export class StripeService {
     };
   }
 
+  async createPortalSession(email: string, returnUrl: string) {
+    const sub = await this.prisma.subscription.findUnique({ where: { email } });
+    if (!sub?.stripeCustomerId) {
+      throw new Error('No Stripe customer found for this user');
+    }
+    const session = await this.stripe.billingPortal.sessions.create({
+      customer: sub.stripeCustomerId,
+      return_url: returnUrl,
+    });
+    return { url: session.url };
+  }
+
+  async getActiveSubscriptions(customerId: string): Promise<string[]> {
+    const subs = await this.stripe.subscriptions.list({ customer: customerId, status: 'active' });
+    return subs.data.map(s => s.id);
+  }
+
+  async cancelSubscription(subscriptionId: string) {
+    await this.stripe.subscriptions.cancel(subscriptionId);
+  }
+
   async checkSubscription(email: string): Promise<boolean> {
     const sub = await this.prisma.subscription.findUnique({ where: { email } });
     if (!sub) return false;

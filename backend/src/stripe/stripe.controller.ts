@@ -33,6 +33,15 @@ export class StripeController {
     return this.stripeService.getSubscription(email);
   }
 
+  @UseGuards(SupabaseGuard)
+  @Post('portal')
+  async createPortal(
+    @AuthEmail() email: string,
+    @Body() body: { returnUrl: string },
+  ) {
+    return this.stripeService.createPortalSession(email, body.returnUrl);
+  }
+
   /** Stripe-signed webhook — verified by stripe-signature header, not by Supabase JWT. */
   @Post('webhook')
   async handleWebhook(

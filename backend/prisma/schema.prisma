@@ -25,32 +25,71 @@ model Subscription {
 }
 
 model Analysis {
-  id               Int      @id @default(autoincrement())
-  email            String?  // Registered users only
-  ip               String?  // Anonymous tracking
-  jobDescription   String?  // Registered users only
-  jobLabel         String?  // User-defined label for easy identification
-  company          String?  // AI-extracted company name
-  cvText           String?  // Registered users only
-  motivationLetter String?  // Registered users only
-  result           Json?    // Registered users only
-  createdAt        DateTime @default(now())
+  id               Int          @id @default(autoincrement())
+  email            String?
+  ip               String?
+  jobDescription   String?
+  result           Json?
+  createdAt        DateTime     @default(now())
+  cvText           String?
+  motivationLetter String?
+  jobLabel         String?
+  company          String?
+  Application      Application?
 }
 
 model Profile {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  username       String?
+  avatarUrl      String?
+  displayName    String?
+  githubUsername String?
+  linkedinUrl    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model SavedCv {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  avatarUrl String?
+  email     String
+  name      String
+  url       String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
 
 model InterviewAttempt {
   id         Int      @id @default(autoincrement())
   email      String
   analysisId Int
-  transcript Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
-  analysis   Json?    // null until /complete is called
+  transcript Json
+  analysis   Json?
   createdAt  DateTime @default(now())
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Application {
+  id                Int       @id @default(autoincrement())
+  email             String
+  jobTitle          String
+  company           String
+  status            String    @default("applied")
+  appliedAt         DateTime  @default(now())
+  notes             String?
+  analysisId        Int?      @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  companyStage      String?
+  contractType      String?
+  languagesRequired String?
+  officeLocation    String?
+  pay               String?
+  seniority         String?
+  workSetting       String?
+  yearsOfExperience String?
+  Analysis          Analysis? @relation(fields: [analysisId], references: [id])
+
+  @@unique([email, jobTitle, company])
 }

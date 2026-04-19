@@ -13,6 +13,16 @@ export type Subscription = {
 export type Profile = {
   username: string | null;
   avatarUrl: string | null;
+  displayName: string | null;
+  githubUsername: string | null;
+  linkedinUrl: string | null;
+};
+
+export type SavedCv = {
+  id: number;
+  name: string;
+  url: string;
+  createdAt: string;
 };
 
 export type HistoryItem = {
@@ -35,6 +45,23 @@ export type InterviewAttempt = {
   createdAt: string;
   globalScore: number | null;
   analysis?: any;
+};
+
+export type Application = {
+  id: number;
+  jobTitle: string;
+  company: string;
+  status: string;
+  appliedAt: string;
+  notes?: string;
+  analysisId?: number;
+  analysis?: {
+    id: number;
+    jobLabel?: string;
+    company?: string;
+    createdAt: string;
+    result: any;
+  };
 };
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -94,6 +121,36 @@ export function useInterviewHistory(page: number) {
     queryKey: ['interview-history', userId, page],
     queryFn: () =>
       apiFetch<PaginatedResponse<InterviewAttempt>>(`/api/interview/history?page=${page}&limit=10`, {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+  });
+}
+
+export function useSavedCvs() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+
+  return useQuery({
+    queryKey: ['saved-cvs', userId],
+    queryFn: () =>
+      apiFetch<SavedCv[]>('/api/analyze/saved-cvs', {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+  });
+}
+
+export function useApplications() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+
+  return useQuery({
+    queryKey: ['applications', userId],
+    queryFn: () =>
+      apiFetch<Application[]>('/api/applications', {
         headers: authHeaders(token!),
       }),
     enabled: !!token && !!userId,

@@ -594,6 +594,26 @@ Formatting rules:
           result: result,
         },
       });
+      await (this.prisma as any).application.upsert({
+        where: {
+          email_jobTitle_company: {
+            email,
+            jobTitle: resolvedLabel || 'Unknown',
+            company: resolvedCompany,
+          },
+        },
+        update: { analysisId: created.id, updatedAt: new Date() },
+        create: {
+          email,
+          jobTitle: resolvedLabel || 'Unknown',
+          company: resolvedCompany,
+          status: 'applied',
+          appliedAt: new Date(),
+          analysisId: created.id,
+          updatedAt: new Date(),
+        },
+      });
+
       return { id: created.id };
     } else {
       // Anonymous User: Store ONLY IP and createdAt (by default)
@@ -771,12 +791,36 @@ ${analysis.cvText}`;
 
   async updateProfile(
     email: string,
-    data: { username?: string; avatarUrl?: string },
+    data: {
+      username?: string;
+      avatarUrl?: string;
+      displayName?: string;
+      githubUsername?: string;
+      linkedinUrl?: string;
+    },
   ) {
     return (this.prisma as any).profile.upsert({
       where: { email },
       update: data,
       create: { email, ...data },
     });
+  }
+
+  async listSavedCvs(email: string) {
+    return (this.prisma as any).savedCv.findMany({
+      where: { email },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async addSavedCv(email: string, name: string, url: string) {
+    return (this.prisma as any).savedCv.create({
+      data: { email, name, url },
+    });
+  }
+
+  async removeSavedCv(email: string, id: number) {
+    await (this.prisma as any).savedCv.findFirstOrThrow({ where: { id, email } });
+    return (this.prisma as any).savedCv.delete({ where: { id } });
   }
 }

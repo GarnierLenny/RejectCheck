@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
+  Param,
   UseInterceptors,
   UseGuards,
   UploadedFiles,
@@ -173,12 +175,40 @@ export class AnalyzeController {
   @ApiOperation({ summary: 'Update profile of the authenticated user' })
   async updateProfile(
     @AuthEmail() email: string,
-    @Body() body: { username?: string; avatarUrl?: string },
+    @Body() body: {
+      username?: string;
+      avatarUrl?: string;
+      displayName?: string;
+      githubUsername?: string;
+      cvUrl?: string;
+      linkedinUrl?: string;
+    },
   ) {
     return this.analyzeService.updateProfile(email, {
       username: body.username,
       avatarUrl: body.avatarUrl,
+      displayName: body.displayName,
+      githubUsername: body.githubUsername,
+      linkedinUrl: body.linkedinUrl,
     });
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Get('saved-cvs')
+  listSavedCvs(@AuthEmail() email: string) {
+    return this.analyzeService.listSavedCvs(email);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Post('saved-cvs')
+  addSavedCv(@AuthEmail() email: string, @Body() body: { name: string; url: string }) {
+    return this.analyzeService.addSavedCv(email, body.name, body.url);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Delete('saved-cvs/:id')
+  removeSavedCv(@AuthEmail() email: string, @Param('id') id: string) {
+    return this.analyzeService.removeSavedCv(email, parseInt(id));
   }
 
   @UseGuards(SupabaseGuard)

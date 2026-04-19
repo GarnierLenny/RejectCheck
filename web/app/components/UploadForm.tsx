@@ -23,6 +23,8 @@ type Props = {
   error: string | null;
   step: 1 | 2 | 3;
   onStepChange: (s: 1 | 2 | 3) => void;
+  savedCvFiles?: Array<{ id: number; name: string; url: string }>;
+  savedLinkedinUrl?: string;
 };
 
 type AccuracyLevel = {
@@ -176,18 +178,33 @@ function LeftStep3({ cvFile, jobDescription, githubUsername, liFile, mlFile, mlT
 
 /* ── Right panel helpers ─────────────────────────────────────────────────── */
 
-function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescription }: {
+function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescription, savedCvFiles }: {
   cvFile: File | null; setCvFile: (f: File | null) => void;
   fileRef: React.RefObject<HTMLInputElement | null>;
   jobDescription: string; setJobDescription: (v: string) => void;
+  savedCvFiles?: Array<{ id: number; name: string; url: string }>;
 }) {
   const { t } = useLanguage();
+  const [loadingCvId, setLoadingCvId] = useState<number | null>(null);
   const warningKey = useJdValidation(jobDescription);
   const warningText = warningKey
     ? (t.uploadForm.jobListing.warnings as Record<JdWarningKey, string>)[warningKey]
     : null;
 
   return (
+    <div className="flex flex-col flex-1 gap-0">
+    {!savedCvFiles?.length && (
+      <div className="flex items-center gap-1.5 mb-3">
+        <span className="text-[10px] text-rc-hint/50">↑</span>
+        <p className="font-mono text-[9px] text-rc-hint/50 leading-relaxed">
+          Save your CV, LinkedIn & GitHub in{" "}
+          <a href="/account?tab=settings" className="underline underline-offset-2 hover:text-rc-hint transition-colors">
+            Settings
+          </a>
+          {" "}to autofill future analyses.
+        </p>
+      </div>
+    )}
     <div className="grid grid-cols-2 gap-6 flex-1">
 
       {/* CV Upload — left column */}
@@ -197,25 +214,75 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">{t.common.required}</span>
         </div>
         {!cvFile ? (
-          <div
-            onClick={() => fileRef.current?.click()}
-            className="group border border-dashed border-rc-red/40 bg-rc-red/[0.025] hover:bg-rc-red/[0.05] hover:border-rc-red/60 rounded cursor-pointer transition-all duration-200 flex flex-col items-center justify-center flex-1 gap-2.5"
-          >
-            <div className="w-9 h-9 rounded bg-rc-red/8 border border-rc-red/20 group-hover:bg-rc-red/12 flex items-center justify-center transition-all">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="18" x2="12" y2="12"/>
-                <line x1="9" y1="15" x2="15" y2="15"/>
-              </svg>
+          savedCvFiles && savedCvFiles.length > 0 ? (
+            <div className="flex flex-col gap-1.5 flex-1">
+              <div className="space-y-1.5 flex-1">
+                {savedCvFiles.map(cv => (
+                  <button
+                    key={cv.id}
+                    type="button"
+                    disabled={loadingCvId === cv.id}
+                    onClick={async () => {
+                      setLoadingCvId(cv.id);
+                      try {
+                        const blob = await fetch(cv.url).then(r => r.blob());
+                        setCvFile(new File([blob], cv.name, { type: 'application/pdf' }));
+                      } finally {
+                        setLoadingCvId(null);
+                      }
+                    }}
+                    className="group w-full flex items-center gap-3 px-3.5 py-3 bg-rc-red/[0.03] hover:bg-rc-red/[0.07] border border-rc-red/25 hover:border-rc-red/50 rounded cursor-pointer transition-all duration-200 disabled:opacity-60"
+                  >
+                    <div className="w-8 h-8 rounded bg-rc-red/8 border border-rc-red/20 group-hover:bg-rc-red/14 flex items-center justify-center shrink-0 transition-all">
+                      {loadingCvId === cv.id ? (
+                        <span className="w-3.5 h-3.5 border-2 border-rc-red/60 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-[12px] font-medium text-rc-text truncate">{cv.name}</p>
+                      <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
+                    </div>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-rc-border hover:border-rc-red/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-red transition-all"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload a different file
+              </button>
             </div>
-            <div className="text-center">
-              <p className="text-[13px] text-rc-muted group-hover:text-rc-text transition-colors font-medium">
-                {t.uploadForm.cv.dropPrompt} <span className="text-rc-red underline decoration-dotted underline-offset-2">{t.uploadForm.cv.browse}</span>
-              </p>
-              <p className="font-mono text-[10px] text-rc-hint mt-0.5">{t.uploadForm.cv.format}</p>
+          ) : (
+            <div
+              onClick={() => fileRef.current?.click()}
+              className="group border border-dashed border-rc-red/40 bg-rc-red/[0.025] hover:bg-rc-red/[0.05] hover:border-rc-red/60 rounded cursor-pointer transition-all duration-200 flex flex-col items-center justify-center flex-1 gap-2.5"
+            >
+              <div className="w-9 h-9 rounded bg-rc-red/8 border border-rc-red/20 group-hover:bg-rc-red/12 flex items-center justify-center transition-all">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-[13px] text-rc-muted group-hover:text-rc-text transition-colors font-medium">
+                  {t.uploadForm.cv.dropPrompt} <span className="text-rc-red underline decoration-dotted underline-offset-2">{t.uploadForm.cv.browse}</span>
+                </p>
+                <p className="font-mono text-[10px] text-rc-hint mt-0.5">{t.uploadForm.cv.format}</p>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <div className="flex items-center gap-2.5 px-3.5 py-3 bg-rc-surface border border-rc-green/30 rounded">
             <div className="w-8 h-8 rounded bg-rc-green/10 border border-rc-green/20 flex items-center justify-center shrink-0">
@@ -257,6 +324,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
       </div>
 
     </div>
+    </div>
   );
 }
 
@@ -266,6 +334,7 @@ function RightStep2({
   mlFile, setMlFile, mlRef,
   mlText, setMlText,
   mlMode, setMlMode,
+  savedLinkedinUrl,
 }: {
   githubUsername: string; setGithubUsername: (v: string) => void;
   liFile: File | null; setLiFile: (f: File | null) => void;
@@ -274,8 +343,10 @@ function RightStep2({
   mlRef: React.RefObject<HTMLInputElement | null>;
   mlText: string; setMlText: (v: string) => void;
   mlMode: "file" | "text"; setMlMode: (m: "file" | "text") => void;
+  savedLinkedinUrl?: string;
 }) {
   const { t } = useLanguage();
+  const [loadingLi, setLoadingLi] = useState(false);
   return (
     <div className="flex flex-col gap-3 flex-1">
 
@@ -319,13 +390,54 @@ function RightStep2({
         </div>
         <div className="px-3 py-2.5">
           {!liFile ? (
-            <div
-              onClick={() => liRef.current?.click()}
-              className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
-            >
-              <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
-              <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
-            </div>
+            savedLinkedinUrl ? (
+              <div className="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  disabled={loadingLi}
+                  onClick={async () => {
+                    setLoadingLi(true);
+                    try {
+                      const blob = await fetch(savedLinkedinUrl).then(r => r.blob());
+                      setLiFile(new File([blob], 'linkedin.pdf', { type: 'application/pdf' }));
+                    } finally {
+                      setLoadingLi(false);
+                    }
+                  }}
+                  className="group flex items-center gap-3 px-3.5 py-3 bg-[#0a66c2]/[0.04] hover:bg-[#0a66c2]/[0.09] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded cursor-pointer transition-all duration-200 w-full disabled:opacity-60"
+                >
+                  <div className="w-8 h-8 rounded bg-[#0a66c2]/10 border border-[#0a66c2]/20 flex items-center justify-center shrink-0 transition-all">
+                    {loadingLi ? (
+                      <span className="w-3.5 h-3.5 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <span className="font-mono text-[9px] font-bold text-[#0a66c2]">in</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-[12px] font-medium text-rc-text truncate">linkedin.pdf</p>
+                    <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved profile · click to use</p>
+                  </div>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a66c2" strokeOpacity="0.5" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => liRef.current?.click()}
+                  className="font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-text transition-colors text-center py-0.5"
+                >
+                  or upload a different file
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => liRef.current?.click()}
+                className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
+              >
+                <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
+                <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
+              </div>
+            )
           ) : (
             <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -508,6 +620,7 @@ export function UploadForm({
   mlText, setMlText,
   onSubmit, loading, error,
   step, onStepChange,
+  savedCvFiles, savedLinkedinUrl,
 }: Props) {
   const { t } = useLanguage();
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
@@ -548,6 +661,7 @@ export function UploadForm({
             <RightStep1
               cvFile={cvFile} setCvFile={setCvFile} fileRef={fileRef}
               jobDescription={jobDescription} setJobDescription={setJobDescription}
+              savedCvFiles={savedCvFiles}
             />
           )}
           {step === 2 && (
@@ -557,6 +671,7 @@ export function UploadForm({
               mlFile={mlFile} setMlFile={setMlFile} mlRef={mlRef}
               mlText={mlText} setMlText={setMlText}
               mlMode={mlMode} setMlMode={setMlMode}
+              savedLinkedinUrl={savedLinkedinUrl}
             />
           )}
           {step === 3 && (
