@@ -684,7 +684,6 @@ export function UploadForm({
               mlText={mlText}
             />
           )}
-          <StepList current={step} />
         </div>
 
         {/* RIGHT WHITE PANEL */}
