@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Trash2, Plus, LogOut, AlertTriangle, CreditCard } from "lucide-react";
+import { Trash2, Plus, LogOut, AlertTriangle, CreditCard, Eye } from "lucide-react";
+import { PdfPreviewModal } from "../PdfPreviewModal";
 import { createClient } from "../../../lib/supabase";
 import type { Profile, Subscription, SavedCv } from "../../../lib/queries";
 import { useSavedCvs } from "../../../lib/queries";
@@ -61,6 +62,7 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
   const cvRef = useRef<HTMLInputElement>(null);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -127,6 +129,8 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
   const planLabel = subscription?.plan?.toUpperCase() ?? "FREE";
 
   return (
+    <>
+    {previewPdf && <PdfPreviewModal url={previewPdf.url} name={previewPdf.name} onClose={() => setPreviewPdf(null)} />}
     <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
 
       {/* ── Left column ─────────────────────────────── */}
@@ -301,6 +305,12 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
                     </svg>
                     <span className="text-[12px] text-rc-text flex-1 truncate">{cv.name}</span>
                     <button
+                      onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })}
+                      className="text-rc-hint/40 hover:text-rc-hint transition-colors"
+                    >
+                      <Eye size={11} />
+                    </button>
+                    <button
                       onClick={() => deleteSavedCv.mutate(cv.id)}
                       className="text-rc-hint/40 hover:text-rc-red transition-colors"
                     >
@@ -322,6 +332,12 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
               <div className="flex items-center gap-2 px-3 py-2 bg-rc-bg border border-rc-green/30 rounded mb-2">
                 <span className="font-mono text-[9px] font-bold text-[#5ba3d9] w-4 text-center">in</span>
                 <span className="text-[12px] text-rc-text flex-1">linkedin.pdf</span>
+                <button
+                  onClick={() => setPreviewPdf({ url: profile.linkedinUrl!, name: "linkedin.pdf" })}
+                  className="text-rc-hint/40 hover:text-rc-hint transition-colors"
+                >
+                  <Eye size={11} />
+                </button>
                 <span className="font-mono text-[9px] text-rc-green">✓ Saved</span>
               </div>
             ) : null}
@@ -349,5 +365,6 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
       </div>
 
     </div>
+    </>
   );
 }

@@ -844,12 +844,29 @@ ${analysis.cvText}`;
 
   async updateProfile(
     email: string,
-    data: { username?: string; avatarUrl?: string },
+    data: { username?: string; avatarUrl?: string; displayName?: string; githubUsername?: string; linkedinUrl?: string },
   ) {
     return (this.prisma as any).profile.upsert({
       where: { email },
       update: data,
       create: { email, ...data },
     });
+  }
+
+  async listSavedCvs(email: string) {
+    return (this.prisma as any).savedCv.findMany({
+      where: { email },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async addSavedCv(email: string, name: string, url: string) {
+    return (this.prisma as any).savedCv.create({ data: { email, name, url } });
+  }
+
+  async removeSavedCv(email: string, id: number) {
+    const cv = await (this.prisma as any).savedCv.findFirst({ where: { id, email } });
+    if (!cv) throw new BadRequestException('Not found');
+    return (this.prisma as any).savedCv.delete({ where: { id } });
   }
 }

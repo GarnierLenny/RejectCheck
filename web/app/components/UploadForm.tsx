@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useLanguage } from "../../context/language";
 import { useJdValidation } from "../hooks/useJdValidation";
 import type { JdWarningKey } from "../hooks/useJdValidation";
+import { PdfPreviewModal } from "./PdfPreviewModal";
 
 type Props = {
   cvFile: File | null;
@@ -186,12 +187,15 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
 }) {
   const { t } = useLanguage();
   const [loadingCvId, setLoadingCvId] = useState<number | null>(null);
+  const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
   const warningKey = useJdValidation(jobDescription);
   const warningText = warningKey
     ? (t.uploadForm.jobListing.warnings as Record<JdWarningKey, string>)[warningKey]
     : null;
 
   return (
+    <>
+    {previewPdf && <PdfPreviewModal url={previewPdf.url} name={previewPdf.name} onClose={() => setPreviewPdf(null)} />}
     <div className="flex flex-col flex-1 gap-0">
       {!savedCvFiles?.length && (
         <div className="flex items-center gap-1.5 mb-3">
@@ -218,39 +222,50 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
             <div className="flex flex-col gap-1.5 flex-1">
               <div className="space-y-1.5 flex-1">
                 {savedCvFiles.map(cv => (
-                  <button
+                  <div
                     key={cv.id}
-                    type="button"
-                    disabled={loadingCvId === cv.id}
-                    onClick={async () => {
-                      setLoadingCvId(cv.id);
-                      try {
-                        const blob = await fetch(cv.url).then(r => r.blob());
-                        setCvFile(new File([blob], cv.name, { type: 'application/pdf' }));
-                      } finally {
-                        setLoadingCvId(null);
-                      }
-                    }}
-                    className="group w-full flex items-center gap-3 px-3.5 py-3 bg-rc-red/[0.03] hover:bg-rc-red/[0.07] border border-rc-red/25 hover:border-rc-red/50 rounded cursor-pointer transition-all duration-200 disabled:opacity-60"
+                    className={`group flex items-center gap-3 px-3.5 py-3 bg-rc-red/[0.03] border border-rc-red/25 hover:border-rc-red/50 rounded transition-all duration-200 ${loadingCvId === cv.id ? "opacity-60" : ""}`}
                   >
-                    <div className="w-8 h-8 rounded bg-rc-red/8 border border-rc-red/20 group-hover:bg-rc-red/14 flex items-center justify-center shrink-0 transition-all">
-                      {loadingCvId === cv.id ? (
-                        <span className="w-3.5 h-3.5 border-2 border-rc-red/60 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
-                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                          <polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p className="text-[12px] font-medium text-rc-text truncate">{cv.name}</p>
-                      <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
-                    </div>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </button>
+                    <button
+                      type="button"
+                      disabled={loadingCvId === cv.id}
+                      onClick={async () => {
+                        setLoadingCvId(cv.id);
+                        try {
+                          const blob = await fetch(cv.url).then(r => r.blob());
+                          setCvFile(new File([blob], cv.name, { type: 'application/pdf' }));
+                        } finally {
+                          setLoadingCvId(null);
+                        }
+                      }}
+                      className="flex items-center gap-3 flex-1 min-w-0 text-left hover:bg-rc-red/[0.04] -mx-1 px-1 rounded transition-all disabled:cursor-not-allowed"
+                    >
+                      <div className="w-8 h-8 rounded bg-rc-red/8 border border-rc-red/20 flex items-center justify-center shrink-0">
+                        {loadingCvId === cv.id ? (
+                          <span className="w-3.5 h-3.5 border-2 border-rc-red/60 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-medium text-rc-text truncate">{cv.name}</p>
+                        <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
+                      </div>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })}
+                      className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
                 ))}
               </div>
               <button
@@ -325,6 +340,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
 
     </div>
     </div>
+    </>
   );
 }
 
@@ -347,7 +363,12 @@ function RightStep2({
 }) {
   const { t } = useLanguage();
   const [loadingLi, setLoadingLi] = useState(false);
+  const [previewLi, setPreviewLi] = useState(false);
   return (
+    <>
+    {previewLi && savedLinkedinUrl && (
+      <PdfPreviewModal url={savedLinkedinUrl} name="linkedin.pdf" onClose={() => setPreviewLi(false)} />
+    )}
     <div className="flex flex-col gap-3 flex-1">
 
       {/* GitHub */}
@@ -392,35 +413,44 @@ function RightStep2({
           {!liFile ? (
             savedLinkedinUrl ? (
               <div className="flex flex-col gap-1.5">
-                <button
-                  type="button"
-                  disabled={loadingLi}
-                  onClick={async () => {
-                    setLoadingLi(true);
-                    try {
-                      const blob = await fetch(savedLinkedinUrl).then(r => r.blob());
-                      setLiFile(new File([blob], 'linkedin.pdf', { type: 'application/pdf' }));
-                    } finally {
-                      setLoadingLi(false);
-                    }
-                  }}
-                  className="group w-full flex items-center gap-3 px-3.5 py-3 bg-[#0a66c2]/[0.03] hover:bg-[#0a66c2]/[0.07] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded cursor-pointer transition-all duration-200 disabled:opacity-60"
-                >
-                  <div className="w-8 h-8 rounded bg-[#0a66c2]/8 border border-[#0a66c2]/20 flex items-center justify-center shrink-0 transition-all">
-                    {loadingLi ? (
-                      <span className="w-3.5 h-3.5 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span className="font-mono text-[9px] font-bold text-[#5ba3d9]">in</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[12px] font-medium text-rc-text">linkedin.pdf</p>
-                    <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
-                  </div>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(91,163,217,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </button>
+                <div className={`group flex items-center gap-3 px-3.5 py-3 bg-[#0a66c2]/[0.03] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded transition-all duration-200 ${loadingLi ? "opacity-60" : ""}`}>
+                  <button
+                    type="button"
+                    disabled={loadingLi}
+                    onClick={async () => {
+                      setLoadingLi(true);
+                      try {
+                        const blob = await fetch(savedLinkedinUrl).then(r => r.blob());
+                        setLiFile(new File([blob], 'linkedin.pdf', { type: 'application/pdf' }));
+                      } finally {
+                        setLoadingLi(false);
+                      }
+                    }}
+                    className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-not-allowed"
+                  >
+                    <div className="w-8 h-8 rounded bg-[#0a66c2]/8 border border-[#0a66c2]/20 flex items-center justify-center shrink-0">
+                      {loadingLi ? (
+                        <span className="w-3.5 h-3.5 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <span className="font-mono text-[9px] font-bold text-[#5ba3d9]">in</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-medium text-rc-text">linkedin.pdf</p>
+                      <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
+                    </div>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(91,163,217,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewLi(true)}
+                    className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => liRef.current?.click()}
@@ -505,6 +535,7 @@ function RightStep2({
       </div>
 
     </div>
+    </>
   );
 }
 
