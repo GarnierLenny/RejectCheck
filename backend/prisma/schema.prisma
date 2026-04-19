@@ -29,6 +29,8 @@ model Analysis {
   email            String?  // Registered users only
   ip               String?  // Anonymous tracking
   jobDescription   String?  // Registered users only
+  jobLabel         String?  // User-defined label for easy identification
+  company          String?  // AI-extracted company name
   cvText           String?  // Registered users only
   motivationLetter String?  // Registered users only
   result           Json?    // Registered users only

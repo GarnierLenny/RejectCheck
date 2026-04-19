@@ -11,6 +11,7 @@ export const AnalyzeRequestSchema = z.object({
     .string()
     .max(20000, 'Motivation letter is too long')
     .optional(),
+  jobLabel: z.string().max(60).optional(),
   email: z.string().email().optional(),
   isRegistered: z
     .preprocess((val) => val === 'true' || val === true, z.boolean())

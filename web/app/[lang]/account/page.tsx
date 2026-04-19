@@ -28,6 +28,7 @@ import {
   Mic,
 } from "lucide-react";
 import { ExportModal } from "../../components/ExportModal";
+import { LangSwitcher } from "../../components/LangSwitcher";
 import { Github, Linkedin } from "react-bootstrap-icons";
 import {
   Radar,
@@ -36,11 +37,19 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
 } from "recharts";
 
 type HistoryItem = {
   id: number;
   jobDescription: string;
+  jobLabel?: string;
+  company?: string;
   createdAt: string;
   result: any;
 };
@@ -57,6 +66,52 @@ const ACCOUNT_TABS: { id: AccountTab; label: string }[] = [
 
 const VALID_ACCOUNT_TABS: AccountTab[] = ["overview", "analyses", "interviews", "applications", "settings"];
 
+const EVO_PALETTE = ["#D94040", "#4a7c1f", "#b86800", "#185FA5", "#888780"] as const;
+
+function EvolutionTooltip({
+  active, payload,
+  evoGroups, evoLabels,
+}: {
+  active?: boolean;
+  payload?: any[];
+  evoGroups: Map<string, Array<{ date: Date; score: number }>>;
+  evoLabels: Map<string, { title: string; company: string }>;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white border border-[rgba(0,0,0,0.12)] rounded-xl p-3 shadow-lg space-y-2.5 min-w-[200px]">
+      {payload.map((entry: any, i: number) => {
+        const key = entry.dataKey as string;
+        const meta = evoLabels.get(key);
+        const pts = evoGroups.get(key) ?? [];
+        const thisDate = new Date(entry.payload.dateRaw as number);
+        const idx = pts.findIndex(p => p.date.toDateString() === thisDate.toDateString());
+        const prev = idx > 0 ? pts[idx - 1] : null;
+        const delta = prev !== null ? (entry.value as number) - prev.score : null;
+        return (
+          <div key={i} className="space-y-0.5">
+            <p className="font-bold text-[11px] text-rc-text leading-tight">
+              {meta?.title}
+              {meta?.company && <span className="font-normal text-rc-hint"> · {meta.company}</span>}
+            </p>
+            <p className="font-mono text-[10px] text-rc-hint">{entry.payload.dateLabel}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-mono text-[11px] text-rc-text">
+                Rejection risk: <span style={{ color: entry.color }} className="font-bold">{entry.value}%</span>
+              </span>
+              {delta !== null && (
+                <span className={`font-mono text-[10px] font-bold ${delta < 0 ? "text-rc-green" : "text-rc-red"}`}>
+                  {delta < 0 ? `↓ from ${prev!.score}%` : `↑ from ${prev!.score}%`}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function AccountPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,6 +125,7 @@ function AccountPageContent() {
   const [interviewPage, setInterviewPage] = useState(1);
   const [analysisSearch, setAnalysisSearch] = useState("");
   const [interviewSearch, setInterviewSearch] = useState("");
+  const [evolutionPeriod, setEvolutionPeriod] = useState<"7d" | "30d" | "all">("30d");
 
   const { data: subscription } = useSubscription();
   const { data: profile } = useProfile();
@@ -285,6 +341,7 @@ function AccountPageContent() {
         <div className="flex items-center gap-6">
           <Link href={localePath("/analyze")} className="font-mono text-[11px] tracking-widest uppercase text-rc-hint hover:text-rc-text transition-colors no-underline">{t.account.analyze}</Link>
           <Link href={localePath("/pricing")} className="font-mono text-[11px] tracking-widest uppercase text-rc-red hover:opacity-80 transition-opacity no-underline">{t.common.pricing}</Link>
+          <LangSwitcher />
           <Link href={localePath("/account")} className="flex items-center gap-2.5 group no-underline">
             <div className="w-8 h-8 rounded-full bg-rc-red/5 border border-rc-red/10 flex items-center justify-center text-[11px] font-black text-rc-red group-hover:bg-rc-red/10 transition-colors overflow-hidden">
               {avatarUrl ? (
@@ -312,7 +369,7 @@ function AccountPageContent() {
                     : "border-transparent text-rc-muted hover:text-rc-text"
                 }`}
               >
-                {tab.label}
+                {(t.account.tabs as Record<AccountTab, string>)[tab.id]}
               </button>
             ))}
           </div>
@@ -476,10 +533,10 @@ function AccountPageContent() {
                     {/* Plan + renewal */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
-                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">Current plan</p>
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">{t.account.overview.currentPlan}</p>
                         {isActive && periodEnd
-                          ? <p className="font-mono text-[11px] text-rc-muted">Renews <span className="text-rc-text font-semibold">{periodEnd}</span></p>
-                          : <p className="font-mono text-[11px] text-rc-hint">No active subscription</p>
+                          ? <p className="font-mono text-[11px] text-rc-muted">{t.account.overview.renews} <span className="text-rc-text font-semibold">{periodEnd}</span></p>
+                          : <p className="font-mono text-[11px] text-rc-hint">{t.account.overview.noActiveSub}</p>
                         }
                       </div>
                       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-rc-red/5 border border-rc-red/10 shrink-0">
@@ -491,16 +548,16 @@ function AccountPageContent() {
                       href={localePath("/pricing")}
                       className="font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-red transition-colors no-underline"
                     >
-                      Manage subscription →
+                      {t.account.overview.manageSubscription}
                     </Link>
                   </div>
 
                   {/* Stat cards — compact grid */}
                   <div className="grid grid-cols-3 gap-2">
                     {[
-                      { icon: <FileText className="w-3.5 h-3.5 text-rc-hint" />, value: totalAnalyses, label: "Analyses", color: "text-rc-text" },
-                      { icon: <Mic className="w-3.5 h-3.5 text-rc-hint" />,      value: totalInterviews, label: "Interviews", color: "text-rc-text" },
-                      { icon: <Zap className="w-3.5 h-3.5 text-rc-hint" />,      value: overviewAvgRisk ?? "—", label: "Avg risk", color: riskColor },
+                      { icon: <FileText className="w-3.5 h-3.5 text-rc-hint" />, value: totalAnalyses, label: t.account.tabs.analyses, color: "text-rc-text" },
+                      { icon: <Mic className="w-3.5 h-3.5 text-rc-hint" />,      value: totalInterviews, label: t.account.tabs.interviews, color: "text-rc-text" },
+                      { icon: <Zap className="w-3.5 h-3.5 text-rc-hint" />,      value: overviewAvgRisk ?? "—", label: t.account.overview.avgRisk, color: riskColor },
                     ].map(({ icon, value, label, color }) => (
                       <div key={label} className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
                         {icon}
@@ -514,17 +571,17 @@ function AccountPageContent() {
                   {summaryPage1.length > 0 && (
                     <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(0,0,0,0.06)]">
-                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Recent</p>
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">{t.account.overview.recent}</p>
                         <button
                           onClick={() => handleTabChange("analyses")}
                           className="font-mono text-[9px] tracking-widest uppercase text-rc-hint hover:text-rc-red transition-colors"
                         >
-                          View full history →
+                          {t.account.overview.viewFullHistory}
                         </button>
                       </div>
                       {summaryPage1.slice(0, 3).map((item, i) => {
-                        const title = item.result?.job_details?.title || "Developer";
-                        const company = item.result?.job_details?.company || "—";
+                        const label = item.jobLabel || item.result?.job_details?.title || "Developer";
+                        const company = item.company ?? item.result?.job_details?.company ?? null;
                         const score = item.result?.score ?? 0;
                         const scoreClass = score < 40
                           ? "text-rc-green border-rc-green/30 bg-rc-green/5"
@@ -541,8 +598,8 @@ function AccountPageContent() {
                               {score}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-semibold text-[12px] text-rc-text leading-tight truncate group-hover:text-rc-red transition-colors">{title}</p>
-                              <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>
+                              <p className="font-semibold text-[12px] text-rc-text leading-tight truncate group-hover:text-rc-red transition-colors">{label}</p>
+                              {company && <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>}
                             </div>
                             <ChevronRight className="w-3.5 h-3.5 text-rc-hint/30 group-hover:text-rc-red shrink-0 ml-auto transition-colors" />
                           </Link>
@@ -556,27 +613,27 @@ function AccountPageContent() {
                     href={localePath("/analyze")}
                     className="w-full flex items-center justify-center gap-2 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
                   >
-                    New Analysis <ArrowRight className="w-3 h-3" />
+                    {t.account.overview.newAnalysis} <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
 
                 {/* ── Right column (60%) ───────────────────────────────────── */}
                 <div className="w-full md:flex-1 bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-6 space-y-4">
                   <div className="flex items-center justify-between">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Skill strength profile</p>
+                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">{t.account.overview.skillStrengthProfile}</p>
                     <p className="font-mono text-[10px] text-rc-hint">
-                      Based on {radarAnalysisCount} {radarAnalysisCount === 1 ? "analysis" : "analyses"}
+                      {t.account.overview.basedOn} {radarAnalysisCount} {radarAnalysisCount === 1 ? t.account.overview.analysis : t.account.overview.analyses}
                     </p>
                   </div>
 
                   {radarAnalysisCount === 0 ? (
                     <div className="h-[420px] flex flex-col items-center justify-center gap-5">
-                      <p className="font-mono text-[11px] text-rc-hint text-center">Run your first analysis to see your skill profile.</p>
+                      <p className="font-mono text-[11px] text-rc-hint text-center">{t.account.overview.firstAnalysisCta}</p>
                       <Link
                         href={localePath("/analyze")}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
                       >
-                        New Analysis <ArrowRight className="w-3 h-3" />
+                        {t.account.overview.newAnalysis} <ArrowRight className="w-3 h-3" />
                       </Link>
                     </div>
                   ) : (
@@ -616,7 +673,7 @@ function AccountPageContent() {
 
                     return (
                       <div className="border-t border-[rgba(0,0,0,0.06)] pt-5 space-y-4">
-                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Signals strength</p>
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">{t.account.overview.signalsStrength}</p>
                         <div className="space-y-4">
                           {signals.map(({ label, score, icon }) => (
                             <div key={label} className="space-y-2">
@@ -656,8 +713,133 @@ function AccountPageContent() {
                 })
               : history;
 
+            // ── Score Evolution data ─────────────────────────────────────────
+            const evoCutoff = evolutionPeriod === "all"
+              ? new Date(0)
+              : new Date(Date.now() - (evolutionPeriod === "7d" ? 7 : 30) * 86400000);
+            const evoHistory = evolutionPeriod === "all"
+              ? history
+              : history.filter(i => new Date(i.createdAt) >= evoCutoff);
+
+            const evoGroups = new Map<string, Array<{ date: Date; score: number }>>();
+            const evoLabels = new Map<string, { title: string; company: string }>();
+            for (const item of evoHistory) {
+              const title = item.result?.job_details?.title || "Unknown";
+              const company = item.company || item.result?.job_details?.company || "";
+              // Group by jobLabel (normalized) if available, else by title+company
+              const key = item.jobLabel
+                ? item.jobLabel.toLowerCase().trim()
+                : `${title}||${company}`;
+              const displayLabel = item.jobLabel || title;
+              const displayCompany = item.company || (item.jobLabel ? "" : company);
+              if (!evoGroups.has(key)) { evoGroups.set(key, []); evoLabels.set(key, { title: displayLabel, company: displayCompany }); }
+              evoGroups.get(key)!.push({ date: new Date(item.createdAt), score: item.result?.score ?? 0 });
+            }
+            for (const pts of evoGroups.values()) pts.sort((a, b) => a.date.getTime() - b.date.getTime());
+            const evoKeys = Array.from(evoGroups.keys());
+            const evoDateStrings = Array.from(
+              new Set(Array.from(evoGroups.values()).flat().map(p => p.date.toDateString()))
+            ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+            const evoChartData = evoDateStrings.map(ds => {
+              const row: Record<string, any> = {
+                dateLabel: new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+                dateRaw: new Date(ds).getTime(),
+              };
+              for (const key of evoKeys) {
+                const pt = evoGroups.get(key)!.find(p => p.date.toDateString() === ds);
+                if (pt) row[key] = pt.score;
+              }
+              return row;
+            });
+            const evoHasData = evoHistory.length >= 2;
+            const evoHasLines = evoKeys.some(k => (evoGroups.get(k)?.length ?? 0) > 1);
+
             return (
             <div className="space-y-6">
+
+              {/* ── Score Evolution card ──────────────────────────────── */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Score Evolution</p>
+                    <p className="font-mono text-[10px] text-rc-hint mt-0.5">Track your rejection risk over time</p>
+                  </div>
+                  <select
+                    value={evolutionPeriod}
+                    onChange={e => setEvolutionPeriod(e.target.value as "7d" | "30d" | "all")}
+                    className="font-mono text-[10px] text-rc-hint border border-rc-border rounded-lg px-2.5 py-1.5 bg-white outline-none focus:border-rc-red/40 cursor-pointer"
+                  >
+                    <option value="7d">Last 7 days</option>
+                    <option value="30d">Last 30 days</option>
+                    <option value="all">All time</option>
+                  </select>
+                </div>
+
+                {!evoHasData ? (
+                  <div className="h-[220px] flex flex-col items-center justify-center gap-3">
+                    <p className="font-mono text-[11px] text-rc-hint">No evolution to show yet.</p>
+                    <p className="font-mono text-[10px] text-rc-hint/60 text-center max-w-[260px]">Run at least two analyses to track your progress.</p>
+                    <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-4 py-2 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity">
+                      {t.account.overview.newAnalysis} <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <>
+                    <div className="h-[220px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={evoChartData} margin={{ top: 8, right: 16, left: 0, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                          <XAxis
+                            dataKey="dateLabel"
+                            tick={{ fill: "#9a9790", fontSize: 10, fontFamily: "monospace" }}
+                            axisLine={{ stroke: "rgba(0,0,0,0.08)" }}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            domain={[0, 100]}
+                            reversed
+                            tick={{ fill: "#9a9790", fontSize: 10, fontFamily: "monospace" }}
+                            axisLine={false}
+                            tickLine={false}
+                            width={36}
+                            label={{ value: "Risk %", angle: -90, position: "insideLeft", fill: "#9a9790", fontSize: 9, fontFamily: "monospace", dy: 25 }}
+                          />
+                          <Tooltip content={(props: any) => (
+                            <EvolutionTooltip {...props} evoGroups={evoGroups} evoLabels={evoLabels} />
+                          )} />
+                          {evoKeys.map((key, i) => (
+                            <Line
+                              key={key}
+                              type="monotone"
+                              dataKey={key}
+                              stroke={EVO_PALETTE[i % EVO_PALETTE.length]}
+                              strokeWidth={2}
+                              dot={{ r: 4, fill: EVO_PALETTE[i % EVO_PALETTE.length], strokeWidth: 0 }}
+                              activeDot={{ r: 5 }}
+                              connectNulls={false}
+                            />
+                          ))}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {!evoHasLines && (
+                      <p className="font-mono text-[10px] text-rc-hint/60 text-center mt-3">Add more analyses for the same job to track your progress.</p>
+                    )}
+                    <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4">
+                      {evoKeys.map((key, i) => {
+                        const meta = evoLabels.get(key)!;
+                        return (
+                          <div key={key} className="flex items-center gap-2">
+                            <div className="shrink-0 rounded-full" style={{ width: 16, height: 2, backgroundColor: EVO_PALETTE[i % EVO_PALETTE.length] }} />
+                            <span className="font-mono text-[10px] text-rc-muted">{meta.title}{meta.company && ` · ${meta.company}`}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
                   <LayoutGrid className="w-5 h-5 text-rc-red" /> {t.account.analysisHistory}
@@ -672,7 +854,7 @@ function AccountPageContent() {
                   type="text"
                   value={analysisSearch}
                   onChange={e => setAnalysisSearch(e.target.value)}
-                  placeholder="Search by job title or company…"
+                  placeholder={t.account.search.analysesPlaceholder}
                   className="w-full bg-white border border-rc-border rounded-xl px-4 py-2.5 pl-9 font-mono text-[12px] text-rc-text placeholder:text-rc-hint outline-none focus:border-rc-red/40 transition-colors"
                 />
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rc-hint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -694,12 +876,12 @@ function AccountPageContent() {
                   </div>
                 ) : filteredHistory.length === 0 ? (
                   <div className="p-12 text-center bg-white border border-rc-border rounded-[24px] border-dashed">
-                    <p className="text-rc-muted font-mono text-[12px]">No results for "{analysisSearch}"</p>
+                    <p className="text-rc-muted font-mono text-[12px]">{t.account.search.noResults} "{analysisSearch}"</p>
                   </div>
                 ) : (
                   filteredHistory.map(item => {
-                    const jobTitle = item.result?.job_details?.title || "Developer";
-                    const company = item.result?.job_details?.company || "Unknown Company";
+                    const label = item.jobLabel || item.result?.job_details?.title || "Developer";
+                    const company = item.company ?? item.result?.job_details?.company ?? null;
                     const score = item.result?.score ?? 0;
 
                     return (
@@ -714,7 +896,7 @@ function AccountPageContent() {
                             </div>
                             <div className="space-y-1">
                               <h3 className="font-bold text-rc-text tracking-tight flex items-center gap-2 group-hover/card:text-rc-red transition-colors">
-                                {jobTitle} <span className="text-rc-hint/50 font-normal group-hover/card:text-rc-red/30">•</span> {company}
+                                {label}{company && <><span className="text-rc-hint/50 font-normal group-hover/card:text-rc-red/30">•</span> {company}</>}
                               </h3>
                               <p className="font-mono text-[11px] uppercase tracking-widest text-rc-hint flex items-center gap-2">
                                 <Clock className="w-3 h-3" /> {new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
@@ -816,7 +998,7 @@ function AccountPageContent() {
                   type="text"
                   value={interviewSearch}
                   onChange={e => setInterviewSearch(e.target.value)}
-                  placeholder="Search by date…"
+                  placeholder={t.account.search.interviewsPlaceholder}
                   className="w-full bg-white border border-rc-border rounded-xl px-4 py-2.5 pl-9 font-mono text-[12px] text-rc-text placeholder:text-rc-hint outline-none focus:border-rc-red/40 transition-colors"
                 />
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rc-hint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -828,7 +1010,7 @@ function AccountPageContent() {
               {totalInterviews === 0 ? (
                 <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
                   <Mic className="w-12 h-12 text-rc-hint/20 mx-auto" />
-                  <p className="text-rc-muted font-medium">No interviews yet.</p>
+                  <p className="text-rc-muted font-medium">{t.account.noInterviewsYet}</p>
                 </div>
               ) : (
                 <>
