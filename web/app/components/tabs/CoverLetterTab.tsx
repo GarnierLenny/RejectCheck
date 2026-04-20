@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Sparkles, Copy, Check, RefreshCw, Download, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 import { useGenerateCoverLetter } from "../../../lib/mutations";
 import { generateCvPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
@@ -156,9 +157,23 @@ export function CoverLetterTab({ analysisId, isPremium }: Props) {
       {coverLetter && (
         <div className="space-y-4">
           <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-[12px] p-8">
-            <p className="text-[14px] text-rc-text leading-[1.8] whitespace-pre-wrap font-sans">
-              {coverLetter}
-            </p>
+            <div className="font-sans">
+              <ReactMarkdown
+                components={{
+                  h1: ({ children }) => <h1 className="text-[18px] font-bold text-rc-text mb-4">{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-[16px] font-semibold text-rc-text mb-3">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-[14px] font-semibold text-rc-text mb-2">{children}</h3>,
+                  p: ({ children }) => <p className="text-[14px] text-rc-text leading-[1.8] mb-4 last:mb-0">{children}</p>,
+                  strong: ({ children }) => <strong className="font-semibold text-rc-text">{children}</strong>,
+                  em: ({ children }) => <em className="italic">{children}</em>,
+                  ul: ({ children }) => <ul className="list-disc pl-5 mb-4 space-y-1">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>,
+                  li: ({ children }) => <li className="text-[14px] text-rc-text leading-[1.8]">{children}</li>,
+                }}
+              >
+                {coverLetter}
+              </ReactMarkdown>
+            </div>
           </div>
 
           {/* Action buttons */}

@@ -847,7 +847,9 @@ The cover letter must:
 - Be 3-4 paragraphs, max 350 words
 - NOT start with "Dear Hiring Manager" — use a more direct opening
 - Sound like a real human wrote it, not an AI
-- End with a confident, specific call to action`,
+- End with a confident, specific call to action
+- NEVER use dashes (-, —, –) anywhere in the text
+- Do NOT use markdown headings or titles, only plain paragraphs`,
       messages: [
         {
           role: 'user',
