@@ -384,7 +384,7 @@ Analyze this interview and call submit_interview_analysis with your structured e
 
   async history(email: string, page: number, limit: number, analysisId?: number) {
     const skip = (page - 1) * limit;
-    const where: any = { email };
+    const where: { email: string; analysisId?: number } = { email };
     if (analysisId !== undefined) {
       where.analysisId = analysisId;
     }
