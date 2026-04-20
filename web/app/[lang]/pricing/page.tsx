@@ -52,7 +52,7 @@ function PricingContent() {
     {
       id: 'hired' as const,
       name: t.pricing.plans.hired.name,
-      price: '14.99€',
+      price: '11.99€',
       period: t.pricing.plans.hired.period,
       description: t.pricing.plans.hired.description,
       icon: <Trophy className="w-5 h-5 text-amber-500" />,
@@ -170,6 +170,15 @@ function PricingContent() {
                 </div>
               </div>
 
+              {plan.guarantee && (
+                <div className="mb-6 p-4 rounded-2xl bg-rc-red/5 border border-rc-red/10 flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-rc-red shrink-0" />
+                  <span className="text-[13px] font-bold text-rc-red leading-tight">
+                    {plan.guarantee}
+                  </span>
+                </div>
+              )}
+
               <div className="space-y-4 mb-10 flex-1">
                 <div className="h-px w-full bg-gradient-to-r from-transparent via-rc-border to-transparent mb-6" />
                 <ul className="space-y-4">
@@ -185,15 +194,6 @@ function PricingContent() {
                   ))}
                 </ul>
               </div>
-
-              {plan.guarantee && (
-                <div className="mb-8 p-4 rounded-2xl bg-rc-red/5 border border-rc-red/10 flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-rc-red shrink-0" />
-                  <span className="text-[13px] font-bold text-rc-red leading-tight">
-                    {plan.guarantee}
-                  </span>
-                </div>
-              )}
 
               <div className="mt-auto">
                 {plan.href ? (

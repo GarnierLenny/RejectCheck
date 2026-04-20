@@ -630,7 +630,8 @@
           "Historique des analyses",
           "Entretien IA",
           "Mode Réécriture CV",
-          "Gestionnaire de versions CV"
+          "Gestionnaire de versions CV",
+          "Suivi des candidatures"
         ],
         "cta": "Être présélectionné"
       },
@@ -641,8 +642,9 @@
         "features": [
           "Tout dans PRÉSÉLECTIONNÉ",
           "Score de fit via URL (bientôt)",
-          "Analyse des patterns de rejet (bientôt)",
-          "Suivi des candidatures",
+          "Roadmaps RejectCheck (bientôt)",
+          "Générateur de lettre de motivation (bientôt)",
+          "Générateur de message recruteur (bientôt)",
           "Vérification du salaire réel (bientôt)",
           "Extension Chrome (bientôt)"
         ],

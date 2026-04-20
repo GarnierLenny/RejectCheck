@@ -630,7 +630,8 @@
           "Analysis history",
           "Interview AI",
           "CV Rewrite Mode",
-          "CV Version Manager"
+          "CV Version Manager",
+          "Application Tracker"
         ],
         "cta": "Get Shortlisted"
       },
@@ -641,8 +642,9 @@
         "features": [
           "Everything in SHORTLISTED",
           "Job Fit Score via URL (coming soon)",
-          "Rejection Pattern Analysis (coming soon)",
-          "Application Tracker",
+          "RejectCheck Roadmaps (coming soon)",
+          "Cover Letter Generator (coming soon)",
+          "Recruiter Message Generator (coming soon)",
           "Salary Reality Check (coming soon)",
           "Chrome Extension (coming soon)"
         ],
