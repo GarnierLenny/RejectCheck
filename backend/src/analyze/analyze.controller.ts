@@ -112,6 +112,8 @@ export class AnalyzeController {
       const {
         result,
         cvText: parsedCv,
+        linkedinText: parsedLinkedin,
+        githubInfo: parsedGithub,
         motivationLetterText: parsedMl,
       } = await this.analyzeService.analyzeApplication(
         {
@@ -133,6 +135,8 @@ export class AnalyzeController {
         jobDescription,
         jobLabel,
         cvText: parsedCv,
+        linkedinText: parsedLinkedin,
+        githubInfo: parsedGithub,
         motivationLetter: parsedMl,
         result,
         isRegistered: !!isRegistered,

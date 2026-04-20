@@ -502,6 +502,8 @@ Formatting rules:
   ): Promise<{
     result: AnalyzeResponse;
     cvText: string;
+    linkedinText: string;
+    githubInfo: string;
     motivationLetterText: string;
   }> {
     const {
@@ -564,7 +566,7 @@ Formatting rules:
       motivationLetterText,
       locale,
     });
-    return { result, cvText, motivationLetterText };
+    return { result, cvText, linkedinText, githubInfo, motivationLetterText };
   }
 
   async checkUsageLimit(
@@ -602,6 +604,8 @@ Formatting rules:
     jobDescription: string;
     jobLabel?: string;
     cvText?: string;
+    linkedinText?: string;
+    githubInfo?: string;
     motivationLetter?: string;
     result: any;
     isRegistered: boolean;
@@ -612,6 +616,8 @@ Formatting rules:
       jobDescription,
       jobLabel,
       cvText,
+      linkedinText,
+      githubInfo,
       motivationLetter,
       result,
       isRegistered,
@@ -644,6 +650,8 @@ Formatting rules:
           company: resolvedCompany,
           jdLanguage: result.job_details?.jd_language ?? 'en',
           cvText: cvText ?? null,
+          linkedinText: linkedinText ?? null,
+          githubInfo: githubInfo ?? null,
           motivationLetter: motivationLetter ?? null,
           result: result,
         },
@@ -868,10 +876,11 @@ Content rules:
 Job Description:
 ${jd}
 
-Candidate CV (source of truth — only reference facts present here):
+Candidate CV (source of truth — only reference facts explicitly present here):
 ${analysis.cvText ?? 'not available'}
 
-Analysis summary (use to guide emphasis, do not invent beyond what the CV confirms):
+${analysis.linkedinText ? `Candidate LinkedIn profile:\n${analysis.linkedinText}\n` : ''}${analysis.githubInfo ? `Candidate GitHub activity:\n${analysis.githubInfo}\n` : ''}
+Analysis summary (use to guide emphasis, never invent beyond what the documents above confirm):
 - Key strengths: ${result.audit?.cv?.strengths?.join(', ')}
 - Main gaps: ${result.audit?.cv?.issues?.slice(0, 2).map((i: any) => i.what).join(', ')}
 - Seniority detected: ${result.seniority_analysis?.detected}

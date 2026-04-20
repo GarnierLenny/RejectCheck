@@ -59,6 +59,8 @@ model Analysis {
   company          String?      // AI-extracted company name
   jdLanguage       String?      // ISO 639-1 language code of job description
   cvText           String?      // Registered users only
+  linkedinText     String?      // Registered users only
+  githubInfo       String?      // Registered users only
   motivationLetter String?      // Registered users only
   result           Json?        // Registered users only
   createdAt         DateTime           @default(now())
