@@ -7,7 +7,7 @@ import Link from "next/link";
 import type { AnalysisResult } from "../../components/types";
 
 import { UploadForm } from "../../components/UploadForm";
-import { AuthNavLink } from "../../components/AuthNavLink";
+import { Navbar } from "../../components/Navbar";
 import { LoadingScreen } from "../../components/LoadingScreen";
 import { PaywallScreen } from "../../components/PaywallScreen";
 import { ScoreSidebar } from "../../components/ScoreSidebar";
@@ -24,7 +24,6 @@ import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } fr
 import { useAuth } from "../../../context/auth";
 import { useSubscription, useAnalysis, useProfile, useSavedCvs } from "../../../lib/queries";
 import { useLanguage } from "../../../context/language";
-import { LangSwitcher } from "../../components/LangSwitcher";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
@@ -318,60 +317,41 @@ function AnalyzeContent() {
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
-      <nav className="grid grid-cols-3 items-center px-5 py-4 md:px-[32px] border-b-[0.5px] border-rc-border">
-        {/* Left: logo */}
-        <Link href={localePath("/")} className="font-sans text-[22px] tracking-wide text-rc-red flex items-center gap-2.5 hover:opacity-80 transition-opacity no-underline">
-          <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={44} height={44} />
-        </Link>
-
-        {/* Center: step indicators (form only) */}
-        <div className="flex items-center justify-center">
-          {!result && !loading && !paywallReason && (
-            <div className="flex items-center gap-1.5">
-              {([
-                { n: 1 as const, label: t.analyzeNav.steps.application },
-                { n: 2 as const, label: t.analyzeNav.steps.signals },
-                { n: 3 as const, label: t.analyzeNav.steps.launch },
-              ]).map(({ n, label }, i) => {
-                const state = formStep > n ? "done" : formStep === n ? "active" : "idle";
-                return (
-                  <div key={n} className="flex items-center gap-1.5">
-                    {i > 0 && (
-                      <div className={`w-5 h-px ${formStep > n ? "bg-rc-green" : "bg-rc-border"}`} />
-                    )}
-                    <div className="flex items-center gap-1.5">
-                      <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
-                        state === "done" ? "bg-rc-green text-white"
-                        : state === "active" ? "bg-rc-red text-white"
-                        : "bg-white border border-rc-border text-rc-hint"
-                      }`}>
-                        {state === "done" ? "✓" : n}
-                      </div>
-                      <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
-                        state === "done" ? "text-rc-green"
-                        : state === "active" ? "text-rc-red font-bold"
-                        : "text-rc-hint"
-                      }`}>{label}</span>
+      <Navbar
+        activePage="analyze"
+        center={!result && !loading && !paywallReason ? (
+          <div className="flex items-center gap-1.5">
+            {([
+              { n: 1 as const, label: t.analyzeNav.steps.application },
+              { n: 2 as const, label: t.analyzeNav.steps.signals },
+              { n: 3 as const, label: t.analyzeNav.steps.launch },
+            ]).map(({ n, label }, i) => {
+              const state = formStep > n ? "done" : formStep === n ? "active" : "idle";
+              return (
+                <div key={n} className="flex items-center gap-1.5">
+                  {i > 0 && (
+                    <div className={`w-5 h-px ${formStep > n ? "bg-rc-green" : "bg-rc-border"}`} />
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
+                      state === "done" ? "bg-rc-green text-white"
+                      : state === "active" ? "bg-rc-red text-white"
+                      : "bg-white border border-rc-border text-rc-hint"
+                    }`}>
+                      {state === "done" ? "✓" : n}
                     </div>
+                    <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
+                      state === "done" ? "text-rc-green"
+                      : state === "active" ? "text-rc-red font-bold"
+                      : "text-rc-hint"
+                    }`}>{label}</span>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Right: auth + pricing + lang */}
-        <div className="flex items-center justify-end gap-4">
-          <AuthNavLink />
-          <Link
-            href={localePath("/pricing")}
-            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red hover:text-rc-red/80 transition-colors no-underline"
-          >
-            {t.analyzeNav.pricing}
-          </Link>
-          <LangSwitcher />
-        </div>
-      </nav>
+                </div>
+              );
+            })}
+          </div>
+        ) : undefined}
+      />
 
       <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
         {paywallReason ? (

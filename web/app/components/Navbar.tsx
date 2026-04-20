@@ -7,29 +7,52 @@ import { LangSwitcher } from "./LangSwitcher";
 import { useAuth } from "../../context/auth";
 import { useLanguage } from "../../context/language";
 
-export function Navbar() {
+interface NavbarProps {
+  center?: React.ReactNode;
+  activePage?: "analyze" | "dashboard";
+}
+
+export function Navbar({ center, activePage }: NavbarProps = {}) {
   const { user, loading } = useAuth();
   const { t, localePath } = useLanguage();
 
+  const linkClass = (page: "analyze" | "dashboard") =>
+    `font-mono text-[11px] tracking-[0.14em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
+      activePage === page
+        ? "text-rc-red font-bold"
+        : "text-rc-muted hover:text-rc-text"
+    }`;
+
   return (
-    <nav className="flex items-center justify-between px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border bg-white/50 backdrop-blur-md sticky top-0 z-50">
+    <nav className="w-full grid grid-cols-3 items-center px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border bg-white/50 backdrop-blur-md sticky top-0 z-50">
+      {/* Left: logo */}
       <Link href={localePath("/")} className="flex items-center gap-2.5 no-underline hover:opacity-80 transition-opacity">
-        <Image
-          src="/RejectCheck_500_bg_less.png"
-          alt="RejectCheck Logo"
-          width={40}
-          height={40}
-        />
+        <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={36} height={36} />
       </Link>
 
-      <div className="flex items-center gap-3">
+      {/* Center: optional slot */}
+      <div className="flex items-center justify-center">
+        {center}
+      </div>
+
+      {/* Right: nav links + lang + avatar */}
+      <div className="flex items-center justify-end gap-3">
         {!user && !loading && (
+          <Link
+            href={localePath("/pricing")}
+            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
+          >
+            {t.navbar.pricing}
+          </Link>
+        )}
+
+        {user && !loading && (
           <>
-            <Link
-              href={localePath("/pricing")}
-              className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
-            >
-              {t.navbar.pricing}
+            <Link href={localePath("/analyze")} className={linkClass("analyze")}>
+              Analyze
+            </Link>
+            <Link href={localePath("/dashboard")} className={linkClass("dashboard")}>
+              Dashboard
             </Link>
           </>
         )}

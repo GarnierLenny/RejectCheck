@@ -25,10 +25,10 @@ export default function TestSuccessPage() {
         </button>
 
         <Link
-          href={localePath("/account")}
+          href={localePath("/dashboard")}
           className="block mt-6 font-mono text-[11px] text-rc-red hover:underline"
         >
-          Back to Account Page
+          Back to Dashboard
         </Link>
       </div>
 
