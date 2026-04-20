@@ -23,9 +23,11 @@ const LANG_NAMES: Record<string, string> = {
 type Props = {
   analysisId: number | null;
   isPremium: boolean;
+  company?: string | null;
+  candidateName?: string | null;
 };
 
-export function CoverLetterTab({ analysisId, isPremium }: Props) {
+export function CoverLetterTab({ analysisId, isPremium, company, candidateName }: Props) {
   const { t, localePath } = useLanguage();
   const [language, setLanguage] = useState("auto");
   const [coverLetter, setCoverLetter] = useState<string | null>(null);
@@ -86,7 +88,11 @@ export function CoverLetterTab({ analysisId, isPremium }: Props) {
     if (!coverLetter) return;
     setIsExportingPdf(true);
     try {
-      await generateCoverLetterPdf(coverLetter, "cover-letter.pdf");
+      const lang = detectedLanguage ?? language;
+      const namePart = (candidateName ?? "cover-letter").replace(/\s+/g, "_");
+      const companyPart = (company ?? "").replace(/\s+/g, "_");
+      const filename = [namePart, companyPart, lang].filter(Boolean).join("_") + ".pdf";
+      await generateCoverLetterPdf(coverLetter, filename);
     } finally {
       setIsExportingPdf(false);
     }
