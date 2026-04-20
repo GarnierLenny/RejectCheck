@@ -90,7 +90,7 @@ export function CoverLetterTab({ analysisId, isPremium, company, candidateName }
     try {
       const namePart = (candidateName ?? "cover-letter").replace(/\s+/g, "_");
       const companyPart = (company ?? "").replace(/\s+/g, "_");
-      const filename = [namePart, companyPart].filter(Boolean).join("_") + ".pdf";
+      const filename = [namePart, companyPart, "cover"].filter(Boolean).join("_") + ".pdf";
       await generateCoverLetterPdf(coverLetter, filename);
     } finally {
       setIsExportingPdf(false);
