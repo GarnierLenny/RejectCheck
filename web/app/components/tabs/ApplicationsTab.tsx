@@ -409,12 +409,15 @@ export function ApplicationsTab({
     setPagination(p => ({ ...p, pageIndex: 0 }));
   }, [search]);
 
-  const stats = useMemo(() => ({
-    total:        applications.length,
-    interviewing: applications.filter(a => a.status === 'interviewing').length,
-    offers:       applications.filter(a => a.status === 'offer').length,
-    rejected:     applications.filter(a => a.status === 'rejected').length,
-  }), [applications]);
+  const stats = useMemo(() => {
+    const total        = applications.length;
+    const interviewing = applications.filter(a => a.status === 'interviewing').length;
+    const offers       = applications.filter(a => a.status === 'offer').length;
+    const rejected     = applications.filter(a => a.status === 'rejected').length;
+    const responseCount = applications.filter(a => a.status !== 'interested').length;
+    const responseRate  = total > 0 ? Math.round((responseCount / total) * 100) : 0;
+    return { total, interviewing, offers, rejected, responseCount, responseRate };
+  }, [applications]);
 
   // ── Form helpers ──────────────────────────────────────────────────────────
 
@@ -618,16 +621,34 @@ export function ApplicationsTab({
         />
       </div>
 
-      {/* Stats row */}
+      {/* Stats cards */}
       {applications.length > 0 && (
-        <div className="flex items-center gap-4 mb-5 font-mono text-[11px] text-rc-muted">
-          <span>Total: <span className="text-rc-text font-bold">{stats.total}</span></span>
-          <span className="text-rc-border">|</span>
-          <span>Interviewing: <span className="text-blue-600 font-bold">{stats.interviewing}</span></span>
-          <span className="text-rc-border">|</span>
-          <span>Offers: <span className="text-rc-green font-bold">{stats.offers}</span></span>
-          <span className="text-rc-border">|</span>
-          <span>Rejected: <span className="text-[#D94040] font-bold">{stats.rejected}</span></span>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+          <div className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
+            <p className="font-mono text-[8px] tracking-widest uppercase text-rc-hint">Total</p>
+            <p className="text-2xl font-black leading-none text-rc-text">{stats.total}</p>
+            <p className="font-mono text-[8px] text-rc-hint">applications</p>
+          </div>
+          <div className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
+            <p className="font-mono text-[8px] tracking-widest uppercase text-rc-hint">Interviewing</p>
+            <p className="text-2xl font-black leading-none text-rc-text">{stats.interviewing}</p>
+            <p className="font-mono text-[8px] text-rc-hint">in progress</p>
+          </div>
+          <div className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
+            <p className="font-mono text-[8px] tracking-widest uppercase text-rc-hint">Offers</p>
+            <p className="text-2xl font-black leading-none text-rc-text">{stats.offers}</p>
+            <p className="font-mono text-[8px] text-rc-hint">received</p>
+          </div>
+          <div className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
+            <p className="font-mono text-[8px] tracking-widest uppercase text-rc-hint">Rejected</p>
+            <p className="text-2xl font-black leading-none text-rc-text">{stats.rejected}</p>
+            <p className="font-mono text-[8px] text-rc-hint">applications</p>
+          </div>
+          <div className="bg-[#faf9f7] border border-[rgba(0,0,0,0.06)] rounded-xl p-3 flex flex-col gap-1.5">
+            <p className="font-mono text-[8px] tracking-widest uppercase text-rc-hint">Response rate</p>
+            <p className="text-2xl font-black leading-none text-rc-text">{stats.responseRate}%</p>
+            <p className="font-mono text-[8px] text-rc-hint">{stats.responseCount} / {stats.total}</p>
+          </div>
         </div>
       )}
 
