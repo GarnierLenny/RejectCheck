@@ -22,6 +22,8 @@ model Subscription {
   currentPeriodEnd DateTime
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([stripeCustomerId])
 }
 
 model Analysis {
@@ -37,6 +39,9 @@ model Analysis {
   result           Json?        // Registered users only
   createdAt        DateTime     @default(now())
   application      Application?
+
+  @@index([email])
+  @@index([ip])
 }
 
 model Application {
@@ -61,6 +66,7 @@ model Application {
   updatedAt           DateTime  @updatedAt
 
   @@unique([email, jobTitle, company])
+  @@index([email])
 }
 
 model Profile {
@@ -93,4 +99,7 @@ model InterviewAttempt {
   transcript Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
   analysis   Json?    // null until /complete is called
   createdAt  DateTime @default(now())
+
+  @@index([email])
+  @@index([analysisId])
 }
