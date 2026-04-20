@@ -39,9 +39,11 @@ function getScoreClass(score: number) {
 function KanbanCard({
   app,
   onClick,
+  didDragRef,
 }: {
   app: Application;
   onClick: () => void;
+  didDragRef: React.RefObject<boolean>;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: String(app.id),
@@ -54,7 +56,13 @@ function KanbanCard({
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      onClick={onClick}
+      onClick={() => {
+        if (didDragRef.current) {
+          didDragRef.current = false;
+          return;
+        }
+        onClick();
+      }}
       style={transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined}
       className={`bg-white border border-[rgba(0,0,0,0.08)] border-l-4 ${STATUS_COLORS[app.status] ?? "border-l-transparent"} rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? "opacity-50" : ""}`}
     >
@@ -75,10 +83,12 @@ function KanbanColumn({
   column,
   apps,
   onCardClick,
+  didDragRef,
 }: {
   column: { id: string; label: string };
   apps: Application[];
   onCardClick: (app: Application) => void;
+  didDragRef: React.RefObject<boolean>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
@@ -97,7 +107,7 @@ function KanbanColumn({
         className={`flex flex-col gap-2 min-h-[120px] rounded-xl p-2 transition-colors ${isOver ? "bg-rc-red/5 border border-dashed border-rc-red/30" : "bg-[#faf9f7]"}`}
       >
         {apps.map((app) => (
-          <KanbanCard key={app.id} app={app} onClick={() => onCardClick(app)} />
+          <KanbanCard key={app.id} app={app} onClick={() => onCardClick(app)} didDragRef={didDragRef} />
         ))}
       </div>
     </div>
@@ -114,6 +124,7 @@ export function KanbanView({
   onCardClick: (app: Application) => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const didDragRef = React.useRef(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -125,10 +136,12 @@ export function KanbanView({
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(String(event.active.id));
+    didDragRef.current = false;
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    didDragRef.current = true;
     setActiveId(null);
     if (!over) return;
     const appId = Number(active.id);
@@ -162,6 +175,7 @@ export function KanbanView({
             column={col}
             apps={byStatus[col.id] ?? []}
             onCardClick={onCardClick}
+            didDragRef={didDragRef}
           />
         ))}
       </div>

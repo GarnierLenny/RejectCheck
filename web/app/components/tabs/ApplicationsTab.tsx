@@ -681,7 +681,7 @@ export function ApplicationsTab({
       {/* Table / Kanban toggle */}
       {viewMode === "kanban" ? (
         <KanbanView
-          applications={applications}
+          applications={filteredApplications}
           onStatusChange={(appId, newStatus) => {
             onUpdateApplication({ id: appId, status: newStatus });
           }}
