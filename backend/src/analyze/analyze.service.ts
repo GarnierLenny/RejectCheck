@@ -711,6 +711,10 @@ Formatting rules:
     return this.stripeService.checkSubscription(email);
   }
 
+  async checkHiredPlan(email: string): Promise<boolean> {
+    return this.stripeService.checkHiredPlan(email);
+  }
+
   async rewriteCv(
     analysisId: number,
     email: string,

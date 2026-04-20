@@ -30,6 +30,7 @@ import {
   AnalyzeRequestDto,
 } from './dto/analyze-request.dto';
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
+import { CoverLetterSchema } from './dto/cover-letter.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
 import { validateJobDescription } from './analyze.utils';
@@ -251,6 +252,36 @@ export class AnalyzeController {
       }
     } finally {
       if (!res.writableEnded) res.end();
+    }
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Post('cover-letter')
+  @ApiOperation({ summary: 'Generate a cover letter from an existing analysis' })
+  async coverLetter(
+    @AuthEmail() email: string,
+    @Body() body: unknown,
+    @Res() res: any,
+  ) {
+    const parsed = CoverLetterSchema.safeParse(body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+
+    const isHired = await this.analyzeService.checkHiredPlan(email);
+    if (!isHired) {
+      return res.status(402).json({ message: 'HIRED plan required' });
+    }
+
+    try {
+      const result = await this.analyzeService.generateCoverLetter(
+        email,
+        parsed.data.analysisId,
+        parsed.data.language,
+      );
+      return res.status(200).json(result);
+    } catch (e: any) {
+      return res.status(e.status ?? 500).json({ message: e.message });
     }
   }
 
