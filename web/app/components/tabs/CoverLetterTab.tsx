@@ -9,7 +9,7 @@ import { generateCoverLetterPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
 
 const LANGUAGE_OPTIONS = [
-  { value: "auto", label: "Auto-detect" },
+  { value: "auto", label: "Match job description" },
   { value: "en", label: "English" },
   { value: "fr", label: "Français" },
   { value: "es", label: "Español" },
