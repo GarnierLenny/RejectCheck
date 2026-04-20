@@ -388,8 +388,12 @@ export class AnalyzeService {
                       enum: ['startup', 'scale-up', 'sme', 'enterprise', 'not-mentioned'],
                       description: 'Company stage inferred from headcount, funding, or brand recognition.',
                     },
+                    jd_language: {
+                      type: 'string' as const,
+                      description: 'ISO 639-1 language code of the job description text (e.g. "en", "fr", "de", "es"). Detect from the JD content.',
+                    },
                   },
-                  required: ['title', 'company', 'seniority', 'pay', 'office_location', 'work_setting', 'contract_type', 'languages_required', 'years_of_experience', 'company_stage'],
+                  required: ['title', 'company', 'seniority', 'pay', 'office_location', 'work_setting', 'contract_type', 'languages_required', 'years_of_experience', 'company_stage', 'jd_language'],
                 },
               },
               required: [
@@ -498,6 +502,8 @@ Formatting rules:
   ): Promise<{
     result: AnalyzeResponse;
     cvText: string;
+    linkedinText: string;
+    githubInfo: string;
     motivationLetterText: string;
   }> {
     const {
@@ -560,7 +566,7 @@ Formatting rules:
       motivationLetterText,
       locale,
     });
-    return { result, cvText, motivationLetterText };
+    return { result, cvText, linkedinText, githubInfo, motivationLetterText };
   }
 
   async checkUsageLimit(
@@ -598,6 +604,8 @@ Formatting rules:
     jobDescription: string;
     jobLabel?: string;
     cvText?: string;
+    linkedinText?: string;
+    githubInfo?: string;
     motivationLetter?: string;
     result: any;
     isRegistered: boolean;
@@ -608,6 +616,8 @@ Formatting rules:
       jobDescription,
       jobLabel,
       cvText,
+      linkedinText,
+      githubInfo,
       motivationLetter,
       result,
       isRegistered,
@@ -638,7 +648,10 @@ Formatting rules:
           jobDescription,
           jobLabel: resolvedLabel,
           company: resolvedCompany,
+          jdLanguage: result.job_details?.jd_language ?? 'en',
           cvText: cvText ?? null,
+          linkedinText: linkedinText ?? null,
+          githubInfo: githubInfo ?? null,
           motivationLetter: motivationLetter ?? null,
           result: result,
         },
@@ -704,6 +717,10 @@ Formatting rules:
 
   async checkPremium(email: string): Promise<boolean> {
     return this.stripeService.checkSubscription(email);
+  }
+
+  async checkHiredPlan(email: string): Promise<boolean> {
+    return this.stripeService.checkHiredPlan(email);
   }
 
   async rewriteCv(
@@ -795,6 +812,101 @@ ${analysis.cvText}`;
     }
   }
 
+  async generateCoverLetter(
+    email: string,
+    analysisId: number,
+    language: string,
+  ): Promise<{ coverLetter: string; detectedLanguage: string }> {
+    const analysis = await (this.prisma as any).analysis.findFirst({
+      where: { id: analysisId, email },
+    });
+    if (!analysis || !analysis.result) {
+      throw new BadRequestException('Analysis not found');
+    }
+
+    if (!analysis.jobDescription) throw new BadRequestException('Job description not available for this analysis');
+
+    const profile = await (this.prisma as any).profile.findUnique({ where: { email } });
+    const candidateName = profile?.coverLetterName || profile?.displayName || null;
+
+    const result = analysis.result as any;
+    const jd = analysis.jobDescription;
+    const detectedLang = language === 'auto'
+      ? (analysis.jdLanguage ?? 'en')
+      : language;
+
+    const langLabel: Record<string, string> = {
+      en: 'English', fr: 'French', es: 'Spanish', de: 'German',
+    };
+    const langName = langLabel[detectedLang] ?? detectedLang;
+
+    let response: Awaited<ReturnType<typeof this.anthropic.messages.create>>;
+    try {
+      response = await this.anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+      system: `You are an expert career coach writing cover letters for software developers.
+Write in ${langName}.
+
+Tone and format rules (strictly enforced):
+- Written in first person (I, me, my) at all times — never refer to the candidate by name or in third person
+- Open with something specific to this company or role — not a generic statement of fit, not a greeting
+- 3 to 4 paragraphs, maximum 350 words
+- No markdown headings or titles, only plain paragraphs
+- ABSOLUTE RULE: zero dashes of any kind anywhere in the output. This means no hyphen (-), no en dash (–), no em dash (—). If you feel the urge to use a dash, rewrite the sentence instead.
+- No corporate jargon: words that belong in a PowerPoint deck, not a human sentence (e.g. synergy, leverage, deliverable, stakeholder — and their equivalents in ${langName})
+- No filler openers: do not start with enthusiasm declarations or statements about why you are writing
+- No AI-sounding constructions: avoid adverbs that inflate without adding meaning (seamlessly, rigorously, consistently), adjectives that are claims not facts (robust, innovative, disciplined), and transition phrases that signal a model hedging (that said, it is worth noting, needless to say, at the end of the day)
+- No disguised lists: do not use parentheses to pack in multiple items — if something is worth saying, say it in a sentence
+- No CV narration: do not open a sentence by labelling your own experience ("My background in X", "Throughout my career", "Across my roles")
+- Write like a smart person sending an email, not like a model completing a task. If a sentence would look at home in a corporate template, rewrite it.
+
+Content rules:
+- Open with something concrete and specific: a detail from the JD, something about the company's product or problem, or a direct claim grounded in a real achievement
+- Connect the candidate's actual experience to the specific requirements and keywords in the JD — mirror the JD's language where truthful
+- Highlight 2 to 3 strongest matching skills through specific examples, not claims
+- Address the top 1 to 2 gaps briefly and matter-of-factly, without apologising or over-explaining
+- NEVER invent or assume any fact not explicitly present in the candidate analysis data provided below. This includes company names, job titles, project names, metrics, technologies, and dates. If a detail is not in the data, do not include it.
+- End with one direct sentence — a specific ask or next step, not a pleasantry`,
+      messages: [
+        {
+          role: 'user',
+          content: `Write a cover letter for this application.
+
+Job Description:
+${jd}
+
+Candidate CV (source of truth — only reference facts explicitly present here):
+${analysis.cvText ?? 'not available'}
+
+${analysis.linkedinText ? `Candidate LinkedIn profile:\n${analysis.linkedinText}\n` : ''}${analysis.githubInfo ? `Candidate GitHub activity:\n${analysis.githubInfo}\n` : ''}
+Analysis summary (use to guide emphasis, never invent beyond what the documents above confirm):
+- Key strengths: ${result.audit?.cv?.strengths?.join(', ')}
+- Main gaps: ${result.audit?.cv?.issues?.slice(0, 2).map((i: any) => i.what).join(', ')}
+- Seniority detected: ${result.seniority_analysis?.detected}
+- Matched tech skills: ${result.technical_analysis?.skills?.filter((s: any) => s.current >= s.expected).map((s: any) => s.name).slice(0, 5).join(', ')}
+- Keywords to include if genuinely present in CV: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
+
+Role: ${analysis.jobLabel || 'the position'}
+Company: ${analysis.company || 'the company'}
+Candidate name (for signing only): ${candidateName || 'not provided'}
+Language: ${langName}`,
+        },
+      ],
+      });
+    } catch (err: any) {
+      console.error('[Claude] generateCoverLetter failed:', err?.message || err);
+      throw new InternalServerErrorException('Cover letter generation failed');
+    }
+
+    const content = response.content[0];
+    if (!content) throw new InternalServerErrorException('Claude returned empty response');
+    return {
+      coverLetter: content.type === 'text' ? content.text : '',
+      detectedLanguage: detectedLang,
+    };
+  }
+
   async getHistory(email: string, page: number, limit: number) {
     if (!email) return { data: [], total: 0 };
     const skip = (page - 1) * limit;
@@ -818,6 +930,23 @@ ${analysis.cvText}`;
         email,
         result: { not: Prisma.DbNull },
       },
+      select: {
+        id: true,
+        jobLabel: true,
+        company: true,
+        jobDescription: true,
+        result: true,
+        coverLetter: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async saveCoverLetter(analysisId: number, email: string, coverLetter: string) {
+    await (this.prisma as any).analysis.updateMany({
+      where: { id: analysisId, email },
+      data: { coverLetter },
     });
   }
 
@@ -844,7 +973,7 @@ ${analysis.cvText}`;
 
   async updateProfile(
     email: string,
-    data: { username?: string; avatarUrl?: string; displayName?: string; githubUsername?: string; linkedinUrl?: string },
+    data: { username?: string; avatarUrl?: string; displayName?: string; githubUsername?: string; linkedinUrl?: string; coverLetterName?: string },
   ) {
     return (this.prisma as any).profile.upsert({
       where: { email },

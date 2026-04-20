@@ -153,6 +153,7 @@ export const AnalyzeResponseSchema = z.object({
     languages_required: z.enum(['french-only', 'english-only', 'bilingual', 'not-mentioned']).nullable().default('not-mentioned'),
     years_of_experience: z.string().nullable().default(null),
     company_stage: z.enum(['startup', 'scale-up', 'sme', 'enterprise', 'not-mentioned']).nullable().default('not-mentioned'),
+    jd_language: z.string().default('en'),
   }),
   project_recommendation: ProjectRecommendationSchema,
   technical_analysis: z.object({

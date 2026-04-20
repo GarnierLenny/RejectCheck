@@ -402,7 +402,27 @@
     "roadmap": "Roadmap",
     "project": "Projet",
     "improveCv": "Améliorer le CV",
-    "aiInterview": "Entretien IA"
+    "aiInterview": "Entretien IA",
+    "coverLetter": "Lettre de motivation"
+  },
+  "coverLetterTab": {
+    "title": "Lettre de motivation",
+    "subtitle": "Générée par IA à partir de vos résultats d'analyse",
+    "languageLabel": "Langue",
+    "autoDetected": "Détectée automatiquement",
+    "generateButton": "Générer la lettre",
+    "generating": "Génération en cours...",
+    "regenerate": "Régénérer",
+    "regenerating": "Régénération en cours...",
+    "copy": "Copier",
+    "copied": "Copié ✓",
+    "exportPdf": "Exporter en PDF",
+    "exporting": "Export en cours...",
+    "error": "Impossible de générer la lettre. Veuillez réessayer.",
+    "premiumBadge": "Fonctionnalité HIRED",
+    "premiumTitle": "Générateur de lettre de motivation",
+    "premiumDesc": "Analyse vos points forts et lacunes pour rédiger une lettre qui répond directement aux exigences du poste.",
+    "unlockButton": "Passer à HIRED — 11,99€/mois"
   },
   "analyzeNav": {
     "pricing": "Tarifs →",
@@ -776,6 +796,11 @@
       "noInterviews": "Aucun interview",
       "viewDetails": "Voir →"
     }
+  },
+  "settingsTab": {
+    "coverLetterNameLabel": "Nom sur la lettre de motivation",
+    "coverLetterNamePlaceholder": "ex. Jean Dupont",
+    "coverLetterNameHint": "Utilisé pour signer vos lettres de motivation générées par IA"
   },
   "privacy": {
     "title": "Politique de confidentialité (RGPD)",

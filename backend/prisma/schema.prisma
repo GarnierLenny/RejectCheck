@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum SubscriptionPlan {
+  shortlisted
+  hired
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  incomplete
+  incomplete_expired
+  past_due
+  trialing
+  unpaid
+  paused
+}
+
+enum ApplicationStatus {
+  interested
+  applied
+  interviewing
+  offer
+  rejected
+}
+
 model Waitlist {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -17,11 +41,13 @@ model Subscription {
   id               Int      @id @default(autoincrement())
   email            String   @unique
   stripeCustomerId String
-  plan             String
-  status           String
+  plan             SubscriptionPlan
+  status           SubscriptionStatus
   currentPeriodEnd DateTime
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([stripeCustomerId])
 }
 
 model Analysis {
@@ -31,11 +57,20 @@ model Analysis {
   jobDescription   String?      // Registered users only
   jobLabel         String?      // User-defined label for easy identification
   company          String?      // AI-extracted company name
+  jdLanguage       String?      // ISO 639-1 language code of job description
   cvText           String?      // Registered users only
+  linkedinText     String?      // Registered users only
+  githubInfo       String?      // Registered users only
   motivationLetter String?      // Registered users only
+  coverLetter      String?      // Saved after HIRED-plan generation
   result           Json?        // Registered users only
-  createdAt        DateTime     @default(now())
-  application      Application?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  application       Application?
+  interviewAttempts InterviewAttempt[]
+
+  @@index([email])
+  @@index([ip])
 }
 
 model Application {
@@ -43,7 +78,7 @@ model Application {
   email               String
   jobTitle            String
   company             String
-  status              String    @default("applied")
+  status              ApplicationStatus @default(applied)
   appliedAt           DateTime  @default(now())
   notes               String?
   analysisId          Int?      @unique
@@ -60,6 +95,7 @@ model Application {
   updatedAt           DateTime  @updatedAt
 
   @@unique([email, jobTitle, company])
+  @@index([email])
 }
 
 model Profile {
@@ -70,6 +106,7 @@ model Profile {
   displayName    String?
   githubUsername String?
   linkedinUrl    String?
+  coverLetterName String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -85,10 +122,14 @@ model SavedCv {
 }
 
 model InterviewAttempt {
-  id         Int      @id @default(autoincrement())
-  email      String
-  analysisId Int
-  transcript Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
-  analysis   Json?    // null until /complete is called
-  createdAt  DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  email           String
+  analysisId      Int
+  analysisRecord  Analysis @relation(fields: [analysisId], references: [id])
+  transcript      Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
+  analysis        Json?    // null until /complete is called
+  createdAt       DateTime @default(now())
+
+  @@index([email])
+  @@index([analysisId])
 }

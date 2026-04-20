@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import StripeLib = require('stripe');
 import { PrismaService } from '../prisma/prisma.service';
+import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
 
 type StripeInstance = StripeLib.Stripe;
 
@@ -85,14 +86,14 @@ export class StripeService {
           create: {
             email,
             stripeCustomerId: customerId,
-            plan,
-            status: sub.status,
+            plan: plan as SubscriptionPlan,
+            status: sub.status as SubscriptionStatus,
             currentPeriodEnd: new Date((sub as any).current_period_end * 1000),
           },
           update: {
             stripeCustomerId: customerId,
-            plan,
-            status: sub.status,
+            plan: plan as SubscriptionPlan,
+            status: sub.status as SubscriptionStatus,
             currentPeriodEnd: new Date((sub as any).current_period_end * 1000),
           },
         });
@@ -106,7 +107,7 @@ export class StripeService {
 
       await this.prisma.subscription.updateMany({
         where: { stripeCustomerId: customerId },
-        data: { status: 'canceled' },
+        data: { status: SubscriptionStatus.canceled },
       });
     }
   }
@@ -125,5 +126,11 @@ export class StripeService {
     const sub = await this.prisma.subscription.findUnique({ where: { email } });
     if (!sub) return false;
     return sub.status === 'active' && sub.currentPeriodEnd > new Date();
+  }
+
+  async checkHiredPlan(email: string): Promise<boolean> {
+    const sub = await this.prisma.subscription.findUnique({ where: { email } });
+    if (!sub) return false;
+    return sub.plan === 'hired' && sub.status === 'active' && sub.currentPeriodEnd > new Date();
   }
 }

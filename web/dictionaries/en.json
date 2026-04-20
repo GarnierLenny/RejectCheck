@@ -402,7 +402,27 @@
     "roadmap": "Roadmap",
     "project": "Project",
     "improveCv": "Improve CV",
-    "aiInterview": "AI Interview"
+    "aiInterview": "AI Interview",
+    "coverLetter": "Cover Letter"
+  },
+  "coverLetterTab": {
+    "title": "Cover Letter",
+    "subtitle": "AI-generated from your analysis results",
+    "languageLabel": "Language",
+    "autoDetected": "Auto-detected",
+    "generateButton": "Generate Cover Letter",
+    "generating": "Generating your cover letter...",
+    "regenerate": "Regenerate",
+    "regenerating": "Regenerating...",
+    "copy": "Copy",
+    "copied": "Copied ✓",
+    "exportPdf": "Export as PDF",
+    "exporting": "Exporting...",
+    "error": "Could not generate cover letter. Please try again.",
+    "premiumBadge": "HIRED Feature",
+    "premiumTitle": "Cover Letter Generator",
+    "premiumDesc": "Analyzes your gaps and strengths to write a letter that directly addresses what the job requires.",
+    "unlockButton": "Upgrade to HIRED — 11.99€/month"
   },
   "analyzeNav": {
     "pricing": "Pricing →",
@@ -641,7 +661,6 @@
         "description": "Maximum firepower. We guarantee your success.",
         "features": [
           "Everything in SHORTLISTED",
-          "Job Fit Score via URL (coming soon)",
           "RejectCheck Roadmaps (coming soon)",
           "Cover Letter Generator (coming soon)",
           "Recruiter Message Generator (coming soon)",
@@ -776,6 +795,11 @@
       "noInterviews": "No interviews yet",
       "viewDetails": "View →"
     }
+  },
+  "settingsTab": {
+    "coverLetterNameLabel": "Name on cover letter",
+    "coverLetterNamePlaceholder": "e.g. John Doe",
+    "coverLetterNameHint": "Used to sign your AI-generated cover letters"
   },
   "privacy": {
     "title": "Privacy Policy (GDPR)",

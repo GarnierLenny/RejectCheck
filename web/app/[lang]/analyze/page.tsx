@@ -19,6 +19,7 @@ import { RoadmapTab } from "../../components/tabs/RoadmapTab";
 import { ProjectTab } from "../../components/tabs/ProjectTab";
 import { ImproveTab } from "../../components/tabs/ImproveTab";
 import { InterviewTab } from "../../components/tabs/InterviewTab";
+import { CoverLetterTab } from "../../components/tabs/CoverLetterTab";
 import { TechnicalRadarChart } from "../../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../utils/export";
 import { useAuth } from "../../../context/auth";
@@ -27,7 +28,7 @@ import { useLanguage } from "../../../context/language";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "project" | "improve" | "interview";
+type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -44,7 +45,7 @@ function AnalyzeContent() {
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const t = searchParams.get("tab");
-    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","roadmap","project","improve","interview"];
+    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","roadmap","project","improve","interview","cover-letter"];
     return validTabs.includes(t as Tab) ? (t as Tab) : "overview";
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
@@ -311,6 +312,7 @@ function AnalyzeContent() {
     { id: "project",      label: t.tabs.project,     badge: null, badgeClass: "" },
     { id: "improve",      label: t.tabs.improveCv,   badge: "✦", badgeClass: "text-rc-red" },
     { id: "interview",    label: t.tabs.aiInterview, badge: "✦", badgeClass: "text-rc-red" },
+    { id: "cover-letter", label: t.tabs.coverLetter, badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
   const isFormView = !paywallReason && !result && !loading;
@@ -433,6 +435,15 @@ function AnalyzeContent() {
                 email={activeSubscription?.email || user?.email || null}
                 accessToken={session?.access_token ?? null}
                 defaultInterviewId={searchParams.get("interviewId") ? Number(searchParams.get("interviewId")) : null}
+              />
+            )}
+            {activeTab === "cover-letter" && (
+              <CoverLetterTab
+                analysisId={analysisId}
+                isPremium={activeSubscription?.plan === 'hired'}
+                company={(result as any)?.job_details?.company ?? null}
+                candidateName={profile?.coverLetterName ?? profile?.displayName ?? null}
+                savedCoverLetter={savedAnalysis?.coverLetter ?? null}
               />
             )}
 

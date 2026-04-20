@@ -193,3 +193,23 @@ export function useDeleteApplication() {
     },
   });
 }
+
+export function useGenerateCoverLetter() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+
+  return useMutation({
+    mutationFn: ({ analysisId, language }: { analysisId: number; language: string }) =>
+      apiFetch<{ coverLetter: string; detectedLanguage: string }>(
+        '/api/analyze/cover-letter',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(token!),
+          },
+          body: JSON.stringify({ analysisId, language }),
+        },
+      ),
+  });
+}
