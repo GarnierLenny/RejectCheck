@@ -711,11 +711,9 @@
       "jobs": "Jobs"
     },
     "tabs": {
-      "overview": "Overview",
+      "home": "Home",
       "analyses": "Analyses",
-      "interviews": "Interviews",
-      "applications": "Applications",
-      "settings": "Settings"
+      "applications": "Applications"
     },
     "overview": {
       "currentPlan": "Current plan",
@@ -738,7 +736,42 @@
       "interviewsPlaceholder": "Search interview…",
       "noResults": "No results for"
     },
-    "noInterviewsYet": "No interviews yet."
+    "noInterviewsYet": "No interviews yet.",
+    "home": {
+      "avgScore": "Avg score",
+      "activeApplications": "Active applications",
+      "aiInterviews": "AI interviews",
+      "activePlan": "Active plan",
+      "renewsOn": "Renews",
+      "managePlan": "Manage →",
+      "skillProfile": "Skill profile",
+      "recentAnalyses": "Recent analyses",
+      "actionNeeded": "Action needed",
+      "newAnalysis": "New analysis",
+      "addApplication": "Add application",
+      "staleApplication": "No reply in {days} days",
+      "activeInterview": "Interview in progress",
+      "newUnviewedAnalysis": "New analysis — {score}% risk",
+      "noActionItems": "You're all caught up!"
+    },
+    "kanban": {
+      "interested": "Interested",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer",
+      "rejected": "Rejected",
+      "responseRate": "Response rate",
+      "viewTable": "Table",
+      "viewKanban": "Kanban"
+    },
+    "interviews": {
+      "nestedLabel": "AI Interviews",
+      "newInterview": "New interview",
+      "newInterviewHint": "Continue practising on this role",
+      "interviewN": "Interview #{n}",
+      "noInterviews": "No interviews yet",
+      "viewDetails": "View →"
+    }
   },
   "privacy": {
     "title": "Privacy Policy (GDPR)",

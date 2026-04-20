@@ -711,11 +711,9 @@
       "jobs": "Offres"
     },
     "tabs": {
-      "overview": "Vue d'ensemble",
+      "home": "Accueil",
       "analyses": "Analyses",
-      "interviews": "Entretiens",
-      "applications": "Candidatures",
-      "settings": "Paramètres"
+      "applications": "Candidatures"
     },
     "overview": {
       "currentPlan": "Plan actuel",
@@ -738,7 +736,42 @@
       "interviewsPlaceholder": "Rechercher un entretien…",
       "noResults": "Aucun résultat pour"
     },
-    "noInterviewsYet": "Aucun entretien pour l'instant."
+    "noInterviewsYet": "Aucun entretien pour l'instant.",
+    "home": {
+      "avgScore": "Score moyen",
+      "activeApplications": "Candidatures actives",
+      "aiInterviews": "Interviews IA",
+      "activePlan": "Plan actif",
+      "renewsOn": "Renouvellement",
+      "managePlan": "Gérer →",
+      "skillProfile": "Profil compétences",
+      "recentAnalyses": "Dernières analyses",
+      "actionNeeded": "À traiter",
+      "newAnalysis": "Nouvelle analyse",
+      "addApplication": "Ajouter candidature",
+      "staleApplication": "Aucune réponse depuis {days} jours",
+      "activeInterview": "Entretien en cours",
+      "newUnviewedAnalysis": "Nouvelle analyse — {score}% risque",
+      "noActionItems": "Tout est à jour !"
+    },
+    "kanban": {
+      "interested": "Intéressé",
+      "applied": "Candidaté",
+      "interviewing": "Entretiens",
+      "offer": "Offre",
+      "rejected": "Refusé",
+      "responseRate": "Taux de réponse",
+      "viewTable": "Tableau",
+      "viewKanban": "Kanban"
+    },
+    "interviews": {
+      "nestedLabel": "Interviews IA",
+      "newInterview": "Nouvel interview",
+      "newInterviewHint": "Continuer l'entraînement sur ce poste",
+      "interviewN": "Interview #{n}",
+      "noInterviews": "Aucun interview",
+      "viewDetails": "Voir →"
+    }
   },
   "privacy": {
     "title": "Politique de confidentialité (RGPD)",
