@@ -16,6 +16,7 @@ export type Profile = {
   displayName: string | null;
   githubUsername: string | null;
   linkedinUrl: string | null;
+  coverLetterName: string | null;
 };
 
 export type SavedCv = {

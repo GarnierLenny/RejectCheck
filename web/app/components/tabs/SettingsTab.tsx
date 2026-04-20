@@ -7,6 +7,7 @@ import { PdfPreviewModal } from "../PdfPreviewModal";
 import { createClient } from "../../../lib/supabase";
 import type { Profile, Subscription, SavedCv } from "../../../lib/queries";
 import { useSavedCvs } from "../../../lib/queries";
+import { useLanguage } from "../../../context/language";
 import type { Session } from "@supabase/supabase-js";
 import {
   useCreatePortalSession,
@@ -34,6 +35,7 @@ function SavedBadge({ show }: { show: boolean }) {
 }
 
 export function SettingsTab({ profile, profileLoading, subscription, session, onSignOut, lang }: SettingsTabProps) {
+  const { t } = useLanguage();
   const supabase = createClient();
   const updateProfile = useUpdateProfile();
   const portalSession = useCreatePortalSession();
@@ -52,6 +54,9 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
   const [githubUsername, setGithubUsername] = useState("");
   const [githubSaved, setGithubSaved] = useState(false);
 
+  const [coverLetterName, setCoverLetterName] = useState("");
+  const [coverLetterNameSaved, setCoverLetterNameSaved] = useState(false);
+
   const [linkedinFile, setLinkedinFile] = useState<File | null>(null);
   const [linkedinUploading, setLinkedinUploading] = useState(false);
   const [linkedinSaved, setLinkedinSaved] = useState(false);
@@ -68,6 +73,7 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
     if (!profile) return;
     setDisplayName(profile.displayName ?? profile.username ?? "");
     setGithubUsername(profile.githubUsername ?? "");
+    setCoverLetterName(profile.coverLetterName ?? "");
   }, [profile]);
 
   async function handleNameBlur() {
@@ -84,6 +90,14 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
     await updateProfile.mutateAsync({ githubUsername });
     setGithubSaved(true);
     setTimeout(() => setGithubSaved(false), 2000);
+  }
+
+  async function handleCoverLetterNameBlur() {
+    const current = profile?.coverLetterName ?? "";
+    if (coverLetterName === current) return;
+    await updateProfile.mutateAsync({ coverLetterName });
+    setCoverLetterNameSaved(true);
+    setTimeout(() => setCoverLetterNameSaved(false), 2000);
   }
 
   async function handleLinkedinUpload(file: File) {
@@ -266,6 +280,29 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
                 />
               </div>
               <SavedBadge show={githubSaved} />
+            </div>
+          </div>
+
+          {/* Cover letter name */}
+          <div className="mb-5">
+            <div className="space-y-1.5">
+              <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-rc-hint block">
+                {t.settingsTab.coverLetterNameLabel}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={coverLetterName}
+                  onChange={(e) => setCoverLetterName(e.target.value)}
+                  onBlur={handleCoverLetterNameBlur}
+                  placeholder={t.settingsTab.coverLetterNamePlaceholder}
+                  className="w-full bg-rc-surface border border-rc-border rounded-xl px-4 py-3 text-[14px] font-sans text-rc-text focus:outline-none focus:border-rc-red/40 placeholder:text-rc-hint/50"
+                />
+                {coverLetterNameSaved && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-green">✓ saved</span>
+                )}
+              </div>
+              <p className="text-[11px] text-rc-hint">{t.settingsTab.coverLetterNameHint}</p>
             </div>
           </div>
 
