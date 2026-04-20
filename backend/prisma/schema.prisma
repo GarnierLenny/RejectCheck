@@ -31,6 +31,7 @@ model Analysis {
   jobDescription   String?      // Registered users only
   jobLabel         String?      // User-defined label for easy identification
   company          String?      // AI-extracted company name
+  jdLanguage       String?      // ISO 639-1 language code of job description
   cvText           String?      // Registered users only
   motivationLetter String?      // Registered users only
   result           Json?        // Registered users only
@@ -70,6 +71,7 @@ model Profile {
   displayName    String?
   githubUsername String?
   linkedinUrl    String?
+  coverLetterName String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
