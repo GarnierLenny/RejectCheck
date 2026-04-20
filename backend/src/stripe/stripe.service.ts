@@ -37,7 +37,7 @@ export class StripeService {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${frontendUrl}/account?success=true`,
+      success_url: `${frontendUrl}/dashboard?success=true`,
       cancel_url: `${frontendUrl}/pricing?error=true`,
       ...(customerEmail ? { customer_email: customerEmail } : {}),
       metadata: { plan, email: customerEmail || '' },

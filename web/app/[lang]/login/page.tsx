@@ -12,7 +12,7 @@ type Mode = "signin" | "signup";
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/account';
+  const redirect = searchParams.get('redirect') || '/dashboard';
   const supabase = createClient();
   const { t, localePath } = useLanguage();
 

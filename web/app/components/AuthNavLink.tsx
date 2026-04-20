@@ -16,7 +16,8 @@ export function AuthNavLink() {
     return (
       <Link
         href="/account"
-        className="flex items-center gap-2.5 group no-underline"
+        className="flex items-center group no-underline"
+        title="Account settings"
       >
         <div className="w-8 h-8 rounded-full bg-rc-red/5 border border-rc-red/10 flex items-center justify-center text-[10px] font-black text-rc-red group-hover:bg-rc-red/10 transition-colors overflow-hidden shrink-0">
           {avatarUrl ? (
@@ -25,9 +26,6 @@ export function AuthNavLink() {
             initials
           )}
         </div>
-        <span className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-muted group-hover:text-rc-text transition-colors hidden md:block truncate max-w-[120px]">
-          {username}
-        </span>
       </Link>
     );
   }

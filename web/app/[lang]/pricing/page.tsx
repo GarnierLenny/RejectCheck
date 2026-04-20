@@ -109,7 +109,7 @@ function PricingContent() {
               className="group relative inline-flex items-center justify-center px-4 py-2 font-mono text-[11px] tracking-widest uppercase text-white bg-rc-red rounded-lg overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 no-underline shadow-lg shadow-rc-red/20"
             >
               <span className="relative z-10 flex items-center gap-2">
-                {t.navbar.tryFree} <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                {t.navbar.tryFree}
               </span>
             </Link>
           </div>

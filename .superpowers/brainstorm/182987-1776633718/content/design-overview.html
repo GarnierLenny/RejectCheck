@@ -1,0 +1,80 @@
+<h2>Design — Restructuration Navigation</h2>
+<p class="subtitle">Récap de l'architecture cible avant d'écrire le spec</p>
+
+<div class="section">
+  <div class="label">Navbar (connecté)</div>
+  <div class="mockup">
+    <div class="mockup-header">Navigation bar</div>
+    <div class="mockup-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#f7f5f2;border-radius:6px;font-family:monospace;font-size:13px">
+        <span style="font-weight:700;color:#C93A39">RejectCheck</span>
+        <div style="display:flex;gap:20px;align-items:center;color:#1a1917">
+          <span>Analyze</span>
+          <span>Pricing</span>
+          <span style="font-weight:600;border-bottom:2px solid #C93A39;padding-bottom:2px">Dashboard</span>
+          <div style="width:30px;height:30px;border-radius:50%;background:#1a1917;color:#f7f5f2;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer" title="→ /account">LG</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">Routing cible</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+
+    <div style="flex:1;min-width:220px;border:1px solid #d4cfc9;border-radius:8px;padding:16px">
+      <div style="font-size:12px;font-weight:600;color:#C93A39;margin-bottom:10px;font-family:monospace">/dashboard</div>
+      <div style="font-size:13px;color:#6b6860;margin-bottom:10px">Hub principal · Page d'atterrissage post-login</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Overview</span>
+          <span style="color:#6b6860;font-size:11px">Stats, radar chart, recent analyses</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Analyses</span>
+          <span style="color:#6b6860;font-size:11px">Historique + chart évolution</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Interviews</span>
+          <span style="color:#6b6860;font-size:11px">Historique entretiens</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Applications</span>
+          <span style="color:#6b6860;font-size:11px">Suivi candidatures</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:220px;border:1px solid #d4cfc9;border-radius:8px;padding:16px">
+      <div style="font-size:12px;font-weight:600;color:#1a1917;margin-bottom:10px;font-family:monospace">/account</div>
+      <div style="font-size:13px;color:#6b6860;margin-bottom:10px">Paramètres · Accessible via avatar</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Profil</span>
+          <span style="color:#6b6860;font-size:11px">Nom, avatar, GitHub, CVs</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Abonnement</span>
+          <span style="color:#6b6860;font-size:11px">Plan, billing Stripe</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+          <span style="background:#f0ede9;border-radius:4px;padding:2px 8px;border:1px solid #d4cfc9">Danger zone</span>
+          <span style="color:#6b6860;font-size:11px">Sign out, delete account</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="label">Changements techniques</div>
+  <ul style="font-size:13px;color:#3a3834;line-height:1.8;margin:0;padding-left:20px">
+    <li>Créer <code>/app/[lang]/dashboard/page.tsx</code> — déplacer les 4 tabs depuis account</li>
+    <li>Simplifier <code>/app/[lang]/account/page.tsx</code> — garder seulement la partie Settings</li>
+    <li>Mettre à jour la navbar : ajouter lien Dashboard, avatar cliquable → /account</li>
+    <li>Middleware auth : redirect post-login vers /dashboard</li>
+    <li>Mettre à jour les liens internes (<code>href="/account?tab=analyses"</code> → <code>href="/dashboard?tab=analyses"</code>)</li>
+  </ul>
+</div>

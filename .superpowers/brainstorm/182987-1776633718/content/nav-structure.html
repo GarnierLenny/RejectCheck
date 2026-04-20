@@ -1,0 +1,69 @@
+<h2>Dashboard séparé ou tout dans /account ?</h2>
+<p class="subtitle">Deux architectures de navigation — laquelle correspond mieux à l'usage de tes utilisateurs ?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Tout dans /account (situation actuelle)</h3>
+      <p style="margin-bottom:12px;color:#6b6860">Une seule destination avec 5 onglets</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Overview</span>
+        <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Analyses</span>
+        <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Interviews</span>
+        <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Applications</span>
+        <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Settings</span>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul>
+          <li>Simple, un seul endroit</li>
+          <li>Pas de refacto nav nécessaire</li>
+        </ul></div>
+        <div class="cons"><h4>Contre</h4><ul>
+          <li>Mélange activité et paramètres</li>
+          <li>/account évoque les réglages, pas le suivi</li>
+          <li>5 onglets = trop dense</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>/dashboard + /account séparés</h3>
+      <p style="margin-bottom:12px;color:#6b6860">Deux destinations claires avec des rôles distincts</p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b6860;margin-bottom:4px">/dashboard</div>
+          <div style="display:flex;gap:6px;flex-direction:column">
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Overview</span>
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Analyses</span>
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Interviews</span>
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Applications</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6b6860;margin-bottom:4px">/account</div>
+          <div style="display:flex;gap:6px;flex-direction:column">
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Profil & identité</span>
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Abonnement</span>
+            <span style="background:#f0ede9;border:1px solid #d4cfc9;border-radius:4px;padding:3px 8px;font-size:13px">Danger zone</span>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pour</h4><ul>
+          <li>Sémantique claire (dashboard = activité, account = perso)</li>
+          <li>Dashboard devient la page d'accueil post-login</li>
+          <li>Navigation principale moins chargée</li>
+          <li>Pattern SaaS standard (Notion, Linear, etc.)</li>
+        </ul></div>
+        <div class="cons"><h4>Contre</h4><ul>
+          <li>Refacto routing à faire</li>
+          <li>Un item de plus dans la nav</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
