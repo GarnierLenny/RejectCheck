@@ -849,7 +849,8 @@ The cover letter must:
 - Sound like a real human wrote it, not an AI
 - End with a confident, specific call to action
 - NEVER use dashes (-, —, –) anywhere in the text
-- Do NOT use markdown headings or titles, only plain paragraphs`,
+- Do NOT use markdown headings or titles, only plain paragraphs
+- ALWAYS write in the first person (I, me, my) — never refer to the candidate in the third person`,
       messages: [
         {
           role: 'user',
