@@ -416,7 +416,7 @@ export function ApplicationsTab({
     const interviewing = applications.filter(a => a.status === 'interviewing').length;
     const offers       = applications.filter(a => a.status === 'offer').length;
     const rejected     = applications.filter(a => a.status === 'rejected').length;
-    const responseCount = applications.filter(a => a.status !== 'interested').length;
+    const responseCount = applications.filter(a => a.status === 'interviewing' || a.status === 'offer' || a.status === 'rejected').length;
     const responseRate  = total > 0 ? Math.round((responseCount / total) * 100) : 0;
     return { total, interviewing, offers, rejected, responseCount, responseRate };
   }, [applications]);
