@@ -283,6 +283,7 @@ export class AnalyzeController {
         parsed.data.analysisId,
         parsed.data.language,
       );
+      await this.analyzeService.saveCoverLetter(parsed.data.analysisId, email, result.coverLetter);
       return res.status(200).json(result);
     } catch (e: any) {
       return res.status(e.status ?? 500).json({ message: e.message });

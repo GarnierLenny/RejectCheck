@@ -443,6 +443,7 @@ function AnalyzeContent() {
                 isPremium={activeSubscription?.plan === 'hired'}
                 company={(result as any)?.job_details?.company ?? null}
                 candidateName={profile?.coverLetterName ?? profile?.displayName ?? null}
+                savedCoverLetter={savedAnalysis?.coverLetter ?? null}
               />
             )}
 

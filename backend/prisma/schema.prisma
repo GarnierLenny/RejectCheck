@@ -62,6 +62,7 @@ model Analysis {
   linkedinText     String?      // Registered users only
   githubInfo       String?      // Registered users only
   motivationLetter String?      // Registered users only
+  coverLetter      String?      // Saved after HIRED-plan generation
   result           Json?        // Registered users only
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt

@@ -25,12 +25,13 @@ type Props = {
   isPremium: boolean;
   company?: string | null;
   candidateName?: string | null;
+  savedCoverLetter?: string | null;
 };
 
-export function CoverLetterTab({ analysisId, isPremium, company, candidateName }: Props) {
+export function CoverLetterTab({ analysisId, isPremium, company, candidateName, savedCoverLetter }: Props) {
   const { t, localePath } = useLanguage();
   const [language, setLanguage] = useState("auto");
-  const [coverLetter, setCoverLetter] = useState<string | null>(null);
+  const [coverLetter, setCoverLetter] = useState<string | null>(savedCoverLetter ?? null);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);

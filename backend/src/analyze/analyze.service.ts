@@ -930,6 +930,23 @@ Language: ${langName}`,
         email,
         result: { not: Prisma.DbNull },
       },
+      select: {
+        id: true,
+        jobLabel: true,
+        company: true,
+        jobDescription: true,
+        result: true,
+        coverLetter: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async saveCoverLetter(analysisId: number, email: string, coverLetter: string) {
+    await (this.prisma as any).analysis.updateMany({
+      where: { id: analysisId, email },
+      data: { coverLetter },
     });
   }
 
