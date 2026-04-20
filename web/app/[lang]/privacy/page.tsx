@@ -28,7 +28,7 @@ export default function PrivacyPage() {
             <ShieldCheck className="w-8 h-8" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">{t.privacy.title}</h1>
-          <p className="text-rc-hint font-mono text-sm tracking-widest uppercase">Last updated: April 12, 2026</p>
+          <p className="text-rc-hint font-mono text-sm tracking-widest uppercase">Last updated: April 20, 2026</p>
         </div>
 
         <section className="space-y-12">
@@ -50,11 +50,11 @@ export default function PrivacyPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-6 rounded-2xl bg-white border border-rc-border shadow-sm">
                 <h3 className="font-bold mb-2">Registered Users</h3>
-                <p className="text-sm text-rc-muted">We store your email, username, profile picture, and analysis history to provide a personalized dashboard.</p>
+                <p className="text-sm text-rc-muted">We store your email, username, profile picture, and analysis history. For each analysis, we also store your CV text, job description, and — if provided — your LinkedIn profile, GitHub activity, and motivation letter, to power premium features such as CV rewriting and cover letter generation.</p>
               </div>
               <div className="p-6 rounded-2xl bg-rc-surface border border-rc-border">
                 <h3 className="font-bold mb-2">Anonymous Scans</h3>
-                <p className="text-sm text-rc-muted">We only log your IP address to enforce free-tier limits. Your CV and Job Description are NOT stored on our servers.</p>
+                <p className="text-sm text-rc-muted">We only log your IP address to enforce free-tier limits. Your CV and job description are NOT stored on our servers.</p>
               </div>
             </div>
           </div>
@@ -65,8 +65,8 @@ export default function PrivacyPage() {
               <Lock className="w-6 h-6 text-rc-red" /> 3. {t.privacy.sections.aiProcessing}
             </h2>
             <p className="text-rc-muted leading-relaxed">
-              Your data is processed using state-of-the-art AI models (OpenAI/GPT-4o).
-              <span className="text-rc-text font-semibold"> We have disabled data training:</span> OpenAI does not use data sent through our API to train their models. Your CV content is processed in a transient manner and is deleted immediately after the analysis is generated for anonymous users.
+              Your data is processed exclusively using <span className="text-rc-text font-semibold">Anthropic Claude</span> models via their API. This covers CV analysis, CV rewriting, and cover letter generation.
+              <span className="text-rc-text font-semibold"> Anthropic does not train on your data:</span> data sent through the API is not used to train Anthropic&apos;s models. Your documents are processed transiently and are never stored on Anthropic&apos;s servers beyond the duration of the request. For anonymous users, your CV content is not stored on our servers either.
             </p>
           </div>
 
