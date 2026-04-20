@@ -388,8 +388,12 @@ export class AnalyzeService {
                       enum: ['startup', 'scale-up', 'sme', 'enterprise', 'not-mentioned'],
                       description: 'Company stage inferred from headcount, funding, or brand recognition.',
                     },
+                    jd_language: {
+                      type: 'string' as const,
+                      description: 'ISO 639-1 language code of the job description text (e.g. "en", "fr", "de", "es"). Detect from the JD content.',
+                    },
                   },
-                  required: ['title', 'company', 'seniority', 'pay', 'office_location', 'work_setting', 'contract_type', 'languages_required', 'years_of_experience', 'company_stage'],
+                  required: ['title', 'company', 'seniority', 'pay', 'office_location', 'work_setting', 'contract_type', 'languages_required', 'years_of_experience', 'company_stage', 'jd_language'],
                 },
               },
               required: [
@@ -638,6 +642,7 @@ Formatting rules:
           jobDescription,
           jobLabel: resolvedLabel,
           company: resolvedCompany,
+          jdLanguage: result.job_details?.jd_language ?? 'en',
           cvText: cvText ?? null,
           motivationLetter: motivationLetter ?? null,
           result: result,
@@ -793,6 +798,85 @@ ${analysis.cvText}`;
       console.error('[Claude] rewriteCv failed:', err?.message || err);
       throw new InternalServerErrorException('CV rewrite failed');
     }
+  }
+
+  async generateCoverLetter(
+    email: string,
+    analysisId: number,
+    language: string,
+  ): Promise<{ coverLetter: string; detectedLanguage: string }> {
+    const analysis = await (this.prisma as any).analysis.findFirst({
+      where: { id: analysisId, email },
+    });
+    if (!analysis || !analysis.result) {
+      throw new BadRequestException('Analysis not found');
+    }
+
+    const profile = await (this.prisma as any).profile.findUnique({ where: { email } });
+    const candidateName = profile?.coverLetterName || profile?.displayName || null;
+
+    const result = analysis.result as any;
+    const jd = analysis.jobDescription as string;
+    const detectedLang = language === 'auto'
+      ? (analysis.jdLanguage ?? 'en')
+      : language;
+
+    const langLabel: Record<string, string> = {
+      en: 'English', fr: 'French', es: 'Spanish', de: 'German',
+    };
+    const langName = langLabel[detectedLang] ?? detectedLang;
+
+    let response: Awaited<ReturnType<typeof this.anthropic.messages.create>>;
+    try {
+      response = await this.anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+      system: `You are an expert career coach writing cover letters for software developers.
+Write in ${langName}.
+The cover letter must:
+- Be professional but not generic
+- Address the specific requirements of the job description
+- Highlight the candidate's strongest matching skills
+- Proactively address the top 1-2 gaps detected in the analysis (briefly, positively)
+- Be 3-4 paragraphs, max 350 words
+- NOT start with "Dear Hiring Manager" — use a more direct opening
+- Sound like a real human wrote it, not an AI
+- End with a confident, specific call to action`,
+      messages: [
+        {
+          role: 'user',
+          content: `Generate a cover letter based on this analysis.
+
+Job Description:
+${jd}
+
+Candidate Analysis:
+- Rejection risk: ${result.overall?.score}%
+- Verdict: ${result.overall?.verdict}
+- Key strengths: ${result.audit?.cv?.strengths?.join(', ')}
+- Main gaps: ${result.audit?.cv?.issues?.slice(0, 2).map((i: any) => i.what).join(', ')}
+- Seniority detected: ${result.seniority_analysis?.detected}
+- Tech stack strengths: ${result.skill_gap?.skills?.filter((s: any) => s.userScore >= s.targetScore).map((s: any) => s.skill).slice(0, 5).join(', ')}
+- Missing keywords: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
+
+Job title: ${analysis.jobLabel || 'the position'}
+Company: ${analysis.company || 'the company'}
+Candidate name: ${candidateName || 'not provided'}
+Language to use: ${langName}`,
+        },
+      ],
+      });
+    } catch (err: any) {
+      console.error('[Claude] generateCoverLetter failed:', err?.message || err);
+      throw new InternalServerErrorException('Cover letter generation failed');
+    }
+
+    const content = response.content[0];
+    if (!content) throw new InternalServerErrorException('Claude returned empty response');
+    return {
+      coverLetter: content.type === 'text' ? content.text : '',
+      detectedLanguage: detectedLang,
+    };
   }
 
   async getHistory(email: string, page: number, limit: number) {
