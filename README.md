@@ -38,10 +38,27 @@ The target user is a developer who wants to be the right candidate, not just loo
 - **CV rewrite** *(Improve CV tab)* — AI rewrites your CV based on detected issues: injects missing keywords, fixes tone, adds seniority signals. Exportable as PDF.
 - **AI Interview** *(AI Interview tab)* — 10-minute voice interview simulated by AI, tailored to the job. Questions are generated from your analysis — skill gaps, red flags, JD expectations. Turn-based: the AI speaks and listens, detects when you finish, and asks follow-ups when answers are vague. After the interview: a full performance report with axis scores (communication, technical relevance, composure, etc.), per-question feedback, key strengths and improvements. Retry with new questions anytime, with attempt history tracked.
 
-### Account
+### Dashboard
 
-- **Analysis history** — all past analyses saved and accessible from `/account`
-- **Interview history** — past AI interview attempts listed with scores, accessible from `/account`, one click to open the analysis with the interview pre-selected
+The dashboard (`/dashboard`) is a 3-tab command center for returning users.
+
+**Home tab**
+- 4 stat cards: avg rejection risk score, active applications, total AI interviews, active plan + renewal date
+- Skill profile radar chart — aggregated across all analyses
+- Recent analyses — 4 most recent with score badge and one-click access
+- À traiter — surfaces urgent items: applications without reply in 14+ days, active interviews, new unread analyses
+
+**Analyses tab**
+- Score evolution chart with period selector
+- Paginated and searchable analysis list
+- Each analysis row is expandable: shows all linked AI interview attempts inline (score, date, link to report)
+- Interview chip shows count if attempts exist, or a "+ Interview" CTA to start one
+- Export and delete actions per row
+
+**Applications tab**
+- 5 stat cards: Total, Interviewing, Offers, Rejected, Response rate (interviewing + offer + rejected / total)
+- Full application table (searchable, sortable) with status badges and a side drawer for details
+- **Kanban view** — toggle between table and board view; 5 columns (Interested → Applied → Interviewing → Offer → Rejected); drag cards between columns to update status; search applies to both views
 
 ---
 
@@ -67,7 +84,7 @@ Browser (port 3000)
                     ├── POST /api/interview/start   — generate interview questions + TTS
                     ├── POST /api/interview/answer  — Whisper transcription + next question
                     ├── POST /api/interview/complete — Claude post-interview analysis
-                    ├── GET  /api/interview/history  — past attempts
+                    ├── GET  /api/interview/history  — past attempts (filterable by analysisId)
                     ├── Stripe webhooks
                     └── Supabase PostgreSQL
 ```
