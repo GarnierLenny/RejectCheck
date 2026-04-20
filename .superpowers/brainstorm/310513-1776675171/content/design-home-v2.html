@@ -1,0 +1,307 @@
+<h2>Design — Tab Home v2 (avec radar)</h2>
+<p class="subtitle">Radar profil compétences dans la partie basse</p>
+
+<style>
+.mockup-wrap {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 20px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mock-topnav {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mock-logo { color: #D94040; font-weight: 800; font-size: 14px; margin-right: auto; }
+.mock-navlink { color: #666; font-size: 12px; padding: 4px 10px; border-radius: 6px; }
+.mock-navlink.active { color: #fff; background: #1e1e1e; }
+.mock-tabs {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 0 24px;
+  display: flex;
+}
+.mock-tab {
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #555;
+  border-bottom: 2px solid transparent;
+}
+.mock-tab.active { color: #fff; border-bottom-color: #D94040; font-weight: 600; }
+.mock-body { padding: 24px; }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-value { font-size: 22px; font-weight: 700; color: #fff; }
+.stat-delta { font-size: 11px; margin-top: 4px; }
+.delta-up { color: #22c55e; }
+.delta-down { color: #ef4444; }
+.delta-neutral { color: #666; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-title { font-size: 13px; font-weight: 600; color: #ccc; text-transform: uppercase; letter-spacing: 0.5px; }
+.section-link { font-size: 12px; color: #555; }
+
+.action-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.action-item {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.action-item.urgent { border-left-color: #f59e0b; }
+.action-item.info { border-left-color: #3b82f6; }
+.action-icon { font-size: 16px; }
+.action-text { flex: 1; }
+.action-main { font-size: 13px; color: #ccc; }
+.action-sub { font-size: 11px; color: #555; margin-top: 2px; }
+.action-cta {
+  font-size: 11px; color: #D94040;
+  background: #D9404011; border: 1px solid #D9404033;
+  border-radius: 6px; padding: 4px 10px; white-space: nowrap;
+}
+
+/* Bottom grid */
+.bottom-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.bottom-block {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  padding: 16px;
+}
+.block-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+
+/* Radar SVG */
+.radar-wrap { display: flex; align-items: center; gap: 16px; }
+.radar-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.legend-item { display: flex; align-items: center; gap: 8px; }
+.legend-bar-wrap { flex: 1; height: 4px; background: #1e1e1e; border-radius: 2px; }
+.legend-bar { height: 4px; border-radius: 2px; background: #D94040; }
+.legend-label { font-size: 11px; color: #666; width: 80px; }
+.legend-score { font-size: 11px; color: #aaa; width: 28px; text-align: right; }
+
+/* Right panel */
+.right-panel { display: flex; flex-direction: column; gap: 10px; }
+.plan-card {
+  background: #0d0d0d;
+  border: 1px solid #16a34a33;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.plan-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; }
+.plan-info { flex: 1; }
+.plan-name { font-size: 13px; font-weight: 700; color: #22c55e; }
+.plan-sub { font-size: 11px; color: #555; margin-top: 2px; }
+
+.qa-btn {
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qa-btn.primary { border-color: #D9404033; }
+.qa-icon { font-size: 16px; }
+.qa-label { font-size: 13px; color: #ccc; font-weight: 500; }
+.qa-sub { font-size: 11px; color: #555; }
+
+.plan-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #16a34a11; border: 1px solid #22c55e33;
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 11px; color: #22c55e; margin-left: 8px;
+}
+</style>
+
+<div class="mockup-wrap">
+  <div class="mock-topnav">
+    <span class="mock-logo">RejectCheck</span>
+    <span class="mock-navlink">Analyser</span>
+    <span class="mock-navlink active">Dashboard</span>
+    <span class="mock-navlink">FR</span>
+  </div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">🏠 Home</div>
+    <div class="mock-tab">📊 Analyses</div>
+    <div class="mock-tab">📋 Applications</div>
+  </div>
+  <div class="mock-body">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Score moyen</div>
+        <div class="stat-value">62%</div>
+        <div class="stat-delta delta-down">↓ 4pts ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Candidatures actives</div>
+        <div class="stat-value">8</div>
+        <div class="stat-delta delta-neutral">3 en cours d'entretien</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interviews IA</div>
+        <div class="stat-value">12</div>
+        <div class="stat-delta delta-up">↑ score moyen 7.2/10</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Analyses totales</div>
+        <div class="stat-value">24</div>
+        <div class="stat-delta delta-neutral">Dernière il y a 2h</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">⚡ À traiter</span>
+      <span class="section-link">voir tout →</span>
+    </div>
+    <div class="action-items">
+      <div class="action-item urgent">
+        <span class="action-icon">📋</span>
+        <div class="action-text">
+          <div class="action-main">Stripe — Relance sans réponse depuis 14 jours</div>
+          <div class="action-sub">Candidature · Applied 2 avr.</div>
+        </div>
+        <span class="action-cta">Mettre à jour</span>
+      </div>
+      <div class="action-item urgent">
+        <span class="action-icon">📋</span>
+        <div class="action-text">
+          <div class="action-main">Datadog — Entretien technique demain</div>
+          <div class="action-sub">Candidature · Statut: Interviewing</div>
+        </div>
+        <span class="action-cta">Voir</span>
+      </div>
+      <div class="action-item info">
+        <span class="action-icon">📊</span>
+        <div class="action-text">
+          <div class="action-main">Nouvelle analyse — Vercel Senior Backend (71% risque)</div>
+          <div class="action-sub">Créée il y a 2h · Non consultée</div>
+        </div>
+        <span class="action-cta">Consulter</span>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="bottom-block">
+        <div class="block-title">Profil de compétences</div>
+        <div class="radar-wrap">
+          <!-- SVG Radar -->
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <defs>
+              <polygon id="hex" points="65,10 112,37.5 112,92.5 65,120 18,92.5 18,37.5" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            </defs>
+            <polygon points="65,10 112,37.5 112,92.5 65,120 18,92.5 18,37.5" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            <polygon points="65,28 95,44 95,81 65,97 35,81 35,44" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            <polygon points="65,46 78,54 78,71 65,79 52,71 52,54" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            <!-- filled area -->
+            <polygon points="65,18 105,46 100,88 65,110 28,85 30,42" fill="#D9404022" stroke="#D94040" stroke-width="1.5"/>
+            <!-- axis lines -->
+            <line x1="65" y1="10" x2="65" y2="120" stroke="#1e1e1e" stroke-width="1"/>
+            <line x1="18" y1="37.5" x2="112" y2="92.5" stroke="#1e1e1e" stroke-width="1"/>
+            <line x1="112" y1="37.5" x2="18" y2="92.5" stroke="#1e1e1e" stroke-width="1"/>
+            <!-- labels -->
+            <text x="65" y="7" text-anchor="middle" fill="#666" font-size="8">Backend</text>
+            <text x="116" y="36" text-anchor="start" fill="#666" font-size="8">System</text>
+            <text x="116" y="96" text-anchor="start" fill="#666" font-size="8">Cloud</text>
+            <text x="65" y="128" text-anchor="middle" fill="#666" font-size="8">Frontend</text>
+            <text x="14" y="96" text-anchor="end" fill="#666" font-size="8">DevOps</text>
+            <text x="14" y="36" text-anchor="end" fill="#666" font-size="8">Data</text>
+          </svg>
+          <div class="radar-legend">
+            <div class="legend-item">
+              <span class="legend-label">Backend</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:85%"></div></div>
+              <span class="legend-score">85</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">System</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:72%"></div></div>
+              <span class="legend-score">72</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">Cloud</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:60%"></div></div>
+              <span class="legend-score">60</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">Frontend</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:45%"></div></div>
+              <span class="legend-score">45</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">DevOps</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:38%"></div></div>
+              <span class="legend-score">38</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">Data</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:55%"></div></div>
+              <span class="legend-score">55</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-block">
+        <div class="block-title">Plan &amp; Actions</div>
+        <div class="right-panel">
+          <div class="plan-card">
+            <div class="plan-dot"></div>
+            <div class="plan-info">
+              <div class="plan-name">HIRED <span class="plan-chip">Actif</span></div>
+              <div class="plan-sub">Renouvellement 20 mai · Gérer →</div>
+            </div>
+          </div>
+          <div class="qa-btn primary">
+            <span class="qa-icon">🔍</span>
+            <div>
+              <div class="qa-label">Nouvelle analyse</div>
+              <div class="qa-sub">CV + offre d'emploi</div>
+            </div>
+          </div>
+          <div class="qa-btn">
+            <span class="qa-icon">➕</span>
+            <div>
+              <div class="qa-label">Ajouter une candidature</div>
+              <div class="qa-sub">Tracker un nouveau poste</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Home v2 avec radar. Est-ce que cette version te convient ?</p>

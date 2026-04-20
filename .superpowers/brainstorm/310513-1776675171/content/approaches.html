@@ -1,0 +1,165 @@
+<h2>3 approches pour restructurer le dashboard</h2>
+<p class="subtitle">Partant de : 4 tabs (Overview, Analyses, Interviews, Applications) → quel nouveau shape ?</p>
+
+<style>
+.approaches { display: flex; flex-direction: column; gap: 16px; margin: 24px 0; }
+.approach {
+  border: 2px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  background: #0f0f0f;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.approach.selected { border-color: #D94040 !important; }
+.approach:hover { border-color: #444; }
+.approach-header { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.approach-letter {
+  width: 32px; height: 32px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: #D94040; font-size: 15px;
+  flex-shrink: 0;
+}
+.approach-title { font-size: 17px; font-weight: 700; color: #fff; }
+.approach-subtitle { font-size: 13px; color: #666; margin-top: 2px; }
+.tab-pills { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.tab-pill {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #333;
+  color: #bbb;
+  background: #1a1a1a;
+}
+.tab-pill.new { border-color: #D94040; color: #D94040; background: #D9404011; }
+.tab-pill.merged { border-color: #f59e0b; color: #f59e0b; background: #f59e0b11; }
+.tab-pill.removed { border-color: #555; color: #555; background: transparent; text-decoration: line-through; }
+.approach-body { color: #888; font-size: 13px; line-height: 1.6; }
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.pros, .cons { font-size: 12px; }
+.pros .label { color: #22c55e; font-weight: 600; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; }
+.cons .label { color: #ef4444; font-weight: 600; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; }
+.pros li, .cons li { color: #777; margin: 3px 0; margin-left: 14px; }
+.recommended-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px;
+  background: #D9404022; color: #D94040;
+  border: 1px solid #D9404044;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+</style>
+
+<div class="approaches">
+  <div class="approach" data-choice="a" onclick="toggleSelect(this)">
+    <div class="approach-header">
+      <div class="approach-letter">A</div>
+      <div>
+        <div class="approach-title">3 tabs — Home · Analyses · Applications <span class="recommended-badge">Recommandé</span></div>
+        <div class="approach-subtitle">Merge Interviews dans Analyses, Overview devient Home intelligente</div>
+      </div>
+    </div>
+    <div class="tab-pills">
+      <span class="tab-pill new">🏠 Home</span>
+      <span class="tab-pill new">📊 Analyses (+ interviews)</span>
+      <span class="tab-pill">📋 Applications</span>
+      <span class="tab-pill removed">🎤 Interviews</span>
+    </div>
+    <div class="approach-body">
+      Home = command center : candidatures urgentes, score en évolution, raccourcis. Analyses = historique + évolution + interviews imbriqués dans le détail de chaque analyse. Applications = CRM tel quel mais optimisé.
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="label">✓ Pour</div>
+        <ul>
+          <li>Nav épurée, 3 tabs clairs</li>
+          <li>Interviews contextualisés</li>
+          <li>Home = valeur immédiate au retour</li>
+          <li>Moins de redondance</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="label">✗ Contre</div>
+        <ul>
+          <li>Home à concevoir soigneusement</li>
+          <li>Migration UX pour users existants</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="approach" data-choice="b" onclick="toggleSelect(this)">
+    <div class="approach-header">
+      <div class="approach-letter">B</div>
+      <div>
+        <div class="approach-title">2 tabs — Analyses · Applications</div>
+        <div class="approach-subtitle">Supprimer l'Overview, rendre chaque tab auto-suffisant</div>
+      </div>
+    </div>
+    <div class="tab-pills">
+      <span class="tab-pill new">📊 Analyses (+ stats + interviews)</span>
+      <span class="tab-pill new">📋 Applications (+ stats CRM)</span>
+      <span class="tab-pill removed">🏠 Overview</span>
+      <span class="tab-pill removed">🎤 Interviews</span>
+    </div>
+    <div class="approach-body">
+      Chaque tab a son propre header avec ses métriques clés. Analyses affiche en haut : score moyen, trend, radar. Applications affiche : nb actives, taux de réponse, funnel.
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="label">✓ Pour</div>
+        <ul>
+          <li>Ultra minimaliste</li>
+          <li>Pas de page "vide" à gérer</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="label">✗ Contre</div>
+        <ul>
+          <li>Pas de "landing" au retour</li>
+          <li>Perd la vision cross-tab</li>
+          <li>Moins d'engagement</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="approach" data-choice="c" onclick="toggleSelect(this)">
+    <div class="approach-header">
+      <div class="approach-letter">C</div>
+      <div>
+        <div class="approach-title">4 tabs redesignés — garder la structure, tout améliorer</div>
+        <div class="approach-subtitle">Évolution douce : Overview amélioré, Interviews enrichi, même nav</div>
+      </div>
+    </div>
+    <div class="tab-pills">
+      <span class="tab-pill new">🏠 Overview (amélioré)</span>
+      <span class="tab-pill new">📊 Analyses (amélioré)</span>
+      <span class="tab-pill new">🎤 Interviews (enrichi)</span>
+      <span class="tab-pill">📋 Applications</span>
+    </div>
+    <div class="approach-body">
+      Garder 4 tabs mais rendre chacun meilleur : Overview devient plus actionnable, Interviews montre le contexte job, Analyses lie mieux les deux. Moins de refactoring, plus de polish.
+    </div>
+    <div class="pros-cons">
+      <div class="pros">
+        <div class="label">✓ Pour</div>
+        <ul>
+          <li>Moins de disruption</li>
+          <li>Plus rapide à shipper</li>
+          <li>Pas de migration UX</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <div class="label">✗ Contre</div>
+        <ul>
+          <li>Redondance Overview / Analyses reste</li>
+          <li>Interviews toujours orphelin</li>
+          <li>4 tabs c'est une tab de trop</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

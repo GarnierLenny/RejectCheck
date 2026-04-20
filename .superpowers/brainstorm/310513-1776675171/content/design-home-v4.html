@@ -1,0 +1,283 @@
+<h2>Design — Tab Home v4</h2>
+<p class="subtitle">Plan dans les stats · À traiter dans la colonne droite du bas</p>
+
+<style>
+.mockup-wrap {
+  background: #0a0a0a; border: 1px solid #222;
+  border-radius: 12px; overflow: hidden; margin: 20px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mock-topnav {
+  background: #111; border-bottom: 1px solid #1e1e1e;
+  padding: 12px 24px; display: flex; align-items: center; gap: 8px;
+}
+.mock-logo { color: #D94040; font-weight: 800; font-size: 14px; margin-right: auto; }
+.mock-navlink { color: #666; font-size: 12px; padding: 4px 10px; border-radius: 6px; }
+.mock-navlink.active { color: #fff; background: #1e1e1e; }
+.mock-tabs { background: #111; border-bottom: 1px solid #1e1e1e; padding: 0 24px; display: flex; }
+.mock-tab { padding: 12px 18px; font-size: 13px; color: #555; border-bottom: 2px solid transparent; }
+.mock-tab.active { color: #fff; border-bottom-color: #D94040; font-weight: 600; }
+.mock-body { padding: 24px; }
+
+/* Stats row — 4 cards, plan as last */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: #111; border: 1px solid #1e1e1e;
+  border-radius: 10px; padding: 14px 16px;
+}
+.stat-card.plan-card { border-color: #16a34a33; }
+.stat-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-value { font-size: 22px; font-weight: 700; color: #fff; }
+.stat-value.plan-value { font-size: 16px; display: flex; align-items: center; gap: 8px; }
+.plan-dot { width: 7px; height: 7px; background: #22c55e; border-radius: 50%; flex-shrink: 0; }
+.stat-delta { font-size: 11px; margin-top: 4px; }
+.delta-up { color: #22c55e; }
+.delta-down { color: #ef4444; }
+.delta-neutral { color: #666; }
+.delta-plan { color: #555; }
+.manage-link { color: #D94040; font-size: 11px; }
+
+/* 3-col bottom */
+.bottom-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 14px; }
+.bottom-block {
+  background: #111; border: 1px solid #1e1e1e;
+  border-radius: 10px; padding: 16px;
+}
+.block-title { font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+
+/* Radar */
+.radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.radar-legend { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-bar-wrap { flex: 1; height: 3px; background: #1e1e1e; border-radius: 2px; }
+.legend-bar { height: 3px; border-radius: 2px; background: #D94040; }
+.legend-label { font-size: 10px; color: #555; width: 54px; }
+.legend-score { font-size: 10px; color: #888; width: 22px; text-align: right; }
+
+/* Analyses list */
+.analyses-list { display: flex; flex-direction: column; }
+.analysis-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid #1a1a1a;
+}
+.analysis-item:last-child { border-bottom: none; }
+.score-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+.score-red { background: #dc262622; color: #ef4444; border: 1px solid #ef444433; }
+.score-amber { background: #d9700022; color: #f59e0b; border: 1px solid #f59e0b33; }
+.score-green { background: #16a34a22; color: #22c55e; border: 1px solid #22c55e33; }
+.analysis-info { flex: 1; min-width: 0; }
+.analysis-name { font-size: 12px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.analysis-company { font-size: 11px; color: #555; margin-top: 1px; }
+.analysis-date { font-size: 10px; color: #444; flex-shrink: 0; }
+.analysis-arrow { font-size: 12px; color: #333; flex-shrink: 0; }
+
+/* À traiter column */
+.action-items { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.action-item {
+  background: #0d0d0d; border: 1px solid #1e1e1e;
+  border-left: 3px solid transparent; border-radius: 8px;
+  padding: 10px 12px;
+}
+.action-item.urgent { border-left-color: #f59e0b; }
+.action-item.info { border-left-color: #3b82f6; }
+.action-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.action-main { font-size: 12px; color: #ccc; line-height: 1.4; flex: 1; }
+.action-cta {
+  font-size: 10px; color: #D94040;
+  background: #D9404011; border: 1px solid #D9404033;
+  border-radius: 5px; padding: 3px 7px; white-space: nowrap; flex-shrink: 0;
+}
+.action-sub { font-size: 10px; color: #555; }
+
+.divider { border: none; border-top: 1px solid #1a1a1a; margin: 12px 0; }
+.quick-actions { display: flex; flex-direction: column; gap: 7px; }
+.qa-btn {
+  background: #0d0d0d; border: 1px solid #1e1e1e;
+  border-radius: 7px; padding: 9px 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.qa-btn.primary { border-color: #D9404033; }
+.qa-icon { font-size: 14px; }
+.qa-label { font-size: 12px; color: #bbb; font-weight: 500; }
+</style>
+
+<div class="mockup-wrap">
+  <div class="mock-topnav">
+    <span class="mock-logo">RejectCheck</span>
+    <span class="mock-navlink">Analyser</span>
+    <span class="mock-navlink active">Dashboard</span>
+    <span class="mock-navlink">FR</span>
+  </div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">🏠 Home</div>
+    <div class="mock-tab">📊 Analyses</div>
+    <div class="mock-tab">📋 Applications</div>
+  </div>
+  <div class="mock-body">
+
+    <!-- Stats row with plan -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Score moyen</div>
+        <div class="stat-value">62%</div>
+        <div class="stat-delta delta-down">↓ 4pts ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Candidatures actives</div>
+        <div class="stat-value">8</div>
+        <div class="stat-delta delta-neutral">3 en entretien</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interviews IA</div>
+        <div class="stat-value">12</div>
+        <div class="stat-delta delta-up">↑ score moyen 7.2/10</div>
+      </div>
+      <div class="stat-card plan-card">
+        <div class="stat-label">Plan actif</div>
+        <div class="stat-value plan-value"><span class="plan-dot"></span> HIRED</div>
+        <div class="stat-delta delta-plan">Renouvellement 20 mai · <span class="manage-link">Gérer →</span></div>
+      </div>
+    </div>
+
+    <!-- 3-col bottom -->
+    <div class="bottom-grid">
+
+      <!-- Radar -->
+      <div class="bottom-block">
+        <div class="block-title">Profil compétences</div>
+        <div class="radar-wrap">
+          <svg width="110" height="110" viewBox="0 0 130 130">
+            <polygon points="65,10 112,37.5 112,92.5 65,120 18,92.5 18,37.5" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            <polygon points="65,28 95,44 95,81 65,97 35,81 35,44" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            <polygon points="65,46 78,54 78,71 65,79 52,71 52,54" fill="none" stroke="#1e1e1e" stroke-width="1"/>
+            <polygon points="65,18 105,46 100,88 65,110 28,85 30,42" fill="#D9404022" stroke="#D94040" stroke-width="1.5"/>
+            <line x1="65" y1="10" x2="65" y2="120" stroke="#1e1e1e" stroke-width="1"/>
+            <line x1="18" y1="37.5" x2="112" y2="92.5" stroke="#1e1e1e" stroke-width="1"/>
+            <line x1="112" y1="37.5" x2="18" y2="92.5" stroke="#1e1e1e" stroke-width="1"/>
+            <text x="65" y="7" text-anchor="middle" fill="#555" font-size="8">Backend</text>
+            <text x="116" y="36" text-anchor="start" fill="#555" font-size="8">System</text>
+            <text x="116" y="96" text-anchor="start" fill="#555" font-size="8">Cloud</text>
+            <text x="65" y="128" text-anchor="middle" fill="#555" font-size="8">Frontend</text>
+            <text x="14" y="96" text-anchor="end" fill="#555" font-size="8">DevOps</text>
+            <text x="14" y="36" text-anchor="end" fill="#555" font-size="8">Data</text>
+          </svg>
+          <div class="radar-legend">
+            <div class="legend-item">
+              <span class="legend-label">Backend</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:85%"></div></div>
+              <span class="legend-score">85</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">System</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:72%"></div></div>
+              <span class="legend-score">72</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">Cloud</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:60%"></div></div>
+              <span class="legend-score">60</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">Frontend</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:45%"></div></div>
+              <span class="legend-score">45</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-label">DevOps</span>
+              <div class="legend-bar-wrap"><div class="legend-bar" style="width:38%"></div></div>
+              <span class="legend-score">38</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dernières analyses -->
+      <div class="bottom-block">
+        <div class="block-title">Dernières analyses</div>
+        <div class="analyses-list">
+          <div class="analysis-item">
+            <span class="score-badge score-red">71%</span>
+            <div class="analysis-info">
+              <div class="analysis-name">Senior Backend Eng.</div>
+              <div class="analysis-company">Vercel</div>
+            </div>
+            <span class="analysis-date">Auj.</span>
+            <span class="analysis-arrow">→</span>
+          </div>
+          <div class="analysis-item">
+            <span class="score-badge score-amber">54%</span>
+            <div class="analysis-info">
+              <div class="analysis-name">Staff Engineer</div>
+              <div class="analysis-company">Stripe</div>
+            </div>
+            <span class="analysis-date">18 avr.</span>
+            <span class="analysis-arrow">→</span>
+          </div>
+          <div class="analysis-item">
+            <span class="score-badge score-green">32%</span>
+            <div class="analysis-info">
+              <div class="analysis-name">Fullstack Developer</div>
+              <div class="analysis-company">Linear</div>
+            </div>
+            <span class="analysis-date">15 avr.</span>
+            <span class="analysis-arrow">→</span>
+          </div>
+          <div class="analysis-item">
+            <span class="score-badge score-amber">48%</span>
+            <div class="analysis-info">
+              <div class="analysis-name">Backend Engineer</div>
+              <div class="analysis-company">Notion</div>
+            </div>
+            <span class="analysis-date">12 avr.</span>
+            <span class="analysis-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- À traiter + Quick actions -->
+      <div class="bottom-block">
+        <div class="block-title">⚡ À traiter</div>
+        <div class="action-items">
+          <div class="action-item urgent">
+            <div class="action-header">
+              <span class="action-main">Stripe — sans réponse depuis 14j</span>
+              <span class="action-cta">Maj</span>
+            </div>
+            <div class="action-sub">Candidature · Applied 2 avr.</div>
+          </div>
+          <div class="action-item urgent">
+            <div class="action-header">
+              <span class="action-main">Datadog — entretien demain</span>
+              <span class="action-cta">Voir</span>
+            </div>
+            <div class="action-sub">Candidature · Interviewing</div>
+          </div>
+          <div class="action-item info">
+            <div class="action-header">
+              <span class="action-main">Vercel — nouvelle analyse (71%)</span>
+              <span class="action-cta">Ouvrir</span>
+            </div>
+            <div class="action-sub">Non consultée · il y a 2h</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="quick-actions">
+          <div class="qa-btn primary">
+            <span class="qa-icon">🔍</span>
+            <span class="qa-label">Nouvelle analyse</span>
+          </div>
+          <div class="qa-btn">
+            <span class="qa-icon">➕</span>
+            <span class="qa-label">Ajouter candidature</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Home v4 — layout final. Ça te convient ?</p>

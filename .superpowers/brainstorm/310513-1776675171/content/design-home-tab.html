@@ -1,0 +1,280 @@
+<h2>Design — Tab Home (command center)</h2>
+<p class="subtitle">Ce que l'utilisateur voit en ouvrant le dashboard</p>
+
+<style>
+.mockup-wrap {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 20px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mock-topnav {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mock-logo { color: #D94040; font-weight: 800; font-size: 14px; margin-right: auto; }
+.mock-navlink { color: #666; font-size: 12px; padding: 4px 10px; border-radius: 6px; }
+.mock-navlink.active { color: #fff; background: #1e1e1e; }
+.mock-tabs {
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+}
+.mock-tab {
+  padding: 12px 18px;
+  font-size: 13px;
+  color: #555;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.mock-tab.active {
+  color: #fff;
+  border-bottom-color: #D94040;
+  font-weight: 600;
+}
+.mock-body { padding: 24px; }
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-value { font-size: 22px; font-weight: 700; color: #fff; }
+.stat-delta { font-size: 11px; margin-top: 4px; }
+.delta-up { color: #22c55e; }
+.delta-down { color: #ef4444; }
+.delta-neutral { color: #666; }
+
+/* Action needed */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-title { font-size: 13px; font-weight: 600; color: #ccc; text-transform: uppercase; letter-spacing: 0.5px; }
+.section-link { font-size: 12px; color: #555; }
+
+.action-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.action-item {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.action-item.urgent { border-left: 3px solid #f59e0b; }
+.action-item.info { border-left: 3px solid #3b82f6; }
+.action-icon { font-size: 16px; }
+.action-text { flex: 1; }
+.action-main { font-size: 13px; color: #ccc; }
+.action-sub { font-size: 11px; color: #555; margin-top: 2px; }
+.action-cta {
+  font-size: 11px;
+  color: #D94040;
+  background: #D9404011;
+  border: 1px solid #D9404033;
+  border-radius: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* Bottom grid */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.recent-block {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 10px;
+  padding: 16px;
+}
+.recent-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+.recent-item:last-child { border-bottom: none; }
+.score-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.score-red { background: #dc262622; color: #ef4444; border: 1px solid #ef444433; }
+.score-amber { background: #d9700022; color: #f59e0b; border: 1px solid #f59e0b33; }
+.score-green { background: #16a34a22; color: #22c55e; border: 1px solid #22c55e33; }
+.recent-name { font-size: 12px; color: #aaa; flex: 1; }
+.recent-date { font-size: 11px; color: #444; }
+
+.quick-actions { display: flex; flex-direction: column; gap: 8px; }
+.qa-btn {
+  background: #111;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.qa-btn.primary { border-color: #D9404033; }
+.qa-icon { font-size: 18px; }
+.qa-label { font-size: 13px; color: #ccc; font-weight: 500; }
+.qa-sub { font-size: 11px; color: #555; }
+
+.plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #16a34a11;
+  border: 1px solid #22c55e33;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #22c55e;
+  margin-left: 8px;
+}
+.pulse { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+</style>
+
+<div class="mockup-wrap">
+  <div class="mock-topnav">
+    <span class="mock-logo">RejectCheck</span>
+    <span class="mock-navlink">Analyser</span>
+    <span class="mock-navlink active">Dashboard</span>
+    <span class="mock-navlink">FR</span>
+  </div>
+  <div class="mock-tabs">
+    <div class="mock-tab active">🏠 Home</div>
+    <div class="mock-tab">📊 Analyses</div>
+    <div class="mock-tab">📋 Applications</div>
+  </div>
+  <div class="mock-body">
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Score moyen</div>
+        <div class="stat-value">62%</div>
+        <div class="stat-delta delta-down">↓ 4pts ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Candidatures actives</div>
+        <div class="stat-value">8</div>
+        <div class="stat-delta delta-neutral">3 en cours d'entretien</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interviews passés</div>
+        <div class="stat-value">12</div>
+        <div class="stat-delta delta-up">↑ score moyen 7.2/10</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Plan actif</div>
+        <div class="stat-value" style="font-size:15px; display:flex; align-items:center;">
+          HIRED <span class="plan-chip"><span class="pulse"></span> Actif</span>
+        </div>
+        <div class="stat-delta delta-neutral">Renouvellement 20 mai</div>
+      </div>
+    </div>
+
+    <!-- Action needed -->
+    <div class="section-header">
+      <span class="section-title">⚡ À traiter</span>
+      <span class="section-link">voir tout →</span>
+    </div>
+    <div class="action-items">
+      <div class="action-item urgent">
+        <span class="action-icon">📋</span>
+        <div class="action-text">
+          <div class="action-main">Stripe — Relance sans réponse depuis 14 jours</div>
+          <div class="action-sub">Candidature · Applied 2 avr.</div>
+        </div>
+        <span class="action-cta">Mettre à jour</span>
+      </div>
+      <div class="action-item urgent">
+        <span class="action-icon">📋</span>
+        <div class="action-text">
+          <div class="action-main">Datadog — Entretien technique demain</div>
+          <div class="action-sub">Candidature · Statut: Interviewing</div>
+        </div>
+        <span class="action-cta">Voir</span>
+      </div>
+      <div class="action-item info">
+        <span class="action-icon">📊</span>
+        <div class="action-text">
+          <div class="action-main">Nouvelle analyse disponible — Vercel Senior Backend</div>
+          <div class="action-sub">Risque rejet: 71% · Créée il y a 2h</div>
+        </div>
+        <span class="action-cta">Consulter</span>
+      </div>
+    </div>
+
+    <!-- Bottom grid -->
+    <div class="bottom-grid">
+      <div class="recent-block">
+        <div class="recent-title">Dernières analyses</div>
+        <div class="recent-item">
+          <span class="score-badge score-red">71%</span>
+          <span class="recent-name">Vercel — Senior Backend</span>
+          <span class="recent-date">Auj.</span>
+        </div>
+        <div class="recent-item">
+          <span class="score-badge score-amber">54%</span>
+          <span class="recent-name">Stripe — Staff Eng.</span>
+          <span class="recent-date">18 avr.</span>
+        </div>
+        <div class="recent-item">
+          <span class="score-badge score-green">32%</span>
+          <span class="recent-name">Linear — Fullstack</span>
+          <span class="recent-date">15 avr.</span>
+        </div>
+      </div>
+
+      <div class="recent-block">
+        <div class="recent-title">Actions rapides</div>
+        <div class="quick-actions">
+          <div class="qa-btn primary">
+            <span class="qa-icon">🔍</span>
+            <div>
+              <div class="qa-label">Nouvelle analyse</div>
+              <div class="qa-sub">Uploader un CV + offre d'emploi</div>
+            </div>
+          </div>
+          <div class="qa-btn">
+            <span class="qa-icon">➕</span>
+            <div>
+              <div class="qa-label">Ajouter une candidature</div>
+              <div class="qa-sub">Tracker un nouveau poste</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 16px;">Est-ce que cette structure de Home te parle ? Clique si tu approuves, ou dis-moi ce que tu changerais.</p>

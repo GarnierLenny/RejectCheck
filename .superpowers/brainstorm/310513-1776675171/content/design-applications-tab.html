@@ -1,0 +1,218 @@
+<h2>Design — Tab Applications</h2>
+<p class="subtitle">Quasi intact — une seule proposition d'ajout : vue Kanban</p>
+
+<style>
+.mockup-wrap {
+  background: #0a0a0a; border: 1px solid #222;
+  border-radius: 12px; overflow: hidden; margin: 20px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.mock-topnav {
+  background: #111; border-bottom: 1px solid #1e1e1e;
+  padding: 12px 24px; display: flex; align-items: center; gap: 8px;
+}
+.mock-logo { color: #D94040; font-weight: 800; font-size: 14px; margin-right: auto; }
+.mock-navlink { color: #666; font-size: 12px; padding: 4px 10px; border-radius: 6px; }
+.mock-navlink.active { color: #fff; background: #1e1e1e; }
+.mock-tabs { background: #111; border-bottom: 1px solid #1e1e1e; padding: 0 24px; display: flex; }
+.mock-tab { padding: 12px 18px; font-size: 13px; color: #555; border-bottom: 2px solid transparent; }
+.mock-tab.active { color: #fff; border-bottom-color: #D94040; font-weight: 600; }
+.mock-body { padding: 24px; }
+
+/* Stats row */
+.stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-card { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 12px 14px; }
+.stat-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+.stat-value { font-size: 20px; font-weight: 700; color: #fff; }
+.stat-sub { font-size: 10px; margin-top: 3px; color: #555; }
+.stat-sub.up { color: #22c55e; }
+.stat-sub.warn { color: #f59e0b; }
+
+/* Toolbar */
+.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.search-box {
+  flex: 1; background: #111; border: 1px solid #1e1e1e;
+  border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #555;
+  display: flex; align-items: center; gap: 8px;
+}
+.view-toggle { display: flex; gap: 0; border: 1px solid #1e1e1e; border-radius: 8px; overflow: hidden; }
+.view-btn { padding: 8px 12px; font-size: 12px; color: #555; background: #111; cursor: pointer; }
+.view-btn.active { color: #fff; background: #1e1e1e; }
+.add-btn {
+  background: #D94040; color: #fff; font-size: 12px; font-weight: 600;
+  padding: 8px 14px; border-radius: 8px; white-space: nowrap;
+}
+
+/* Table view */
+.table-wrap { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; overflow: hidden; }
+.table-head { display: grid; grid-template-columns: 2fr 1.5fr 1.2fr 0.8fr 1fr 0.5fr; gap: 0; background: #0d0d0d; padding: 10px 16px; }
+.th { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 0.5px; }
+.table-row { display: grid; grid-template-columns: 2fr 1.5fr 1.2fr 0.8fr 1fr 0.5fr; gap: 0; padding: 11px 16px; border-top: 1px solid #161616; align-items: center; }
+.table-row:hover { background: #111; }
+.td-main { font-size: 13px; color: #ddd; }
+.td-company { font-size: 12px; color: #888; }
+.td-sub { font-size: 11px; color: #555; }
+.status-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; display: inline-block; }
+.s-applied { background: #3b82f611; color: #60a5fa; border: 1px solid #3b82f633; }
+.s-interviewing { background: #7c3aed11; color: #a78bfa; border: 1px solid #7c3aed33; }
+.s-interested { background: #1e1e1e; color: #666; border: 1px solid #2a2a2a; }
+.s-offer { background: #16a34a11; color: #22c55e; border: 1px solid #22c55e33; }
+.score-sm { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+.score-red { background: #dc262622; color: #ef4444; border: 1px solid #ef444433; }
+.score-amber { background: #d9700022; color: #f59e0b; border: 1px solid #f59e0b33; }
+.score-green { background: #16a34a22; color: #22c55e; border: 1px solid #22c55e33; }
+.td-menu { color: #333; font-size: 16px; }
+
+/* Kanban section */
+.kanban-note {
+  background: #111; border: 1px solid #7c3aed33;
+  border-radius: 10px; padding: 20px 24px; margin-top: 20px;
+}
+.kanban-title { font-size: 14px; font-weight: 700; color: #a78bfa; margin-bottom: 8px; }
+.kanban-desc { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+.kanban-preview { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.kanban-col { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 8px; padding: 10px; }
+.kanban-col-title { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.kanban-col-count { color: #333; }
+.kanban-card { background: #111; border: 1px solid #1e1e1e; border-radius: 6px; padding: 8px; margin-bottom: 6px; }
+.kanban-card-title { font-size: 11px; color: #ccc; margin-bottom: 3px; }
+.kanban-card-company { font-size: 10px; color: #555; }
+.kanban-card-score { margin-top: 5px; }
+.kanban-empty { font-size: 10px; color: #333; text-align: center; padding: 8px 0; }
+.pros-row { display: flex; gap: 12px; }
+.pro-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #666; }
+.pro-dot { width: 5px; height: 5px; background: #a78bfa; border-radius: 50%; }
+</style>
+
+<div class="mockup-wrap">
+  <div class="mock-topnav">
+    <span class="mock-logo">RejectCheck</span>
+    <span class="mock-navlink">Analyser</span>
+    <span class="mock-navlink active">Dashboard</span>
+    <span class="mock-navlink">FR</span>
+  </div>
+  <div class="mock-tabs">
+    <div class="mock-tab">🏠 Home</div>
+    <div class="mock-tab">📊 Analyses</div>
+    <div class="mock-tab active">📋 Applications</div>
+  </div>
+  <div class="mock-body">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-value">18</div>
+        <div class="stat-sub">candidatures</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Actives</div>
+        <div class="stat-value">8</div>
+        <div class="stat-sub warn">applied / entretien</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Entretiens</div>
+        <div class="stat-value">3</div>
+        <div class="stat-sub up">en cours</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Offres</div>
+        <div class="stat-value">1</div>
+        <div class="stat-sub up">à négocier</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Taux réponse</div>
+        <div class="stat-value">44%</div>
+        <div class="stat-sub">8 sur 18</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box"><span>🔍</span><span>Rechercher…</span></div>
+      <div class="view-toggle">
+        <div class="view-btn active">☰ Table</div>
+        <div class="view-btn">⬛ Kanban</div>
+      </div>
+      <div class="add-btn">+ Candidature</div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="th">Poste</div>
+        <div class="th">Entreprise</div>
+        <div class="th">Statut</div>
+        <div class="th">Score</div>
+        <div class="th">Applied</div>
+        <div class="th"></div>
+      </div>
+      <div class="table-row">
+        <div><div class="td-main">Senior Backend Eng.</div></div>
+        <div><div class="td-company">Vercel</div></div>
+        <div><span class="status-badge s-interviewing">Interviewing</span></div>
+        <div><span class="score-sm score-red">71%</span></div>
+        <div><div class="td-sub">2 avr.</div></div>
+        <div><span class="td-menu">⋯</span></div>
+      </div>
+      <div class="table-row">
+        <div><div class="td-main">Staff Engineer</div></div>
+        <div><div class="td-company">Stripe</div></div>
+        <div><span class="status-badge s-applied">Applied</span></div>
+        <div><span class="score-sm score-amber">54%</span></div>
+        <div><div class="td-sub">18 avr.</div></div>
+        <div><span class="td-menu">⋯</span></div>
+      </div>
+      <div class="table-row">
+        <div><div class="td-main">Fullstack Developer</div></div>
+        <div><div class="td-company">Linear</div></div>
+        <div><span class="status-badge s-offer">Offer</span></div>
+        <div><span class="score-sm score-green">32%</span></div>
+        <div><div class="td-sub">15 avr.</div></div>
+        <div><span class="td-menu">⋯</span></div>
+      </div>
+      <div class="table-row">
+        <div><div class="td-main">Backend Engineer</div></div>
+        <div><div class="td-company">Notion</div></div>
+        <div><span class="status-badge s-interested">Interested</span></div>
+        <div><span class="td-sub" style="color:#333">—</span></div>
+        <div><div class="td-sub">12 avr.</div></div>
+        <div><span class="td-menu">⋯</span></div>
+      </div>
+    </div>
+
+    <!-- Kanban proposal -->
+    <div class="kanban-note">
+      <div class="kanban-title">✦ Vue Kanban — à ajouter</div>
+      <div class="kanban-desc">Le toggle "Kanban" passe les candidatures en colonnes par statut. Drag & drop pour changer le statut. Idéal pour visualiser le pipeline d'un coup d'œil.</div>
+      <div class="kanban-preview">
+        <div class="kanban-col">
+          <div class="kanban-col-title">Interested <span class="kanban-col-count">2</span></div>
+          <div class="kanban-card"><div class="kanban-card-title">Backend Eng.</div><div class="kanban-card-company">Notion</div></div>
+          <div class="kanban-card"><div class="kanban-card-title">SWE</div><div class="kanban-card-company">Figma</div></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-title">Applied <span class="kanban-col-count">3</span></div>
+          <div class="kanban-card"><div class="kanban-card-title">Staff Eng.</div><div class="kanban-card-company">Stripe</div><div class="kanban-card-score"><span class="score-sm score-amber">54%</span></div></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-title">Interviewing <span class="kanban-col-count">3</span></div>
+          <div class="kanban-card"><div class="kanban-card-title">Sr. Backend</div><div class="kanban-card-company">Vercel</div><div class="kanban-card-score"><span class="score-sm score-red">71%</span></div></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-title">Offer <span class="kanban-col-count">1</span></div>
+          <div class="kanban-card"><div class="kanban-card-title">Fullstack</div><div class="kanban-card-company">Linear</div><div class="kanban-card-score"><span class="score-sm score-green">32%</span></div></div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-title">Rejected <span class="kanban-col-count">4</span></div>
+          <div class="kanban-empty">4 refus</div>
+        </div>
+      </div>
+      <div style="margin-top: 14px;" class="pros-row">
+        <div class="pro-item"><span class="pro-dot"></span>Vision pipeline immédiate</div>
+        <div class="pro-item"><span class="pro-dot"></span>Drag & drop pour changer statut</div>
+        <div class="pro-item"><span class="pro-dot"></span>Table reste le défaut</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Tab Applications — quasi intact + proposition Kanban. Tu veux ajouter la vue Kanban ?</p>
