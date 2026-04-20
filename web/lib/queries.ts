@@ -135,6 +135,22 @@ export function useInterviewHistory(page: number) {
   });
 }
 
+export function useInterviewsByAnalysis(analysisId: number | null) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+
+  return useQuery({
+    queryKey: ['interview-history-by-analysis', userId, analysisId],
+    queryFn: () =>
+      apiFetch<PaginatedResponse<InterviewAttempt>>(
+        `/api/interview/history?analysisId=${analysisId}&limit=50`,
+        { headers: authHeaders(token!) },
+      ),
+    enabled: !!token && !!userId && analysisId !== null,
+  });
+}
+
 export function useSavedCvs() {
   const { session } = useAuth();
   const token = session?.access_token;
