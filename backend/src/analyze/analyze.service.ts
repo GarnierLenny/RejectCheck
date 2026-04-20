@@ -845,7 +845,7 @@ Tone and format rules (strictly enforced):
 - Open with something specific to this company or role — not a generic statement of fit, not a greeting
 - 3 to 4 paragraphs, maximum 350 words
 - No markdown headings or titles, only plain paragraphs
-- No dashes of any kind (-, —, –)
+- ABSOLUTE RULE: zero dashes of any kind anywhere in the output. This means no hyphen (-), no en dash (–), no em dash (—). If you feel the urge to use a dash, rewrite the sentence instead.
 - No corporate speak: forbidden words and phrases include "align", "deliverable", "engagement", "leverage", "utilize", "touch base", "bandwidth", "synergy", "move the needle", "circle back"
 - No filler openers: forbidden phrases include "I am passionate about", "I would love to", "I am excited to", "I am reaching out"
 - No disguised lists: do not use parentheses to pack in multiple items like "(A, B, and C)" — if something is worth saying, say it in a sentence
