@@ -285,25 +285,18 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
 
           {/* Cover letter name */}
           <div className="mb-5">
-            <div className="space-y-1.5">
-              <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-rc-hint block">
-                {t.settingsTab.coverLetterNameLabel}
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={coverLetterName}
-                  onChange={(e) => setCoverLetterName(e.target.value)}
-                  onBlur={handleCoverLetterNameBlur}
-                  placeholder={t.settingsTab.coverLetterNamePlaceholder}
-                  className="w-full bg-rc-surface border border-rc-border rounded-xl px-4 py-3 text-[14px] font-sans text-rc-text focus:outline-none focus:border-rc-red/40 placeholder:text-rc-hint/50"
-                />
-                {coverLetterNameSaved && (
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-green">✓ saved</span>
-                )}
-              </div>
-              <p className="text-[11px] text-rc-hint">{t.settingsTab.coverLetterNameHint}</p>
+            <label className="block mb-1.5 font-mono text-[9px] uppercase tracking-widest text-rc-hint">{t.settingsTab.coverLetterNameLabel}</label>
+            <div className="flex items-center gap-2">
+              <input
+                value={coverLetterName}
+                onChange={e => setCoverLetterName(e.target.value)}
+                onBlur={handleCoverLetterNameBlur}
+                placeholder={t.settingsTab.coverLetterNamePlaceholder}
+                className="flex-1 bg-rc-bg border border-rc-border rounded px-3 py-2 text-[12px] text-rc-text outline-none focus:border-rc-red/30 transition-colors"
+              />
+              <SavedBadge show={coverLetterNameSaved} />
             </div>
+            <p className="mt-1 font-mono text-[9px] text-rc-hint">{t.settingsTab.coverLetterNameHint}</p>
           </div>
 
           {/* CVs */}

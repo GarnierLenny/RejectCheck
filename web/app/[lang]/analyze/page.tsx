@@ -312,7 +312,7 @@ function AnalyzeContent() {
     { id: "project",      label: t.tabs.project,     badge: null, badgeClass: "" },
     { id: "improve",      label: t.tabs.improveCv,   badge: "✦", badgeClass: "text-rc-red" },
     { id: "interview",    label: t.tabs.aiInterview, badge: "✦", badgeClass: "text-rc-red" },
-    { id: "cover-letter", label: t.tabs.coverLetter, badge: "+", badgeClass: "text-rc-red" },
+    { id: "cover-letter", label: t.tabs.coverLetter, badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
   const isFormView = !paywallReason && !result && !loading;
