@@ -5,7 +5,7 @@ import { Loader2, Sparkles, Copy, Check, RefreshCw, Download, ArrowRight } from 
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import { useGenerateCoverLetter } from "../../../lib/mutations";
-import { generateCvPdf } from "../../utils/export";
+import { generateCoverLetterPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
 
 const LANGUAGE_OPTIONS = [
@@ -86,7 +86,7 @@ export function CoverLetterTab({ analysisId, isPremium }: Props) {
     if (!coverLetter) return;
     setIsExportingPdf(true);
     try {
-      await generateCvPdf(coverLetter, "cover-letter.pdf");
+      await generateCoverLetterPdf(coverLetter, "cover-letter.pdf");
     } finally {
       setIsExportingPdf(false);
     }
