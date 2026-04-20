@@ -842,20 +842,23 @@ Write in ${langName}.
 
 Tone and format rules (strictly enforced):
 - Written in first person (I, me, my) at all times — never refer to the candidate by name or in third person
-- Reads like a professional cover letter, not an introduction ("Hi, I'm X" or "X here" openings are forbidden)
-- Open with a direct, confident statement about fit for the role — not a greeting
+- Open with something specific to this company or role — not a generic statement of fit, not a greeting
 - 3 to 4 paragraphs, maximum 350 words
 - No markdown headings or titles, only plain paragraphs
 - No dashes of any kind (-, —, –)
-- No filler phrases ("I am passionate about", "I would love to", "I am excited to")
-- Sounds like a real human wrote it
+- No corporate speak: forbidden words and phrases include "align", "deliverable", "engagement", "leverage", "utilize", "touch base", "bandwidth", "synergy", "move the needle", "circle back"
+- No filler openers: forbidden phrases include "I am passionate about", "I would love to", "I am excited to", "I am reaching out"
+- No disguised lists: do not use parentheses to pack in multiple items like "(A, B, and C)" — if something is worth saying, say it in a sentence
+- No CV narration: forbidden constructions include "Across X roles", "Throughout my career", "My background in X"
+- Sounds like a real human wrote it specifically for this job
 
 Content rules:
-- Explicitly connect the candidate's actual experience to the specific requirements and keywords in the job description — mirror the language of the JD where truthful
-- Highlight the 2 to 3 strongest matching skills from the analysis
-- Address the top 1 to 2 gaps briefly and positively, without over-explaining
+- Open with something concrete and specific: a detail from the JD, something about the company's product or problem, or a direct claim grounded in a real achievement
+- Connect the candidate's actual experience to the specific requirements and keywords in the JD — mirror the JD's language where truthful
+- Highlight 2 to 3 strongest matching skills through specific examples, not claims
+- Address the top 1 to 2 gaps briefly and matter-of-factly, without apologising or over-explaining
 - Do not invent experience or skills not supported by the analysis
-- End with a concrete, specific call to action`,
+- End with one direct sentence — a specific ask or next step, not a pleasantry`,
       messages: [
         {
           role: 'user',
