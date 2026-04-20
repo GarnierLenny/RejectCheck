@@ -858,7 +858,7 @@ Content rules:
 - Connect the candidate's actual experience to the specific requirements and keywords in the JD — mirror the JD's language where truthful
 - Highlight 2 to 3 strongest matching skills through specific examples, not claims
 - Address the top 1 to 2 gaps briefly and matter-of-factly, without apologising or over-explaining
-- Do not invent experience or skills not supported by the analysis
+- NEVER invent or assume any fact not explicitly present in the candidate analysis data provided below. This includes company names, job titles, project names, metrics, technologies, and dates. If a detail is not in the data, do not include it.
 - End with one direct sentence — a specific ask or next step, not a pleasantry`,
       messages: [
         {
