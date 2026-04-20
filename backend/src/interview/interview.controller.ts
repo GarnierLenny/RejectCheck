@@ -75,7 +75,13 @@ export class InterviewController {
     @AuthEmail() email: string,
     @Query('page') page = '1',
     @Query('limit') limit = '10',
+    @Query('analysisId') analysisId?: string,
   ) {
-    return this.interviewService.history(email, +page, +limit);
+    return this.interviewService.history(
+      email,
+      +page,
+      +limit,
+      analysisId ? +analysisId : undefined,
+    );
   }
 }

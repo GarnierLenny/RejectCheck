@@ -382,9 +382,12 @@ Analyze this interview and call submit_interview_analysis with your structured e
     return parsed.data;
   }
 
-  async history(email: string, page: number, limit: number) {
+  async history(email: string, page: number, limit: number, analysisId?: number) {
     const skip = (page - 1) * limit;
-    const where = { email };
+    const where: any = { email };
+    if (analysisId !== undefined) {
+      where.analysisId = analysisId;
+    }
     const [attempts, total] = await Promise.all([
       (this.prisma as any).interviewAttempt.findMany({
         where,
