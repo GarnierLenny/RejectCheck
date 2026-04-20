@@ -126,4 +126,10 @@ export class StripeService {
     if (!sub) return false;
     return sub.status === 'active' && sub.currentPeriodEnd > new Date();
   }
+
+  async checkHiredPlan(email: string): Promise<boolean> {
+    const sub = await this.prisma.subscription.findUnique({ where: { email } });
+    if (!sub) return false;
+    return sub.plan === 'hired' && sub.status === 'active' && sub.currentPeriodEnd > new Date();
+  }
 }
