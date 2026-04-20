@@ -13,14 +13,9 @@ import {
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import type { Application } from "../../lib/queries";
+import { useLanguage } from "../../context/language";
 
-const COLUMNS: { id: string; label: string }[] = [
-  { id: "interested",   label: "Intéressé" },
-  { id: "applied",      label: "Candidaté" },
-  { id: "interviewing", label: "Entretiens" },
-  { id: "offer",        label: "Offre" },
-  { id: "rejected",     label: "Refusé" },
-];
+const COLUMN_IDS = ["interested", "applied", "interviewing", "offer", "rejected"] as const;
 
 const STATUS_COLORS: Record<string, string> = {
   interested:   "border-l-[#6b6860]",
@@ -123,8 +118,11 @@ export function KanbanView({
   onStatusChange: (appId: number, newStatus: string) => void;
   onCardClick: (app: Application) => void;
 }) {
+  const { t } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
   const didDragRef = React.useRef(false);
+
+  const COLUMNS = COLUMN_IDS.map((id) => ({ id, label: (t.account.kanban as any)[id] as string }));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
