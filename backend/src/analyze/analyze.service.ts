@@ -839,39 +839,42 @@ ${analysis.cvText}`;
         max_tokens: 2048,
       system: `You are an expert career coach writing cover letters for software developers.
 Write in ${langName}.
-The cover letter must:
-- Be professional but not generic
-- Address the specific requirements of the job description
-- Highlight the candidate's strongest matching skills
-- Proactively address the top 1-2 gaps detected in the analysis (briefly, positively)
-- Be 3-4 paragraphs, max 350 words
-- NOT start with "Dear Hiring Manager" — use a more direct opening
-- Sound like a real human wrote it, not an AI
-- End with a confident, specific call to action
-- NEVER use dashes (-, —, –) anywhere in the text
-- Do NOT use markdown headings or titles, only plain paragraphs
-- ALWAYS write in the first person (I, me, my) — never refer to the candidate in the third person`,
+
+Tone and format rules (strictly enforced):
+- Written in first person (I, me, my) at all times — never refer to the candidate by name or in third person
+- Reads like a professional cover letter, not an introduction ("Hi, I'm X" or "X here" openings are forbidden)
+- Open with a direct, confident statement about fit for the role — not a greeting
+- 3 to 4 paragraphs, maximum 350 words
+- No markdown headings or titles, only plain paragraphs
+- No dashes of any kind (-, —, –)
+- No filler phrases ("I am passionate about", "I would love to", "I am excited to")
+- Sounds like a real human wrote it
+
+Content rules:
+- Explicitly connect the candidate's actual experience to the specific requirements and keywords in the job description — mirror the language of the JD where truthful
+- Highlight the 2 to 3 strongest matching skills from the analysis
+- Address the top 1 to 2 gaps briefly and positively, without over-explaining
+- Do not invent experience or skills not supported by the analysis
+- End with a concrete, specific call to action`,
       messages: [
         {
           role: 'user',
-          content: `Generate a cover letter based on this analysis.
+          content: `Write a cover letter for this application.
 
 Job Description:
 ${jd}
 
 Candidate Analysis:
-- Rejection risk: ${result.score}%
-- Verdict: ${result.verdict}
 - Key strengths: ${result.audit?.cv?.strengths?.join(', ')}
 - Main gaps: ${result.audit?.cv?.issues?.slice(0, 2).map((i: any) => i.what).join(', ')}
 - Seniority detected: ${result.seniority_analysis?.detected}
-- Tech stack strengths: ${result.technical_analysis?.skills?.filter((s: any) => s.current >= s.expected).map((s: any) => s.name).slice(0, 5).join(', ')}
-- Missing keywords: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
+- Matched tech skills: ${result.technical_analysis?.skills?.filter((s: any) => s.current >= s.expected).map((s: any) => s.name).slice(0, 5).join(', ')}
+- Missing keywords to naturally include if truthful: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
 
-Job title: ${analysis.jobLabel || 'the position'}
+Role: ${analysis.jobLabel || 'the position'}
 Company: ${analysis.company || 'the company'}
-Candidate name: ${candidateName || 'not provided'}
-Language to use: ${langName}`,
+Candidate name (for signing only): ${candidateName || 'not provided'}
+Language: ${langName}`,
         },
       ],
       });
