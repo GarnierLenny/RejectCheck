@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -47,7 +47,7 @@ function KanbanCard({
     id: String(app.id),
   });
 
-  const score = (app as any).analysis?.result?.score ?? null;
+  const score = (app.analysis?.result?.score as number | undefined) ?? null;
 
   return (
     <div
@@ -139,8 +139,14 @@ export function KanbanView({
     }
   }
 
-  const byStatus = (status: string) =>
-    applications.filter((a) => a.status === status);
+  const byStatus = useMemo(
+    () =>
+      COLUMNS.reduce<Record<string, Application[]>>((acc, col) => {
+        acc[col.id] = applications.filter((a) => a.status === col.id);
+        return acc;
+      }, {}),
+    [applications]
+  );
 
   return (
     <DndContext
@@ -154,7 +160,7 @@ export function KanbanView({
           <KanbanColumn
             key={col.id}
             column={col}
-            apps={byStatus(col.id)}
+            apps={byStatus[col.id] ?? []}
             onCardClick={onCardClick}
           />
         ))}
