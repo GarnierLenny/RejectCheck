@@ -9,14 +9,14 @@ import { useLanguage } from "../../context/language";
 
 interface NavbarProps {
   center?: React.ReactNode;
-  activePage?: "analyze" | "dashboard";
+  activePage?: "analyze" | "dashboard" | "pricing";
 }
 
 export function Navbar({ center, activePage }: NavbarProps = {}) {
   const { user, loading } = useAuth();
   const { t, localePath } = useLanguage();
 
-  const linkClass = (page: "analyze" | "dashboard") =>
+  const linkClass = (page: "analyze" | "dashboard" | "pricing") =>
     `font-mono text-[11px] tracking-[0.14em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
       activePage === page
         ? "text-rc-red font-bold"
@@ -53,6 +53,9 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
             </Link>
             <Link href={localePath("/dashboard")} className={linkClass("dashboard")}>
               Dashboard
+            </Link>
+            <Link href={localePath("/pricing")} className={linkClass("pricing")}>
+              {t.navbar.pricing}
             </Link>
           </>
         )}

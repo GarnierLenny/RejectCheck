@@ -613,6 +613,8 @@
           "Score breakdown",
           "Hidden red flags",
           "Actionable fixes",
+          "GitHub & LinkedIn audit",
+          "Project recommendations",
           "Export PDF / Markdown"
         ],
         "cta": "Start for free"
@@ -626,8 +628,9 @@
           "Unlimited analyses",
           "Score Evolution Tracker",
           "Analysis history",
-          "Interview AI (coming soon)",
-          "CV Rewrite Mode (coming soon)"
+          "Interview AI",
+          "CV Rewrite Mode",
+          "CV Version Manager"
         ],
         "cta": "Get Shortlisted"
       },
@@ -637,10 +640,9 @@
         "description": "Maximum firepower. We guarantee your success.",
         "features": [
           "Everything in SHORTLISTED",
-          "CV Version Manager (coming soon)",
           "Job Fit Score via URL (coming soon)",
           "Rejection Pattern Analysis (coming soon)",
-          "Application Tracker (coming soon)",
+          "Application Tracker",
           "Salary Reality Check (coming soon)",
           "Chrome Extension (coming soon)"
         ],

@@ -11,6 +11,7 @@ import {
   Res,
   Req,
   BadRequestException,
+  ForbiddenException,
   Query,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -183,18 +184,24 @@ export class AnalyzeController {
   @UseGuards(SupabaseGuard)
   @Get('saved-cvs')
   async listSavedCvs(@AuthEmail() email: string) {
+    const isPremium = await this.analyzeService.checkPremium(email);
+    if (!isPremium) throw new ForbiddenException('Premium subscription required');
     return this.analyzeService.listSavedCvs(email);
   }
 
   @UseGuards(SupabaseGuard)
   @Post('saved-cvs')
   async addSavedCv(@AuthEmail() email: string, @Body() body: { name: string; url: string }) {
+    const isPremium = await this.analyzeService.checkPremium(email);
+    if (!isPremium) throw new ForbiddenException('Premium subscription required');
     return this.analyzeService.addSavedCv(email, body.name, body.url);
   }
 
   @UseGuards(SupabaseGuard)
   @Delete('saved-cvs/:id')
   async removeSavedCv(@AuthEmail() email: string, @Param('id') id: string) {
+    const isPremium = await this.analyzeService.checkPremium(email);
+    if (!isPremium) throw new ForbiddenException('Premium subscription required');
     return this.analyzeService.removeSavedCv(email, parseInt(id));
   }
 

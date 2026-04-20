@@ -613,6 +613,8 @@
           "Détail du score",
           "Signaux d'alerte cachés",
           "Corrections actionnables",
+          "Audit GitHub & LinkedIn",
+          "Recommandations de projets",
           "Export PDF / Markdown"
         ],
         "cta": "Commencer gratuitement"
@@ -626,8 +628,9 @@
           "Analyses illimitées",
           "Suivi d'évolution du score",
           "Historique des analyses",
-          "Entretien IA (bientôt)",
-          "Mode Réécriture CV (bientôt)"
+          "Entretien IA",
+          "Mode Réécriture CV",
+          "Gestionnaire de versions CV"
         ],
         "cta": "Être présélectionné"
       },
@@ -637,10 +640,9 @@
         "description": "Puissance maximale. Nous garantissons votre succès.",
         "features": [
           "Tout dans PRÉSÉLECTIONNÉ",
-          "Gestionnaire de versions CV (bientôt)",
           "Score de fit via URL (bientôt)",
           "Analyse des patterns de rejet (bientôt)",
-          "Suivi des candidatures (bientôt)",
+          "Suivi des candidatures",
           "Vérification du salaire réel (bientôt)",
           "Extension Chrome (bientôt)"
         ],
