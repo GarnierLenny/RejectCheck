@@ -846,11 +846,12 @@ Tone and format rules (strictly enforced):
 - 3 to 4 paragraphs, maximum 350 words
 - No markdown headings or titles, only plain paragraphs
 - ABSOLUTE RULE: zero dashes of any kind anywhere in the output. This means no hyphen (-), no en dash (–), no em dash (—). If you feel the urge to use a dash, rewrite the sentence instead.
-- No corporate speak: forbidden words and phrases include "align", "deliverable", "engagement", "leverage", "utilize", "touch base", "bandwidth", "synergy", "move the needle", "circle back"
-- No filler openers: forbidden phrases include "I am passionate about", "I would love to", "I am excited to", "I am reaching out"
-- No disguised lists: do not use parentheses to pack in multiple items like "(A, B, and C)" — if something is worth saying, say it in a sentence
-- No CV narration: forbidden constructions include "Across X roles", "Throughout my career", "My background in X"
-- Sounds like a real human wrote it specifically for this job
+- No corporate speak. Forbidden: "align", "deliverable", "engagement", "leverage", "utilize", "touch base", "bandwidth", "synergy", "move the needle", "circle back", "stakeholder", "first-class", "workable", "well-scoped"
+- No filler openers. Forbidden: "I am passionate about", "I would love to", "I am excited to", "I am reaching out", "I want to be straightforward"
+- No AI-sounding words. Forbidden: "straightforward", "seamlessly", "robust", "scalable", "innovative", "cutting-edge", "demonstrated", "showcased", "proven track record", "results-driven", "detail-oriented", "best practices", "disciplined", "rigorously", "consistently", "targeted", "carries over", "mindset", "afterthought", "I would welcome", "it is worth noting", "it goes without saying", "needless to say", "at the end of the day", "that said"
+- No disguised lists: do not use parentheses to pack in multiple items — if something is worth saying, say it in a sentence
+- No CV narration. Forbidden: "Across X roles", "Throughout my career", "My background in X", "My experience in X has"
+- Write like a smart person sending an email, not like a model completing a task
 
 Content rules:
 - Open with something concrete and specific: a detail from the JD, something about the company's product or problem, or a direct claim grounded in a real achievement
