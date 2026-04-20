@@ -816,11 +816,13 @@ ${analysis.cvText}`;
       throw new BadRequestException('Analysis not found');
     }
 
+    if (!analysis.jobDescription) throw new BadRequestException('Job description not available for this analysis');
+
     const profile = await (this.prisma as any).profile.findUnique({ where: { email } });
     const candidateName = profile?.coverLetterName || profile?.displayName || null;
 
     const result = analysis.result as any;
-    const jd = analysis.jobDescription as string;
+    const jd = analysis.jobDescription;
     const detectedLang = language === 'auto'
       ? (analysis.jdLanguage ?? 'en')
       : language;
@@ -855,12 +857,12 @@ Job Description:
 ${jd}
 
 Candidate Analysis:
-- Rejection risk: ${result.overall?.score}%
-- Verdict: ${result.overall?.verdict}
+- Rejection risk: ${result.score}%
+- Verdict: ${result.verdict}
 - Key strengths: ${result.audit?.cv?.strengths?.join(', ')}
 - Main gaps: ${result.audit?.cv?.issues?.slice(0, 2).map((i: any) => i.what).join(', ')}
 - Seniority detected: ${result.seniority_analysis?.detected}
-- Tech stack strengths: ${result.skill_gap?.skills?.filter((s: any) => s.userScore >= s.targetScore).map((s: any) => s.skill).slice(0, 5).join(', ')}
+- Tech stack strengths: ${result.technical_analysis?.skills?.filter((s: any) => s.current >= s.expected).map((s: any) => s.name).slice(0, 5).join(', ')}
 - Missing keywords: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
 
 Job title: ${analysis.jobLabel || 'the position'}
@@ -932,7 +934,7 @@ Language to use: ${langName}`,
 
   async updateProfile(
     email: string,
-    data: { username?: string; avatarUrl?: string; displayName?: string; githubUsername?: string; linkedinUrl?: string },
+    data: { username?: string; avatarUrl?: string; displayName?: string; githubUsername?: string; linkedinUrl?: string; coverLetterName?: string },
   ) {
     return (this.prisma as any).profile.upsert({
       where: { email },
