@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/auth";
-import { useSubscription, useAnalysisHistory, useProfile, useInterviewHistory, useApplications, useInterviewsByAnalysis } from "../../../lib/queries";
+import { useSubscription, useAnalysisHistory, useInterviewHistory, useApplications, useInterviewsByAnalysis } from "../../../lib/queries";
 import { useDeleteAnalysis, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../lib/mutations";
 import { ApplicationsTab } from "../../components/tabs/ApplicationsTab";
 import { useLanguage } from "../../../context/language";
@@ -14,15 +14,12 @@ import {
   LayoutGrid,
   Trash2,
   ArrowRight,
-  Zap,
-  MoreVertical,
   Download,
   Mic,
   Plus,
 } from "lucide-react";
 import { ExportModal } from "../../components/ExportModal";
 import { SuccessModal } from "../../components/SuccessModal";
-import { Github, Linkedin } from "react-bootstrap-icons";
 import {
   Radar,
   RadarChart,
@@ -272,7 +269,6 @@ function DashboardContent() {
   const updateApplication = useUpdateApplication();
   const deleteApplication = useDeleteApplication();
 
-  const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
   const [exportItem, setExportItem] = useState<HistoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -317,12 +313,6 @@ function DashboardContent() {
     }
   }, [subscription, user]);
 
-  useEffect(() => {
-    const handleClick = () => setActiveMenuId(null);
-    window.addEventListener("click", handleClick);
-    return () => window.removeEventListener("click", handleClick);
-  }, []);
-
   useEffect(() => { setAnalysisPage(1); }, [analysisSearch]);
 
   async function handleDelete(e: React.MouseEvent, id: number) {
@@ -338,7 +328,6 @@ function DashboardContent() {
       console.error("Delete failed:", err);
     } finally {
       setIsDeleting(null);
-      setActiveMenuId(null);
     }
   }
 
@@ -346,7 +335,6 @@ function DashboardContent() {
     e.preventDefault();
     e.stopPropagation();
     setExportItem(item);
-    setActiveMenuId(null);
   }
 
   if (authLoading) {
@@ -379,17 +367,12 @@ function DashboardContent() {
   const activeApplications = applications.filter(
     (a) => a.status === "applied" || a.status === "interviewing"
   );
-  const interviewingCount = applications.filter((a) => a.status === "interviewing").length;
 
   // Compute avg interview score from page 1 of interview history
   const interviewPage1 = interviewSummary?.data ?? [];
-  const avgInterviewScore = interviewPage1.length > 0
-    ? Math.round(
-        interviewPage1
-          .filter((i) => i.globalScore !== null)
-          .reduce((acc, i) => acc + (i.globalScore ?? 0), 0) /
-          interviewPage1.filter((i) => i.globalScore !== null).length
-      )
+  const scoredItems = interviewPage1.filter((i) => i.globalScore !== null);
+  const avgInterviewScore = scoredItems.length > 0
+    ? Math.round(scoredItems.reduce((acc, i) => acc + (i.globalScore ?? 0), 0) / scoredItems.length)
     : null;
 
   // "À traiter" items
@@ -516,9 +499,9 @@ function DashboardContent() {
                     <p className="text-3xl font-black leading-none text-rc-text">
                       {activeApplications.length}
                     </p>
-                    {interviewingCount > 0 && (
+                    {interviewingApps.length > 0 && (
                       <p className="font-mono text-[10px] text-rc-amber">
-                        {interviewingCount} en entretien
+                        {interviewingApps.length} en entretien
                       </p>
                     )}
                   </div>
