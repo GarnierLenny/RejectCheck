@@ -37,8 +37,10 @@ model Analysis {
   cvText           String?      // Registered users only
   motivationLetter String?      // Registered users only
   result           Json?        // Registered users only
-  createdAt        DateTime     @default(now())
-  application      Application?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  application       Application?
+  interviewAttempts InterviewAttempt[]
 
   @@index([email])
   @@index([ip])
@@ -93,12 +95,13 @@ model SavedCv {
 }
 
 model InterviewAttempt {
-  id         Int      @id @default(autoincrement())
-  email      String
-  analysisId Int
-  transcript Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
-  analysis   Json?    // null until /complete is called
-  createdAt  DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  email           String
+  analysisId      Int
+  analysisRecord  Analysis @relation(fields: [analysisId], references: [id])
+  transcript      Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
+  analysis        Json?    // null until /complete is called
+  createdAt       DateTime @default(now())
 
   @@index([email])
   @@index([analysisId])
