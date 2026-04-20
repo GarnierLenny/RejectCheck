@@ -17,6 +17,7 @@ import {
   ChevronLeft, ChevronRight, Search, X, ExternalLink,
 } from "lucide-react";
 import { type Application, type HistoryItem, useAnalysis } from "../../../lib/queries";
+import { KanbanView } from "../KanbanView";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -368,6 +369,7 @@ export function ApplicationsTab({
   const params = useParams();
   const lang = (params?.lang as string) ?? 'en';
   const dateLocale = lang === 'fr' ? 'fr-FR' : 'en-US';
+  const [viewMode, setViewMode] = useState<"table" | "kanban">("table");
   const [sorting, setSorting] = useState<SortingState>([{ id: 'appliedAt', desc: true }]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: PAGE_SIZE });
   const [search, setSearch] = useState('');
@@ -601,12 +603,36 @@ export function ApplicationsTab({
         <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-rc-muted">
           Applications ({stats.total})
         </span>
-        <button
-          onClick={e => { e.stopPropagation(); openCreate(); }}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rc-red text-white font-mono text-[10px] uppercase tracking-[0.12em] rounded-md hover:bg-rc-red/90 transition-colors"
-        >
-          <Plus size={12} /> Add Application
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-[rgba(0,0,0,0.1)] overflow-hidden shrink-0">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-2 font-mono text-[10px] tracking-widest uppercase transition-colors ${
+                viewMode === "table"
+                  ? "bg-rc-red text-white"
+                  : "bg-white text-rc-hint hover:text-rc-text"
+              }`}
+            >
+              ☰ Table
+            </button>
+            <button
+              onClick={() => setViewMode("kanban")}
+              className={`px-3 py-2 font-mono text-[10px] tracking-widest uppercase transition-colors border-l border-[rgba(0,0,0,0.1)] ${
+                viewMode === "kanban"
+                  ? "bg-rc-red text-white"
+                  : "bg-white text-rc-hint hover:text-rc-text"
+              }`}
+            >
+              ⬛ Kanban
+            </button>
+          </div>
+          <button
+            onClick={e => { e.stopPropagation(); openCreate(); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rc-red text-white font-mono text-[10px] uppercase tracking-[0.12em] rounded-md hover:bg-rc-red/90 transition-colors"
+          >
+            <Plus size={12} /> Add Application
+          </button>
+        </div>
       </div>
 
       {/* Search bar */}
@@ -652,7 +678,19 @@ export function ApplicationsTab({
         </div>
       )}
 
-      {/* Table — no overflow wrapper so fixed-position menus aren't clipped */}
+      {/* Table / Kanban toggle */}
+      {viewMode === "kanban" ? (
+        <KanbanView
+          applications={applications}
+          onStatusChange={(appId, newStatus) => {
+            onUpdateApplication({ id: appId, status: newStatus });
+          }}
+          onCardClick={(app) => {
+            setSelectedApp(app);
+          }}
+        />
+      ) : (
+      /* Table — no overflow wrapper so fixed-position menus aren't clipped */
       <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-[8px]">
         <table className="w-full border-collapse table-auto">
           <thead>
@@ -761,6 +799,7 @@ export function ApplicationsTab({
           </div>
         </div>
       </div>
+      )}{/* end table/kanban toggle */}
       </div>{/* end blur wrapper */}
 
       {/* ── Floating menus — fixed position, never clipped by table ── */}
