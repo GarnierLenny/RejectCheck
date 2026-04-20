@@ -868,12 +868,15 @@ Content rules:
 Job Description:
 ${jd}
 
-Candidate Analysis:
+Candidate CV (source of truth — only reference facts present here):
+${analysis.cvText ?? 'not available'}
+
+Analysis summary (use to guide emphasis, do not invent beyond what the CV confirms):
 - Key strengths: ${result.audit?.cv?.strengths?.join(', ')}
 - Main gaps: ${result.audit?.cv?.issues?.slice(0, 2).map((i: any) => i.what).join(', ')}
 - Seniority detected: ${result.seniority_analysis?.detected}
 - Matched tech skills: ${result.technical_analysis?.skills?.filter((s: any) => s.current >= s.expected).map((s: any) => s.name).slice(0, 5).join(', ')}
-- Missing keywords to naturally include if truthful: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
+- Keywords to include if genuinely present in CV: ${result.ats_simulation?.critical_missing_keywords?.slice(0, 3).map((k: any) => k.keyword).join(', ')}
 
 Role: ${analysis.jobLabel || 'the position'}
 Company: ${analysis.company || 'the company'}
