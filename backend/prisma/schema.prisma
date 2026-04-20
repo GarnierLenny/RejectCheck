@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum SubscriptionPlan {
+  shortlisted
+  hired
+}
+
+enum SubscriptionStatus {
+  active
+  canceled
+  incomplete
+  incomplete_expired
+  past_due
+  trialing
+  unpaid
+  paused
+}
+
+enum ApplicationStatus {
+  interested
+  applied
+  interviewing
+  offer
+  rejected
+}
+
 model Waitlist {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -17,8 +41,8 @@ model Subscription {
   id               Int      @id @default(autoincrement())
   email            String   @unique
   stripeCustomerId String
-  plan             String
-  status           String
+  plan             SubscriptionPlan
+  status           SubscriptionStatus
   currentPeriodEnd DateTime
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -51,7 +75,7 @@ model Application {
   email               String
   jobTitle            String
   company             String
-  status              String    @default("applied")
+  status              ApplicationStatus @default(applied)
   appliedAt           DateTime  @default(now())
   notes               String?
   analysisId          Int?      @unique
