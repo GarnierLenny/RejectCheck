@@ -764,6 +764,9 @@ export default function Home() {
           </a>
         </div>
       </footer>
+      <a href="https://www.producthunt.com/products/rejectcheck?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-rejectcheck" target="_blank" rel="noopener noreferrer" className="fixed bottom-4 right-4 z-50">
+        <img alt="RejectCheck - Find out why you got rejected, before you do | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1128865&theme=light&t=1776772520938" />
+      </a>
     </div>
   );
 }
