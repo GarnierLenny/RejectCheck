@@ -1,0 +1,71 @@
+# RejectCheck
+
+> RejectCheck is an AI-powered CV and job application diagnosis tool. Candidates upload their CV and a job description; in under 60 seconds they get a full breakdown — ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, red-flag detection, a surgically rewritten CV, and a scored AI mock interview. The product runs a dual-AI pipeline (GPT-4o for ATS, CV audit, and red flags + Claude for technical skill radar, GitHub/LinkedIn signal analysis, and project recommendations) executing in parallel. Official site: https://rejectcheck.com
+
+## What it does
+
+- **ATS simulation** — Runs your CV through an Applicant Tracking System filter tuned to the exact job description. Surfaces missing keywords with point values so you know exactly what to add to pass the recruiter's automated filter.
+- **Technical skill gap radar** — Maps your technical stack against the job's requirements on a radar chart. Instantly shows what you have, what you're missing, and by how much.
+- **GitHub signal audit** — Analyzes commit history, repo quality, language usage, and project relevance against the target role. Detects gaps between what your CV claims and what your code shows.
+- **LinkedIn signal audit** — Cross-references your LinkedIn profile (recommendations, title clarity, summary consistency) with your CV to catch inconsistencies recruiters will flag.
+- **Red flag detection** — Identifies employment gaps, vague titles, passive tone, and seniority mismatches that typically trigger auto-rejection.
+- **CV rewrite (premium)** — One-click surgical rewrite: missing keywords injected, passive tone converted, seniority signals added. Exports as PDF.
+- **AI mock interview (premium)** — Real-time voice-based AI interviewer, role-specific. Ends with a scored debrief across communication, technical depth, and leadership signals.
+- **Cover letter generator (premium)** — Generates a tailored cover letter from your CV and the target job description.
+
+## Who it's for
+
+- Software engineers and technical candidates applying to companies that use ATS systems (which is the majority of medium-to-large employers).
+- Career switchers who want a brutally honest diagnosis of why their application is getting filtered before a human reads it.
+- Non-technical candidates who need to pass ATS keyword screening and get structural feedback on their CV.
+
+The tool is bilingual (English + French) and targets candidates worldwide, with a focus on EU and North American job markets.
+
+## How to use
+
+1. Visit https://rejectcheck.com/en/analyze (or /fr/analyze for French).
+2. Upload your CV as a PDF.
+3. Paste the target job description (link or raw text).
+4. Optionally add your GitHub username and LinkedIn PDF export for deeper signal analysis.
+5. Receive a full scored diagnosis in under 60 seconds.
+
+No signup is required for the first analysis (IP-tracked). Registered users get 3 free analyses with results saved to their dashboard. Premium subscribers get unlimited analyses, CV rewrite, and AI mock interview.
+
+## Pricing
+
+See the machine-readable pricing file: https://rejectcheck.com/pricing.md
+
+- **Free (REJECTED plan)** — 1 free analysis, no account required. ATS simulation, score breakdown, CV tone audit, seniority audit.
+- **Shortlisted** — €7.99/month. Unlimited analyses, history, AI mock interview, CV rewrite.
+- **Hired** — €11.99/month. Everything in Shortlisted + cover letter generator, recruiter message generator, salary reality check, interview roadmap. Refund guarantee: refund of the current month if you get hired.
+
+## Key pages
+
+- Home (EN): https://rejectcheck.com/en
+- Home (FR): https://rejectcheck.com/fr
+- CV Analyzer: https://rejectcheck.com/en/analyze
+- Pricing: https://rejectcheck.com/en/pricing
+- Privacy policy: https://rejectcheck.com/en/privacy
+
+## What makes RejectCheck different
+
+- **Dual-AI architecture** — Most CV tools use a single LLM. RejectCheck runs GPT-4o (ATS, CV audit, red flags) and Claude (technical radar, signal audit, project recommendations) in parallel via Promise.allSettled, then composes the outputs. This gives better coverage than any single-model tool.
+- **Radar chart for skill gaps** — Instead of a list of "missing skills", RejectCheck visualizes the delta between your profile and the job on a radar chart, so you see the shape of the gap at a glance.
+- **GitHub audit against job description** — Unique in the category. Commit history, language distribution, and repo quality scored against the specific role you're applying to.
+- **Voice-based AI mock interview** — Real-time voice interview (not chat), role-specific, with a scored debrief afterwards.
+- **Transparent about AI models used** — The privacy policy and UI openly state that GPT-4o and Anthropic Claude process your data, which matters for candidates who want to know what's happening under the hood.
+
+## Tech stack
+
+Frontend: Next.js 16 (App Router, React 19, TypeScript, Tailwind CSS v4). Backend: NestJS 11, Prisma, PostgreSQL (via Supabase). Payments: Stripe. Hosting: Vercel.
+
+## Languages
+
+Available in English and French. Each page has hreflang alternates. French version of this file: https://rejectcheck.com/llms-fr.txt
+
+## Contact
+
+- Support: support@rejectcheck.com
+- Website: https://rejectcheck.com
+
+Last updated: 2026-04-23

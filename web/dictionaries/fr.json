@@ -71,19 +71,48 @@
         ]
       },
       "github": {
-        "badges": ["Contributeur actif", "Projets OSS"],
+        "badges": [
+          "Contributeur actif",
+          "Projets OSS"
+        ],
         "issues": [
-          { "severity": "critical", "label": "Les repos épinglés n'ont pas de README", "detail": "3 dépôts épinglés manquent de documentation. Signal négatif fort pour les postes seniors." },
-          { "severity": "major", "label": "Aucune configuration CI/CD détectée", "detail": "Aucun de vos dépôts n'inclut GitHub Actions ou des pipelines similaires." },
-          { "severity": "major", "label": "Gaps dans l'historique de commits > 6 mois", "detail": "3 gaps visibles suggèrent une activité irrégulière sur les 2 dernières années." }
+          {
+            "severity": "critical",
+            "label": "Les repos épinglés n'ont pas de README",
+            "detail": "3 dépôts épinglés manquent de documentation. Signal négatif fort pour les postes seniors."
+          },
+          {
+            "severity": "major",
+            "label": "Aucune configuration CI/CD détectée",
+            "detail": "Aucun de vos dépôts n'inclut GitHub Actions ou des pipelines similaires."
+          },
+          {
+            "severity": "major",
+            "label": "Gaps dans l'historique de commits > 6 mois",
+            "detail": "3 gaps visibles suggèrent une activité irrégulière sur les 2 dernières années."
+          }
         ]
       },
       "linkedin": {
-        "badges": ["500+ connexions"],
+        "badges": [
+          "500+ connexions"
+        ],
         "issues": [
-          { "severity": "major", "label": "Aucune recommandation reçue", "detail": "Pas de recommandations de collègues ou managers. Au niveau senior, la preuve sociale compte." },
-          { "severity": "major", "label": "Intitulé du poste actuel trop vague", "detail": "\"Développeur\" sans signal de séniorité ou de domaine. Les recruteurs ne peuvent pas évaluer le fit en un coup d'œil." },
-          { "severity": "major", "label": "Section résumé absente", "detail": "Le profil n'a pas de section À propos. Vous perdez la surface de matching de mots-clés la plus visible." }
+          {
+            "severity": "major",
+            "label": "Aucune recommandation reçue",
+            "detail": "Pas de recommandations de collègues ou managers. Au niveau senior, la preuve sociale compte."
+          },
+          {
+            "severity": "major",
+            "label": "Intitulé du poste actuel trop vague",
+            "detail": "\"Développeur\" sans signal de séniorité ou de domaine. Les recruteurs ne peuvent pas évaluer le fit en un coup d'œil."
+          },
+          {
+            "severity": "major",
+            "label": "Section résumé absente",
+            "detail": "Le profil n'a pas de section À propos. Vous perdez la surface de matching de mots-clés la plus visible."
+          }
         ]
       },
       "atsCard": {
@@ -109,7 +138,11 @@
         "youLabel": "Vous",
         "aiQuestion": "\"Décrivez un système que vous avez conçu de zéro. Quels compromis avez-vous faits ?\"",
         "youAnswer": "\"J'ai construit un service de notification temps réel gérant 50K events/sec...\"",
-        "axes": ["Profondeur technique", "Communication", "Signaux de leadership"]
+        "axes": [
+          "Profondeur technique",
+          "Communication",
+          "Signaux de leadership"
+        ]
       },
       "bridge": {
         "headerLabel": "Combler l'écart · Recommandation de projet",
@@ -314,7 +347,13 @@
       "dual_ai_analysis": "Analyse Approfondie",
       "finalizing": "Diagnostic final"
     },
-    "claudeTasks": ["Simulation ATS", "Signaux d'alerte", "Ton & Séniorité", "Analyse Tech Fit", "Blueprint Projet"],
+    "claudeTasks": [
+      "Simulation ATS",
+      "Signaux d'alerte",
+      "Ton & Séniorité",
+      "Analyse Tech Fit",
+      "Blueprint Projet"
+    ],
     "claudeThoughts": [
       "Cartographie de la profondeur de la stack technique...",
       "La cadence de commits suggère un fort ownership",
@@ -563,10 +602,22 @@
     "cvFixedSubtitle": "Réécritures chirurgicales basées sur ce que ce scan a réellement trouvé",
     "whatGetsRewritten": "Ce qui est réécrit",
     "fixes": [
-      { "icon": "zap", "text": "Bullet points passifs **réécrits**. « responsable de » devient **Piloté**, **Construit**, **Réduit**." },
-      { "icon": "scan", "text": "**Mots-clés ATS manquants** injectés naturellement dans votre contenu existant. Aucun bourrage de mots-clés." },
-      { "icon": "trend", "text": "**Signaux de séniorité** ajoutés. Langage de périmètre, ownership et impact là où le scan a détecté des lacunes." },
-      { "icon": "warn", "text": "**Problèmes d'audit CV** traités. Corrections de structure et de clarté sur les sections signalées uniquement." }
+      {
+        "icon": "zap",
+        "text": "Bullet points passifs **réécrits**. « responsable de » devient **Piloté**, **Construit**, **Réduit**."
+      },
+      {
+        "icon": "scan",
+        "text": "**Mots-clés ATS manquants** injectés naturellement dans votre contenu existant. Aucun bourrage de mots-clés."
+      },
+      {
+        "icon": "trend",
+        "text": "**Signaux de séniorité** ajoutés. Langage de périmètre, ownership et impact là où le scan a détecté des lacunes."
+      },
+      {
+        "icon": "warn",
+        "text": "**Problèmes d'audit CV** traités. Corrections de structure et de clarté sur les sections signalées uniquement."
+      }
     ],
     "noFabrication": "Rien n'est inventé. Chaque changement remonte à un problème spécifique trouvé dans ce scan. Votre voix reste intacte.",
     "signInRequired": "Connectez-vous pour activer la réécriture de CV.",
@@ -875,5 +926,43 @@
       "hard": "Difficile"
     },
     "shareText": "J'ai eu {score}/100 sur le défi quotidien RejectCheck 🔥\nSujet : {title}\nSérie : 🔥 {streak} jours\n\nTu fais mieux ? rejectcheck.com/challenge"
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "subtitle": "Tout ce qu'il faut savoir sur RejectCheck avant de téléverser ton CV.",
+    "items": [
+      {
+        "question": "C'est quoi RejectCheck ?",
+        "answer": "RejectCheck est un outil IA de diagnostic de CV et candidatures. En moins de 60 secondes, il te montre précisément pourquoi ta candidature est filtrée — avec un pipeline dual-IA (GPT-4o pour l'ATS et les red flags, Claude pour le radar des lacunes techniques et l'audit GitHub/LinkedIn) exécuté contre la fiche de poste exacte."
+      },
+      {
+        "question": "Comment RejectCheck analyse mon CV ?",
+        "answer": "Téléverse ton CV et colle la fiche de poste visée. RejectCheck exécute GPT-4o et Claude en parallèle : GPT-4o gère la simulation ATS, l'audit de ton, et la détection de red flags ; Claude construit le radar des lacunes techniques et audite tes signaux GitHub et LinkedIn. Les résultats arrivent en moins de 60 secondes."
+      },
+      {
+        "question": "C'est quoi un ATS et comment RejectCheck le simule ?",
+        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour filtrer les CV avant qu'un humain les lise. RejectCheck scanne ton CV contre les mots-clés exacts de la fiche de poste et te renvoie un score plus les mots-clés manquants pondérés par importance — pour que tu saches quoi ajouter pour passer le filtre."
+      },
+      {
+        "question": "RejectCheck est-il gratuit ?",
+        "answer": "Oui. Le plan REJECTED est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent les analyses illimitées, l'entretien simulé IA, et la réécriture de CV."
+      },
+      {
+        "question": "RejectCheck peut-il m'aider à préparer mes entretiens ?",
+        "answer": "Oui. Les plans Shortlisted et Hired incluent un entretien simulé IA : 10 minutes d'entretien vocal taillé pour le poste visé et tes lacunes détectées. Tu obtiens un débrief scoré sur la communication, la profondeur technique, et les signaux de leadership."
+      },
+      {
+        "question": "RejectCheck audite-t-il mes profils GitHub et LinkedIn ?",
+        "answer": "Oui. Ajoute ton username GitHub et un export PDF LinkedIn au moment de l'analyse. Claude audite l'historique de commits, la qualité des repos, la distribution des langages, et la pertinence des projets contre le rôle visé, et recoupe ton profil LinkedIn (titres, résumé, recommandations) avec ton CV pour repérer les incohérences."
+      },
+      {
+        "question": "Quels modèles IA utilise RejectCheck ?",
+        "answer": "RejectCheck utilise OpenAI GPT-4o (pour la simulation ATS, l'audit CV, et la détection de red flags) et Anthropic Claude (pour le radar des lacunes techniques, l'analyse des signaux GitHub/LinkedIn, et les recommandations de projets). Les deux tournent en parallèle. La politique de confidentialité documente précisément quel modèle traite quelle donnée."
+      },
+      {
+        "question": "En quoi RejectCheck est différent des autres outils CV ?",
+        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et propose un entretien simulé IA vocal — pas un chat. Il est bilingue (anglais et français)."
+      }
+    ]
   }
 }

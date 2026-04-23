@@ -3,6 +3,7 @@ import { DM_Sans, Chivo_Mono } from 'next/font/google';
 import "./globals.css";
 import Providers from "./providers";
 import { Analytics } from "@vercel/analytics/next"
+import { JsonLd, organizationSchema, websiteSchema } from "./components/JsonLd";
 
 const dmSans = DM_Sans({
   weight: ['400', '500', '600', '700'],
@@ -62,7 +63,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${dmSans.variable} ${chivoMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <JsonLd id="ld-organization" data={organizationSchema} />
+        <JsonLd id="ld-website" data={websiteSchema} />
+      </head>
       <body className="min-h-full flex flex-col">
         <Toaster position="top-center" expand={true} richColors />
         <Providers>
