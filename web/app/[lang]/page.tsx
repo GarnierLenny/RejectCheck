@@ -4,6 +4,11 @@ import Link from "next/link";
 import { Navbar } from "../components/Navbar";
 import { FadeInSection } from "../components/FadeInSection";
 import { useLanguage } from "../../context/language";
+import {
+  JsonLd,
+  softwareApplicationSchema,
+  faqPageSchema,
+} from "../components/JsonLd";
 
 /* ─── Highlight helper ────────────────────────────────────────────────────── */
 function hl(text: string) {
@@ -57,11 +62,13 @@ function gridPolygon(pct: number) {
 
 /* ─── Landing ─────────────────────────────────────────────────────────────── */
 export default function Home() {
-  const { t, localePath } = useLanguage();
+  const { t, locale, localePath } = useLanguage();
   const mc = t.landing.mockContent;
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen overflow-x-hidden">
+      <JsonLd id="ld-software-app" data={softwareApplicationSchema(locale)} />
+      <JsonLd id="ld-faq" data={faqPageSchema(t.faq.items)} />
       <Navbar />
 
       {/* ═══ HERO ══════════════════════════════════════════════════════════ */}
@@ -718,6 +725,51 @@ export default function Home() {
               <div className="h-24" />
             </div>
           </FadeInSection>
+        </div>
+      </section>
+
+      {/* ═══ FAQ ═══════════════════════════════════════════════════════════ */}
+      <section id="faq" className="border-t-[0.5px] border-rc-border bg-rc-bg">
+        <div className="max-w-[900px] mx-auto px-5 md:px-[40px] py-24 md:py-28">
+          <FadeInSection>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-6 bg-rc-red" />
+              <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
+                FAQ
+              </span>
+            </div>
+            <h2 className="text-[32px] md:text-[44px] font-semibold leading-[1.12] tracking-[-0.02em] text-rc-text mb-4">
+              {t.faq.title}
+            </h2>
+            <p className="text-rc-muted text-[15px] md:text-[16px] leading-[1.7] max-w-[620px] mb-12">
+              {t.faq.subtitle}
+            </p>
+          </FadeInSection>
+
+          <div className="space-y-3">
+            {t.faq.items.map((item, i) => (
+              <FadeInSection key={i} delay={i * 40}>
+                <details className="group rounded-xl border border-rc-border bg-rc-surface open:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow">
+                  <summary className="cursor-pointer list-none flex items-start justify-between gap-4 px-5 py-4 md:px-6 md:py-5">
+                    <h3 className="text-[16px] md:text-[17px] font-semibold text-rc-text leading-[1.35] tracking-[-0.01em]">
+                      {item.question}
+                    </h3>
+                    <span
+                      aria-hidden="true"
+                      className="shrink-0 mt-1 font-mono text-[18px] text-rc-red transition-transform group-open:rotate-45 select-none"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  <div className="px-5 pb-5 md:px-6 md:pb-6 -mt-1">
+                    <p className="text-rc-muted text-[14px] md:text-[15px] leading-[1.7]">
+                      {item.answer}
+                    </p>
+                  </div>
+                </details>
+              </FadeInSection>
+            ))}
+          </div>
         </div>
       </section>
 

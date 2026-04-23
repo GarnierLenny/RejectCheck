@@ -71,19 +71,48 @@
         ]
       },
       "github": {
-        "badges": ["Active contributor", "OSS projects"],
+        "badges": [
+          "Active contributor",
+          "OSS projects"
+        ],
         "issues": [
-          { "severity": "critical", "label": "Pinned repos have no README", "detail": "3 pinned repositories lack documentation. Strong negative signal for senior roles." },
-          { "severity": "major", "label": "No CI/CD configuration detected", "detail": "None of your repos include GitHub Actions or similar pipelines." },
-          { "severity": "major", "label": "Commit history gaps > 6 months", "detail": "3 visible gaps suggest inconsistent activity over the last 2 years." }
+          {
+            "severity": "critical",
+            "label": "Pinned repos have no README",
+            "detail": "3 pinned repositories lack documentation. Strong negative signal for senior roles."
+          },
+          {
+            "severity": "major",
+            "label": "No CI/CD configuration detected",
+            "detail": "None of your repos include GitHub Actions or similar pipelines."
+          },
+          {
+            "severity": "major",
+            "label": "Commit history gaps > 6 months",
+            "detail": "3 visible gaps suggest inconsistent activity over the last 2 years."
+          }
         ]
       },
       "linkedin": {
-        "badges": ["500+ connections"],
+        "badges": [
+          "500+ connections"
+        ],
         "issues": [
-          { "severity": "major", "label": "Zero recommendations received", "detail": "No peer or manager recommendations. At senior level, social proof matters." },
-          { "severity": "major", "label": "Current role title too vague", "detail": "\"Developer\" without seniority or domain signals. Recruiters can't assess fit at a glance." },
-          { "severity": "major", "label": "Summary section missing", "detail": "Profile has no About section. You're losing the most prominent keyword-matching surface." }
+          {
+            "severity": "major",
+            "label": "Zero recommendations received",
+            "detail": "No peer or manager recommendations. At senior level, social proof matters."
+          },
+          {
+            "severity": "major",
+            "label": "Current role title too vague",
+            "detail": "\"Developer\" without seniority or domain signals. Recruiters can't assess fit at a glance."
+          },
+          {
+            "severity": "major",
+            "label": "Summary section missing",
+            "detail": "Profile has no About section. You're losing the most prominent keyword-matching surface."
+          }
         ]
       },
       "atsCard": {
@@ -109,7 +138,11 @@
         "youLabel": "You",
         "aiQuestion": "\"Walk me through a system you designed from scratch. What trade-offs did you make?\"",
         "youAnswer": "\"I built a real-time notification service handling 50K events/sec...\"",
-        "axes": ["Technical depth", "Communication", "Leadership signals"]
+        "axes": [
+          "Technical depth",
+          "Communication",
+          "Leadership signals"
+        ]
       },
       "bridge": {
         "headerLabel": "Bridge the Gap · Project Recommendation",
@@ -314,7 +347,13 @@
       "dual_ai_analysis": "Deep Analysis",
       "finalizing": "Final Diagnostic"
     },
-    "claudeTasks": ["ATS Simulation", "Red Flags", "Tone & Seniority", "Tech Fit", "Project Blueprint"],
+    "claudeTasks": [
+      "ATS Simulation",
+      "Red Flags",
+      "Tone & Seniority",
+      "Tech Fit",
+      "Project Blueprint"
+    ],
     "claudeThoughts": [
       "Mapping depth of technical stack...",
       "Commit cadence suggests strong ownership",
@@ -563,10 +602,22 @@
     "cvFixedSubtitle": "Surgical rewrites based on what this scan actually found",
     "whatGetsRewritten": "What gets rewritten",
     "fixes": [
-      { "icon": "zap", "text": "Passive bullets **rewritten**. \"responsible for\" becomes **Led**, **Built**, **Reduced**." },
-      { "icon": "scan", "text": "**Missing ATS keywords** injected naturally into your existing content. No keyword dumping." },
-      { "icon": "trend", "text": "**Seniority signals** added. Scope, ownership, and impact language where the scan flagged gaps." },
-      { "icon": "warn", "text": "**CV audit issues** addressed. Structure and clarity fixes on the flagged sections only." }
+      {
+        "icon": "zap",
+        "text": "Passive bullets **rewritten**. \"responsible for\" becomes **Led**, **Built**, **Reduced**."
+      },
+      {
+        "icon": "scan",
+        "text": "**Missing ATS keywords** injected naturally into your existing content. No keyword dumping."
+      },
+      {
+        "icon": "trend",
+        "text": "**Seniority signals** added. Scope, ownership, and impact language where the scan flagged gaps."
+      },
+      {
+        "icon": "warn",
+        "text": "**CV audit issues** addressed. Structure and clarity fixes on the flagged sections only."
+      }
     ],
     "noFabrication": "Nothing is fabricated. Every change traces back to a specific problem found in this scan. Your voice stays intact.",
     "signInRequired": "Sign in to enable CV rewriting.",
@@ -874,5 +925,43 @@
       "hard": "Hard"
     },
     "shareText": "I scored {score}/100 on today's RejectCheck Daily Challenge 🔥\nTopic: {title}\nStreak: 🔥 {streak} days\n\nCan you do better? rejectcheck.com/challenge"
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Everything you need to know about RejectCheck before you upload your CV.",
+    "items": [
+      {
+        "question": "What is RejectCheck?",
+        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In under 60 seconds, it shows you exactly why your application is getting filtered — running a dual-AI pipeline (GPT-4o for ATS and red flags, Claude for skill gap radar and GitHub/LinkedIn audit) against the specific job description."
+      },
+      {
+        "question": "How does RejectCheck analyze my CV?",
+        "answer": "Upload your CV and paste the target job description. RejectCheck runs GPT-4o and Claude in parallel: GPT-4o handles ATS simulation, tone audit, and red-flag detection; Claude builds the technical skill gap radar and audits your GitHub and LinkedIn signals. Results arrive in under 60 seconds."
+      },
+      {
+        "question": "What is an ATS and how does RejectCheck simulate it?",
+        "answer": "An Applicant Tracking System (ATS) is the software recruiters use to filter CVs before a human reads them. RejectCheck scans your CV against the exact keywords in the job description and returns a score plus the precise missing keywords weighted by importance — so you know what to add to pass."
+      },
+      {
+        "question": "Is RejectCheck free?",
+        "answer": "Yes. The REJECTED plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock unlimited analyses, AI mock interview, and CV rewrite."
+      },
+      {
+        "question": "Can RejectCheck help me prepare for job interviews?",
+        "answer": "Yes. The Shortlisted and Hired plans include an AI mock interview: a 10-minute voice-based interview tailored to the specific job and your detected skill gaps. You get a scored debrief across communication, technical depth, and leadership signals."
+      },
+      {
+        "question": "Does RejectCheck audit my GitHub and LinkedIn profiles?",
+        "answer": "Yes. Add your GitHub username and a LinkedIn PDF export at analysis time. Claude audits commit history, repo quality, language distribution, and project relevance against the target role, and cross-references your LinkedIn profile (titles, summary, recommendations) with your CV to catch inconsistencies."
+      },
+      {
+        "question": "Which AI models does RejectCheck use?",
+        "answer": "RejectCheck uses OpenAI GPT-4o (for ATS simulation, CV audit, and red-flag detection) and Anthropic Claude (for technical skill gap radar, GitHub/LinkedIn signal analysis, and project recommendations). Both run in parallel. The privacy policy explicitly documents which model processes which data."
+      },
+      {
+        "question": "How is RejectCheck different from other CV tools?",
+        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and offers a voice-based AI mock interview — not a chat. It is bilingual (English and French)."
+      }
+    ]
   }
 }
