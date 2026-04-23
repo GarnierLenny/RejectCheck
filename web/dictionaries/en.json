@@ -809,5 +809,70 @@
       "aiProcessing": "AI & Data Processing",
       "deletion": "Right to Deletion"
     }
+  },
+  "challenge": {
+    "navLink": "Challenge",
+    "title": "Daily Challenge",
+    "completionsToday": "{count} devs completed today",
+    "streakDays": "Streak: {count} days",
+    "estimatedMinutes": "~{minutes} min",
+    "questionLabel": "Question",
+    "yourReviewLabel": "Your review",
+    "pushbackGenerating": "Generating a follow-up to challenge your review…",
+    "firstAnswer": {
+      "placeholder": "Walk through your review — what's wrong, why does it matter, what would you fix first?",
+      "submit": "Submit review →"
+    },
+    "socratic": {
+      "heading": "Push back",
+      "placeholder": "Your final answer. Be specific.",
+      "submit": "Submit final answer →"
+    },
+    "score": {
+      "heading": "Your score",
+      "issuesFound": "Issues found",
+      "explanation": "Explanation",
+      "prioritization": "Prioritization",
+      "bonus": "Bonus",
+      "feedbackHeading": "AI feedback",
+      "missedHeading": "Issues you missed",
+      "statsHeading": "Score distribution",
+      "percentileTemplate": "You scored higher than {percent}% of developers today",
+      "comeBack": "Come back tomorrow to keep your streak",
+      "streakLabel": "Day streak",
+      "shareX": "Share on X",
+      "copy": "Copy result",
+      "copied": "Copied to clipboard"
+    },
+    "anonymous": {
+      "heading": "Create a free account to submit your review",
+      "body": "Sign up to see your score, track your streak, and push your review against AI.",
+      "cta": "Sign up free"
+    },
+    "errors": {
+      "loadFailed": "Couldn't load today's challenge. Try again in a moment.",
+      "submitFailed": "Submission failed. Try again.",
+      "alreadyCompleted": "You already completed this challenge today."
+    },
+    "focusTags": {
+      "naming": "Naming",
+      "error_boundaries": "Error boundaries",
+      "race_conditions": "Race conditions",
+      "n_plus_one": "N+1 queries",
+      "solid_srp": "SOLID · SRP",
+      "api_contract": "API contract",
+      "null_handling": "Null handling",
+      "async_patterns": "Async patterns",
+      "type_safety": "Type safety",
+      "react_stale_closure": "React · Stale closure",
+      "react_rerenders": "React · Rerenders",
+      "data_validation": "Data validation"
+    },
+    "difficulties": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "shareText": "I scored {score}/100 on today's RejectCheck Daily Challenge 🔥\nTopic: {title}\nStreak: 🔥 {streak} days\n\nCan you do better? rejectcheck.com/challenge"
   }
 }

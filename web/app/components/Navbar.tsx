@@ -6,22 +6,29 @@ import { AuthNavLink } from "./AuthNavLink";
 import { LangSwitcher } from "./LangSwitcher";
 import { useAuth } from "../../context/auth";
 import { useLanguage } from "../../context/language";
+import { useChallengeStreak } from "../../lib/challenge";
+
+type NavPage = "analyze" | "dashboard" | "pricing" | "challenge";
 
 interface NavbarProps {
   center?: React.ReactNode;
-  activePage?: "analyze" | "dashboard" | "pricing";
+  activePage?: NavPage;
 }
 
 export function Navbar({ center, activePage }: NavbarProps = {}) {
   const { user, loading } = useAuth();
   const { t, localePath } = useLanguage();
+  const { data: streak } = useChallengeStreak();
 
-  const linkClass = (page: "analyze" | "dashboard" | "pricing") =>
+  const linkClass = (page: NavPage) =>
     `font-mono text-[11px] tracking-[0.14em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
       activePage === page
         ? "text-rc-red font-bold"
         : "text-rc-muted hover:text-rc-text"
     }`;
+
+  const streakCount = streak?.currentStreak ?? 0;
+  const challengeLabel = t.challenge.navLink;
 
   return (
     <nav className="w-full grid grid-cols-3 items-center px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border bg-white/50 backdrop-blur-md sticky top-0 z-50">
@@ -38,18 +45,29 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
       {/* Right: nav links + lang + avatar */}
       <div className="flex items-center justify-end gap-3">
         {!user && !loading && (
-          <Link
-            href={localePath("/pricing")}
-            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
-          >
-            {t.navbar.pricing}
-          </Link>
+          <>
+            <Link href={localePath("/challenge")} className={linkClass("challenge")}>
+              {challengeLabel}
+            </Link>
+            <Link
+              href={localePath("/pricing")}
+              className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
+            >
+              {t.navbar.pricing}
+            </Link>
+          </>
         )}
 
         {user && !loading && (
           <>
             <Link href={localePath("/analyze")} className={linkClass("analyze")}>
               Analyze
+            </Link>
+            <Link href={localePath("/challenge")} className={linkClass("challenge")}>
+              {challengeLabel}
+              {streakCount > 0 && (
+                <span className="ml-1 text-rc-red">🔥{streakCount}</span>
+              )}
             </Link>
             <Link href={localePath("/dashboard")} className={linkClass("dashboard")}>
               Dashboard
