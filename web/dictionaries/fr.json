@@ -810,5 +810,70 @@
       "aiProcessing": "IA & Traitement des données",
       "deletion": "Droit à la suppression"
     }
+  },
+  "challenge": {
+    "navLink": "Challenge",
+    "title": "Défi quotidien",
+    "completionsToday": "{count} devs ont joué aujourd'hui",
+    "streakDays": "Série : {count} jours",
+    "estimatedMinutes": "~{minutes} min",
+    "questionLabel": "Question",
+    "yourReviewLabel": "Ta review",
+    "pushbackGenerating": "Génère une question pour pousser ta review…",
+    "firstAnswer": {
+      "placeholder": "Déroule ta review — qu'est-ce qui cloche, pourquoi c'est grave, qu'est-ce que tu corriges en premier ?",
+      "submit": "Envoyer la review →"
+    },
+    "socratic": {
+      "heading": "Contre-attaque",
+      "placeholder": "Ta réponse finale. Sois précis.",
+      "submit": "Envoyer la réponse finale →"
+    },
+    "score": {
+      "heading": "Ton score",
+      "issuesFound": "Problèmes trouvés",
+      "explanation": "Explication",
+      "prioritization": "Priorisation",
+      "bonus": "Bonus",
+      "feedbackHeading": "Feedback IA",
+      "missedHeading": "Problèmes ratés",
+      "statsHeading": "Distribution des scores",
+      "percentileTemplate": "Tu es au-dessus de {percent}% des devs aujourd'hui",
+      "comeBack": "Reviens demain pour garder ta série",
+      "streakLabel": "Jours de série",
+      "shareX": "Partager sur X",
+      "copy": "Copier le résultat",
+      "copied": "Copié dans le presse-papier"
+    },
+    "anonymous": {
+      "heading": "Crée un compte gratuit pour soumettre ta review",
+      "body": "Inscris-toi pour voir ton score, suivre ta série et pousser ta review face à l'IA.",
+      "cta": "Inscription gratuite"
+    },
+    "errors": {
+      "loadFailed": "Impossible de charger le défi du jour. Réessaie dans un instant.",
+      "submitFailed": "Échec de l'envoi. Réessaie.",
+      "alreadyCompleted": "Tu as déjà complété ce défi aujourd'hui."
+    },
+    "focusTags": {
+      "naming": "Naming",
+      "error_boundaries": "Gestion d'erreurs",
+      "race_conditions": "Race conditions",
+      "n_plus_one": "Requêtes N+1",
+      "solid_srp": "SOLID · SRP",
+      "api_contract": "Contrat d'API",
+      "null_handling": "Gestion du null",
+      "async_patterns": "Patterns async",
+      "type_safety": "Type safety",
+      "react_stale_closure": "React · Stale closure",
+      "react_rerenders": "React · Rerenders",
+      "data_validation": "Validation des données"
+    },
+    "difficulties": {
+      "easy": "Facile",
+      "medium": "Moyen",
+      "hard": "Difficile"
+    },
+    "shareText": "J'ai eu {score}/100 sur le défi quotidien RejectCheck 🔥\nSujet : {title}\nSérie : 🔥 {streak} jours\n\nTu fais mieux ? rejectcheck.com/challenge"
   }
 }

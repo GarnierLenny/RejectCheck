@@ -8,6 +8,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { StripeModule } from './stripe/stripe.module';
 import { InterviewModule } from './interview/interview.module';
 import { ApplicationsModule } from './applications/applications.module';
+import { ChallengeModule } from './challenge/challenge.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ApplicationsModule } from './applications/applications.module';
     StripeModule,
     InterviewModule,
     ApplicationsModule,
+    ChallengeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

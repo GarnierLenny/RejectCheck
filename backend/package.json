@@ -18,10 +18,13 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "knip": "knip"
+    "knip": "knip",
+    "seed:challenges": "ts-node -T prisma/seed-challenges.ts",
+    "clean:challenges": "ts-node -T prisma/clean-bad-challenges.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
+    "@google/generative-ai": "^0.24.1",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
@@ -30,6 +33,7 @@
     "@nestjs/swagger": "^11.2.6",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^5.22.0",
+    "dotenv": "^17.4.2",
     "jose": "^6.2.2",
     "nestjs-zod": "^5.3.0",
     "openai": "^6.33.0",
