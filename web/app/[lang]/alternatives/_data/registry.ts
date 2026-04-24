@@ -22,7 +22,7 @@ export const ALTERNATIVES_REGISTRY: AlternativeEntry[] = [
       en: 'AI-first resume builder with $149 lifetime. 6 alternatives for builders, diagnoses, and lifetime-alternatives.',
       fr: 'Builder de CV IA avec licence à vie à 149 $. 6 alternatives pour builders, diagnostics, et offres à vie.',
     },
-    bilingual: false,
+    bilingual: true,
   },
   {
     slug: 'resume-worded',
@@ -31,7 +31,7 @@ export const ALTERNATIVES_REGISTRY: AlternativeEntry[] = [
       en: 'LinkedIn-focused review with hidden Pro pricing. 7 alternatives with transparent pricing.',
       fr: "Revue focalisée LinkedIn avec tarifs Pro non publiés. 7 alternatives avec des prix transparents.",
     },
-    bilingual: false,
+    bilingual: true,
   },
 ]
 

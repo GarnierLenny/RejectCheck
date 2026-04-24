@@ -15,17 +15,16 @@ const ROUTES: RoutePath[] = [
   { path: '/privacy', changeFrequency: 'monthly', priority: 0.3 },
   // Alternatives hub page (bilingual EN+FR)
   { path: '/alternatives', changeFrequency: 'weekly', priority: 0.75 },
-  // Jobscan alternatives is bilingual EN+FR
+  // All alternatives pages are bilingual EN+FR
   { path: '/alternatives/jobscan', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/alternatives/rezi', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/alternatives/resume-worded', changeFrequency: 'monthly', priority: 0.7 },
 ]
 
 const LANGS = ['en', 'fr'] as const
 
-// English-only routes (no FR version yet). Emitted without hreflang alternates.
-const EN_ONLY_ROUTES: RoutePath[] = [
-  { path: '/alternatives/rezi', changeFrequency: 'monthly', priority: 0.7 },
-  { path: '/alternatives/resume-worded', changeFrequency: 'monthly', priority: 0.7 },
-]
+// English-only routes (no FR version). Emitted without hreflang alternates.
+const EN_ONLY_ROUTES: RoutePath[] = []
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()

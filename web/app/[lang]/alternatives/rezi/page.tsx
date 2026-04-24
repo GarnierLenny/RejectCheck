@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import {
   JsonLd,
   SITE_URL,
@@ -22,10 +22,11 @@ export async function generateMetadata({
   params: Promise<LangParams>
 }): Promise<Metadata> {
   const { lang } = await params
-  if (!hasLocale(lang) || lang !== 'en') return {}
+  if (!hasLocale(lang)) return {}
 
-  const c = getContent('en')
-  const canonical = `${SITE_URL}/en${PAGE_PATH}`
+  const locale = lang as Locale
+  const c = getContent(locale)
+  const canonical = `${SITE_URL}/${locale}${PAGE_PATH}`
 
   return {
     title: c.title,
@@ -33,15 +34,17 @@ export async function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        en: canonical,
-        'x-default': canonical,
+        en: `${SITE_URL}/en${PAGE_PATH}`,
+        fr: `${SITE_URL}/fr${PAGE_PATH}`,
+        'x-default': `${SITE_URL}/en${PAGE_PATH}`,
       },
     },
     openGraph: {
       title: c.title,
       description: c.description,
       url: canonical,
-      locale: 'en_US',
+      locale: locale === 'fr' ? 'fr_FR' : 'en_US',
+      alternateLocale: locale === 'fr' ? ['en_US'] : ['fr_FR'],
       type: 'article',
     },
     twitter: {
@@ -60,12 +63,7 @@ export default async function ReziAlternativesPage({
   const { lang } = await params
   if (!hasLocale(lang)) notFound()
 
-  // FR version not yet translated — redirect to EN
-  if (lang === 'fr') {
-    redirect('/en/alternatives/rezi')
-  }
-
-  const locale: Locale = 'en'
+  const locale = lang as Locale
   const c = getContent(locale)
   const canonical = `${SITE_URL}/${locale}${PAGE_PATH}`
 
@@ -111,7 +109,7 @@ export default async function ReziAlternativesPage({
     datePublished: PUBLISHED_ISO,
     dateModified: LAST_UPDATED_ISO,
     mainEntityOfPage: canonical,
-    inLanguage: 'en',
+    inLanguage: locale,
     about: {
       '@type': 'SoftwareApplication',
       name: 'Rezi',

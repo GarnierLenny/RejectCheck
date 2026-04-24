@@ -304,6 +304,310 @@ export const contentEn: AlternativesContent = {
   competitors: COMPETITORS_EN,
 }
 
-export function getContent(_locale: 'en' | 'fr'): AlternativesContent {
-  return contentEn
+const COMPETITORS_FR: Competitor[] = [
+  {
+    name: 'RejectCheck',
+    tagline:
+      'Diagnostic de CV dual-IA avec radar des lacunes, audit commits GitHub, recoupement LinkedIn, et entretien simulé IA vocal.',
+    website: 'https://rejectcheck.com',
+    freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) — pas d'inscription requise au premier essai",
+    paidEntry: '7,99 € / mois (prix transparent, publié publiquement)',
+    topFeatures: [
+      "Simulation ATS face à l'offre exacte",
+      'Radar des lacunes techniques (visuel, pas juste une liste de mots-clés)',
+      "Audit historique de commits GitHub et qualité des repos",
+      'Recoupement profil LinkedIn avec CV — détecte les incohérences',
+      'Entretien simulé IA vocal (10 minutes, débrief scoré)',
+      'Réécriture de CV avec injection de mots-clés + export PDF',
+      'Pipeline dual-IA (GPT-4o + Anthropic Claude) en parallèle',
+      'Bilingue (anglais + français) de bout en bout',
+    ],
+    bestFor:
+      "Candidats qui veulent plus que l'optimisation LinkedIn — diagnostic CV complet incluant ATS, lacunes, audit GitHub, et préparation d'entretien. Aussi la seule option de cette liste avec prix transparent et support français.",
+    weakness:
+      "Produit plus jeune que Resume Worded (qui revendique 1M+ users). Générateur de lettre de motivation et extension Chrome annoncés comme 'à venir'.",
+    atsCheck: 'yes',
+    aiInterview: true,
+    githubAudit: true,
+    linkedinAudit: true,
+    languages: ['Anglais', 'Français'],
+  },
+  {
+    name: 'Resume Worded',
+    tagline:
+      "Revue de CV instantanée gratuite avec optimisation LinkedIn dédiée — 1M+ users revendiqués.",
+    website: 'https://resumeworded.com',
+    freeTier:
+      'Compte gratuit — revue instantanée CV, revue LinkedIn gratuite, bibliothèque de bullets',
+    paidEntry:
+      "Tier Pro — prix non publié publiquement ; il faut créer un compte pour voir le coût",
+    topFeatures: [
+      'Score My Resume — feedback gratuit instantané sur CV',
+      'Revue gratuite de profil LinkedIn (outil séparé)',
+      "Ciblage CV face aux offres collées",
+      '250+ exemples de bullets par industrie',
+      'Templates CV compatibles ATS',
+      'Générateurs de titres et résumés LinkedIn',
+    ],
+    bestFor:
+      'Candidats pour qui la présence LinkedIn compte autant que le CV — marketing, ventes, rôles client-facing où LinkedIn est le canal de découverte primaire.',
+    weakness:
+      "L'opacité tarifaire est la plus grosse préoccupation — prix Pro pas sur le site marketing. Pas d'entretien IA. Pas d'audit GitHub ni code-portfolio. Anglais uniquement. Le '5x plus de jobs/leads' revendiqué est du langage marketing, pas un résultat mesuré.",
+    atsCheck: 'yes',
+    aiInterview: false,
+    githubAudit: false,
+    linkedinAudit: true,
+    languages: ['Anglais'],
+    userClaim: "Plus d'1 million de pros",
+  },
+  {
+    name: 'Jobscan',
+    tagline:
+      "Optimisation CV ATS avec One-Click Optimize, outils LinkedIn, et suivi de candidatures — le leader historique.",
+    website: 'https://www.jobscan.co',
+    freeTier: 'Scans gratuits limités (nombre variable ; vérifie la politique actuelle)',
+    paidEntry: 'Tier mensuel (vérifie le prix sur jobscan.co)',
+    topFeatures: [
+      'Scan ATS avec score de match',
+      'One-Click Optimize (tailoring IA à l\'offre)',
+      'Builder de CV avec templates ATS-friendly',
+      'Optimisation profil LinkedIn',
+      'Suivi de candidatures',
+      'Revendique "3x plus de callbacks"',
+    ],
+    bestFor:
+      "Candidats qui veulent le scanner ATS le plus mature et utilisé, avec la plus grande base de mots-clés et qui vont utiliser la suite complète (builder + LinkedIn + tracker).",
+    weakness:
+      "Anglais uniquement. Pas de signaux GitHub ni code-portfolio. Pas d'entretien IA vocal. Prix dans le haut de la catégorie.",
+    atsCheck: 'yes',
+    aiInterview: false,
+    githubAudit: false,
+    linkedinAudit: true,
+    languages: ['Anglais'],
+  },
+  {
+    name: 'Rezi',
+    tagline:
+      "Builder de CV IA-first avec Rezi Score, option de paiement à vie, et pratique d'entretien IA.",
+    website: 'https://www.rezi.ai',
+    freeTier: '1 CV, 3 téléchargements PDF, 1 entretien IA',
+    paidEntry: '29 $ / mois — ou 149 $ à vie (paiement unique)',
+    topFeatures: [
+      'Builder IA avec ciblage de mots-clés',
+      'Rezi Score — scoring de compatibilité ATS',
+      "Pratique d'entretien IA illimitée (Pro et Lifetime)",
+      'Resume Agent — assistant IA pour réécritures',
+      'Export PDF / DOCX / Google Drive',
+      'Garantie remboursement 30 jours',
+    ],
+    bestFor:
+      "Candidats qui démarrent d'une page blanche et veulent un CV IA, ou ceux qui préfèrent un paiement à vie de 149 $ unique plutôt qu'un abonnement récurrent.",
+    weakness:
+      "Builder-first plutôt que diagnostic-first. Pas d'audit GitHub ni LinkedIn. Tier gratuit limité à 3 PDF. Anglais uniquement.",
+    atsCheck: 'yes',
+    aiInterview: true,
+    githubAudit: false,
+    linkedinAudit: false,
+    languages: ['Anglais'],
+  },
+  {
+    name: 'Kickresume',
+    tagline: 'Builder de CV et lettre avec IA et checker ATS, grande bibliothèque de templates.',
+    website: 'https://www.kickresume.com',
+    freeTier: '4 templates de CV, 20 000 phrases pré-écrites, téléchargements illimités',
+    paidEntry: '8 € / mois (annuel) — 24 € / mois (mensuel)',
+    topFeatures: [
+      '40+ templates sur Pro (plus grande bibliothèque de cette liste)',
+      'Writer IA de CV et lettre (Pro)',
+      'Checker ATS Resume (Pro uniquement)',
+      'Import LinkedIn et PDF',
+      'Apps mobile (iOS et Android)',
+      'Career Map pour la planification carrière',
+    ],
+    bestFor:
+      "Designers, créatifs, et candidats qui veulent des dizaines de templates visuellement distincts au prix annuel le plus bas.",
+    weakness:
+      "Checker ATS payant uniquement. Tier gratuit limité à 4 templates. Pas d'entretien IA. Pas d'audit GitHub. Pas d'audit LinkedIn.",
+    atsCheck: 'premium',
+    aiInterview: false,
+    githubAudit: false,
+    linkedinAudit: false,
+    languages: ['Anglais', 'Multilingue'],
+    userClaim: '70 455 clients',
+  },
+  {
+    name: 'Enhancv',
+    tagline: 'Builder design-first avec suggestions IA et check ATS.',
+    website: 'https://enhancv.com',
+    freeTier: "Essai 7 jours — tous templates, sections de base, max 12 items",
+    paidEntry: 'Pro trimestriel (vérifie le prix sur enhancv.com)',
+    topFeatures: [
+      'Des centaines de templates visuellement polis',
+      'Check compatibilité ATS (Pro)',
+      "Suggestions de contenu IA en temps réel",
+      "Tailoring CV à partir de la fiche collée",
+      'Générateur de bullet points',
+    ],
+    bestFor:
+      'Candidats dans des rôles design-heavy (produit, UX, marketing) où un CV visuellement distinct est un signal positif.',
+    weakness:
+      "Tier gratuit limité en temps (7 jours), pas en features. Pas d'entretien IA. Pas d'audit GitHub/LinkedIn. Anglais uniquement.",
+    atsCheck: 'premium',
+    aiInterview: false,
+    githubAudit: false,
+    linkedinAudit: false,
+    languages: ['Anglais'],
+  },
+]
+
+export const contentFr: AlternativesContent = {
+  title: '7 meilleures alternatives à Resume Worded en 2026 (avec prix transparents)',
+  description:
+    "Tu cherches une alternative à Resume Worded avec un prix public, un entretien IA, ou un audit GitHub ? Compare RejectCheck, Jobscan, Rezi, Kickresume, et Enhancv sur le prix, la profondeur des features, et pour qui chacun est le mieux. Honnête et basé sur la recherche.",
+  badgeLabel: 'Comparaison · Mis à jour le 24 avril 2026',
+  heroTitle: '7 meilleures alternatives à Resume Worded en 2026',
+  heroIntro:
+    "Resume Worded est un outil gratuit solide pour le scoring instantané de CV et l'optimisation LinkedIn, et revendique plus d'1M d'utilisateurs. Mais son prix Pro n'est pas publié publiquement, il n'a pas d'entretien IA, et il n'offre aucun audit signal au-delà de LinkedIn — un dealbreaker pour les développeurs et les candidats qui évaluent des outils avec des prix transparents. Voici une comparaison honnête de six alternatives allant du totalement gratuit à l'abonnement et au paiement à vie.",
+  tldrLabel: 'TL;DR',
+  tldr: "Reste sur le tier gratuit de Resume Worded si tu veux juste un scoring CV ponctuel et une revue LinkedIn. Si tu veux un prix transparent + diagnostic CV + audit GitHub + entretien simulé IA, passe à RejectCheck (7,99 €/mois). Choisis Jobscan pour le scanner ATS le plus mature. Choisis Rezi si tu veux une licence à vie à 149 $. Choisis Kickresume (8 €/mois annuel) pour la plus grande bibliothèque de templates au prix récurrent le plus bas.",
+  breadcrumbHome: 'Accueil',
+  breadcrumbAlternatives: 'Alternatives',
+  breadcrumbCurrent: 'Resume Worded',
+  whyBadge: 'Pourquoi chercher une alternative',
+  whyTitle: 'Quatre raisons de quitter Resume Worded',
+  whyReasons: [
+    {
+      title: "Le prix Pro n'est pas public",
+      text: "Resume Worded ne publie pas le prix de son tier Pro sur le site marketing. Il faut créer un compte pour voir le coût. Pour un acheteur qui compare des outils, c'est une friction délibérée que la plupart des concurrents évitent — RejectCheck (7,99 €/mois), Rezi (29 $/mois ou 149 $ à vie), Kickresume (8–24 €/mois), et Jobscan publient tous leurs prix sur la page marketing. L'opacité est souvent un signal que le prix va sembler élevé une fois révélé.",
+    },
+    {
+      title: "Pas d'entretien simulé IA",
+      text: "Resume Worded se concentre sur les étapes CV et LinkedIn. Les candidats qui préparent l'entretien ont besoin d'un autre outil. Rezi propose des entretiens IA texte ; RejectCheck lance un entretien simulé IA vocal de 10 minutes taillé au poste exact et à tes lacunes détectées, avec débrief scoré sur la communication, la profondeur technique, et les signaux de leadership.",
+    },
+    {
+      title: "Pas d'audit GitHub ni code-portfolio",
+      text: "Resume Worded revue ton CV et ton profil LinkedIn — il ne regarde pas ton historique de commits GitHub, la qualité de tes repos, ni la distribution de langages. Pour les développeurs, ces signaux comptent souvent plus aux yeux des recruteurs que le poli LinkedIn. RejectCheck est le seul outil de cette liste qui audite GitHub face à l'offre exacte visée.",
+    },
+    {
+      title: 'Anglais uniquement',
+      text: "Resume Worded est anglais-first, comme Jobscan, Rezi, et Enhancv. Les candidats qui postulent en France, Belgique, Suisse, ou au Canada francophone ont besoin que l'analyse CV, les mots-clés, et l'audit de ton soient localisés. Seul RejectCheck est entièrement bilingue EN + FR de bout en bout.",
+    },
+  ],
+  comparisonBadge: "En un coup d'œil",
+  comparisonTitle: 'Resume Worded vs. 6 alternatives — comparaison rapide',
+  tableHeaders: {
+    tool: 'Outil',
+    freeTier: 'Tier gratuit',
+    paidEntry: 'Entrée payante',
+    ats: 'ATS',
+    aiInterview: 'Entretien IA',
+    githubAudit: 'Audit GitHub',
+    languages: 'Langues',
+  },
+  comparisonFootnote:
+    "Prix vérifiés en avril 2026. Resume Worded ne publie pas son prix Pro publiquement. Confirme le prix actuel sur le site de chaque vendeur avant achat.",
+  breakdownBadge: 'Détail par outil',
+  breakdownTitle: 'Chaque outil, en profondeur',
+  labels: {
+    freeTier: 'Tier gratuit',
+    paidEntry: "Point d'entrée payant",
+    keyFeatures: 'Features clés',
+    bestFor: 'Idéal pour',
+    honestWeakness: 'Faiblesse honnête',
+    usersClaimed: 'Utilisateurs revendiqués',
+  },
+  atsLabels: { yes: 'Oui', premium: 'Payant seul.', limited: 'Limité' },
+  boolLabels: { yes: 'Oui', no: 'Non' },
+  decisionBadge: 'Guide de décision',
+  decisionTitle: 'Choisis en 30 secondes',
+  decisionIfLabel: 'Si…',
+  decisionRows: [
+    {
+      scenario: "Tu veux juste une revue CV et LinkedIn gratuite ponctuelle",
+      pick: 'Resume Worded (reste en gratuit)',
+      why: "Le tier gratuit est vraiment utile. Évite juste d'upgrader avant de connaître le prix Pro.",
+    },
+    {
+      scenario: 'Tu veux des prix transparents + diagnostic CV complet',
+      pick: 'RejectCheck',
+      why: 'Prix publié publiquement (7,99 €/mois). Couvre ATS, lacunes, GitHub, LinkedIn, et entretien simulé.',
+    },
+    {
+      scenario: 'Tu es dev et tu veux un audit GitHub',
+      pick: 'RejectCheck',
+      why: "Le seul outil de cette liste qui audite l'historique de commits GitHub, la qualité des repos, et la distribution de langages face au rôle visé.",
+    },
+    {
+      scenario: 'Tu veux le scanner ATS le plus mature et la plus grande base de mots-clés',
+      pick: 'Jobscan',
+      why: "Leader de la catégorie. Revendique 3x plus de callbacks. Suite complète avec LinkedIn et tracker.",
+    },
+    {
+      scenario: "Tu veux un paiement unique, pas un abonnement",
+      pick: 'Rezi',
+      why: "149 $ licence à vie — unique dans cette catégorie.",
+    },
+    {
+      scenario: 'Tu veux un entretien simulé IA vocal',
+      pick: 'RejectCheck',
+      why: "Entretien vocal de 10 minutes taillé au poste exact et à tes lacunes détectées, avec débrief scoré.",
+    },
+    {
+      scenario: 'Tu postules dans des marchés francophones',
+      pick: 'RejectCheck',
+      why: "Bilingue EN + FR complet — UI, analyse, mots-clés, et audit de ton localisés.",
+    },
+  ],
+  faqBadge: 'FAQ',
+  faqTitle: 'Questions fréquentes',
+  faqItems: [
+    {
+      question: 'Quelle est la meilleure alternative gratuite à Resume Worded ?',
+      answer:
+        "Parmi les outils comparés ici, les tiers gratuits les plus utiles au-delà de Resume Worded sont : RejectCheck (1 diagnostic complet pour invités, 3 pour enregistrés — plus de profondeur qu'un simple score), Rezi (1 CV avec accès au Rezi Score), et Kickresume (4 templates avec téléchargements illimités). Si tu veux spécifiquement une revue LinkedIn gratuite, celle de Resume Worded est vraiment utile — mais RejectCheck audite aussi LinkedIn dans son diagnostic.",
+    },
+    {
+      question: 'Combien coûte vraiment Resume Worded Pro ?',
+      answer:
+        "Resume Worded ne publie pas le prix Pro sur son site marketing en avril 2026. Il faut créer un compte pour voir le coût. C'est un choix délibéré — la plupart des concurrents publient leurs prix transparents. Si la transparence tarifaire compte pour toi quand tu évalues des outils, RejectCheck (7,99 €/mois), Jobscan (tier mensuel sur jobscan.co), Rezi (29 $/mois ou 149 $ à vie), et Kickresume (8–24 €/mois) listent tous leurs prix publiquement.",
+    },
+    {
+      question: 'Pourquoi quitter Resume Worded pour une alternative ?',
+      answer:
+        "Raisons courantes : tu veux connaître le prix Pro avant de signer (transparence), tu as besoin d'une pratique d'entretien IA (non offerte par Resume Worded), tu as besoin d'un audit historique de commits GitHub (manquant), tu veux une analyse dans une autre langue que l'anglais, ou tu veux un seul outil qui couvre CV + LinkedIn + GitHub + entretien plutôt que quatre outils gratuits séparés.",
+    },
+    {
+      question: 'RejectCheck révise-t-il aussi mon LinkedIn ?',
+      answer:
+        "Oui. L'audit LinkedIn de RejectCheck va au-delà d'une revue de profil standalone — il recoupe ton profil LinkedIn (titre, résumé, titres d'expérience, recommandations) avec ton CV pour repérer les incohérences que les recruteurs flaggeraient. Là où Resume Worded revue LinkedIn en isolation, RejectCheck lit LinkedIn et CV ensemble et reporte les désalignements.",
+    },
+    {
+      question: 'Quelle alternative à Resume Worded est la meilleure pour les développeurs ?',
+      answer:
+        "RejectCheck est le seul outil de cette comparaison qui audite ton historique de commits GitHub, la qualité de tes repos, et la distribution de langages face au rôle visé, et qui visualise les lacunes techniques sur un radar. Pour les devs qui évaluent un outil ATS en parallèle de leur portfolio de code, l'audit GitHub est unique dans la catégorie.",
+    },
+    {
+      question: 'Puis-je obtenir une revue LinkedIn gratuite ailleurs ?',
+      answer:
+        "La revue LinkedIn de Resume Worded est gratuite et utile. RejectCheck revue aussi LinkedIn dans son diagnostic CV gratuit (1 gratuit pour invités, 3 pour enregistrés) — avec le bénéfice additionnel de recouper LinkedIn contre le CV pour détecter les incohérences. Jobscan a des outils d'optimisation LinkedIn payants. Pour un check LinkedIn gratuit ponctuel, Resume Worded est dur à battre.",
+    },
+    {
+      question: "Quels modèles IA utilise Resume Worded vs les alternatives ?",
+      answer:
+        "Resume Worded ne divulgue pas publiquement les modèles IA qui alimentent ses revues. RejectCheck documente ouvertement son architecture dual-IA : OpenAI GPT-4o pour l'ATS, l'audit CV, et les red flags, plus Anthropic Claude pour le radar technique, l'analyse des signaux GitHub/LinkedIn, et les recommandations de projets, en parallèle. Jobscan, Rezi, Kickresume, et Enhancv utilisent de l'IA mais de même ne divulguent pas les modèles spécifiques par feature.",
+    },
+  ],
+  ctaTitle: 'Essaie RejectCheck — gratuit, sans inscription, prix transparent',
+  ctaSubtitle:
+    "Téléverse ton CV, colle une offre, et obtiens un diagnostic complet en moins de 60 secondes : score ATS, radar des lacunes techniques, audit signaux GitHub et LinkedIn, et détection de red flags. Prix publié publiquement.",
+  ctaButton: 'Analyser mon CV gratuit',
+  ctaPricingLink: 'Ou voir tous les tarifs →',
+  footerCopyright: '© RejectCheck · Mis à jour le 24 avril 2026',
+  footerPrivacy: 'Confidentialité (RGPD)',
+  footerPricing: 'Tarifs',
+  competitors: COMPETITORS_FR,
+}
+
+export function getContent(locale: 'en' | 'fr'): AlternativesContent {
+  return locale === 'fr' ? contentFr : contentEn
 }
