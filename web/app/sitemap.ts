@@ -13,13 +13,15 @@ const ROUTES: RoutePath[] = [
   { path: '/analyze', changeFrequency: 'daily', priority: 0.9 },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/privacy', changeFrequency: 'monthly', priority: 0.3 },
+  // Jobscan alternatives is now bilingual EN+FR
+  { path: '/alternatives/jobscan', changeFrequency: 'monthly', priority: 0.7 },
 ]
 
 const LANGS = ['en', 'fr'] as const
 
 // English-only routes (no FR version yet). Emitted without hreflang alternates.
 const EN_ONLY_ROUTES: RoutePath[] = [
-  { path: '/alternatives/jobscan', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/alternatives/rezi', changeFrequency: 'monthly', priority: 0.7 },
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

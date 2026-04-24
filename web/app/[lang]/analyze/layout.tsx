@@ -3,6 +3,7 @@ import {
   JsonLd,
   SITE_URL,
   breadcrumbSchema,
+  howToSchema,
 } from '../../components/JsonLd'
 import { hasLocale, type Locale } from '../dictionaries'
 
@@ -76,9 +77,12 @@ export default async function AnalyzeLayout({
     },
   ])
 
+  const howTo = howToSchema(locale)
+
   return (
     <>
       <JsonLd id="ld-breadcrumb-analyze" data={breadcrumbs} />
+      <JsonLd id="ld-howto-analyze" data={howTo} />
       {children}
     </>
   )

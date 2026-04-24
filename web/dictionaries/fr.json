@@ -243,6 +243,91 @@
       "privacy": "Confidentialité",
       "terms": "CGU",
       "contact": "Contact"
+    },
+    "trust": {
+      "badge": "Faits vérifiables",
+      "title": "Pourquoi faire confiance au diagnostic",
+      "subtitle": "Aucun chiffre inventé. Chaque fait ci-dessous est vérifiable en lisant le code, la politique de confidentialité, ou le produit lui-même.",
+      "items": [
+        {
+          "label": "Pipeline dual-IA",
+          "claim": "GPT-4o et Anthropic Claude tournent en parallèle via Promise.allSettled à chaque analyse — pas un modèle unique qui fait tout, pas un fallback entre les deux.",
+          "source": "Documenté dans la politique de confidentialité et le code backend public",
+          "sourceLinks": [
+            {
+              "label": "Politique de confidentialité",
+              "href": "/fr/privacy"
+            },
+            {
+              "label": "GitHub",
+              "href": "https://github.com/GarnierLenny/RejectCheck"
+            }
+          ]
+        },
+        {
+          "label": "Analyse moyenne sous 60 secondes",
+          "claim": "Le temps de bout-en-bout (upload CV, analyse dual-IA, rendu) est mesuré sous une minute sur un couple CV + offre typique, parce que les deux modèles tournent en parallèle plutôt que séquentiellement.",
+          "source": "Observable en chronométrant n'importe quelle analyse sur /fr/analyse",
+          "sourceLinks": [
+            {
+              "label": "Tester",
+              "href": "/fr/analyze"
+            }
+          ]
+        },
+        {
+          "label": "Bilingue par construction",
+          "claim": "Anglais et français sont tous deux first-class : UI, sortie d'analyse, mots-clés, audit ton, et FAQ sont localisés — pas traduits automatiquement après coup. Jobscan, Rezi, Resume Worded, et Enhancv sont anglophones uniquement au 24 avril 2026.",
+          "source": "Compare /en/ et /fr/ côte à côte",
+          "sourceLinks": [
+            {
+              "label": "English",
+              "href": "/en"
+            },
+            {
+              "label": "Français",
+              "href": "/fr"
+            }
+          ]
+        },
+        {
+          "label": "Le tier gratuit est réel",
+          "claim": "Les utilisateurs invités ont 1 analyse complète sans inscription ni carte — pas un teaser bridé. Les utilisateurs enregistrés (gratuits) ont 3 analyses. Les sections Claude du tier gratuit sont floutées, pas absentes : l'analyse complète tourne et est sauvegardée — seules les vues premium sont masquées.",
+          "source": "Politique de confidentialité + documentation produit",
+          "sourceLinks": [
+            {
+              "label": "Tarifs",
+              "href": "/fr/pricing"
+            },
+            {
+              "label": "Politique de confidentialité",
+              "href": "/fr/privacy"
+            }
+          ]
+        },
+        {
+          "label": "Aucune rétention des données invités",
+          "claim": "Pour les utilisateurs non-enregistrés (invités), les CV et résultats d'analyse ne sont PAS stockés en base. Seule l'utilisation est suivie (par IP, pour faire respecter la limite de 1 analyse par invité). Les analyses des utilisateurs enregistrés sont sauvegardées dans leur dashboard par choix.",
+          "source": "Politique de confidentialité, section traitement des données",
+          "sourceLinks": [
+            {
+              "label": "Politique de confidentialité",
+              "href": "/fr/privacy"
+            }
+          ]
+        },
+        {
+          "label": "La garantie Hired est réelle",
+          "claim": "Si tu souscris Hired (11,99 €/mois) et décroches un job pendant un mois facturé actif, on rembourse ce mois sur réception d'une lettre d'offre acceptée. C'est une clause de garantie, pas du marketing.",
+          "source": "Politique de remboursement documentée dans la FAQ Tarifs",
+          "sourceLinks": [
+            {
+              "label": "FAQ Tarifs",
+              "href": "/fr/pricing#pricing-faq"
+            }
+          ]
+        }
+      ]
     }
   },
   "uploadForm": {
@@ -728,6 +813,36 @@
       "checkoutFailed": "Échec du paiement. Veuillez réessayer.",
       "noCheckoutUrl": "Impossible d'obtenir l'URL de paiement. Veuillez réessayer.",
       "processing": "Traitement..."
+    },
+    "faq": {
+      "title": "Questions fréquentes sur les tarifs",
+      "subtitle": "Annulation, remboursement, moyens de paiement, changement de plan.",
+      "items": [
+        {
+          "question": "Puis-je annuler mon abonnement RejectCheck à tout moment ?",
+          "answer": "Oui. Tu peux annuler ton abonnement Shortlisted (7,99 €/mois) ou Hired (11,99 €/mois) à tout moment depuis la page paramètres du compte. Tu gardes l'accès complet jusqu'à la fin du mois déjà facturé — aucun prorata."
+        },
+        {
+          "question": "Y a-t-il un essai gratuit ou un tier gratuit ?",
+          "answer": "Oui. Le plan REJECTED est gratuit à vie et inclut 1 analyse CV approfondie pour les invités (sans inscription) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, audit séniorité, et détection de red flags. Aucune carte requise."
+        },
+        {
+          "question": "Le plan Hired me rembourse vraiment si je décroche le job ?",
+          "answer": "Oui. Si tu décroches un job pendant ton mois Hired actif, envoie à support@rejectcheck.com la preuve (lettre d'offre acceptée ou contrat signé) et on rembourse le mois en cours. C'est une vraie garantie, pas du marketing."
+        },
+        {
+          "question": "Quels moyens de paiement sont acceptés ?",
+          "answer": "Les paiements passent par Stripe et acceptent toutes les cartes de crédit/débit majeures (Visa, Mastercard, American Express) + les prélèvements SEPA européens et Apple Pay / Google Pay selon les régions supportées par Stripe."
+        },
+        {
+          "question": "Puis-je changer entre les plans Shortlisted et Hired ?",
+          "answer": "Oui. Tu peux upgrader de Shortlisted vers Hired ou downgrader à tout moment depuis la page compte. Les upgrades sont facturés au prorata immédiatement ; les downgrades prennent effet à la fin du mois courant."
+        },
+        {
+          "question": "Comment RejectCheck se compare en prix à Jobscan, Rezi, et les autres ?",
+          "answer": "Shortlisted à 7,99 €/mois est en dessous de Rezi (29 $/mois), du tier mensuel Jobscan, et du Pro trimestriel d'Enhancv. Seul le tier annuel de Kickresume (équivalent 8 €/mois) est au même prix. RejectCheck est la seule option dans cette gamme de prix avec une analyse dual-IA (GPT-4o + Claude), un audit GitHub/LinkedIn, et un entretien simulé IA vocal."
+        }
+      ]
     }
   },
   "login": {

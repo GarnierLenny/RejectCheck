@@ -728,6 +728,79 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ VERIFIABLE FACTS ══════════════════════════════════════════════ */}
+      <section id="trust" className="border-t-[0.5px] border-rc-border bg-rc-surface-hero">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-24 md:py-28">
+          <FadeInSection>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-6 bg-rc-red" />
+              <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
+                {t.landing.trust.badge}
+              </span>
+            </div>
+            <h2 className="text-[32px] md:text-[44px] font-semibold leading-[1.12] tracking-[-0.02em] text-rc-text mb-4 max-w-[720px]">
+              {t.landing.trust.title}
+            </h2>
+            <p className="text-rc-muted text-[15px] md:text-[16px] leading-[1.7] max-w-[680px] mb-12">
+              {t.landing.trust.subtitle}
+            </p>
+          </FadeInSection>
+
+          <div className="grid md:grid-cols-2 gap-5">
+            {t.landing.trust.items.map((item, i) => (
+              <FadeInSection key={i} delay={i * 40}>
+                <article className="h-full rounded-2xl border border-rc-border bg-rc-surface p-6 md:p-7">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="font-mono text-[11px] text-rc-red tracking-[0.16em]">
+                      0{i + 1}
+                    </span>
+                    <div className="h-px flex-1 bg-rc-border" />
+                  </div>
+                  <h3 className="text-[18px] md:text-[19px] font-semibold tracking-[-0.01em] text-rc-text mb-3">
+                    {item.label}
+                  </h3>
+                  <p className="text-rc-muted text-[14px] md:text-[15px] leading-[1.6] mb-4">
+                    {item.claim}
+                  </p>
+                  <div className="pt-3 border-t border-rc-border">
+                    <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-rc-hint mb-2">
+                      Source
+                    </div>
+                    <p className="text-[13px] text-rc-muted leading-[1.5] mb-2">
+                      {item.source}
+                    </p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      {item.sourceLinks.map((lnk, j) => {
+                        const isExternal = lnk.href.startsWith('http')
+                        return isExternal ? (
+                          <a
+                            key={j}
+                            href={lnk.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-[11px] tracking-wide text-rc-red hover:underline"
+                          >
+                            {lnk.label} ↗
+                          </a>
+                        ) : (
+                          <Link
+                            key={j}
+                            href={lnk.href}
+                            className="font-mono text-[11px] tracking-wide text-rc-red no-underline hover:underline"
+                          >
+                            {lnk.label} →
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </article>
+              </FadeInSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ FAQ ═══════════════════════════════════════════════════════════ */}
       <section id="faq" className="border-t-[0.5px] border-rc-border bg-rc-bg">
         <div className="max-w-[900px] mx-auto px-5 md:px-[40px] py-24 md:py-28">

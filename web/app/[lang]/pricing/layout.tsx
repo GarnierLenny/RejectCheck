@@ -4,8 +4,9 @@ import {
   SITE_URL,
   productOffersSchema,
   breadcrumbSchema,
+  faqPageSchema,
 } from '../../components/JsonLd'
-import { hasLocale, type Locale } from '../dictionaries'
+import { getDictionary, hasLocale, type Locale } from '../dictionaries'
 
 type LangParams = { lang: string }
 
@@ -78,12 +79,17 @@ export default async function PricingLayout({
     },
   ])
 
+  const dict = await getDictionary(locale)
+  const faqItems = dict.pricing.faq.items
+  const faqSchema = faqPageSchema(faqItems)
+
   return (
     <>
       <JsonLd id="ld-breadcrumb-pricing" data={breadcrumbs} />
       {productSchemas.map((schema, i) => (
         <JsonLd key={i} id={`ld-product-${i}`} data={schema} />
       ))}
+      <JsonLd id="ld-faq-pricing" data={faqSchema} />
       {children}
     </>
   )

@@ -241,6 +241,48 @@ function PricingContent() {
         </div>
       </div>
 
+      {/* ═══ FAQ ═══════════════════════════════════════════════════════════ */}
+      <section id="pricing-faq" className="relative z-10 border-t border-rc-border bg-rc-bg">
+        <div className="max-w-[900px] mx-auto px-5 md:px-[40px] py-20 md:py-24">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-px w-6 bg-rc-red" />
+            <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">FAQ</span>
+          </div>
+          <h2 className="text-[28px] md:text-[40px] font-semibold leading-[1.12] tracking-[-0.02em] text-rc-text mb-4">
+            {t.pricing.faq.title}
+          </h2>
+          <p className="text-rc-muted text-[15px] md:text-[16px] leading-[1.7] max-w-[620px] mb-10">
+            {t.pricing.faq.subtitle}
+          </p>
+
+          <div className="space-y-3">
+            {t.pricing.faq.items.map((item, i) => (
+              <details
+                key={i}
+                className="group rounded-xl border border-rc-border bg-rc-surface open:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow"
+              >
+                <summary className="cursor-pointer list-none flex items-start justify-between gap-4 px-5 py-4 md:px-6 md:py-5">
+                  <h3 className="text-[16px] md:text-[17px] font-semibold text-rc-text leading-[1.35]">
+                    {item.question}
+                  </h3>
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 mt-1 font-mono text-[18px] text-rc-red transition-transform group-open:rotate-45 select-none"
+                  >
+                    +
+                  </span>
+                </summary>
+                <div className="px-5 pb-5 md:px-6 md:pb-6 -mt-1">
+                  <p className="text-rc-muted text-[14px] md:text-[15px] leading-[1.7]">
+                    {item.answer}
+                  </p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-rc-border bg-white/50 backdrop-blur-sm relative z-10">
         <div className="max-w-[1200px] mx-auto py-12 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">

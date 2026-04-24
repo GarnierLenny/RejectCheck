@@ -243,6 +243,91 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "contact": "Contact"
+    },
+    "trust": {
+      "badge": "Verifiable facts",
+      "title": "Why trust the diagnosis",
+      "subtitle": "No manufactured claims. Every fact below is verifiable by reading the code, the privacy policy, or the product itself.",
+      "items": [
+        {
+          "label": "Dual-AI pipeline",
+          "claim": "GPT-4o and Anthropic Claude run in parallel via Promise.allSettled on every analysis — not one model doing everything, not one model fallback-calling another.",
+          "source": "Documented in the privacy policy and the publicly accessible backend code",
+          "sourceLinks": [
+            {
+              "label": "Privacy policy",
+              "href": "/en/privacy"
+            },
+            {
+              "label": "GitHub",
+              "href": "https://github.com/GarnierLenny/RejectCheck"
+            }
+          ]
+        },
+        {
+          "label": "Average analysis under 60 seconds",
+          "claim": "End-to-end runtime (CV upload, dual-AI analysis, rendering) measured under a minute on a typical CV + job description pair, because both models run in parallel rather than sequentially.",
+          "source": "Observable by timing any analysis on /en/analyze",
+          "sourceLinks": [
+            {
+              "label": "Try it",
+              "href": "/en/analyze"
+            }
+          ]
+        },
+        {
+          "label": "Bilingual by design",
+          "claim": "English and French are both first-class: UI, analysis output, keywords, tone audit, and FAQ are localized — not machine-translated as an afterthought. Jobscan, Rezi, Resume Worded, and Enhancv are English-only as of April 2026.",
+          "source": "Compare /en/ and /fr/ side by side",
+          "sourceLinks": [
+            {
+              "label": "English",
+              "href": "/en"
+            },
+            {
+              "label": "Français",
+              "href": "/fr"
+            }
+          ]
+        },
+        {
+          "label": "Free tier is real",
+          "claim": "Guest users get 1 full analysis without signup or credit card — not a limited teaser. Registered (free) users get 3 analyses. Free-tier Claude sections are blurred, not absent: the full analysis runs and is saved — only the premium views are hidden until upgrade.",
+          "source": "Privacy policy documents data handling; product-marketing context documented in memory",
+          "sourceLinks": [
+            {
+              "label": "Pricing",
+              "href": "/en/pricing"
+            },
+            {
+              "label": "Privacy",
+              "href": "/en/privacy"
+            }
+          ]
+        },
+        {
+          "label": "No guest data retention",
+          "claim": "For unregistered (guest) users, CVs and analysis results are NOT stored in the database. Only usage is tracked (by IP, to enforce the 1-analysis-per-guest limit). Registered users' analyses are saved to their dashboard by choice.",
+          "source": "Privacy policy, section on data handling",
+          "sourceLinks": [
+            {
+              "label": "Privacy policy",
+              "href": "/en/privacy"
+            }
+          ]
+        },
+        {
+          "label": "Hired plan refund is genuine",
+          "claim": "If you subscribe to Hired (€11.99/month) and get hired during an active billing month, we refund that month on receipt of an accepted offer letter. This is a guarantee clause, not marketing language.",
+          "source": "Refund policy documented in the pricing FAQ",
+          "sourceLinks": [
+            {
+              "label": "Pricing FAQ",
+              "href": "/en/pricing#pricing-faq"
+            }
+          ]
+        }
+      ]
     }
   },
   "uploadForm": {
@@ -727,6 +812,36 @@
       "checkoutFailed": "Checkout failed. Please try again.",
       "noCheckoutUrl": "Failed to get checkout URL. Please try again.",
       "processing": "Processing..."
+    },
+    "faq": {
+      "title": "Pricing FAQ",
+      "subtitle": "Cancellation, refunds, payment methods, plan changes.",
+      "items": [
+        {
+          "question": "Can I cancel my RejectCheck subscription anytime?",
+          "answer": "Yes. You can cancel your Shortlisted (€7.99/month) or Hired (€11.99/month) subscription at any time from the account settings page. You keep full access until the end of the already-billed period — no prorated charges."
+        },
+        {
+          "question": "Is there a free trial or free tier?",
+          "answer": "Yes. The REJECTED plan is free forever and includes 1 deep CV analysis for guests (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, seniority audit, and red-flag detection. No credit card required."
+        },
+        {
+          "question": "Does the Hired plan actually refund me if I get hired?",
+          "answer": "Yes. If you get hired during your active Hired billing month, email support@rejectcheck.com with proof of offer (an accepted offer letter or signed contract) and we refund your current month. It is a genuine guarantee, not marketing language."
+        },
+        {
+          "question": "What payment methods does RejectCheck accept?",
+          "answer": "Payments are processed by Stripe and accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) plus European SEPA direct debit and Apple Pay / Google Pay where supported by Stripe in your region."
+        },
+        {
+          "question": "Can I switch between Shortlisted and Hired plans?",
+          "answer": "Yes. You can upgrade from Shortlisted to Hired or downgrade at any time from the account page. Upgrades are prorated immediately; downgrades take effect at the end of the current billing period."
+        },
+        {
+          "question": "How is RejectCheck priced compared to Jobscan, Rezi, and other alternatives?",
+          "answer": "Shortlisted at €7.99/month is below Rezi ($29/month), Jobscan's monthly tier, and Enhancv's Pro quarterly. Only Kickresume's annual tier (€8/month equivalent) is similarly priced. RejectCheck is the only option in this price range that includes dual-AI analysis (GPT-4o + Claude), GitHub/LinkedIn audit, and voice-based AI mock interview."
+        }
+      ]
     }
   },
   "login": {

@@ -206,3 +206,99 @@ export function faqPageSchema(
     })),
   }
 }
+
+export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
+  const analyzeUrl = `${SITE_URL}/${locale}/analyze`
+
+  if (locale === 'fr') {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      name: 'Comment analyser ton CV avec RejectCheck',
+      description:
+        "Diagnostic complet de ton CV face à une offre d'emploi en moins de 60 secondes : simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection de red flags.",
+      totalTime: 'PT1M',
+      inLanguage: 'fr',
+      tool: [{ '@type': 'HowToTool', name: 'RejectCheck' }],
+      supply: [
+        { '@type': 'HowToSupply', name: 'Ton CV au format PDF' },
+        { '@type': 'HowToSupply', name: "Une offre d'emploi (lien ou texte)" },
+      ],
+      step: [
+        {
+          '@type': 'HowToStep',
+          position: 1,
+          name: 'Téléverse ton CV',
+          text: 'Téléverse ton CV au format PDF. RejectCheck extrait automatiquement le texte, le formatage, et la structure. Aucune donnée CV n\'est stockée pour les utilisateurs non-enregistrés.',
+          url: `${analyzeUrl}#step-1`,
+        },
+        {
+          '@type': 'HowToStep',
+          position: 2,
+          name: "Colle l'offre d'emploi visée",
+          text: "Colle le texte de l'offre d'emploi ou un lien vers l'annonce. L'analyse est taillée spécifiquement à cette offre — pas un score générique.",
+          url: `${analyzeUrl}#step-2`,
+        },
+        {
+          '@type': 'HowToStep',
+          position: 3,
+          name: 'Ajoute GitHub et LinkedIn (optionnel)',
+          text: 'Ajoute optionnellement ton username GitHub et un export PDF LinkedIn. Claude auditera ton historique de commits, la qualité des repos, et recoupera ton profil LinkedIn avec ton CV pour détecter les incohérences.',
+          url: `${analyzeUrl}#step-3`,
+        },
+        {
+          '@type': 'HowToStep',
+          position: 4,
+          name: 'Reçois ton diagnostic complet',
+          text: 'En moins de 60 secondes, RejectCheck renvoie : score ATS, radar des lacunes techniques, audit GitHub/LinkedIn, red flags détectés, et corrections actionnables classées par priorité. Export PDF/Markdown disponible.',
+          url: `${analyzeUrl}#step-4`,
+        },
+      ],
+    }
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to analyze your CV with RejectCheck',
+    description:
+      'Get a full CV diagnosis against a specific job in under 60 seconds: ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, and red-flag detection.',
+    totalTime: 'PT1M',
+    inLanguage: 'en',
+    tool: [{ '@type': 'HowToTool', name: 'RejectCheck' }],
+    supply: [
+      { '@type': 'HowToSupply', name: 'Your CV as a PDF' },
+      { '@type': 'HowToSupply', name: 'A job description (link or pasted text)' },
+    ],
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Upload your CV',
+        text: 'Upload your CV as a PDF. RejectCheck automatically extracts text, formatting, and structure. No CV data is stored for unregistered users.',
+        url: `${analyzeUrl}#step-1`,
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Paste the target job description',
+        text: 'Paste the job description text or link. The analysis is tailored specifically to that job — not a generic score.',
+        url: `${analyzeUrl}#step-2`,
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: 'Add GitHub and LinkedIn (optional)',
+        text: "Optionally add your GitHub username and a LinkedIn PDF export. Claude audits your commit history, repo quality, and cross-references your LinkedIn profile with your CV to detect inconsistencies.",
+        url: `${analyzeUrl}#step-3`,
+      },
+      {
+        '@type': 'HowToStep',
+        position: 4,
+        name: 'Get your full diagnosis',
+        text: 'In under 60 seconds, RejectCheck returns: ATS score, technical skill gap radar, GitHub/LinkedIn audit, detected red flags, and actionable fixes ordered by priority. Export to PDF or Markdown.',
+        url: `${analyzeUrl}#step-4`,
+      },
+    ],
+  }
+}

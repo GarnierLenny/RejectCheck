@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import {
   JsonLd,
   SITE_URL,
@@ -12,9 +12,9 @@ import { getContent } from './content'
 
 type LangParams = { lang: string }
 
-const PAGE_PATH = '/alternatives/jobscan'
+const PAGE_PATH = '/alternatives/rezi'
 const LAST_UPDATED_ISO = '2026-04-24'
-const PUBLISHED_ISO = '2026-04-23'
+const PUBLISHED_ISO = '2026-04-24'
 
 export async function generateMetadata({
   params,
@@ -22,11 +22,10 @@ export async function generateMetadata({
   params: Promise<LangParams>
 }): Promise<Metadata> {
   const { lang } = await params
-  if (!hasLocale(lang)) return {}
+  if (!hasLocale(lang) || lang !== 'en') return {}
 
-  const locale = lang as Locale
-  const c = getContent(locale)
-  const canonical = `${SITE_URL}/${locale}${PAGE_PATH}`
+  const c = getContent('en')
+  const canonical = `${SITE_URL}/en${PAGE_PATH}`
 
   return {
     title: c.title,
@@ -34,17 +33,15 @@ export async function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        en: `${SITE_URL}/en${PAGE_PATH}`,
-        fr: `${SITE_URL}/fr${PAGE_PATH}`,
-        'x-default': `${SITE_URL}/en${PAGE_PATH}`,
+        en: canonical,
+        'x-default': canonical,
       },
     },
     openGraph: {
       title: c.title,
       description: c.description,
       url: canonical,
-      locale: locale === 'fr' ? 'fr_FR' : 'en_US',
-      alternateLocale: locale === 'fr' ? ['en_US'] : ['fr_FR'],
+      locale: 'en_US',
       type: 'article',
     },
     twitter: {
@@ -55,7 +52,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function JobscanAlternativesPage({
+export default async function ReziAlternativesPage({
   params,
 }: {
   params: Promise<LangParams>
@@ -63,7 +60,12 @@ export default async function JobscanAlternativesPage({
   const { lang } = await params
   if (!hasLocale(lang)) notFound()
 
-  const locale = lang as Locale
+  // FR version not yet translated — redirect to EN
+  if (lang === 'fr') {
+    redirect('/en/alternatives/rezi')
+  }
+
+  const locale: Locale = 'en'
   const c = getContent(locale)
   const canonical = `${SITE_URL}/${locale}${PAGE_PATH}`
 
@@ -109,20 +111,20 @@ export default async function JobscanAlternativesPage({
     datePublished: PUBLISHED_ISO,
     dateModified: LAST_UPDATED_ISO,
     mainEntityOfPage: canonical,
-    inLanguage: locale,
+    inLanguage: 'en',
     about: {
       '@type': 'SoftwareApplication',
-      name: 'Jobscan',
-      url: 'https://www.jobscan.co',
+      name: 'Rezi',
+      url: 'https://www.rezi.ai',
     },
   }
 
   return (
     <>
-      <JsonLd id="ld-breadcrumb-alt-jobscan" data={breadcrumbs} />
-      <JsonLd id="ld-faq-alt-jobscan" data={faqSchema} />
-      <JsonLd id="ld-itemlist-alt-jobscan" data={itemListSchema} />
-      <JsonLd id="ld-article-alt-jobscan" data={articleSchema} />
+      <JsonLd id="ld-breadcrumb-alt-rezi" data={breadcrumbs} />
+      <JsonLd id="ld-faq-alt-rezi" data={faqSchema} />
+      <JsonLd id="ld-itemlist-alt-rezi" data={itemListSchema} />
+      <JsonLd id="ld-article-alt-rezi" data={articleSchema} />
       <AlternativesView content={c} locale={locale} />
     </>
   )
