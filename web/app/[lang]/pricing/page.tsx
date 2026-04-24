@@ -289,7 +289,8 @@ function PricingContent() {
             <Image src="/RejectCheck_500_bg_less.png" alt="Logo" width={32} height={32} />
             <div className="font-mono text-[12px] text-rc-hint">{t.pricing.footer.copyright}</div>
           </div>
-          <div className="flex gap-8">
+          <div className="flex gap-8 flex-wrap justify-center">
+            <Link href={localePath("/for-teams")} className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">{t.pricing.footer.forTeams}</Link>
             <Link href={localePath("/alternatives")} className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">{t.pricing.footer.alternatives}</Link>
             <Link href={localePath("/privacy")} className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">{t.pricing.footer.privacy}</Link>
             <a href="#" className="font-mono text-[11px] tracking-widest text-rc-muted no-underline hover:text-rc-red transition-colors uppercase">{t.pricing.footer.terms}</a>

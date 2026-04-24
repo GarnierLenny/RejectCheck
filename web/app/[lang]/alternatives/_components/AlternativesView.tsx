@@ -59,6 +59,8 @@ export function AlternativesView({
     locale === 'fr' ? 'Anglais uniquement' : 'English only'
   const altHubLabel =
     locale === 'fr' ? 'Comparaisons' : 'Comparisons'
+  const forTeamsHref = `/${locale}/for-teams`
+  const forTeamsLabel = locale === 'fr' ? 'Pour les équipes' : 'For teams'
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen">
@@ -479,7 +481,13 @@ export function AlternativesView({
       {/* FOOTER */}
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">{c.footerCopyright}</div>
-        <div className="flex gap-6">
+        <div className="flex gap-6 flex-wrap justify-center">
+          <Link
+            href={forTeamsHref}
+            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
+          >
+            {forTeamsLabel}
+          </Link>
           <Link
             href={altHubHref}
             className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"

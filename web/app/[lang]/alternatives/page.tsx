@@ -286,7 +286,13 @@ export default async function AlternativesHubPage({
       {/* FOOTER */}
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">{c.footerCopyright}</div>
-        <div className="flex gap-6">
+        <div className="flex gap-6 flex-wrap justify-center">
+          <Link
+            href={`/${locale}/for-teams`}
+            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
+          >
+            {locale === 'fr' ? 'Pour les équipes' : 'For teams'}
+          </Link>
           <Link
             href={`/${locale}/privacy`}
             className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"

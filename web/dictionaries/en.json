@@ -243,7 +243,8 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "contact": "Contact",
-      "alternatives": "Comparisons"
+      "alternatives": "Comparisons",
+      "forTeams": "For teams"
     },
     "trust": {
       "badge": "Verifiable facts",
@@ -565,7 +566,8 @@
       "copyright": "RejectCheck © 2026",
       "privacy": "Privacy",
       "terms": "Terms",
-      "alternatives": "Comparisons"
+      "alternatives": "Comparisons",
+      "forTeams": "For teams"
     }
   },
   "atsTab": {
@@ -757,7 +759,8 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "contact": "Contact",
-      "alternatives": "Comparisons"
+      "alternatives": "Comparisons",
+      "forTeams": "For teams"
     },
     "plans": {
       "free": {
@@ -1099,5 +1102,177 @@
         ]
       }
     ]
+  },
+  "forTeams": {
+    "meta": {
+      "title": "RejectCheck for Teams — Career Coaches, Bootcamps & Universities",
+      "description": "Bulk licensing of RejectCheck's dual-AI CV diagnosis for career coaches, coding bootcamps, university career centers, and outplacement firms. Volume pricing, per-seat billing, custom invoicing."
+    },
+    "hero": {
+      "badge": "For career coaches · bootcamps · universities · outplacement",
+      "title": "RejectCheck for teams serving job seekers",
+      "subtitle": "Help your clients, students, or candidates land interviews faster. One dual-AI CV diagnosis pipeline (GPT-4o + Claude), bulk licensing, and custom pricing for teams of 10 to 10,000.",
+      "availabilityNote": "Currently early-access for teams. Individual plans shipping now; team infrastructure provisioned manually by our team on request — no self-serve team dashboard yet."
+    },
+    "breadcrumb": {
+      "home": "Home",
+      "current": "For Teams"
+    },
+    "segments": {
+      "badge": "Who it's for",
+      "title": "Four teams already using tools like this",
+      "items": [
+        {
+          "label": "Career coaches",
+          "text": "Manage 10-50 clients? Show them an objective ATS score, technical skill gap radar, and GitHub audit — not just your opinion. Your coaching becomes data-driven. Volume pricing from 10 seats."
+        },
+        {
+          "label": "Coding bootcamps",
+          "text": "Graduate better candidates. Give your students unlimited CV diagnoses during career week so your career managers focus on high-value coaching, not repetitive reviews. Bulk licensing for 30-500 seats per cohort."
+        },
+        {
+          "label": "University career centers",
+          "text": "Self-service CV diagnosis for your entire student body. Advisors handle high-value conversations; students iterate on their own. Volume licensing for 1,000+ seats with custom terms."
+        },
+        {
+          "label": "Outplacement & recruiting firms",
+          "text": "Equip your career transition consultants with a data-driven CV tool. Per-consultant licensing. White-label PDF reports available on request for enterprise contracts."
+        }
+      ]
+    },
+    "howItWorks": {
+      "badge": "How it works today",
+      "title": "Three steps, no self-serve dashboard required",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Contact us with your use case",
+          "text": "Email business@rejectcheck.com or book a 15-min call. Tell us your segment (coach, bootcamp, university, outplacement), expected number of seats, and billing preference."
+        },
+        {
+          "n": "02",
+          "title": "We onboard your team within 24h",
+          "text": "We provision the accounts for your clients/students, send a custom Stripe invoice (PO-friendly), and share onboarding guides for your users. No CSV import needed yet — we do it for you."
+        },
+        {
+          "n": "03",
+          "title": "Your users run unlimited analyses",
+          "text": "Each seat gets the full dual-AI RejectCheck experience: ATS simulation, skill gap radar, GitHub/LinkedIn audit, red-flag detection, CV rewrite, and AI mock interview. Same features as individual Hired-tier users."
+        }
+      ]
+    },
+    "status": {
+      "badge": "Transparent roadmap",
+      "title": "What's available today vs. on the roadmap",
+      "availableTodayLabel": "Available today",
+      "availableToday": [
+        "Unlimited analyses per seat",
+        "Manual account provisioning within 24h",
+        "Monthly or annual Stripe invoicing (PO numbers supported)",
+        "Custom volume pricing",
+        "Full dual-AI diagnosis per user (GPT-4o + Claude)",
+        "Email support with 24h SLA"
+      ],
+      "roadmapLabel": "On the roadmap (building as demand grows)",
+      "roadmap": [
+        "Team admin dashboard (overview, usage analytics)",
+        "Bulk CSV onboarding",
+        "SSO — Google Workspace, Okta, Azure AD",
+        "White-label PDF reports with your branding",
+        "Per-team usage analytics",
+        "REST API access for integration"
+      ]
+    },
+    "pricing": {
+      "badge": "Pricing",
+      "title": "Volume pricing — contact us for a quote",
+      "subtitle": "No self-serve team purchase yet. We quote based on seats, term length, and segment. Typical deals close within 3 business days.",
+      "tiers": [
+        {
+          "name": "Team",
+          "range": "10–50 seats",
+          "billing": "Monthly billing",
+          "features": [
+            "Best for career coaches and small consulting firms",
+            "Per-seat Stripe invoicing",
+            "Cancel any month",
+            "Same dual-AI features as individual Hired tier"
+          ],
+          "cta": "Request quote"
+        },
+        {
+          "name": "Bootcamp / University",
+          "range": "100–1,000 seats",
+          "billing": "Annual or monthly",
+          "features": [
+            "Best for coding bootcamps and university career centers",
+            "Cohort-based seat provisioning",
+            "Usage reports on request",
+            "Onboarding call + career manager training"
+          ],
+          "cta": "Request quote"
+        },
+        {
+          "name": "Enterprise",
+          "range": "1,000+ seats",
+          "billing": "Custom terms",
+          "features": [
+            "Best for outplacement firms, large universities, multinational HR",
+            "Custom contract and SLA",
+            "White-label and SSO as custom integration",
+            "Dedicated account manager"
+          ],
+          "cta": "Contact sales"
+        }
+      ]
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Questions from teams evaluating RejectCheck",
+      "items": [
+        {
+          "question": "How are team accounts provisioned today?",
+          "answer": "Manually, by our team, within 24 hours of your first invoice payment. We create each user account in our Supabase Auth backend and email the credentials to you or your users directly. No team dashboard or bulk CSV import is live yet — that's on the roadmap."
+        },
+        {
+          "question": "Can I get a custom invoice with a PO number for accounting?",
+          "answer": "Yes. Stripe supports custom invoices with PO numbers, VAT fields, and custom memo. Tell us your accounting requirements at the onboarding call and we handle it. Net-30 terms available for annual contracts on the Bootcamp/University and Enterprise tiers."
+        },
+        {
+          "question": "Do you support SSO (Okta, Azure AD, Google Workspace)?",
+          "answer": "Not as a standard feature yet. SSO is on the roadmap and available as a custom integration for Enterprise contracts — quote includes the engineering work. For Team and Bootcamp/University tiers, users sign in with email + password like individual users."
+        },
+        {
+          "question": "Can I cancel monthly team licenses at any time?",
+          "answer": "Yes, same terms as individual plans. Cancel anytime from the billing contact; access continues until the end of the already-paid period. For annual contracts, cancellation is available at renewal. We do not lock teams into multi-year minimums."
+        },
+        {
+          "question": "Do team members get the same features as individual Hired-tier users?",
+          "answer": "Yes — full dual-AI diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, CV rewrite, and voice-based AI mock interview. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
+        },
+        {
+          "question": "Can we white-label the PDF exports with our logo?",
+          "answer": "Not as a standard feature yet. Available today as custom engineering work for Enterprise contracts. On the roadmap as a standard feature — we'll build it once we have 3+ teams requesting it."
+        },
+        {
+          "question": "How do you handle candidate data privacy?",
+          "answer": "Per our privacy policy, CV data is processed by OpenAI GPT-4o and Anthropic Claude APIs for analysis. For team deployments, we sign custom DPAs on request. Candidate-facing users control their own data (they can delete anytime). For universities and enterprise contracts, GDPR-compliant processing is documented and auditable."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Ready to talk?",
+      "subtitle": "Email us your use case and expected seat count — we reply within 24 hours with a custom quote.",
+      "emailLabel": "Email business@rejectcheck.com",
+      "email": "business@rejectcheck.com",
+      "calendlyLabel": "Book a 15-min call →",
+      "calendlyUrl": ""
+    },
+    "footer": {
+      "copyright": "© RejectCheck · For Teams",
+      "privacy": "Privacy (GDPR)",
+      "pricing": "Individual Pricing",
+      "alternatives": "Comparisons"
+    }
   }
 }

@@ -243,7 +243,8 @@
       "privacy": "Confidentialité",
       "terms": "CGU",
       "contact": "Contact",
-      "alternatives": "Comparaisons"
+      "alternatives": "Comparaisons",
+      "forTeams": "Pour les équipes"
     },
     "trust": {
       "badge": "Faits vérifiables",
@@ -565,7 +566,8 @@
       "copyright": "RejectCheck © 2026",
       "privacy": "Confidentialité",
       "terms": "Conditions",
-      "alternatives": "Comparaisons"
+      "alternatives": "Comparaisons",
+      "forTeams": "Pour les équipes"
     }
   },
   "atsTab": {
@@ -757,7 +759,8 @@
       "privacy": "Confidentialité",
       "terms": "CGU",
       "contact": "Contact",
-      "alternatives": "Comparaisons"
+      "alternatives": "Comparaisons",
+      "forTeams": "Pour les équipes"
     },
     "plans": {
       "free": {
@@ -1100,5 +1103,177 @@
         ]
       }
     ]
+  },
+  "forTeams": {
+    "meta": {
+      "title": "RejectCheck pour les équipes — coaches, bootcamps & universités",
+      "description": "Licences en volume du diagnostic CV dual-IA RejectCheck pour career coaches, bootcamps de code, services carrière universitaires, et firmes d'outplacement. Prix au volume, facturation au siège, facturation personnalisée."
+    },
+    "hero": {
+      "badge": "Pour career coaches · bootcamps · universités · outplacement",
+      "title": "RejectCheck pour les équipes qui servent des candidats",
+      "subtitle": "Aide tes clients, étudiants, ou candidats à décrocher des entretiens plus vite. Un seul pipeline de diagnostic dual-IA (GPT-4o + Claude), licences en volume, et prix sur mesure pour des équipes de 10 à 10 000 seats.",
+      "availabilityNote": "Actuellement en early-access pour les équipes. Plans individuels en production ; infrastructure équipe provisionnée manuellement par notre équipe sur demande — pas encore de dashboard team self-serve."
+    },
+    "breadcrumb": {
+      "home": "Accueil",
+      "current": "Pour les équipes"
+    },
+    "segments": {
+      "badge": "Pour qui",
+      "title": "Quatre types d'équipes qui utilisent déjà ce genre d'outil",
+      "items": [
+        {
+          "label": "Career coaches",
+          "text": "Tu gères 10-50 clients ? Montre-leur un score ATS objectif, un radar des lacunes techniques, et un audit GitHub — pas juste ton avis. Ton coaching devient data-driven. Prix au volume à partir de 10 seats."
+        },
+        {
+          "label": "Bootcamps de code",
+          "text": "Gradue de meilleurs candidats. Donne à tes étudiants des diagnostics CV illimités pendant la career week pour que tes career managers se concentrent sur du coaching à forte valeur, pas des revues répétitives. Licences en volume 30-500 seats par cohort."
+        },
+        {
+          "label": "Services carrière universitaires",
+          "text": "Diagnostic CV en self-service pour l'ensemble de ton corps étudiant. Les advisors gèrent les conversations à forte valeur ; les étudiants itèrent seuls. Licences en volume pour 1 000+ seats avec termes custom."
+        },
+        {
+          "label": "Outplacement & recruiting firms",
+          "text": "Équipe tes consultants de transition carrière avec un outil CV data-driven. Licence par consultant. Rapports PDF white-label disponibles sur demande pour contrats enterprise."
+        }
+      ]
+    },
+    "howItWorks": {
+      "badge": "Comment ça marche aujourd'hui",
+      "title": "Trois étapes, sans dashboard self-serve",
+      "steps": [
+        {
+          "n": "01",
+          "title": "Contacte-nous avec ton cas d'usage",
+          "text": "Email business@rejectcheck.com ou book un call de 15 min. Dis-nous ton segment (coach, bootcamp, université, outplacement), le nombre de seats attendu, et ta préférence de facturation."
+        },
+        {
+          "n": "02",
+          "title": "On onboarde ton équipe sous 24h",
+          "text": "On provisionne les comptes pour tes clients/étudiants, on envoie un invoice Stripe custom (PO-friendly), et on partage des guides d'onboarding pour tes users. Pas d'import CSV requis — on le fait pour toi."
+        },
+        {
+          "n": "03",
+          "title": "Tes users lancent des analyses illimitées",
+          "text": "Chaque siège a l'expérience RejectCheck dual-IA complète : simulation ATS, radar des lacunes, audit GitHub/LinkedIn, détection de red flags, réécriture de CV, et entretien simulé IA. Mêmes features que les users Hired individuels."
+        }
+      ]
+    },
+    "status": {
+      "badge": "Roadmap transparente",
+      "title": "Ce qui est disponible aujourd'hui vs. à venir",
+      "availableTodayLabel": "Disponible aujourd'hui",
+      "availableToday": [
+        "Analyses illimitées par siège",
+        "Provisioning manuel des comptes sous 24h",
+        "Facturation Stripe mensuelle ou annuelle (PO supportés)",
+        "Prix custom au volume",
+        "Diagnostic dual-IA complet par user (GPT-4o + Claude)",
+        "Support email avec SLA 24h"
+      ],
+      "roadmapLabel": "À venir (construit quand la demande monte)",
+      "roadmap": [
+        "Dashboard admin team (vue d'ensemble, analytics d'usage)",
+        "Onboarding CSV bulk",
+        "SSO — Google Workspace, Okta, Azure AD",
+        "Rapports PDF white-label avec ton branding",
+        "Analytics d'usage par team",
+        "Accès API REST pour intégration"
+      ]
+    },
+    "pricing": {
+      "badge": "Tarifs",
+      "title": "Prix au volume — contacte-nous pour un devis",
+      "subtitle": "Pas encore d'achat team self-serve. On établit un devis basé sur le nombre de sièges, la durée, et le segment. Les deals typiques se closent en 3 jours ouvrés.",
+      "tiers": [
+        {
+          "name": "Team",
+          "range": "10–50 seats",
+          "billing": "Facturation mensuelle",
+          "features": [
+            "Idéal pour career coaches et petits cabinets de conseil",
+            "Facturation Stripe par siège",
+            "Résiliable chaque mois",
+            "Mêmes features dual-IA que le tier Hired individuel"
+          ],
+          "cta": "Demander un devis"
+        },
+        {
+          "name": "Bootcamp / Université",
+          "range": "100–1 000 seats",
+          "billing": "Annuel ou mensuel",
+          "features": [
+            "Idéal pour bootcamps de code et services carrière universitaires",
+            "Provisioning par cohort",
+            "Rapports d'usage sur demande",
+            "Call d'onboarding + formation career manager"
+          ],
+          "cta": "Demander un devis"
+        },
+        {
+          "name": "Enterprise",
+          "range": "1 000+ seats",
+          "billing": "Termes personnalisés",
+          "features": [
+            "Idéal pour firmes d'outplacement, grandes universités, RH multinationales",
+            "Contrat et SLA custom",
+            "White-label et SSO en intégration custom",
+            "Account manager dédié"
+          ],
+          "cta": "Contacter le commercial"
+        }
+      ]
+    },
+    "faq": {
+      "badge": "FAQ",
+      "title": "Questions des équipes qui évaluent RejectCheck",
+      "items": [
+        {
+          "question": "Comment sont provisionnés les comptes team aujourd'hui ?",
+          "answer": "Manuellement, par notre équipe, dans les 24 heures suivant le paiement du premier invoice. On crée chaque compte dans notre backend Supabase Auth et on t'envoie les credentials directement. Pas encore de dashboard team ni d'import CSV bulk — c'est sur la roadmap."
+        },
+        {
+          "question": "Puis-je avoir un invoice custom avec numéro de PO pour la compta ?",
+          "answer": "Oui. Stripe supporte les invoices custom avec numéro de PO, champs TVA, et mémo personnalisé. Indique-nous tes exigences compta au call d'onboarding, on gère. Termes Net-30 disponibles sur les contrats annuels Bootcamp/Université et Enterprise."
+        },
+        {
+          "question": "Supportez-vous le SSO (Okta, Azure AD, Google Workspace) ?",
+          "answer": "Pas encore comme feature standard. Le SSO est sur la roadmap et disponible comme intégration custom pour les contrats Enterprise — le devis inclut le travail d'ingénierie. Pour les tiers Team et Bootcamp/Université, les users se loggent avec email + mot de passe comme les users individuels."
+        },
+        {
+          "question": "Puis-je résilier les licences team mensuelles à tout moment ?",
+          "answer": "Oui, mêmes termes que les plans individuels. Résiliation à tout moment depuis le contact billing ; l'accès continue jusqu'à la fin de la période déjà payée. Pour les contrats annuels, la résiliation est possible au renouvellement. On ne verrouille pas les équipes dans des minimums multi-annuels."
+        },
+        {
+          "question": "Les membres de l'équipe ont-ils les mêmes features que les users Hired individuels ?",
+          "answer": "Oui — diagnostic dual-IA complet incluant audit GitHub, recoupement LinkedIn, radar des lacunes techniques, détection de red flags, réécriture de CV, et entretien simulé IA vocal. La seule différence c'est la facturation (tu payes, pas eux) et le provisioning (on crée les comptes, pas de self-signup)."
+        },
+        {
+          "question": "Peut-on white-label les exports PDF avec notre logo ?",
+          "answer": "Pas encore comme feature standard. Disponible aujourd'hui comme travail d'ingénierie custom pour les contrats Enterprise. Sur la roadmap comme feature standard — on la buildera quand 3+ équipes l'auront demandée."
+        },
+        {
+          "question": "Comment gérez-vous la confidentialité des données candidats ?",
+          "answer": "Selon notre politique de confidentialité, les données CV sont traitées par les APIs OpenAI GPT-4o et Anthropic Claude pour l'analyse. Pour les déploiements team, on signe des DPA custom sur demande. Les users candidats contrôlent leurs données (suppression à tout moment). Pour les contrats universités et enterprise, le traitement RGPD-compliant est documenté et auditable."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Prêt à discuter ?",
+      "subtitle": "Email-nous ton cas d'usage et le nombre de seats attendu — on répond sous 24 heures avec un devis custom.",
+      "emailLabel": "Écrire à business@rejectcheck.com",
+      "email": "business@rejectcheck.com",
+      "calendlyLabel": "Book un call de 15 min →",
+      "calendlyUrl": ""
+    },
+    "footer": {
+      "copyright": "© RejectCheck · Pour les équipes",
+      "privacy": "Confidentialité (RGPD)",
+      "pricing": "Tarifs individuels",
+      "alternatives": "Comparaisons"
+    }
   }
 }

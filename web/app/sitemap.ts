@@ -13,6 +13,8 @@ const ROUTES: RoutePath[] = [
   { path: '/analyze', changeFrequency: 'daily', priority: 0.9 },
   { path: '/pricing', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/privacy', changeFrequency: 'monthly', priority: 0.3 },
+  // B2B page (bilingual EN+FR)
+  { path: '/for-teams', changeFrequency: 'monthly', priority: 0.75 },
   // Alternatives hub page (bilingual EN+FR)
   { path: '/alternatives', changeFrequency: 'weekly', priority: 0.75 },
   // All alternatives pages are bilingual EN+FR
