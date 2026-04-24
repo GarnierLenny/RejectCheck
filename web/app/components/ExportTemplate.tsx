@@ -533,7 +533,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
 
   const jobTitle = (result as any).job_details?.title || result.seniority_analysis.expected || "Analysis Result";
   const company = (result as any).job_details?.company || "";
-  const jobDisplay = company ? `${jobTitle} — ${company}` : jobTitle;
+  const jobDisplay = company ? `${jobTitle} - ${company}` : jobTitle;
 
   const actionPlan: { week: string[]; month: string[]; longTerm: string[] } = {
     week: [],
@@ -629,7 +629,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           </View>
           {result.confidence && (
             <Text style={{ fontSize: 10, color: "#888", marginTop: 4 }}>
-              Confidence: {result.confidence.score}% — {stripMd(result.confidence.reason)}
+              Confidence: {result.confidence.score}% - {stripMd(result.confidence.reason)}
             </Text>
           )}
         </View>
@@ -673,7 +673,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                 <View key={i} style={{ ...styles.jdSkillRow, backgroundColor: i % 2 === 0 ? "#fafafa" : "white", paddingHorizontal: 12 }}>
                   <Text style={{ fontSize: 11, fontWeight: 600, flex: 1, color: "#1a1917" }}>{skill.skill}</Text>
                   <Text style={{ fontSize: 11, width: 24, textAlign: "center", color: skill.found ? "#166534" : redColor }}>{skill.found ? "✓" : "✗"}</Text>
-                  <Text style={{ fontSize: 9, color: "#94a3b8", flex: 2, textAlign: "right" }}>{skill.evidence || "—"}</Text>
+                  <Text style={{ fontSize: 9, color: "#94a3b8", flex: 2, textAlign: "right" }}>{skill.evidence || "-"}</Text>
                 </View>
               ))}
             </View>
@@ -770,7 +770,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           {result.seniority_analysis.fix?.steps?.length > 0 && (
             <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
-                Fix: {stripMd(result.seniority_analysis.fix.summary)} — {result.seniority_analysis.fix.time_required}
+                Fix: {stripMd(result.seniority_analysis.fix.summary)} - {result.seniority_analysis.fix.time_required}
               </Text>
               {(result.seniority_analysis.fix.steps as string[]).map((step, i) => (
                 <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 3 }}>
@@ -813,7 +813,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           {result.cv_tone.fix?.steps?.length > 0 && (
             <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
-                Fix: {stripMd(result.cv_tone.fix.summary)} — {result.cv_tone.fix.time_required}
+                Fix: {stripMd(result.cv_tone.fix.summary)} - {result.cv_tone.fix.time_required}
               </Text>
               {(result.cv_tone.fix.steps as string[]).map((step, i) => (
                 <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 3 }}>
@@ -900,7 +900,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                       </View>
                     ))
                   ) : (
-                    <Text style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", padding: 16, textAlign: "center" }}>No issues detected — strong signal.</Text>
+                    <Text style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", padding: 16, textAlign: "center" }}>No issues detected - strong signal.</Text>
                   )}
                 </View>
               )}
@@ -909,8 +909,8 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           return (
             <View style={styles.section}>
               <Text style={styles.h3}>External Signals</Text>
-              {renderSignal("GitHub Signal", gh, ghHasData, "No GitHub username provided — deep technical verification skipped.")}
-              {renderSignal("LinkedIn Signal", li, liHasData, "No LinkedIn PDF provided — cross-reference verification skipped.")}
+              {renderSignal("GitHub Signal", gh, ghHasData, "No GitHub username provided - deep technical verification skipped.")}
+              {renderSignal("LinkedIn Signal", li, liHasData, "No LinkedIn PDF provided - cross-reference verification skipped.")}
             </View>
           );
         })()}
@@ -1032,7 +1032,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
             <View style={styles.actionGroup}>
               <View style={styles.actionGroupHeader}>
                 <View style={{ ...styles.actionDot, backgroundColor: redColor }} />
-                <Text style={{ ...styles.actionGroupTitle, color: redColor }}>Priority — Within 7 Days</Text>
+                <Text style={{ ...styles.actionGroupTitle, color: redColor }}>Priority - Within 7 Days</Text>
               </View>
               {actionPlan.week.map((step, i) => (
                 <View key={i} style={styles.actionItem}>
@@ -1047,7 +1047,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
             <View style={styles.actionGroup}>
               <View style={styles.actionGroupHeader}>
                 <View style={{ ...styles.actionDot, backgroundColor: "#d97706" }} />
-                <Text style={{ ...styles.actionGroupTitle, color: "#b45309" }}>Short Term — Within 30 Days</Text>
+                <Text style={{ ...styles.actionGroupTitle, color: "#b45309" }}>Short Term - Within 30 Days</Text>
               </View>
               {actionPlan.month.map((step, i) => (
                 <View key={i} style={styles.actionItem}>
@@ -1076,7 +1076,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
 
         {/* 10. Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Generated by RejectCheck — rejectcheck.com</Text>
+          <Text style={styles.footerText}>Generated by RejectCheck - rejectcheck.com</Text>
           <Text style={styles.footerTagline}>No dev should have to apply blind.</Text>
         </View>
       </Page>

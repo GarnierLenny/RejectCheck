@@ -521,7 +521,7 @@ function AccountPageContent() {
                       >
                         <div className="flex items-center gap-5">
                           <div className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-lg font-black ${scoreColor}`}>
-                            {score !== null ? score : "—"}
+                            {score !== null ? score : "-"}
                           </div>
                           <div className="space-y-0.5">
                             <p className="font-bold text-rc-text tracking-tight group-hover/card:text-rc-red transition-colors">

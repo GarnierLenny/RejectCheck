@@ -1,4 +1,4 @@
-# Pricing — RejectCheck
+# Pricing - RejectCheck
 
 RejectCheck offers three tiers: a free plan, and two paid subscription plans. All paid plans are billed monthly in EUR via Stripe and can be cancelled at any time.
 
@@ -19,10 +19,10 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
   - Score breakdown across ATS, tone, red flags, and overall fit
   - Hidden red flags detection (employment gaps, vague titles, passive voice)
   - Actionable fixes list
-  - GitHub and LinkedIn signal audit (limited view for free tier — key insights blurred, teaser visible)
+  - GitHub and LinkedIn signal audit (limited view for free tier - key insights blurred, teaser visible)
   - Project recommendations (limited view for free tier)
   - Export as PDF or Markdown
-- **Limitations**: Technical skill radar, GitHub/LinkedIn deep audit, and project recommendations are shown as blurred teasers — full Claude-powered insights require a paid plan. AI Interview and CV Rewrite are not included.
+- **Limitations**: Technical skill radar, GitHub/LinkedIn deep audit, and project recommendations are shown as blurred teasers - full Claude-powered insights require a paid plan. AI Interview and CV Rewrite are not included.
 - **CTA**: Start for free → https://rejectcheck.com/en/analyze
 
 ---
@@ -37,8 +37,8 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
   - Unlimited deep analyses
   - Score Evolution Tracker (compare scores across iterations)
   - Full analysis history saved to dashboard
-  - **AI Interview** — 10-minute voice-based mock interview tailored to the specific job, ending with a scored debrief
-  - **CV Rewrite Mode** — one-click surgical rewrite with keywords injected, passive tone converted, seniority signals added; export as PDF
+  - **AI Interview** - 10-minute voice-based mock interview tailored to the specific job, ending with a scored debrief
+  - **CV Rewrite Mode** - one-click surgical rewrite with keywords injected, passive tone converted, seniority signals added; export as PDF
   - CV Version Manager (save and compare multiple CV versions)
   - Application Tracker (kanban-style tracking of job applications)
   - Full (unblurred) technical skill radar, GitHub signal, LinkedIn signal, project recommendations
@@ -53,11 +53,11 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
 - **Account required**: Yes. Cancel any time.
 - **Included analyses**: Unlimited
 - **Features**: Everything in SHORTLISTED, plus:
-  - RejectCheck Roadmaps (personalized multi-week preparation roadmap) — *coming soon*
-  - Cover Letter Generator (AI-generated cover letter tailored to the job and CV) — *coming soon*
-  - Recruiter Message Generator (tailored LinkedIn/email outreach messages) — *coming soon*
-  - Salary Reality Check (market-rate salary estimate based on role and profile) — *coming soon*
-  - Chrome Extension (one-click analysis from any job board) — *coming soon*
+  - RejectCheck Roadmaps (personalized multi-week preparation roadmap) - *coming soon*
+  - Cover Letter Generator (AI-generated cover letter tailored to the job and CV) - *coming soon*
+  - Recruiter Message Generator (tailored LinkedIn/email outreach messages) - *coming soon*
+  - Salary Reality Check (market-rate salary estimate based on role and profile) - *coming soon*
+  - Chrome Extension (one-click analysis from any job board) - *coming soon*
 - **Guarantee**: If you get hired within your current billing month, RejectCheck refunds that month.
 - **CTA**: Get Hired → https://rejectcheck.com/en/pricing
 
@@ -67,15 +67,15 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
 
 | Tier | Price | Analyses | AI Interview | CV Rewrite | Roadmaps | Guarantee |
 |---|---|---|---|---|---|---|
-| REJECTED | €0 / forever | 1 (guest) / 3 (registered) | ❌ | ❌ | ❌ | — |
-| SHORTLISTED | €7.99 / month | Unlimited | ✅ | ✅ | ❌ | — |
+| REJECTED | €0 / forever | 1 (guest) / 3 (registered) | ❌ | ❌ | ❌ | - |
+| SHORTLISTED | €7.99 / month | Unlimited | ✅ | ✅ | ❌ | - |
 | HIRED | €11.99 / month | Unlimited | ✅ | ✅ | ✅ (coming soon) | Refund if hired |
 
 ---
 
 ## Support and cancellation
 
-- Billing: managed by Stripe. Cancel any time from the account page (https://rejectcheck.com/en/account) — access continues until the end of the billed period.
+- Billing: managed by Stripe. Cancel any time from the account page (https://rejectcheck.com/en/account) - access continues until the end of the billed period.
 - Contact: support@rejectcheck.com
 - Refunds: see the HIRED guarantee above. For other cases, contact support.
 

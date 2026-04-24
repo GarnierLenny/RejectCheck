@@ -1,17 +1,17 @@
 # RejectCheck
 
-> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi ; en moins de 60 secondes, ils obtiennent une analyse complète — simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, réécriture chirurgicale du CV, et un entretien simulé IA noté. Le produit utilise un pipeline dual-IA (GPT-4o pour l'ATS, l'audit CV et les red flags + Claude pour le radar des compétences techniques, l'analyse des signaux GitHub/LinkedIn et les recommandations de projets) exécuté en parallèle. Site officiel : https://rejectcheck.com
+> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi ; en moins de 60 secondes, ils obtiennent une analyse complète - simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, réécriture chirurgicale du CV, et un entretien simulé IA noté. Le produit utilise un pipeline dual-IA (GPT-4o pour l'ATS, l'audit CV et les red flags + Claude pour le radar des compétences techniques, l'analyse des signaux GitHub/LinkedIn et les recommandations de projets) exécuté en parallèle. Site officiel : https://rejectcheck.com
 
 ## Ce que fait RejectCheck
 
-- **Simulation ATS** — Passe ton CV dans un filtre ATS (Applicant Tracking System) calibré sur la fiche de poste exacte. Remonte les mots-clés manquants avec une valeur en points pour que tu saches exactement quoi ajouter pour passer le filtre automatique avant même qu'un recruteur te lise.
-- **Radar des lacunes techniques** — Cartographie ton stack technique face aux exigences du poste sur un radar chart. Tu vois immédiatement ce que tu as, ce qui manque, et de combien.
-- **Audit des signaux GitHub** — Analyse l'historique de commits, la qualité des repos, l'usage des langages, et la pertinence des projets par rapport au poste visé. Détecte les écarts entre ce que ton CV affirme et ce que ton code montre.
-- **Audit des signaux LinkedIn** — Recoupe ton profil LinkedIn (recommandations, clarté des titres, cohérence du résumé) avec ton CV pour repérer les incohérences que les recruteurs vont flagger.
-- **Détection des red flags** — Identifie les trous dans le parcours, les titres flous, le ton passif, et les désalignements de séniorité qui déclenchent typiquement un rejet automatique.
-- **Réécriture du CV (premium)** — Réécriture chirurgicale en un clic : mots-clés manquants injectés, ton passif converti, signaux de séniorité ajoutés. Export PDF.
-- **Entretien simulé IA (premium)** — Interviewer IA vocal en temps réel, spécifique au poste. Se termine par un débrief scoré sur la communication, la profondeur technique, et les signaux de leadership.
-- **Générateur de lettre de motivation (premium)** — Génère une lettre taillée pour ton CV et la fiche de poste visée.
+- **Simulation ATS** - Passe ton CV dans un filtre ATS (Applicant Tracking System) calibré sur la fiche de poste exacte. Remonte les mots-clés manquants avec une valeur en points pour que tu saches exactement quoi ajouter pour passer le filtre automatique avant même qu'un recruteur te lise.
+- **Radar des lacunes techniques** - Cartographie ton stack technique face aux exigences du poste sur un radar chart. Tu vois immédiatement ce que tu as, ce qui manque, et de combien.
+- **Audit des signaux GitHub** - Analyse l'historique de commits, la qualité des repos, l'usage des langages, et la pertinence des projets par rapport au poste visé. Détecte les écarts entre ce que ton CV affirme et ce que ton code montre.
+- **Audit des signaux LinkedIn** - Recoupe ton profil LinkedIn (recommandations, clarté des titres, cohérence du résumé) avec ton CV pour repérer les incohérences que les recruteurs vont flagger.
+- **Détection des red flags** - Identifie les trous dans le parcours, les titres flous, le ton passif, et les désalignements de séniorité qui déclenchent typiquement un rejet automatique.
+- **Réécriture du CV (premium)** - Réécriture chirurgicale en un clic : mots-clés manquants injectés, ton passif converti, signaux de séniorité ajoutés. Export PDF.
+- **Entretien simulé IA (premium)** - Interviewer IA vocal en temps réel, spécifique au poste. Se termine par un débrief scoré sur la communication, la profondeur technique, et les signaux de leadership.
+- **Générateur de lettre de motivation (premium)** - Génère une lettre taillée pour ton CV et la fiche de poste visée.
 
 ## Pour qui
 
@@ -35,9 +35,9 @@ Pas de signup requis pour la première analyse (suivi par IP). Les utilisateurs 
 
 Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
-- **Gratuit (plan REJECTED)** — 1 analyse gratuite, sans compte requis. Simulation ATS, score détaillé, audit ton du CV, audit séniorité.
-- **Shortlisted** — 7,99 €/mois. Analyses illimitées, historique, entretien simulé IA, réécriture CV.
-- **Hired** — 11,99 €/mois. Tout Shortlisted + générateur lettre de motivation, générateur message recruteur, salary reality check, roadmap entretien. Garantie : remboursement du mois en cours si tu décroches le job.
+- **Gratuit (plan REJECTED)** - 1 analyse gratuite, sans compte requis. Simulation ATS, score détaillé, audit ton du CV, audit séniorité.
+- **Shortlisted** - 7,99 €/mois. Analyses illimitées, historique, entretien simulé IA, réécriture CV.
+- **Hired** - 11,99 €/mois. Tout Shortlisted + générateur lettre de motivation, générateur message recruteur, salary reality check, roadmap entretien. Garantie : remboursement du mois en cours si tu décroches le job.
 
 ## Pages clés
 
@@ -49,11 +49,11 @@ Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
 ## Ce qui différencie RejectCheck
 
-- **Architecture dual-IA** — La plupart des outils CV utilisent un seul LLM. RejectCheck exécute GPT-4o (ATS, audit CV, red flags) et Claude (radar technique, audit signaux, recommandations projets) en parallèle via Promise.allSettled, puis compose les sorties. Couverture supérieure à tout outil mono-modèle.
-- **Radar chart pour les lacunes** — Au lieu d'une liste de "compétences manquantes", RejectCheck visualise l'écart entre ton profil et le poste sur un radar chart, pour voir la forme de la lacune d'un coup d'œil.
-- **Audit GitHub contre la fiche de poste** — Unique dans la catégorie. Historique de commits, distribution de langages, qualité des repos scorés contre le rôle exact visé.
-- **Entretien simulé IA vocal** — Entretien vocal en temps réel (pas un chat), spécifique au poste, avec débrief scoré à la fin.
-- **Transparence sur les modèles IA** — La politique de confidentialité et l'UI énoncent clairement que GPT-4o et Anthropic Claude traitent tes données, ce qui compte pour les candidats qui veulent savoir ce qui se passe sous le capot.
+- **Architecture dual-IA** - La plupart des outils CV utilisent un seul LLM. RejectCheck exécute GPT-4o (ATS, audit CV, red flags) et Claude (radar technique, audit signaux, recommandations projets) en parallèle via Promise.allSettled, puis compose les sorties. Couverture supérieure à tout outil mono-modèle.
+- **Radar chart pour les lacunes** - Au lieu d'une liste de "compétences manquantes", RejectCheck visualise l'écart entre ton profil et le poste sur un radar chart, pour voir la forme de la lacune d'un coup d'œil.
+- **Audit GitHub contre la fiche de poste** - Unique dans la catégorie. Historique de commits, distribution de langages, qualité des repos scorés contre le rôle exact visé.
+- **Entretien simulé IA vocal** - Entretien vocal en temps réel (pas un chat), spécifique au poste, avec débrief scoré à la fin.
+- **Transparence sur les modèles IA** - La politique de confidentialité et l'UI énoncent clairement que GPT-4o et Anthropic Claude traitent tes données, ce qui compte pour les candidats qui veulent savoir ce qui se passe sous le capot.
 
 ## Stack technique
 

@@ -1,17 +1,17 @@
 # RejectCheck
 
-> RejectCheck is an AI-powered CV and job application diagnosis tool. Candidates upload their CV and a job description; in under 60 seconds they get a full breakdown — ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, red-flag detection, a surgically rewritten CV, and a scored AI mock interview. The product runs a dual-AI pipeline (GPT-4o for ATS, CV audit, and red flags + Claude for technical skill radar, GitHub/LinkedIn signal analysis, and project recommendations) executing in parallel. Official site: https://rejectcheck.com
+> RejectCheck is an AI-powered CV and job application diagnosis tool. Candidates upload their CV and a job description; in under 60 seconds they get a full breakdown - ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, red-flag detection, a surgically rewritten CV, and a scored AI mock interview. The product runs a dual-AI pipeline (GPT-4o for ATS, CV audit, and red flags + Claude for technical skill radar, GitHub/LinkedIn signal analysis, and project recommendations) executing in parallel. Official site: https://rejectcheck.com
 
 ## What it does
 
-- **ATS simulation** — Runs your CV through an Applicant Tracking System filter tuned to the exact job description. Surfaces missing keywords with point values so you know exactly what to add to pass the recruiter's automated filter.
-- **Technical skill gap radar** — Maps your technical stack against the job's requirements on a radar chart. Instantly shows what you have, what you're missing, and by how much.
-- **GitHub signal audit** — Analyzes commit history, repo quality, language usage, and project relevance against the target role. Detects gaps between what your CV claims and what your code shows.
-- **LinkedIn signal audit** — Cross-references your LinkedIn profile (recommendations, title clarity, summary consistency) with your CV to catch inconsistencies recruiters will flag.
-- **Red flag detection** — Identifies employment gaps, vague titles, passive tone, and seniority mismatches that typically trigger auto-rejection.
-- **CV rewrite (premium)** — One-click surgical rewrite: missing keywords injected, passive tone converted, seniority signals added. Exports as PDF.
-- **AI mock interview (premium)** — Real-time voice-based AI interviewer, role-specific. Ends with a scored debrief across communication, technical depth, and leadership signals.
-- **Cover letter generator (premium)** — Generates a tailored cover letter from your CV and the target job description.
+- **ATS simulation** - Runs your CV through an Applicant Tracking System filter tuned to the exact job description. Surfaces missing keywords with point values so you know exactly what to add to pass the recruiter's automated filter.
+- **Technical skill gap radar** - Maps your technical stack against the job's requirements on a radar chart. Instantly shows what you have, what you're missing, and by how much.
+- **GitHub signal audit** - Analyzes commit history, repo quality, language usage, and project relevance against the target role. Detects gaps between what your CV claims and what your code shows.
+- **LinkedIn signal audit** - Cross-references your LinkedIn profile (recommendations, title clarity, summary consistency) with your CV to catch inconsistencies recruiters will flag.
+- **Red flag detection** - Identifies employment gaps, vague titles, passive tone, and seniority mismatches that typically trigger auto-rejection.
+- **CV rewrite (premium)** - One-click surgical rewrite: missing keywords injected, passive tone converted, seniority signals added. Exports as PDF.
+- **AI mock interview (premium)** - Real-time voice-based AI interviewer, role-specific. Ends with a scored debrief across communication, technical depth, and leadership signals.
+- **Cover letter generator (premium)** - Generates a tailored cover letter from your CV and the target job description.
 
 ## Who it's for
 
@@ -35,9 +35,9 @@ No signup is required for the first analysis (IP-tracked). Registered users get 
 
 See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 
-- **Free (REJECTED plan)** — 1 free analysis, no account required. ATS simulation, score breakdown, CV tone audit, seniority audit.
-- **Shortlisted** — €7.99/month. Unlimited analyses, history, AI mock interview, CV rewrite.
-- **Hired** — €11.99/month. Everything in Shortlisted + cover letter generator, recruiter message generator, salary reality check, interview roadmap. Refund guarantee: refund of the current month if you get hired.
+- **Free (REJECTED plan)** - 1 free analysis, no account required. ATS simulation, score breakdown, CV tone audit, seniority audit.
+- **Shortlisted** - €7.99/month. Unlimited analyses, history, AI mock interview, CV rewrite.
+- **Hired** - €11.99/month. Everything in Shortlisted + cover letter generator, recruiter message generator, salary reality check, interview roadmap. Refund guarantee: refund of the current month if you get hired.
 
 ## Key pages
 
@@ -49,11 +49,11 @@ See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 
 ## What makes RejectCheck different
 
-- **Dual-AI architecture** — Most CV tools use a single LLM. RejectCheck runs GPT-4o (ATS, CV audit, red flags) and Claude (technical radar, signal audit, project recommendations) in parallel via Promise.allSettled, then composes the outputs. This gives better coverage than any single-model tool.
-- **Radar chart for skill gaps** — Instead of a list of "missing skills", RejectCheck visualizes the delta between your profile and the job on a radar chart, so you see the shape of the gap at a glance.
-- **GitHub audit against job description** — Unique in the category. Commit history, language distribution, and repo quality scored against the specific role you're applying to.
-- **Voice-based AI mock interview** — Real-time voice interview (not chat), role-specific, with a scored debrief afterwards.
-- **Transparent about AI models used** — The privacy policy and UI openly state that GPT-4o and Anthropic Claude process your data, which matters for candidates who want to know what's happening under the hood.
+- **Dual-AI architecture** - Most CV tools use a single LLM. RejectCheck runs GPT-4o (ATS, CV audit, red flags) and Claude (technical radar, signal audit, project recommendations) in parallel via Promise.allSettled, then composes the outputs. This gives better coverage than any single-model tool.
+- **Radar chart for skill gaps** - Instead of a list of "missing skills", RejectCheck visualizes the delta between your profile and the job on a radar chart, so you see the shape of the gap at a glance.
+- **GitHub audit against job description** - Unique in the category. Commit history, language distribution, and repo quality scored against the specific role you're applying to.
+- **Voice-based AI mock interview** - Real-time voice interview (not chat), role-specific, with a scored debrief afterwards.
+- **Transparent about AI models used** - The privacy policy and UI openly state that GPT-4o and Anthropic Claude process your data, which matters for candidates who want to know what's happening under the hood.
 
 ## Tech stack
 

@@ -145,7 +145,7 @@ function ChallengeContent() {
   return (
     <div className="w-full px-4 md:px-6 py-4 flex flex-col gap-4 md:flex-1 md:min-h-0">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:flex-1 md:min-h-0">
-        {/* Left: title + code snippet — scrolls internally on desktop */}
+        {/* Left: title + code snippet - scrolls internally on desktop */}
         <div className="flex flex-col gap-4 md:overflow-y-auto md:h-full md:min-h-0">
           <h1 className="text-[24px] md:text-[30px] font-bold text-rc-text leading-tight">
             {challenge.title}
@@ -153,7 +153,7 @@ function ChallengeContent() {
           <CodeSnippet code={challenge.snippet} language={challenge.language} />
         </div>
 
-        {/* Right: header + question + state machine — scrolls internally on desktop */}
+        {/* Right: header + question + state machine - scrolls internally on desktop */}
         <div className="flex flex-col gap-5 md:overflow-y-auto md:h-full md:min-h-0 md:pr-2">
           <header className="flex flex-wrap items-end justify-between gap-3 pb-4 border-b border-rc-border">
             <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">

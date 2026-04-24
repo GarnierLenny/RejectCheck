@@ -110,7 +110,7 @@ export function ProfileTab({ result }: Props) {
           </div>
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-amber block mb-2 font-bold">
-              Pattern detected — Tone × Seniority
+              Pattern detected - Tone × Seniority
             </span>
             <p className="text-[13px] text-rc-muted leading-relaxed">{correlation.explanation}</p>
           </div>

@@ -28,7 +28,7 @@ type ActionCategory = {
 const CATEGORIES: ActionCategory[] = [
   {
     id: "week",
-    title: "Priority — This Week",
+    title: "Priority - This Week",
     subtitle: "High impact fixes for immediate results",
     icon: <Zap className="w-3 h-3" />,
     color: "text-rc-red",
@@ -38,7 +38,7 @@ const CATEGORIES: ActionCategory[] = [
   },
   {
     id: "month",
-    title: "Short Term — 30 Days",
+    title: "Short Term - 30 Days",
     subtitle: "Deeper optimizations and platform building",
     icon: <Target className="w-3 h-3" />,
     color: "text-rc-amber",

@@ -4,9 +4,9 @@ const COMPETITORS_EN: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline:
-      'Dual-AI CV diagnosis tool — not a builder. Tells you what is wrong with the CV you already have.',
+      'Dual-AI CV diagnosis tool - not a builder. Tells you what is wrong with the CV you already have.',
     website: 'https://rejectcheck.com',
-    freeTier: '1 full diagnosis (guest) or 3 (registered, free) — no signup required for first run',
+    freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month',
     topFeatures: [
       'ATS simulation against exact job description',
@@ -19,9 +19,9 @@ const COMPETITORS_EN: Competitor[] = [
       'Bilingual (English + French) end-to-end',
     ],
     bestFor:
-      'Candidates who already have a CV and want to diagnose why it is being rejected — specifically software engineers who also want GitHub and LinkedIn signal audits, and French-speaking candidates.',
+      'Candidates who already have a CV and want to diagnose why it is being rejected - specifically software engineers who also want GitHub and LinkedIn signal audits, and French-speaking candidates.',
     weakness:
-      "No CV builder from scratch — you need an existing CV to analyze. Cover letter generator announced as 'coming soon'.",
+      "No CV builder from scratch - you need an existing CV to analyze. Cover letter generator announced as 'coming soon'.",
     atsCheck: 'yes',
     aiInterview: true,
     githubAudit: true,
@@ -34,12 +34,12 @@ const COMPETITORS_EN: Competitor[] = [
       'AI-first resume builder with Rezi Score (ATS), lifetime pricing option, and AI interview practice.',
     website: 'https://www.rezi.ai',
     freeTier: '1 resume, 3 PDF downloads, 1 AI interview, limited Rezi Score access',
-    paidEntry: '$29 / month — or $149 lifetime (one-time, no recurring)',
+    paidEntry: '$29 / month - or $149 lifetime (one-time, no recurring)',
     topFeatures: [
       'AI Resume Builder with job-description keyword targeting',
-      'Rezi Score — ATS compatibility scoring',
+      'Rezi Score - ATS compatibility scoring',
       'Unlimited AI interview practice (Pro and Lifetime)',
-      'Resume Agent — AI assistant for bullet rewrites',
+      'Resume Agent - AI assistant for bullet rewrites',
       'PDF / DOCX / Google Drive export',
       '30-day money-back guarantee',
       'Five resume format templates (Pro), Standard-only on free',
@@ -58,10 +58,10 @@ const COMPETITORS_EN: Competitor[] = [
   {
     name: 'Jobscan',
     tagline:
-      'ATS resume optimization with One-Click Optimize, LinkedIn tools, and job tracker — the category incumbent.',
+      'ATS resume optimization with One-Click Optimize, LinkedIn tools, and job tracker - the category incumbent.',
     website: 'https://www.jobscan.co',
     freeTier: 'Limited free scans (exact count varies; verify current policy)',
-    paidEntry: 'Monthly tier — top of the category (verify current pricing on jobscan.co)',
+    paidEntry: 'Monthly tier - top of the category (verify current pricing on jobscan.co)',
     topFeatures: [
       'ATS resume scan with match rate score',
       'One-Click Optimize (AI tailoring to job description)',
@@ -83,19 +83,19 @@ const COMPETITORS_EN: Competitor[] = [
   {
     name: 'Resume Worded',
     tagline:
-      'Free instant resume review with dedicated LinkedIn profile optimization — over 1M users.',
+      'Free instant resume review with dedicated LinkedIn profile optimization - over 1M users.',
     website: 'https://resumeworded.com',
-    freeTier: 'Free account — instant resume review + sample bullets',
-    paidEntry: 'Pro tier — pricing not published publicly; verify on site',
+    freeTier: 'Free account - instant resume review + sample bullets',
+    paidEntry: 'Pro tier - pricing not published publicly; verify on site',
     topFeatures: [
-      'Score My Resume — instant free feedback',
+      'Score My Resume - instant free feedback',
       'LinkedIn profile optimization (dedicated feature)',
       'Resume targeting against job descriptions',
       '250+ bullet-point samples across industries',
       'ATS-compatible resume templates',
     ],
     bestFor:
-      'Candidates whose LinkedIn presence matters as much as their CV — marketing, sales, and client-facing roles where LinkedIn is the primary discovery channel.',
+      'Candidates whose LinkedIn presence matters as much as their CV - marketing, sales, and client-facing roles where LinkedIn is the primary discovery channel.',
     weakness:
       'Pricing opacity (Pro tier cost not public). No AI interview. No GitHub audit. English only.',
     atsCheck: 'yes',
@@ -110,7 +110,7 @@ const COMPETITORS_EN: Competitor[] = [
     tagline: 'Template-rich resume and cover letter builder with AI writer and ATS checker.',
     website: 'https://www.kickresume.com',
     freeTier: '4 resume templates, 20,000 pre-written phrases, unlimited downloads',
-    paidEntry: '€8 / month (annual) — €24 / month (monthly billing)',
+    paidEntry: '€8 / month (annual) - €24 / month (monthly billing)',
     topFeatures: [
       '40+ resume templates on Pro (largest library in this category)',
       'AI Resume & Cover Letter Writer (Pro)',
@@ -134,7 +134,7 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'Enhancv',
     tagline: 'Design-forward resume builder with AI content suggestions and ATS check.',
     website: 'https://enhancv.com',
-    freeTier: '7-day trial — all templates, basic sections, max 12 items',
+    freeTier: '7-day trial - all templates, basic sections, max 12 items',
     paidEntry: 'Pro quarterly (verify current price on enhancv.com)',
     topFeatures: [
       'Hundreds of visually polished templates',
@@ -159,9 +159,9 @@ const COMPETITORS_FR: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline:
-      "Outil de diagnostic de CV dual-IA — pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
+      "Outil de diagnostic de CV dual-IA - pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
     website: 'https://rejectcheck.com',
-    freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) — pas d'inscription requise au premier essai",
+    freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois',
     topFeatures: [
       "Simulation ATS face à l'offre exacte",
@@ -174,9 +174,9 @@ const COMPETITORS_FR: Competitor[] = [
       'Bilingue (anglais + français) de bout en bout',
     ],
     bestFor:
-      "Candidats qui ont déjà un CV et veulent diagnostiquer pourquoi il se fait rejeter — en particulier les développeurs qui veulent un audit GitHub et LinkedIn, et les candidats francophones.",
+      "Candidats qui ont déjà un CV et veulent diagnostiquer pourquoi il se fait rejeter - en particulier les développeurs qui veulent un audit GitHub et LinkedIn, et les candidats francophones.",
     weakness:
-      "Pas de builder de CV à partir de zéro — il te faut un CV existant à analyser. Générateur de lettre de motivation annoncé comme 'à venir'.",
+      "Pas de builder de CV à partir de zéro - il te faut un CV existant à analyser. Générateur de lettre de motivation annoncé comme 'à venir'.",
     atsCheck: 'yes',
     aiInterview: true,
     githubAudit: true,
@@ -189,12 +189,12 @@ const COMPETITORS_FR: Competitor[] = [
       "Builder de CV IA-first avec Rezi Score (ATS), option de paiement à vie, et pratique d'entretien IA.",
     website: 'https://www.rezi.ai',
     freeTier: '1 CV, 3 téléchargements PDF, 1 entretien IA, accès limité au Rezi Score',
-    paidEntry: '29 $ / mois — ou 149 $ à vie (paiement unique)',
+    paidEntry: '29 $ / mois - ou 149 $ à vie (paiement unique)',
     topFeatures: [
       "Builder IA avec ciblage de mots-clés de l'offre",
-      'Rezi Score — scoring de compatibilité ATS',
+      'Rezi Score - scoring de compatibilité ATS',
       "Pratique d'entretien IA illimitée (Pro et Lifetime)",
-      'Resume Agent — assistant IA pour réécritures',
+      'Resume Agent - assistant IA pour réécritures',
       'Export PDF / DOCX / Google Drive',
       'Garantie remboursement 30 jours',
       'Cinq formats de templates (Pro), Standard uniquement en gratuit',
@@ -213,10 +213,10 @@ const COMPETITORS_FR: Competitor[] = [
   {
     name: 'Jobscan',
     tagline:
-      "Optimisation CV ATS avec One-Click Optimize, outils LinkedIn, et suivi de candidatures — le leader historique.",
+      "Optimisation CV ATS avec One-Click Optimize, outils LinkedIn, et suivi de candidatures - le leader historique.",
     website: 'https://www.jobscan.co',
     freeTier: "Scans gratuits limités (nombre variable ; vérifie la politique actuelle)",
-    paidEntry: 'Tier mensuel — haut de la catégorie (vérifie le prix sur jobscan.co)',
+    paidEntry: 'Tier mensuel - haut de la catégorie (vérifie le prix sur jobscan.co)',
     topFeatures: [
       'Scan ATS avec score de match',
       'One-Click Optimize (tailoring IA)',
@@ -238,19 +238,19 @@ const COMPETITORS_FR: Competitor[] = [
   {
     name: 'Resume Worded',
     tagline:
-      "Revue de CV instantanée gratuite avec optimisation LinkedIn dédiée — plus d'1M users.",
+      "Revue de CV instantanée gratuite avec optimisation LinkedIn dédiée - plus d'1M users.",
     website: 'https://resumeworded.com',
-    freeTier: 'Compte gratuit — revue instantanée + exemples de bullets',
-    paidEntry: 'Tier Pro — prix non publié publiquement ; vérifie sur le site',
+    freeTier: 'Compte gratuit - revue instantanée + exemples de bullets',
+    paidEntry: 'Tier Pro - prix non publié publiquement ; vérifie sur le site',
     topFeatures: [
-      'Score My Resume — feedback gratuit instantané',
+      'Score My Resume - feedback gratuit instantané',
       'Optimisation profil LinkedIn (feature dédiée)',
       "Ciblage CV face aux offres",
       '250+ exemples de bullets par industrie',
       'Templates compatibles ATS',
     ],
     bestFor:
-      "Candidats pour qui LinkedIn compte autant que le CV — marketing, ventes, rôles client-facing.",
+      "Candidats pour qui LinkedIn compte autant que le CV - marketing, ventes, rôles client-facing.",
     weakness:
       "Opacité tarifaire (prix Pro pas public). Pas d'entretien IA. Pas d'audit GitHub. Anglais uniquement.",
     atsCheck: 'yes',
@@ -265,7 +265,7 @@ const COMPETITORS_FR: Competitor[] = [
     tagline: 'Builder de CV et lettre avec IA et checker ATS, grande bibliothèque de templates.',
     website: 'https://www.kickresume.com',
     freeTier: '4 templates de CV, 20 000 phrases pré-écrites, téléchargements illimités',
-    paidEntry: '8 € / mois (annuel) — 24 € / mois (mensuel)',
+    paidEntry: '8 € / mois (annuel) - 24 € / mois (mensuel)',
     topFeatures: [
       '40+ templates sur Pro (plus grande bibliothèque de cette liste)',
       'Writer IA de CV et lettre (Pro)',
@@ -289,7 +289,7 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'Enhancv',
     tagline: 'Builder design-first avec suggestions IA et check ATS.',
     website: 'https://enhancv.com',
-    freeTier: "Essai 7 jours — tous templates, sections de base, max 12 items",
+    freeTier: "Essai 7 jours - tous templates, sections de base, max 12 items",
     paidEntry: 'Pro trimestriel (vérifie le prix sur enhancv.com)',
     topFeatures: [
       'Des centaines de templates visuellement polis',
@@ -317,7 +317,7 @@ export const contentEn: AlternativesContent = {
   badgeLabel: 'Comparison · Updated April 24, 2026',
   heroTitle: '6 Best Rezi Alternatives in 2026',
   heroIntro:
-    'Rezi pioneered the AI-first resume builder format with its $149 lifetime option. It is a solid tool for candidates starting from a blank page — but if you already have a CV and want to diagnose why it is failing, or if you need signals beyond keywords (GitHub, LinkedIn), Rezi is not the right tool. Here is an honest comparison of six alternatives, ranging from a true free tier to the most mature ATS scanner in the category.',
+    'Rezi pioneered the AI-first resume builder format with its $149 lifetime option. It is a solid tool for candidates starting from a blank page - but if you already have a CV and want to diagnose why it is failing, or if you need signals beyond keywords (GitHub, LinkedIn), Rezi is not the right tool. Here is an honest comparison of six alternatives, ranging from a true free tier to the most mature ATS scanner in the category.',
   tldrLabel: 'TL;DR',
   tldr: "Stay on Rezi if you are starting a resume from scratch AND you want a one-time $149 lifetime payment. Switch to RejectCheck if you already have a CV and want a full diagnosis including GitHub and LinkedIn audit, plus a voice-based AI mock interview. Choose Jobscan for the most mature ATS scanner. Choose Kickresume (€8/month annual) for the largest template library at the lowest recurring price. Choose Resume Worded if LinkedIn optimization is your priority.",
   breadcrumbHome: 'Home',
@@ -328,7 +328,7 @@ export const contentEn: AlternativesContent = {
   whyReasons: [
     {
       title: 'Builder-first, not diagnosis-first',
-      text: 'Rezi is fundamentally a resume builder. It starts with a blank page and helps you write. If you already have a CV and want to know specifically why it is getting rejected — which keywords are missing, which seniority signals are weak, whether your LinkedIn contradicts it — you need a diagnosis tool, not a builder. RejectCheck is built for that exact job.',
+      text: 'Rezi is fundamentally a resume builder. It starts with a blank page and helps you write. If you already have a CV and want to know specifically why it is getting rejected - which keywords are missing, which seniority signals are weak, whether your LinkedIn contradicts it - you need a diagnosis tool, not a builder. RejectCheck is built for that exact job.',
     },
     {
       title: 'No GitHub or LinkedIn portfolio audit',
@@ -336,7 +336,7 @@ export const contentEn: AlternativesContent = {
     },
     {
       title: 'Limited free tier (3 PDFs, 1 AI interview)',
-      text: "Rezi's free tier is effectively a demo — 3 PDF downloads total, 1 AI interview, limited Rezi Score access. If you only need an ATS scan once, free-tier alternatives go further: RejectCheck offers 1 full analysis without signup (3 for registered users), Resume Worded gives an instant free resume review, and Kickresume lets you download resumes unlimited from free templates.",
+      text: "Rezi's free tier is effectively a demo - 3 PDF downloads total, 1 AI interview, limited Rezi Score access. If you only need an ATS scan once, free-tier alternatives go further: RejectCheck offers 1 full analysis without signup (3 for registered users), Resume Worded gives an instant free resume review, and Kickresume lets you download resumes unlimited from free templates.",
     },
     {
       title: 'English-only',
@@ -344,7 +344,7 @@ export const contentEn: AlternativesContent = {
     },
   ],
   comparisonBadge: 'At a glance',
-  comparisonTitle: 'Rezi vs. 5 alternatives — quick comparison',
+  comparisonTitle: 'Rezi vs. 5 alternatives - quick comparison',
   tableHeaders: {
     tool: 'Tool',
     freeTier: 'Free tier',
@@ -380,7 +380,7 @@ export const contentEn: AlternativesContent = {
     {
       scenario: 'You already have a CV and want to diagnose why it is failing',
       pick: 'RejectCheck',
-      why: 'Purpose-built for diagnosing an existing CV against a specific job — ATS simulation, skill gap radar, red flags, with actionable fixes ordered by priority.',
+      why: 'Purpose-built for diagnosing an existing CV against a specific job - ATS simulation, skill gap radar, red flags, with actionable fixes ordered by priority.',
     },
     {
       scenario: 'You are a software engineer and want GitHub audit',
@@ -395,7 +395,7 @@ export const contentEn: AlternativesContent = {
     {
       scenario: 'Your LinkedIn profile matters as much as your CV',
       pick: 'Resume Worded',
-      why: 'Dedicated LinkedIn optimization — not just an add-on.',
+      why: 'Dedicated LinkedIn optimization - not just an add-on.',
     },
     {
       scenario: 'You want the largest template library at lowest recurring cost',
@@ -405,7 +405,7 @@ export const contentEn: AlternativesContent = {
     {
       scenario: 'You are applying in French-speaking markets',
       pick: 'RejectCheck',
-      why: 'Fully bilingual EN + FR — UI, analysis, keywords, and tone audit all localized.',
+      why: 'Fully bilingual EN + FR - UI, analysis, keywords, and tone audit all localized.',
     },
   ],
   faqBadge: 'FAQ',
@@ -419,12 +419,12 @@ export const contentEn: AlternativesContent = {
     {
       question: "Is Rezi's $149 lifetime plan actually worth it?",
       answer:
-        'If you expect to update your resume 5+ times over 1-2 years, the $149 lifetime is cheaper than 6 months of the $29/month Pro tier. For anyone who updates their resume only once or twice per year, a monthly ATS-check tool like RejectCheck (€7.99/month, cancel anytime) is cheaper on a per-use basis. Rezi is also only worth it if you use the builder itself — the Rezi Score alone can be obtained elsewhere.',
+        'If you expect to update your resume 5+ times over 1-2 years, the $149 lifetime is cheaper than 6 months of the $29/month Pro tier. For anyone who updates their resume only once or twice per year, a monthly ATS-check tool like RejectCheck (€7.99/month, cancel anytime) is cheaper on a per-use basis. Rezi is also only worth it if you use the builder itself - the Rezi Score alone can be obtained elsewhere.',
     },
     {
       question: 'What does RejectCheck do that Rezi does not?',
       answer:
-        'Three things: (1) GitHub commit history and repo quality audit against the target job — Rezi has nothing like this; (2) LinkedIn profile cross-reference with your CV to detect inconsistencies; (3) voice-based AI mock interview (10 minutes, scored debrief) — Rezi offers only text-based AI interviews. RejectCheck is also bilingual EN + FR; Rezi is English-only.',
+        'Three things: (1) GitHub commit history and repo quality audit against the target job - Rezi has nothing like this; (2) LinkedIn profile cross-reference with your CV to detect inconsistencies; (3) voice-based AI mock interview (10 minutes, scored debrief) - Rezi offers only text-based AI interviews. RejectCheck is also bilingual EN + FR; Rezi is English-only.',
     },
     {
       question: 'Which Rezi alternative is best for software engineers?',
@@ -439,15 +439,15 @@ export const contentEn: AlternativesContent = {
     {
       question: 'Does Rezi Score accurately predict real ATS behavior?',
       answer:
-        "Rezi Score is a keyword-density match score against the job description. Like all ATS simulators (Jobscan match rate, RejectCheck ATS score, Resume Worded score), it estimates behavior based on keyword presence but cannot replicate a specific employer's ATS (Workday, Greenhouse, Lever) exactly. It is useful as a directional signal — scoring 40% means you are missing meaningful keywords — but no score guarantees a real ATS will behave identically.",
+        "Rezi Score is a keyword-density match score against the job description. Like all ATS simulators (Jobscan match rate, RejectCheck ATS score, Resume Worded score), it estimates behavior based on keyword presence but cannot replicate a specific employer's ATS (Workday, Greenhouse, Lever) exactly. It is useful as a directional signal - scoring 40% means you are missing meaningful keywords - but no score guarantees a real ATS will behave identically.",
     },
     {
       question: 'Which AI models does Rezi use compared to alternatives?',
       answer:
-        'Rezi uses AI for its Resume Agent, writer, and interview practice but does not publicly disclose which specific models. RejectCheck openly documents a dual-AI architecture: OpenAI GPT-4o for ATS, CV audit, and red flags, plus Anthropic Claude for technical skill radar, GitHub/LinkedIn signals, and project recommendations — run in parallel. Jobscan, Kickresume, and Enhancv also use AI but similarly do not disclose specific models per feature.',
+        'Rezi uses AI for its Resume Agent, writer, and interview practice but does not publicly disclose which specific models. RejectCheck openly documents a dual-AI architecture: OpenAI GPT-4o for ATS, CV audit, and red flags, plus Anthropic Claude for technical skill radar, GitHub/LinkedIn signals, and project recommendations - run in parallel. Jobscan, Kickresume, and Enhancv also use AI but similarly do not disclose specific models per feature.',
     },
   ],
-  ctaTitle: 'Try RejectCheck — free, no signup',
+  ctaTitle: 'Try RejectCheck - free, no signup',
   ctaSubtitle:
     'Upload your CV, paste a job description, and get a full diagnosis in under 60 seconds: ATS score, technical skill gap radar, GitHub and LinkedIn signal audit, and red flag detection.',
   ctaButton: 'Analyze my CV free',
@@ -465,7 +465,7 @@ export const contentFr: AlternativesContent = {
   badgeLabel: 'Comparaison · Mis à jour le 24 avril 2026',
   heroTitle: '6 meilleures alternatives à Rezi en 2026',
   heroIntro:
-    "Rezi a popularisé le format builder de CV IA-first avec son option à vie à 149 $. C'est un outil solide pour les candidats qui partent d'une page blanche — mais si tu as déjà un CV et que tu veux diagnostiquer pourquoi il est rejeté, ou si tu as besoin de signaux au-delà des mots-clés (GitHub, LinkedIn), Rezi n'est pas le bon outil. Voici une comparaison honnête de six alternatives, du vrai tier gratuit au scanner ATS le plus mature de la catégorie.",
+    "Rezi a popularisé le format builder de CV IA-first avec son option à vie à 149 $. C'est un outil solide pour les candidats qui partent d'une page blanche - mais si tu as déjà un CV et que tu veux diagnostiquer pourquoi il est rejeté, ou si tu as besoin de signaux au-delà des mots-clés (GitHub, LinkedIn), Rezi n'est pas le bon outil. Voici une comparaison honnête de six alternatives, du vrai tier gratuit au scanner ATS le plus mature de la catégorie.",
   tldrLabel: 'TL;DR',
   tldr: "Reste sur Rezi si tu démarres un CV de zéro ET que tu veux un paiement à vie de 149 $ unique. Passe à RejectCheck si tu as déjà un CV et veux un diagnostic complet incluant audit GitHub et LinkedIn + entretien simulé IA vocal. Choisis Jobscan pour le scanner ATS le plus mature. Choisis Kickresume (8 €/mois annuel) pour la plus grande bibliothèque de templates au prix récurrent le plus bas. Choisis Resume Worded si l'optimisation LinkedIn est ta priorité.",
   breadcrumbHome: 'Accueil',
@@ -476,7 +476,7 @@ export const contentFr: AlternativesContent = {
   whyReasons: [
     {
       title: 'Builder-first, pas diagnostic-first',
-      text: "Rezi est fondamentalement un builder de CV. Il démarre d'une page blanche et t'aide à écrire. Si tu as déjà un CV et veux savoir précisément pourquoi il se fait rejeter — quels mots-clés manquent, quels signaux de séniorité sont faibles, si ton LinkedIn le contredit — il te faut un outil de diagnostic, pas un builder. RejectCheck est construit exactement pour ça.",
+      text: "Rezi est fondamentalement un builder de CV. Il démarre d'une page blanche et t'aide à écrire. Si tu as déjà un CV et veux savoir précisément pourquoi il se fait rejeter - quels mots-clés manquent, quels signaux de séniorité sont faibles, si ton LinkedIn le contredit - il te faut un outil de diagnostic, pas un builder. RejectCheck est construit exactement pour ça.",
     },
     {
       title: "Pas d'audit GitHub ni LinkedIn",
@@ -484,7 +484,7 @@ export const contentFr: AlternativesContent = {
     },
     {
       title: 'Tier gratuit limité (3 PDF, 1 entretien IA)',
-      text: "Le tier gratuit de Rezi est une démo — 3 téléchargements PDF au total, 1 entretien IA, accès limité au Rezi Score. Si tu veux juste un scan ATS une fois, les alternatives gratuites vont plus loin : RejectCheck offre 1 analyse complète sans inscription (3 pour les enregistrés), Resume Worded donne une revue CV instantanée gratuite, et Kickresume permet des téléchargements illimités depuis les templates gratuits.",
+      text: "Le tier gratuit de Rezi est une démo - 3 téléchargements PDF au total, 1 entretien IA, accès limité au Rezi Score. Si tu veux juste un scan ATS une fois, les alternatives gratuites vont plus loin : RejectCheck offre 1 analyse complète sans inscription (3 pour les enregistrés), Resume Worded donne une revue CV instantanée gratuite, et Kickresume permet des téléchargements illimités depuis les templates gratuits.",
     },
     {
       title: 'Anglais uniquement',
@@ -492,7 +492,7 @@ export const contentFr: AlternativesContent = {
     },
   ],
   comparisonBadge: "En un coup d'œil",
-  comparisonTitle: 'Rezi vs. 5 alternatives — comparaison rapide',
+  comparisonTitle: 'Rezi vs. 5 alternatives - comparaison rapide',
   tableHeaders: {
     tool: 'Outil',
     freeTier: 'Tier gratuit',
@@ -528,7 +528,7 @@ export const contentFr: AlternativesContent = {
     {
       scenario: 'Tu as déjà un CV et veux diagnostiquer pourquoi il échoue',
       pick: 'RejectCheck',
-      why: "Conçu pour diagnostiquer un CV existant face à une offre spécifique — simulation ATS, radar des lacunes, red flags, avec corrections priorisées.",
+      why: "Conçu pour diagnostiquer un CV existant face à une offre spécifique - simulation ATS, radar des lacunes, red flags, avec corrections priorisées.",
     },
     {
       scenario: 'Tu es dev et tu veux un audit GitHub',
@@ -543,7 +543,7 @@ export const contentFr: AlternativesContent = {
     {
       scenario: 'Ton profil LinkedIn compte autant que ton CV',
       pick: 'Resume Worded',
-      why: "Optimisation LinkedIn dédiée — pas juste un add-on.",
+      why: "Optimisation LinkedIn dédiée - pas juste un add-on.",
     },
     {
       scenario: 'Tu veux la plus grande bibliothèque de templates au prix récurrent le plus bas',
@@ -553,7 +553,7 @@ export const contentFr: AlternativesContent = {
     {
       scenario: 'Tu postules dans des marchés francophones',
       pick: 'RejectCheck',
-      why: "Bilingue EN + FR complet — UI, analyse, mots-clés, et audit de ton localisés.",
+      why: "Bilingue EN + FR complet - UI, analyse, mots-clés, et audit de ton localisés.",
     },
   ],
   faqBadge: 'FAQ',
@@ -567,12 +567,12 @@ export const contentFr: AlternativesContent = {
     {
       question: "Le plan à vie de Rezi à 149 $ vaut-il vraiment le coup ?",
       answer:
-        "Si tu t'attends à mettre à jour ton CV 5+ fois sur 1-2 ans, le 149 $ à vie est moins cher que 6 mois du tier Pro à 29 $/mois. Pour ceux qui mettent leur CV à jour seulement 1-2 fois par an, un outil de check ATS mensuel comme RejectCheck (7,99 €/mois, résiliable à tout moment) est moins cher à l'usage. Rezi n'est aussi intéressant que si tu utilises le builder lui-même — le Rezi Score seul peut être obtenu ailleurs.",
+        "Si tu t'attends à mettre à jour ton CV 5+ fois sur 1-2 ans, le 149 $ à vie est moins cher que 6 mois du tier Pro à 29 $/mois. Pour ceux qui mettent leur CV à jour seulement 1-2 fois par an, un outil de check ATS mensuel comme RejectCheck (7,99 €/mois, résiliable à tout moment) est moins cher à l'usage. Rezi n'est aussi intéressant que si tu utilises le builder lui-même - le Rezi Score seul peut être obtenu ailleurs.",
     },
     {
       question: 'Que fait RejectCheck que Rezi ne fait pas ?',
       answer:
-        "Trois choses : (1) audit historique de commits GitHub et qualité des repos face à l'offre visée — Rezi n'a rien de ce type ; (2) recoupement profil LinkedIn avec ton CV pour détecter les incohérences ; (3) entretien simulé IA vocal (10 minutes, débrief scoré) — Rezi n'offre que des entretiens IA texte. RejectCheck est aussi bilingue EN + FR ; Rezi est anglais uniquement.",
+        "Trois choses : (1) audit historique de commits GitHub et qualité des repos face à l'offre visée - Rezi n'a rien de ce type ; (2) recoupement profil LinkedIn avec ton CV pour détecter les incohérences ; (3) entretien simulé IA vocal (10 minutes, débrief scoré) - Rezi n'offre que des entretiens IA texte. RejectCheck est aussi bilingue EN + FR ; Rezi est anglais uniquement.",
     },
     {
       question: 'Quelle alternative à Rezi est la meilleure pour les développeurs ?',
@@ -587,15 +587,15 @@ export const contentFr: AlternativesContent = {
     {
       question: "Le Rezi Score prédit-il fidèlement le comportement d'un vrai ATS ?",
       answer:
-        "Le Rezi Score est un score de densité de mots-clés face à l'offre. Comme tous les simulateurs ATS (Jobscan match rate, RejectCheck ATS score, Resume Worded score), il estime le comportement basé sur la présence de mots-clés mais ne peut pas répliquer exactement l'ATS d'un employeur spécifique (Workday, Greenhouse, Lever). Utile comme signal directionnel — scorer 40 % signifie qu'il te manque des mots-clés importants — mais aucun score ne garantit qu'un vrai ATS se comportera identiquement.",
+        "Le Rezi Score est un score de densité de mots-clés face à l'offre. Comme tous les simulateurs ATS (Jobscan match rate, RejectCheck ATS score, Resume Worded score), il estime le comportement basé sur la présence de mots-clés mais ne peut pas répliquer exactement l'ATS d'un employeur spécifique (Workday, Greenhouse, Lever). Utile comme signal directionnel - scorer 40 % signifie qu'il te manque des mots-clés importants - mais aucun score ne garantit qu'un vrai ATS se comportera identiquement.",
     },
     {
       question: 'Quels modèles IA utilise Rezi vs les alternatives ?',
       answer:
-        "Rezi utilise l'IA pour son Resume Agent, le writer, et la pratique d'entretien, mais ne divulgue pas publiquement les modèles spécifiques. RejectCheck documente ouvertement son architecture dual-IA : OpenAI GPT-4o pour l'ATS, l'audit CV, et les red flags, plus Anthropic Claude pour le radar technique, les signaux GitHub/LinkedIn, et les recommandations de projets — en parallèle. Jobscan, Kickresume, et Enhancv utilisent aussi de l'IA mais de même ne divulguent pas les modèles spécifiques par feature.",
+        "Rezi utilise l'IA pour son Resume Agent, le writer, et la pratique d'entretien, mais ne divulgue pas publiquement les modèles spécifiques. RejectCheck documente ouvertement son architecture dual-IA : OpenAI GPT-4o pour l'ATS, l'audit CV, et les red flags, plus Anthropic Claude pour le radar technique, les signaux GitHub/LinkedIn, et les recommandations de projets - en parallèle. Jobscan, Kickresume, et Enhancv utilisent aussi de l'IA mais de même ne divulguent pas les modèles spécifiques par feature.",
     },
   ],
-  ctaTitle: 'Essaie RejectCheck — gratuit, sans inscription',
+  ctaTitle: 'Essaie RejectCheck - gratuit, sans inscription',
   ctaSubtitle:
     "Téléverse ton CV, colle une offre, et obtiens un diagnostic complet en moins de 60 secondes : score ATS, radar des lacunes techniques, audit signaux GitHub et LinkedIn, et détection de red flags.",
   ctaButton: 'Analyser mon CV gratuit',

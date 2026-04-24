@@ -22,8 +22,8 @@ export async function generateMetadata({
   const isEn = lang === 'en'
 
   const title = isEn
-    ? 'Privacy Policy — GDPR-compliant CV data handling'
-    : 'Politique de confidentialité — Traitement des données CV conforme RGPD'
+    ? 'Privacy Policy - GDPR-compliant CV data handling'
+    : 'Politique de confidentialité - Traitement des données CV conforme RGPD'
 
   const description = isEn
     ? 'How RejectCheck handles your CV data: what we store, what we send to OpenAI GPT-4o and Anthropic Claude, retention, deletion, and your GDPR rights.'

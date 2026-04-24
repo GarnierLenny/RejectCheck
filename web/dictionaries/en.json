@@ -204,7 +204,7 @@
       "rewrite": {
         "label": "CV rewrite",
         "title": "Improve CV",
-        "desc": "AI rewrites your CV surgically — injecting missing keywords, fixing passive tone, adding seniority signals. Download as PDF."
+        "desc": "AI rewrites your CV surgically - injecting missing keywords, fixing passive tone, adding seniority signals. Download as PDF."
       },
       "interview": {
         "label": "AI mock interview",
@@ -218,7 +218,7 @@
       "subtitle": "Most tools stop at keywords. RejectCheck reads signals from every layer of your professional presence.",
       "github": {
         "title": "GitHub Signal",
-        "desc": "Commit cadence, language diversity, open source contributions — what your CV doesn't say about your real technical depth."
+        "desc": "Commit cadence, language diversity, open source contributions - what your CV doesn't say about your real technical depth."
       },
       "linkedin": {
         "title": "LinkedIn Signal",
@@ -230,7 +230,7 @@
       },
       "roadmap": {
         "title": "Action Roadmap",
-        "desc": "Every issue from every signal, prioritized by impact. Critical items first — the ones that get CVs binned before they're read."
+        "desc": "Every issue from every signal, prioritized by impact. Critical items first - the ones that get CVs binned before they're read."
       }
     },
     "cta": {
@@ -253,7 +253,7 @@
       "items": [
         {
           "label": "Dual-AI pipeline",
-          "claim": "GPT-4o and Anthropic Claude run in parallel via Promise.allSettled on every analysis — not one model doing everything, not one model fallback-calling another.",
+          "claim": "GPT-4o and Anthropic Claude run in parallel via Promise.allSettled on every analysis - not one model doing everything, not one model fallback-calling another.",
           "source": "Documented in the privacy policy and the publicly accessible backend code",
           "sourceLinks": [
             {
@@ -279,7 +279,7 @@
         },
         {
           "label": "Bilingual by design",
-          "claim": "English and French are both first-class: UI, analysis output, keywords, tone audit, and FAQ are localized — not machine-translated as an afterthought. Jobscan, Rezi, Resume Worded, and Enhancv are English-only as of April 2026.",
+          "claim": "English and French are both first-class: UI, analysis output, keywords, tone audit, and FAQ are localized - not machine-translated as an afterthought. Jobscan, Rezi, Resume Worded, and Enhancv are English-only as of April 2026.",
           "source": "Compare /en/ and /fr/ side by side",
           "sourceLinks": [
             {
@@ -294,7 +294,7 @@
         },
         {
           "label": "Free tier is real",
-          "claim": "Guest users get 1 full analysis without signup or credit card — not a limited teaser. Registered (free) users get 3 analyses. Free-tier Claude sections are blurred, not absent: the full analysis runs and is saved — only the premium views are hidden until upgrade.",
+          "claim": "Guest users get 1 full analysis without signup or credit card - not a limited teaser. Registered (free) users get 3 analyses. Free-tier Claude sections are blurred, not absent: the full analysis runs and is saved - only the premium views are hidden until upgrade.",
           "source": "Privacy policy documents data handling; product-marketing context documented in memory",
           "sourceLinks": [
             {
@@ -345,7 +345,7 @@
       "title": "Your application",
       "description": "CV and job listing are inseparable. One without the other, the analysis can't target.",
       "hintTitle": "Why the full listing?",
-      "hintBody": "Title, stack, responsibilities, nice-to-haves — every line affects the ATS score."
+      "hintBody": "Title, stack, responsibilities, nice-to-haves - every line affects the ATS score."
     },
     "leftStep2": {
       "title": "Signals",
@@ -548,7 +548,7 @@
     "premiumBadge": "HIRED Feature",
     "premiumTitle": "Cover Letter Generator",
     "premiumDesc": "Analyzes your gaps and strengths to write a letter that directly addresses what the job requires.",
-    "unlockButton": "Upgrade to HIRED — 11.99€/month"
+    "unlockButton": "Upgrade to HIRED - 11.99€/month"
   },
   "analyzeNav": {
     "pricing": "Pricing →",
@@ -578,11 +578,11 @@
     "ptsAbove": "pts above threshold",
     "current": "Current:",
     "simulated": "Simulated:",
-    "wouldPass": "— would pass ✓",
-    "atsExplanation": "ATS (Applicant Tracking System) — software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.",
+    "wouldPass": "- would pass ✓",
+    "atsExplanation": "ATS (Applicant Tracking System) - software that filters CVs before a human reads them. It scans for keywords matching the job description. A low score means your CV may never reach a recruiter.",
     "simulator": "Simulator",
     "keywordGap": "Keyword Gap",
-    "keywordGapSubtitle": "Check keywords you can realistically add to your CV — your ATS score updates in real time.",
+    "keywordGapSubtitle": "Check keywords you can realistically add to your CV - your ATS score updates in real time.",
     "reset": "Reset",
     "required": "Required",
     "preferred": "Preferred",
@@ -605,7 +605,7 @@
     "writingStyle": "Writing Style",
     "toneAudit": "Tone Audit",
     "toneSubtitle": "Active vs. passive voice patterns across your bullet points and descriptions.",
-    "patternDetected": "Pattern detected — Tone × Seniority",
+    "patternDetected": "Pattern detected - Tone × Seniority",
     "forensicAudit": "Forensic Audit",
     "cvIssues": "CV Issues",
     "cvIssuesSubtitle": "{count} vulnerabilit{plural} identified across structure, content, and positioning.",
@@ -639,14 +639,14 @@
     "signalAnalysis": "Signal Analysis",
     "notProvided": "Not provided",
     "signalScore": "Signal Score",
-    "noIssuesDetected": "No issues detected — strong signal.",
+    "noIssuesDetected": "No issues detected - strong signal.",
     "critical": "critical",
     "major": "major",
     "minor": "minor",
     "issuesDetected": "{count} issue{plural} detected",
-    "githubEmpty": "No GitHub username provided — deep technical verification skipped.",
+    "githubEmpty": "No GitHub username provided - deep technical verification skipped.",
     "githubCta": "Re-analyze with your GitHub username to unlock signal",
-    "linkedinEmpty": "No LinkedIn PDF provided — cross-reference verification skipped.",
+    "linkedinEmpty": "No LinkedIn PDF provided - cross-reference verification skipped.",
     "linkedinCta": "Export your LinkedIn PDF (Settings → Data Privacy → Get a copy) and re-analyze"
   },
   "roadmapTab": {
@@ -679,7 +679,7 @@
   "improveTab": {
     "premiumBadge": "Premium Feature",
     "premiumTitle": "Let AI rewrite your CV",
-    "premiumDesc": "Based on every issue found in this analysis, AI surgically rewrites your CV — injecting missing keywords, fixing passive tone, and adding seniority signals. Download the result as a formatted PDF.",
+    "premiumDesc": "Based on every issue found in this analysis, AI surgically rewrites your CV - injecting missing keywords, fixing passive tone, and adding seniority signals. Download the result as a formatted PDF.",
     "unlockButton": "Unlock Improve CV",
     "rewriting": "Rewriting your CV...",
     "cvReady": "Your improved CV is ready.",
@@ -825,7 +825,7 @@
       "items": [
         {
           "question": "Can I cancel my RejectCheck subscription anytime?",
-          "answer": "Yes. You can cancel your Shortlisted (€7.99/month) or Hired (€11.99/month) subscription at any time from the account settings page. You keep full access until the end of the already-billed period — no prorated charges."
+          "answer": "Yes. You can cancel your Shortlisted (€7.99/month) or Hired (€11.99/month) subscription at any time from the account settings page. You keep full access until the end of the already-billed period - no prorated charges."
         },
         {
           "question": "Is there a free trial or free tier?",
@@ -946,7 +946,7 @@
       "addApplication": "Add application",
       "staleApplication": "No reply in {days} days",
       "activeInterview": "Interview in progress",
-      "newUnviewedAnalysis": "New analysis — {score}% risk",
+      "newUnviewedAnalysis": "New analysis - {score}% risk",
       "noActionItems": "You're all caught up!"
     },
     "kanban": {
@@ -992,7 +992,7 @@
     "yourReviewLabel": "Your review",
     "pushbackGenerating": "Generating a follow-up to challenge your review…",
     "firstAnswer": {
-      "placeholder": "Walk through your review — what's wrong, why does it matter, what would you fix first?",
+      "placeholder": "Walk through your review - what's wrong, why does it matter, what would you fix first?",
       "submit": "Submit review →"
     },
     "socratic": {
@@ -1053,7 +1053,7 @@
     "items": [
       {
         "question": "What is RejectCheck?",
-        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In under 60 seconds, it shows you exactly why your application is getting filtered — running a dual-AI pipeline (GPT-4o for ATS and red flags, Claude for skill gap radar and GitHub/LinkedIn audit) against the specific job description."
+        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In under 60 seconds, it shows you exactly why your application is getting filtered - running a dual-AI pipeline (GPT-4o for ATS and red flags, Claude for skill gap radar and GitHub/LinkedIn audit) against the specific job description."
       },
       {
         "question": "How does RejectCheck analyze my CV?",
@@ -1061,7 +1061,7 @@
       },
       {
         "question": "What is an ATS and how does RejectCheck simulate it?",
-        "answer": "An Applicant Tracking System (ATS) is the software recruiters use to filter CVs before a human reads them. RejectCheck scans your CV against the exact keywords in the job description and returns a score plus the precise missing keywords weighted by importance — so you know what to add to pass."
+        "answer": "An Applicant Tracking System (ATS) is the software recruiters use to filter CVs before a human reads them. RejectCheck scans your CV against the exact keywords in the job description and returns a score plus the precise missing keywords weighted by importance - so you know what to add to pass."
       },
       {
         "question": "Is RejectCheck free?",
@@ -1081,7 +1081,7 @@
       },
       {
         "question": "How is RejectCheck different from other CV tools?",
-        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and offers a voice-based AI mock interview — not a chat. It is bilingual (English and French).",
+        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and offers a voice-based AI mock interview - not a chat. It is bilingual (English and French).",
         "seeAlso": [
           {
             "label": "Jobscan alternatives",
@@ -1105,14 +1105,14 @@
   },
   "forTeams": {
     "meta": {
-      "title": "RejectCheck for Teams — Career Coaches, Bootcamps & Universities",
+      "title": "RejectCheck for Teams - Career Coaches, Bootcamps & Universities",
       "description": "Bulk licensing of RejectCheck's dual-AI CV diagnosis for career coaches, coding bootcamps, university career centers, and outplacement firms. Volume pricing, per-seat billing, custom invoicing."
     },
     "hero": {
       "badge": "For career coaches · bootcamps · universities · outplacement",
       "title": "RejectCheck for teams serving job seekers",
       "subtitle": "Help your clients, students, or candidates land interviews faster. One dual-AI CV diagnosis pipeline (GPT-4o + Claude), bulk licensing, and custom pricing for teams of 10 to 10,000.",
-      "availabilityNote": "Currently early-access for teams. Individual plans shipping now; team infrastructure provisioned manually by our team on request — no self-serve team dashboard yet."
+      "availabilityNote": "Currently early-access for teams. Individual plans shipping now; team infrastructure provisioned manually by our team on request - no self-serve team dashboard yet."
     },
     "breadcrumb": {
       "home": "Home",
@@ -1124,7 +1124,7 @@
       "items": [
         {
           "label": "Career coaches",
-          "text": "Manage 10-50 clients? Show them an objective ATS score, technical skill gap radar, and GitHub audit — not just your opinion. Your coaching becomes data-driven. Volume pricing from 10 seats."
+          "text": "Manage 10-50 clients? Show them an objective ATS score, technical skill gap radar, and GitHub audit - not just your opinion. Your coaching becomes data-driven. Volume pricing from 10 seats."
         },
         {
           "label": "Coding bootcamps",
@@ -1152,7 +1152,7 @@
         {
           "n": "02",
           "title": "We onboard your team within 24h",
-          "text": "We provision the accounts for your clients/students, send a custom Stripe invoice (PO-friendly), and share onboarding guides for your users. No CSV import needed yet — we do it for you."
+          "text": "We provision the accounts for your clients/students, send a custom Stripe invoice (PO-friendly), and share onboarding guides for your users. No CSV import needed yet - we do it for you."
         },
         {
           "n": "03",
@@ -1177,7 +1177,7 @@
       "roadmap": [
         "Team admin dashboard (overview, usage analytics)",
         "Bulk CSV onboarding",
-        "SSO — Google Workspace, Okta, Azure AD",
+        "SSO - Google Workspace, Okta, Azure AD",
         "White-label PDF reports with your branding",
         "Per-team usage analytics",
         "REST API access for integration"
@@ -1185,7 +1185,7 @@
     },
     "pricing": {
       "badge": "Pricing",
-      "title": "Volume pricing — contact us for a quote",
+      "title": "Volume pricing - contact us for a quote",
       "subtitle": "No self-serve team purchase yet. We quote based on seats, term length, and segment. Typical deals close within 3 business days.",
       "tiers": [
         {
@@ -1232,7 +1232,7 @@
       "items": [
         {
           "question": "How are team accounts provisioned today?",
-          "answer": "Manually, by our team, within 24 hours of your first invoice payment. We create each user account in our Supabase Auth backend and email the credentials to you or your users directly. No team dashboard or bulk CSV import is live yet — that's on the roadmap."
+          "answer": "Manually, by our team, within 24 hours of your first invoice payment. We create each user account in our Supabase Auth backend and email the credentials to you or your users directly. No team dashboard or bulk CSV import is live yet - that's on the roadmap."
         },
         {
           "question": "Can I get a custom invoice with a PO number for accounting?",
@@ -1240,7 +1240,7 @@
         },
         {
           "question": "Do you support SSO (Okta, Azure AD, Google Workspace)?",
-          "answer": "Not as a standard feature yet. SSO is on the roadmap and available as a custom integration for Enterprise contracts — quote includes the engineering work. For Team and Bootcamp/University tiers, users sign in with email + password like individual users."
+          "answer": "Not as a standard feature yet. SSO is on the roadmap and available as a custom integration for Enterprise contracts - quote includes the engineering work. For Team and Bootcamp/University tiers, users sign in with email + password like individual users."
         },
         {
           "question": "Can I cancel monthly team licenses at any time?",
@@ -1248,11 +1248,11 @@
         },
         {
           "question": "Do team members get the same features as individual Hired-tier users?",
-          "answer": "Yes — full dual-AI diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, CV rewrite, and voice-based AI mock interview. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
+          "answer": "Yes - full dual-AI diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, CV rewrite, and voice-based AI mock interview. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
         },
         {
           "question": "Can we white-label the PDF exports with our logo?",
-          "answer": "Not as a standard feature yet. Available today as custom engineering work for Enterprise contracts. On the roadmap as a standard feature — we'll build it once we have 3+ teams requesting it."
+          "answer": "Not as a standard feature yet. Available today as custom engineering work for Enterprise contracts. On the roadmap as a standard feature - we'll build it once we have 3+ teams requesting it."
         },
         {
           "question": "How do you handle candidate data privacy?",
@@ -1262,7 +1262,7 @@
     },
     "cta": {
       "title": "Ready to talk?",
-      "subtitle": "Email us your use case and expected seat count — we reply within 24 hours with a custom quote.",
+      "subtitle": "Email us your use case and expected seat count - we reply within 24 hours with a custom quote.",
       "emailLabel": "Email business@rejectcheck.com",
       "email": "business@rejectcheck.com",
       "calendlyLabel": "Book a 15-min call →",

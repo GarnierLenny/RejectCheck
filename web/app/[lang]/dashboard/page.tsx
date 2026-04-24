@@ -201,7 +201,7 @@ function AnalysisRowWithInterviews({
                 return (
                   <div key={iv.id} className="flex items-center gap-3 py-1.5 border-b border-[rgba(0,0,0,0.04)] last:border-0">
                     <span className={`font-black text-[13px] leading-none w-10 shrink-0 ${scoreColor}`}>
-                      {iv.globalScore !== null ? `${iv.globalScore}/10` : "—"}
+                      {iv.globalScore !== null ? `${iv.globalScore}/10` : "-"}
                     </span>
                     <span className="font-mono text-[11px] text-rc-muted flex-1">
                       {t.account.interviews.interviewN.replace("{n}", String(interviews.length - idx))}
@@ -363,7 +363,7 @@ function DashboardContent() {
     return "border-rc-red/30 text-rc-red bg-rc-red/5";
   };
 
-  // Home tab — stats
+  // Home tab - stats
   const activeApplications = applications.filter(
     (a) => a.status === "applied" || a.status === "interviewing"
   );
@@ -487,7 +487,7 @@ function DashboardContent() {
                       {t.account.home.avgScore}
                     </p>
                     <p className={`text-3xl font-black leading-none ${overviewAvgRisk !== null ? getScoreColor(overviewAvgRisk).split(" ")[0] : "text-rc-hint"}`}>
-                      {overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—"}
+                      {overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "-"}
                     </p>
                   </div>
 
@@ -629,7 +629,7 @@ function DashboardContent() {
                             className="text-left border-l-2 border-rc-amber bg-rc-amber/5 rounded-r-lg px-3 py-2"
                           >
                             <p className="font-semibold text-[12px] text-rc-text truncate">
-                              {app.company} — {app.jobTitle}
+                              {app.company} - {app.jobTitle}
                             </p>
                             <p className="font-mono text-[10px] text-rc-amber">
                               {t.account.home.staleApplication.replace("{days}", String(days))}
@@ -645,7 +645,7 @@ function DashboardContent() {
                           className="text-left border-l-2 border-rc-red bg-rc-red/5 rounded-r-lg px-3 py-2"
                         >
                           <p className="font-semibold text-[12px] text-rc-text truncate">
-                            {app.company} — {app.jobTitle}
+                            {app.company} - {app.jobTitle}
                           </p>
                           <p className="font-mono text-[10px] text-rc-red">{t.account.home.activeInterview}</p>
                         </button>

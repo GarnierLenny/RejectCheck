@@ -27,7 +27,7 @@ function checkJd(text: string): JdWarningKey | null {
     return "promptInjection";
   }
 
-  // 2. Inverted fields — first 3 words look like a CV section header
+  // 2. Inverted fields - first 3 words look like a CV section header
   const firstThreeWords = lower.split(/\s+/).slice(0, 3).join(" ");
   if (CV_FIELD_KEYWORDS.some((kw) => firstThreeWords.includes(kw))) {
     return "invertedFields";

@@ -11,7 +11,7 @@ const severityBorder: Record<string, string> = {
 export function IssueItem({ issue }: { issue: Issue }) {
   return (
     <div className={`p-6 border-b border-rc-border last:border-0 hover:bg-rc-surface-raised transition-colors ${severityBorder[issue.severity] ?? ''}`}>
-      {/* Meta: severity + category — above title */}
+      {/* Meta: severity + category - above title */}
       <div className="flex items-center gap-2.5 mb-2.5">
         <span className={`text-[11px] uppercase font-mono px-2.5 py-0.5 border ${getSeverityStyles(issue.severity)}`}>
           {issue.severity}

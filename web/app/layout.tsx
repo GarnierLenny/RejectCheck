@@ -19,8 +19,8 @@ const chivoMono = Chivo_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rejectcheck.com"),
-  title: "RejectCheck — Find out why your CV got rejected",
-  description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+  title: "RejectCheck - Find out why your CV got rejected",
+  description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis - and exactly what to fix before you hit send.",
   applicationName: "RejectCheck",
   authors: [{ name: "RejectCheck", url: "https://rejectcheck.com" }],
   creator: "RejectCheck",
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     apple: "/RejectCheck_white.png",
   },
   openGraph: {
-    title: "RejectCheck — Find out why your CV got rejected",
-    description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+    title: "RejectCheck - Find out why your CV got rejected",
+    description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis - and exactly what to fix before you hit send.",
     url: "https://rejectcheck.com",
     siteName: "RejectCheck",
     images: [
@@ -58,8 +58,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "RejectCheck — Find out why your CV got rejected",
-    description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+    title: "RejectCheck - Find out why your CV got rejected",
+    description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis - and exactly what to fix before you hit send.",
     images: ["/RejectCheck_white.png"],
   },
   alternates: {

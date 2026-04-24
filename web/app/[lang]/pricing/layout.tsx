@@ -21,8 +21,8 @@ export async function generateMetadata({
   const isEn = lang === 'en'
 
   const title = isEn
-    ? 'Pricing — Free, Shortlisted (€7.99), Hired (€11.99)'
-    : 'Tarifs — Gratuit, Shortlisted (7,99 €), Hired (11,99 €)'
+    ? 'Pricing - Free, Shortlisted (€7.99), Hired (€11.99)'
+    : 'Tarifs - Gratuit, Shortlisted (7,99 €), Hired (11,99 €)'
 
   const description = isEn
     ? 'Transparent pricing: 1 free CV analysis forever (no signup), or unlimited analyses with AI mock interview and CV rewrite from €7.99/month. Refund guarantee on the Hired plan if you get hired.'

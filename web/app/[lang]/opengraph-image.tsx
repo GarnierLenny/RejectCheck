@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { hasLocale } from './dictionaries'
 
-export const alt = 'RejectCheck — CV rejection diagnosis'
+export const alt = 'RejectCheck - CV rejection diagnosis'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -16,8 +16,8 @@ export async function generateImageMetadata({
     {
       id: 'main',
       alt: isEn
-        ? 'RejectCheck — Find out why your CV got rejected'
-        : 'RejectCheck — Comprends pourquoi ton CV a été rejeté',
+        ? 'RejectCheck - Find out why your CV got rejected'
+        : 'RejectCheck - Comprends pourquoi ton CV a été rejeté',
       size,
       contentType,
     },
@@ -37,8 +37,8 @@ export default async function OgImage({
     : 'Find out why your CV got rejected'
   const headlineAccent = isFr ? 'avant que ce soit le cas.' : 'before it does.'
   const subtitle = isFr
-    ? 'Diagnostic IA dual (GPT-4o + Claude) : simulation ATS, radar des lacunes, audit GitHub & LinkedIn, entretien simulé IA — en moins de 60 secondes.'
-    : 'Dual-AI CV diagnosis (GPT-4o + Claude): ATS simulation, skill gap radar, GitHub & LinkedIn audit, AI mock interview — in under 60 seconds.'
+    ? 'Diagnostic IA dual (GPT-4o + Claude) : simulation ATS, radar des lacunes, audit GitHub & LinkedIn, entretien simulé IA - en moins de 60 secondes.'
+    : 'Dual-AI CV diagnosis (GPT-4o + Claude): ATS simulation, skill gap radar, GitHub & LinkedIn audit, AI mock interview - in under 60 seconds.'
   const langTag = isFr ? 'FR · EN' : 'EN · FR'
 
   return new ImageResponse(

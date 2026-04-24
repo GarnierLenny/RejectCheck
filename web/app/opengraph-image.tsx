@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'RejectCheck — Find out why your CV got rejected'
+export const alt = 'RejectCheck - Find out why your CV got rejected'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -85,7 +85,7 @@ export default async function OgImage() {
               marginTop: 20,
             }}
           >
-            Dual-AI CV diagnosis: ATS simulation, skill gap radar, GitHub & LinkedIn audit, AI mock interview — in under 60 seconds.
+            Dual-AI CV diagnosis: ATS simulation, skill gap radar, GitHub & LinkedIn audit, AI mock interview - in under 60 seconds.
           </div>
         </div>
 

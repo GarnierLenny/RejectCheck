@@ -143,7 +143,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Tab bar — labels are the same product tab names across locales */}
+              {/* Tab bar - labels are the same product tab names across locales */}
               <div className="border-b border-rc-border bg-rc-surface overflow-x-auto">
                 <div className="flex items-center min-w-max px-5">
                   {[
@@ -180,7 +180,7 @@ export default function Home() {
               {/* Dashboard body */}
               <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-0 divide-y md:divide-y-0 md:divide-x divide-rc-border">
 
-                {/* Left — Radar chart */}
+                {/* Left - Radar chart */}
                 <div className="p-8 flex flex-col items-center gap-6">
                   <div className="text-center">
                     <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-hint mb-1">{mc.radar.title}</p>
@@ -234,7 +234,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Right — Score + metrics */}
+                {/* Right - Score + metrics */}
                 <div className="p-6 flex flex-col gap-5">
                   <div className="bg-rc-red/5 border border-rc-red/20 rounded-xl p-4">
                     <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-rc-red mb-2">{mc.radar.atsLabel}</p>
@@ -286,7 +286,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ SIGNALS — GitHub & LinkedIn ═══════════════════════════════════ */}
+      {/* ═══ SIGNALS - GitHub & LinkedIn ═══════════════════════════════════ */}
       <section className="border-t-[0.5px] border-rc-border">
         <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-20 md:py-28">
           <FadeInSection>

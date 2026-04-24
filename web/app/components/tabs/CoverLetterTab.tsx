@@ -134,7 +134,7 @@ export function CoverLetterTab({ analysisId, isPremium, company, candidateName, 
         </div>
       </div>
 
-      {/* Generate button — shown before first generation */}
+      {/* Generate button - shown before first generation */}
       {!coverLetter && (
         <div className="flex justify-center py-8">
           <button

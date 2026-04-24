@@ -25,7 +25,7 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
     try {
       await generateCvPdf(reconstructedCv, "cv-rewritten.pdf");
     } catch {
-      // silently fail — user will notice nothing downloaded
+      // silently fail - user will notice nothing downloaded
     } finally {
       setIsExportingPdf(false);
     }
@@ -110,7 +110,7 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
     );
   }
 
-  // Idle state — premium user, no rewrite yet
+  // Idle state - premium user, no rewrite yet
   const fixes = [
     { icon: <Zap className="w-3.5 h-3.5 text-rc-red shrink-0 mt-0.5" />, text: t.improveTab.fixes[0].text },
     { icon: <ScanSearch className="w-3.5 h-3.5 text-rc-amber shrink-0 mt-0.5" />, text: t.improveTab.fixes[1].text },

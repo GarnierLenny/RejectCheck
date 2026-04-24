@@ -18,7 +18,7 @@ export const organizationSchema: JsonLdSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'RejectCheck',
-  alternateName: 'RejectCheck — CV rejection diagnosis',
+  alternateName: 'RejectCheck - CV rejection diagnosis',
   url: SITE_URL,
   logo: `${SITE_URL}/RejectCheck_white.png`,
   description:
@@ -236,7 +236,7 @@ export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
           '@type': 'HowToStep',
           position: 2,
           name: "Colle l'offre d'emploi visée",
-          text: "Colle le texte de l'offre d'emploi ou un lien vers l'annonce. L'analyse est taillée spécifiquement à cette offre — pas un score générique.",
+          text: "Colle le texte de l'offre d'emploi ou un lien vers l'annonce. L'analyse est taillée spécifiquement à cette offre - pas un score générique.",
           url: `${analyzeUrl}#step-2`,
         },
         {
@@ -282,7 +282,7 @@ export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
         '@type': 'HowToStep',
         position: 2,
         name: 'Paste the target job description',
-        text: 'Paste the job description text or link. The analysis is tailored specifically to that job — not a generic score.',
+        text: 'Paste the job description text or link. The analysis is tailored specifically to that job - not a generic score.',
         url: `${analyzeUrl}#step-2`,
       },
       {

@@ -88,7 +88,7 @@ function parse(cv: string): Block[] {
       continue;
     }
 
-    // Horizontal rules — skip
+    // Horizontal rules - skip
     if (/^-{3,}$/.test(trimmed) || /^={3,}$/.test(trimmed)) continue;
 
     // Markdown headers (strip any bold/italic markers from header text)

@@ -86,7 +86,7 @@ export default async function ForTeamsPage({
       name: 'RejectCheck',
       url: SITE_URL,
     },
-    serviceType: 'B2B SaaS — CV Diagnosis Platform for Career Services',
+    serviceType: 'B2B SaaS - CV Diagnosis Platform for Career Services',
     areaServed: ['US', 'CA', 'FR', 'BE', 'CH', 'GB', 'DE', 'ES', 'IT', 'NL', 'LU'],
     audience: {
       '@type': 'BusinessAudience',
@@ -97,11 +97,11 @@ export default async function ForTeamsPage({
     offers: c.pricing.tiers.map((tier) => ({
       '@type': 'Offer',
       name: tier.name,
-      description: `${tier.range} — ${tier.billing}`,
+      description: `${tier.range} - ${tier.billing}`,
       availability: 'https://schema.org/LimitedAvailability',
       priceSpecification: {
         '@type': 'PriceSpecification',
-        description: 'Custom volume pricing — contact sales for a quote',
+        description: 'Custom volume pricing - contact sales for a quote',
       },
       eligibleCustomerType: 'https://schema.org/BusinessCustomer',
     })),
@@ -404,7 +404,7 @@ export default async function ForTeamsPage({
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href={`mailto:${c.cta.email}?subject=RejectCheck for Teams — inquiry`}
+              href={`mailto:${c.cta.email}?subject=RejectCheck for Teams - inquiry`}
               className="inline-flex items-center gap-2.5 bg-rc-red text-white font-mono text-[12px] tracking-[0.14em] uppercase px-8 py-4 rounded-xl hover:bg-[#b83332] hover:shadow-[0_8px_28px_rgba(201,58,57,0.28)] active:scale-[0.98] transition-all duration-200 no-underline"
             >
               {c.cta.emailLabel}

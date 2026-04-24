@@ -84,7 +84,7 @@ export function RoadmapTab({ result }: Props) {
       id: "seniority",
       severity: "major",
       source: "Profile · Seniority",
-      title: `Seniority mismatch — expected ${result.seniority_analysis.expected}, CV signals ${result.seniority_analysis.detected}`,
+      title: `Seniority mismatch - expected ${result.seniority_analysis.expected}, CV signals ${result.seniority_analysis.detected}`,
       fixSummary: result.seniority_analysis.fix.summary,
     });
   }
@@ -148,7 +148,7 @@ export function RoadmapTab({ result }: Props) {
                     {group.label}
                   </span>
                   <span className="font-mono text-[11px] text-rc-hint">
-                    — {groupItems.length} {groupItems.length !== 1 ? t.roadmapTab.items : t.roadmapTab.item} {t.roadmapTab.that} {group.desc}
+                    - {groupItems.length} {groupItems.length !== 1 ? t.roadmapTab.items : t.roadmapTab.item} {t.roadmapTab.that} {group.desc}
                   </span>
                 </div>
 

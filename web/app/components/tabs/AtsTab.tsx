@@ -156,7 +156,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
               <div className="flex items-center gap-2 mb-5">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
                 <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-red font-bold">{t.atsTab.required}</span>
-                <span className="font-mono text-[11px] text-rc-hint">— {t.atsTab.requiredMention.replace('{count}', String(requiredKws.reduce((s, k) => s + k.jd_frequency, 0)))}</span>
+                <span className="font-mono text-[11px] text-rc-hint">- {t.atsTab.requiredMention.replace('{count}', String(requiredKws.reduce((s, k) => s + k.jd_frequency, 0)))}</span>
               </div>
               <div className="space-y-4">
                 {requiredKws.map((kw) => (
@@ -171,7 +171,7 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
               <div className="flex items-center gap-2 mb-5">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
                 <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-amber font-bold">{t.atsTab.preferred}</span>
-                <span className="font-mono text-[11px] text-rc-hint">— {t.atsTab.preferredNote}</span>
+                <span className="font-mono text-[11px] text-rc-hint">- {t.atsTab.preferredNote}</span>
               </div>
               <div className="space-y-4">
                 {preferredKws.map((kw) => (

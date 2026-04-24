@@ -55,7 +55,7 @@ const SUB_W = 95;   // Width per sub-node
 
 const GET_X = (idx: number) => {
   if (idx <= 4) return X0 + idx * W;
-  return X0 + 4 * W + 5 * SUB_W + 60; // finalizing — after all sub-nodes
+  return X0 + 4 * W + 5 * SUB_W + 60; // finalizing - after all sub-nodes
 };
 
 const MERGE_X = GET_X(4) + 5 * SUB_W + 30;
@@ -88,7 +88,7 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
         const next = prev + 1;
         if (next >= STEPS_CONFIG.length) return prev;
         if (next > backendIdx && backendIdx !== -1) return prev;
-        if (prev === 4) return prev; // hold at split — finalization handles exit
+        if (prev === 4) return prev; // hold at split - finalization handles exit
         return next;
       });
     }, 1800);
@@ -212,7 +212,7 @@ export function LoadingScreen({ currentStep, hasGithub, hasLinkedin, hasML, onFi
               const dualRunning = status === "running" || status === "done";
               return (
                 <g key="split-heads">
-                  {/* Claude head — center spine */}
+                  {/* Claude head - center spine */}
                   <g transform={`translate(${x}, ${CY})`}>
                     <motion.circle r="18" fill={claudeP === CLAUDE_TASKS_COUNT || isDone ? "#e24b4a" : "white"}
                       stroke={dualRunning ? "#e24b4a" : "#e5e7eb"} strokeWidth="2.5"

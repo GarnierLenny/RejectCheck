@@ -59,7 +59,7 @@ const EMPTY_FORM: AppFormState = {
 };
 
 const PAGE_SIZE = 10;
-const ROW_HEIGHT = 53; // px — matches py-3 + content
+const ROW_HEIGHT = 53; // px - matches py-3 + content
 
 const STATUS_COLORS: Record<string, string> = {
   interested:   'text-purple-600 border-purple-400/40 bg-purple-50',
@@ -112,7 +112,7 @@ function FieldRow({ label, display, isEditing, onActivate, children }: {
           onClick={onActivate}
           className="group flex items-center gap-2 flex-1 text-left rounded px-2 py-1 -mx-2 hover:bg-rc-surface-raised transition-colors"
         >
-          {display ?? <span className="font-mono text-[12px] text-rc-muted/50">—</span>}
+          {display ?? <span className="font-mono text-[12px] text-rc-muted/50">-</span>}
           <Pencil size={9} className="text-rc-muted opacity-0 group-hover:opacity-50 transition-opacity shrink-0 ml-auto" />
         </button>
       )}
@@ -222,7 +222,7 @@ function AppDrawer({
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">
 
-          {/* Fields — click-to-edit rows */}
+          {/* Fields - click-to-edit rows */}
           <div className="divide-y divide-[rgba(0,0,0,0.05)]">
             {/* Select row helper rendered inline per field */}
 
@@ -232,7 +232,7 @@ function AppDrawer({
               <select autoFocus value={app.seniority ?? ''} onBlur={() => setEditingField(null)}
                 onChange={async e => { setEditingField(null); await onUpdateApplication({ id: app.id, seniority: e.target.value || null }); }}
                 className={SELECT_CLS}>
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="junior">Junior</option><option value="junior-mid">Junior-Mid</option>
                 <option value="mid">Mid</option><option value="mid-senior">Mid-Senior</option><option value="senior">Senior</option>
               </select>
@@ -244,7 +244,7 @@ function AppDrawer({
               <select autoFocus value={app.workSetting ?? ''} onBlur={() => setEditingField(null)}
                 onChange={async e => { setEditingField(null); await onUpdateApplication({ id: app.id, workSetting: e.target.value || null }); }}
                 className={SELECT_CLS}>
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="full-remote">Full Remote</option><option value="hybrid">Hybrid</option><option value="on-site">On Site</option>
               </select>
             </FieldRow>
@@ -255,7 +255,7 @@ function AppDrawer({
               <select autoFocus value={app.contractType ?? ''} onBlur={() => setEditingField(null)}
                 onChange={async e => { setEditingField(null); await onUpdateApplication({ id: app.id, contractType: e.target.value || null }); }}
                 className={SELECT_CLS}>
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="CDI">CDI</option><option value="CDD">CDD</option><option value="freelance">Freelance</option>
                 <option value="internship">Internship</option><option value="apprenticeship">Apprenticeship</option>
               </select>
@@ -267,7 +267,7 @@ function AppDrawer({
               <select autoFocus value={app.languagesRequired ?? ''} onBlur={() => setEditingField(null)}
                 onChange={async e => { setEditingField(null); await onUpdateApplication({ id: app.id, languagesRequired: e.target.value || null }); }}
                 className={SELECT_CLS}>
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="french-only">French only</option><option value="english-only">English only</option><option value="bilingual">Bilingual</option>
               </select>
             </FieldRow>
@@ -278,7 +278,7 @@ function AppDrawer({
               <select autoFocus value={app.companyStage ?? ''} onBlur={() => setEditingField(null)}
                 onChange={async e => { setEditingField(null); await onUpdateApplication({ id: app.id, companyStage: e.target.value || null }); }}
                 className={SELECT_CLS}>
-                <option value="">—</option>
+                <option value="">-</option>
                 <option value="startup">Startup</option><option value="scale-up">Scale-up</option>
                 <option value="sme">SME / PME</option><option value="enterprise">Enterprise</option>
               </select>
@@ -508,7 +508,7 @@ export function ApplicationsTab({
       id: 'score', header: 'Score', sortUndefined: 'last',
       cell: info => {
         const score = info.getValue();
-        if (typeof score !== 'number') return <span className="text-rc-muted font-mono text-[12px]">—</span>;
+        if (typeof score !== 'number') return <span className="text-rc-muted font-mono text-[12px]">-</span>;
         return (
           <span className={`font-mono text-[12px] font-black ${score < 40 ? 'text-rc-green' : score < 70 ? 'text-rc-amber' : 'text-rc-red'}`}>
             {score}
@@ -518,13 +518,13 @@ export function ApplicationsTab({
     }),
     col.accessor('seniority', {
       header: 'Seniority',
-      cell: info => info.getValue() ? <Chip label={info.getValue()!} /> : <span className="text-rc-muted font-mono text-[12px]">—</span>,
+      cell: info => info.getValue() ? <Chip label={info.getValue()!} /> : <span className="text-rc-muted font-mono text-[12px]">-</span>,
     }),
     col.accessor('workSetting', {
       header: 'Remote',
       cell: info => {
         const v = info.getValue();
-        if (!v) return <span className="text-rc-muted font-mono text-[12px]">—</span>;
+        if (!v) return <span className="text-rc-muted font-mono text-[12px]">-</span>;
         const cls = v === 'full-remote' ? 'bg-rc-green/5 border-rc-green/20 text-rc-green'
           : v === 'hybrid' ? 'bg-blue-50 border-blue-200 text-blue-600'
           : 'bg-rc-surface-raised border-rc-border text-rc-muted';
@@ -533,19 +533,19 @@ export function ApplicationsTab({
     }),
     col.accessor('contractType', {
       header: 'Contract',
-      cell: info => info.getValue() ? <Chip label={info.getValue()!} /> : <span className="text-rc-muted font-mono text-[12px]">—</span>,
+      cell: info => info.getValue() ? <Chip label={info.getValue()!} /> : <span className="text-rc-muted font-mono text-[12px]">-</span>,
     }),
     col.accessor('pay', {
       header: 'Pay',
       cell: info => info.getValue()
         ? <span className="font-mono text-[12px] text-rc-green whitespace-nowrap">{info.getValue()}</span>
-        : <span className="text-rc-muted font-mono text-[12px]">—</span>,
+        : <span className="text-rc-muted font-mono text-[12px]">-</span>,
     }),
     col.accessor('officeLocation', {
       header: 'Location',
       cell: info => info.getValue()
         ? <span className="font-mono text-[12px] text-rc-text whitespace-nowrap">{info.getValue()}</span>
-        : <span className="text-rc-muted font-mono text-[12px]">—</span>,
+        : <span className="text-rc-muted font-mono text-[12px]">-</span>,
     }),
     col.accessor('appliedAt', {
       header: 'Applied',
@@ -690,7 +690,7 @@ export function ApplicationsTab({
           }}
         />
       ) : (
-      /* Table — no overflow wrapper so fixed-position menus aren't clipped */
+      /* Table - no overflow wrapper so fixed-position menus aren't clipped */
       <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-[8px]">
         <table className="w-full border-collapse table-auto">
           <thead>
@@ -802,7 +802,7 @@ export function ApplicationsTab({
       )}{/* end table/kanban toggle */}
       </div>{/* end blur wrapper */}
 
-      {/* ── Floating menus — fixed position, never clipped by table ── */}
+      {/* ── Floating menus - fixed position, never clipped by table ── */}
       {floatingMenu?.type === 'status' && (
         <div
           className="fixed z-50 bg-white border border-rc-border rounded-lg shadow-lg py-1 min-w-[152px]"
@@ -875,7 +875,7 @@ export function ApplicationsTab({
                     <div>
                       <label className="block font-mono text-[10px] uppercase tracking-[0.12em] text-rc-muted mb-1">Seniority</label>
                       <select value={appForm.seniority} onChange={e => setAppForm(f => ({ ...f, seniority: e.target.value }))} className="w-full border border-rc-border rounded-lg px-2 py-1.5 font-mono text-[11px] text-rc-text bg-white focus:outline-none focus:border-rc-red/40">
-                        <option value="">—</option>
+                        <option value="">-</option>
                         <option value="junior">Junior</option>
                         <option value="junior-mid">Junior-Mid</option>
                         <option value="mid">Mid</option>
@@ -886,7 +886,7 @@ export function ApplicationsTab({
                     <div>
                       <label className="block font-mono text-[10px] uppercase tracking-[0.12em] text-rc-muted mb-1">Work Setting</label>
                       <select value={appForm.workSetting} onChange={e => setAppForm(f => ({ ...f, workSetting: e.target.value }))} className="w-full border border-rc-border rounded-lg px-2 py-1.5 font-mono text-[11px] text-rc-text bg-white focus:outline-none focus:border-rc-red/40">
-                        <option value="">—</option>
+                        <option value="">-</option>
                         <option value="full-remote">Full Remote</option>
                         <option value="hybrid">Hybrid</option>
                         <option value="on-site">On Site</option>
@@ -895,7 +895,7 @@ export function ApplicationsTab({
                     <div>
                       <label className="block font-mono text-[10px] uppercase tracking-[0.12em] text-rc-muted mb-1">Contract</label>
                       <select value={appForm.contractType} onChange={e => setAppForm(f => ({ ...f, contractType: e.target.value }))} className="w-full border border-rc-border rounded-lg px-2 py-1.5 font-mono text-[11px] text-rc-text bg-white focus:outline-none focus:border-rc-red/40">
-                        <option value="">—</option>
+                        <option value="">-</option>
                         <option value="CDI">CDI</option>
                         <option value="CDD">CDD</option>
                         <option value="freelance">Freelance</option>
@@ -906,7 +906,7 @@ export function ApplicationsTab({
                     <div>
                       <label className="block font-mono text-[10px] uppercase tracking-[0.12em] text-rc-muted mb-1">Languages</label>
                       <select value={appForm.languagesRequired} onChange={e => setAppForm(f => ({ ...f, languagesRequired: e.target.value }))} className="w-full border border-rc-border rounded-lg px-2 py-1.5 font-mono text-[11px] text-rc-text bg-white focus:outline-none focus:border-rc-red/40">
-                        <option value="">—</option>
+                        <option value="">-</option>
                         <option value="french-only">French only</option>
                         <option value="english-only">English only</option>
                         <option value="bilingual">Bilingual</option>
@@ -915,7 +915,7 @@ export function ApplicationsTab({
                     <div>
                       <label className="block font-mono text-[10px] uppercase tracking-[0.12em] text-rc-muted mb-1">Company Stage</label>
                       <select value={appForm.companyStage} onChange={e => setAppForm(f => ({ ...f, companyStage: e.target.value }))} className="w-full border border-rc-border rounded-lg px-2 py-1.5 font-mono text-[11px] text-rc-text bg-white focus:outline-none focus:border-rc-red/40">
-                        <option value="">—</option>
+                        <option value="">-</option>
                         <option value="startup">Startup</option>
                         <option value="scale-up">Scale-up</option>
                         <option value="sme">SME / PME</option>
@@ -943,7 +943,7 @@ export function ApplicationsTab({
                   <option value="">None</option>
                   {history.map(h => (
                     <option key={h.id} value={String(h.id)}>
-                      {h.jobLabel || h.company || `Analysis #${h.id}`} — {new Date(h.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                      {h.jobLabel || h.company || `Analysis #${h.id}`} - {new Date(h.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
                     </option>
                   ))}
                 </select>

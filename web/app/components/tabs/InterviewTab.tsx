@@ -467,7 +467,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     );
   }
 
-  // ─── IDLE + DONE — Two-column master-detail ──────────────────────────────────
+  // ─── IDLE + DONE - Two-column master-detail ──────────────────────────────────
   const selectedAttempt = history.find(h => h.id === selectedAttemptId) ?? null;
   // After a completed interview, show the fresh analysis until user picks from history
   const displayedAnalysis = interviewState === "done" && liveAnalysis && !selectedAttemptId
@@ -544,7 +544,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
                         {h.globalScore}<span className="text-rc-hint text-[10px]">/10</span>
                       </span>
                     ) : (
-                      <span className="font-mono text-[10px] text-rc-hint">—</span>
+                      <span className="font-mono text-[10px] text-rc-hint">-</span>
                     )}
                   </button>
                 );

@@ -118,7 +118,7 @@
       "atsCard": {
         "label": "Filtre ATS",
         "title": "Simulez le filtre avant le recruteur",
-        "desc": "Nous faisons passer votre CV dans une simulation ATS calée sur la fiche de poste. Chaque mot-clé manquant a une valeur en points — vous savez exactement quoi ajouter.",
+        "desc": "Nous faisons passer votre CV dans une simulation ATS calée sur la fiche de poste. Chaque mot-clé manquant a une valeur en points - vous savez exactement quoi ajouter.",
         "scoreLabel": "Score"
       },
       "rewriteCard": {
@@ -204,7 +204,7 @@
       "rewrite": {
         "label": "Réécriture de CV",
         "title": "Améliorer le CV",
-        "desc": "L'IA réécrit chirurgicalement votre CV — injecte les mots-clés manquants, corrige le ton passif, ajoute des signaux de séniorité. Téléchargez en PDF."
+        "desc": "L'IA réécrit chirurgicalement votre CV - injecte les mots-clés manquants, corrige le ton passif, ajoute des signaux de séniorité. Téléchargez en PDF."
       },
       "interview": {
         "label": "Entretien IA",
@@ -218,7 +218,7 @@
       "subtitle": "La plupart des outils s'arrêtent aux mots-clés. RejectCheck lit les signaux de chaque couche de votre présence professionnelle.",
       "github": {
         "title": "Signal GitHub",
-        "desc": "Cadence de commits, diversité des langages, contributions open source — ce que votre CV ne dit pas sur votre profondeur technique réelle."
+        "desc": "Cadence de commits, diversité des langages, contributions open source - ce que votre CV ne dit pas sur votre profondeur technique réelle."
       },
       "linkedin": {
         "title": "Signal LinkedIn",
@@ -230,7 +230,7 @@
       },
       "roadmap": {
         "title": "Plan d'action",
-        "desc": "Chaque problème de chaque signal, priorisé par impact. Les éléments critiques en premier — ceux qui font rejeter les CVs avant d'être lus."
+        "desc": "Chaque problème de chaque signal, priorisé par impact. Les éléments critiques en premier - ceux qui font rejeter les CVs avant d'être lus."
       }
     },
     "cta": {
@@ -253,7 +253,7 @@
       "items": [
         {
           "label": "Pipeline dual-IA",
-          "claim": "GPT-4o et Anthropic Claude tournent en parallèle via Promise.allSettled à chaque analyse — pas un modèle unique qui fait tout, pas un fallback entre les deux.",
+          "claim": "GPT-4o et Anthropic Claude tournent en parallèle via Promise.allSettled à chaque analyse - pas un modèle unique qui fait tout, pas un fallback entre les deux.",
           "source": "Documenté dans la politique de confidentialité et le code backend public",
           "sourceLinks": [
             {
@@ -279,7 +279,7 @@
         },
         {
           "label": "Bilingue par construction",
-          "claim": "Anglais et français sont tous deux first-class : UI, sortie d'analyse, mots-clés, audit ton, et FAQ sont localisés — pas traduits automatiquement après coup. Jobscan, Rezi, Resume Worded, et Enhancv sont anglophones uniquement au 24 avril 2026.",
+          "claim": "Anglais et français sont tous deux first-class : UI, sortie d'analyse, mots-clés, audit ton, et FAQ sont localisés - pas traduits automatiquement après coup. Jobscan, Rezi, Resume Worded, et Enhancv sont anglophones uniquement au 24 avril 2026.",
           "source": "Compare /en/ et /fr/ côte à côte",
           "sourceLinks": [
             {
@@ -294,7 +294,7 @@
         },
         {
           "label": "Le tier gratuit est réel",
-          "claim": "Les utilisateurs invités ont 1 analyse complète sans inscription ni carte — pas un teaser bridé. Les utilisateurs enregistrés (gratuits) ont 3 analyses. Les sections Claude du tier gratuit sont floutées, pas absentes : l'analyse complète tourne et est sauvegardée — seules les vues premium sont masquées.",
+          "claim": "Les utilisateurs invités ont 1 analyse complète sans inscription ni carte - pas un teaser bridé. Les utilisateurs enregistrés (gratuits) ont 3 analyses. Les sections Claude du tier gratuit sont floutées, pas absentes : l'analyse complète tourne et est sauvegardée - seules les vues premium sont masquées.",
           "source": "Politique de confidentialité + documentation produit",
           "sourceLinks": [
             {
@@ -345,7 +345,7 @@
       "title": "Votre candidature",
       "description": "Le CV et l'offre sont indissociables. L'un sans l'autre, l'analyse ne peut pas cibler.",
       "hintTitle": "Pourquoi l'offre complète ?",
-      "hintBody": "Titre, stack, responsabilités, nice-to-haves — chaque ligne affecte le score ATS."
+      "hintBody": "Titre, stack, responsabilités, nice-to-haves - chaque ligne affecte le score ATS."
     },
     "leftStep2": {
       "title": "Signaux",
@@ -548,7 +548,7 @@
     "premiumBadge": "Fonctionnalité HIRED",
     "premiumTitle": "Générateur de lettre de motivation",
     "premiumDesc": "Analyse vos points forts et lacunes pour rédiger une lettre qui répond directement aux exigences du poste.",
-    "unlockButton": "Passer à HIRED — 11,99€/mois"
+    "unlockButton": "Passer à HIRED - 11,99€/mois"
   },
   "analyzeNav": {
     "pricing": "Tarifs →",
@@ -578,11 +578,11 @@
     "ptsAbove": "pts au-dessus du seuil",
     "current": "Actuel :",
     "simulated": "Simulé :",
-    "wouldPass": "— passerait ✓",
-    "atsExplanation": "ATS (Applicant Tracking System) — logiciel qui filtre les CVs avant qu'un humain ne les lise. Il scanne les mots-clés correspondant à l'offre. Un score bas signifie que votre CV peut ne jamais atteindre un recruteur.",
+    "wouldPass": "- passerait ✓",
+    "atsExplanation": "ATS (Applicant Tracking System) - logiciel qui filtre les CVs avant qu'un humain ne les lise. Il scanne les mots-clés correspondant à l'offre. Un score bas signifie que votre CV peut ne jamais atteindre un recruteur.",
     "simulator": "Simulateur",
     "keywordGap": "Mots-clés manquants",
-    "keywordGapSubtitle": "Cochez les mots-clés que vous pouvez réalistement ajouter à votre CV — votre score ATS se met à jour en temps réel.",
+    "keywordGapSubtitle": "Cochez les mots-clés que vous pouvez réalistement ajouter à votre CV - votre score ATS se met à jour en temps réel.",
     "reset": "Réinitialiser",
     "required": "Requis",
     "preferred": "Préféré",
@@ -605,7 +605,7 @@
     "writingStyle": "Style d'écriture",
     "toneAudit": "Audit du Ton",
     "toneSubtitle": "Patterns voix active vs. passive dans vos bullet points et descriptions.",
-    "patternDetected": "Schéma détecté — Ton × Séniorité",
+    "patternDetected": "Schéma détecté - Ton × Séniorité",
     "forensicAudit": "Audit Forensique",
     "cvIssues": "Problèmes CV",
     "cvIssuesSubtitle": "{count} vulnérabilité{plural} identifiée{plural} dans la structure, le contenu et le positionnement.",
@@ -639,14 +639,14 @@
     "signalAnalysis": "Analyse des signaux",
     "notProvided": "Non fourni",
     "signalScore": "Score Signal",
-    "noIssuesDetected": "Aucun problème détecté — signal fort.",
+    "noIssuesDetected": "Aucun problème détecté - signal fort.",
     "critical": "critique",
     "major": "majeur",
     "minor": "mineur",
     "issuesDetected": "{count} problème{plural} détecté{plural}",
-    "githubEmpty": "Aucun nom d'utilisateur GitHub fourni — vérification technique approfondie ignorée.",
+    "githubEmpty": "Aucun nom d'utilisateur GitHub fourni - vérification technique approfondie ignorée.",
     "githubCta": "Réanalysez avec votre nom d'utilisateur GitHub pour débloquer ce signal",
-    "linkedinEmpty": "Aucun PDF LinkedIn fourni — vérification croisée ignorée.",
+    "linkedinEmpty": "Aucun PDF LinkedIn fourni - vérification croisée ignorée.",
     "linkedinCta": "Exportez votre PDF LinkedIn (Paramètres → Confidentialité → Obtenir une copie) et réanalysez"
   },
   "roadmapTab": {
@@ -679,7 +679,7 @@
   "improveTab": {
     "premiumBadge": "Fonctionnalité Premium",
     "premiumTitle": "Laissez l'IA réécrire votre CV",
-    "premiumDesc": "Basé sur chaque problème trouvé dans cette analyse, l'IA réécrit chirurgicalement votre CV — injecte les mots-clés manquants, corrige le ton passif et ajoute des signaux de séniorité. Téléchargez le résultat en PDF.",
+    "premiumDesc": "Basé sur chaque problème trouvé dans cette analyse, l'IA réécrit chirurgicalement votre CV - injecte les mots-clés manquants, corrige le ton passif et ajoute des signaux de séniorité. Téléchargez le résultat en PDF.",
     "unlockButton": "Débloquer Améliorer CV",
     "rewriting": "Réécriture de votre CV...",
     "cvReady": "Votre CV amélioré est prêt.",
@@ -826,7 +826,7 @@
       "items": [
         {
           "question": "Puis-je annuler mon abonnement RejectCheck à tout moment ?",
-          "answer": "Oui. Tu peux annuler ton abonnement Shortlisted (7,99 €/mois) ou Hired (11,99 €/mois) à tout moment depuis la page paramètres du compte. Tu gardes l'accès complet jusqu'à la fin du mois déjà facturé — aucun prorata."
+          "answer": "Oui. Tu peux annuler ton abonnement Shortlisted (7,99 €/mois) ou Hired (11,99 €/mois) à tout moment depuis la page paramètres du compte. Tu gardes l'accès complet jusqu'à la fin du mois déjà facturé - aucun prorata."
         },
         {
           "question": "Y a-t-il un essai gratuit ou un tier gratuit ?",
@@ -947,7 +947,7 @@
       "addApplication": "Ajouter candidature",
       "staleApplication": "Aucune réponse depuis {days} jours",
       "activeInterview": "Entretien en cours",
-      "newUnviewedAnalysis": "Nouvelle analyse — {score}% risque",
+      "newUnviewedAnalysis": "Nouvelle analyse - {score}% risque",
       "noActionItems": "Tout est à jour !"
     },
     "kanban": {
@@ -993,7 +993,7 @@
     "yourReviewLabel": "Ta review",
     "pushbackGenerating": "Génère une question pour pousser ta review…",
     "firstAnswer": {
-      "placeholder": "Déroule ta review — qu'est-ce qui cloche, pourquoi c'est grave, qu'est-ce que tu corriges en premier ?",
+      "placeholder": "Déroule ta review - qu'est-ce qui cloche, pourquoi c'est grave, qu'est-ce que tu corriges en premier ?",
       "submit": "Envoyer la review →"
     },
     "socratic": {
@@ -1054,7 +1054,7 @@
     "items": [
       {
         "question": "C'est quoi RejectCheck ?",
-        "answer": "RejectCheck est un outil IA de diagnostic de CV et candidatures. En moins de 60 secondes, il te montre précisément pourquoi ta candidature est filtrée — avec un pipeline dual-IA (GPT-4o pour l'ATS et les red flags, Claude pour le radar des lacunes techniques et l'audit GitHub/LinkedIn) exécuté contre la fiche de poste exacte."
+        "answer": "RejectCheck est un outil IA de diagnostic de CV et candidatures. En moins de 60 secondes, il te montre précisément pourquoi ta candidature est filtrée - avec un pipeline dual-IA (GPT-4o pour l'ATS et les red flags, Claude pour le radar des lacunes techniques et l'audit GitHub/LinkedIn) exécuté contre la fiche de poste exacte."
       },
       {
         "question": "Comment RejectCheck analyse mon CV ?",
@@ -1062,7 +1062,7 @@
       },
       {
         "question": "C'est quoi un ATS et comment RejectCheck le simule ?",
-        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour filtrer les CV avant qu'un humain les lise. RejectCheck scanne ton CV contre les mots-clés exacts de la fiche de poste et te renvoie un score plus les mots-clés manquants pondérés par importance — pour que tu saches quoi ajouter pour passer le filtre."
+        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour filtrer les CV avant qu'un humain les lise. RejectCheck scanne ton CV contre les mots-clés exacts de la fiche de poste et te renvoie un score plus les mots-clés manquants pondérés par importance - pour que tu saches quoi ajouter pour passer le filtre."
       },
       {
         "question": "RejectCheck est-il gratuit ?",
@@ -1082,7 +1082,7 @@
       },
       {
         "question": "En quoi RejectCheck est différent des autres outils CV ?",
-        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et propose un entretien simulé IA vocal — pas un chat. Il est bilingue (anglais et français).",
+        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et propose un entretien simulé IA vocal - pas un chat. Il est bilingue (anglais et français).",
         "seeAlso": [
           {
             "label": "Alternatives à Jobscan",
@@ -1106,14 +1106,14 @@
   },
   "forTeams": {
     "meta": {
-      "title": "RejectCheck pour les équipes — coaches, bootcamps & universités",
+      "title": "RejectCheck pour les équipes - coaches, bootcamps & universités",
       "description": "Licences en volume du diagnostic CV dual-IA RejectCheck pour career coaches, bootcamps de code, services carrière universitaires, et firmes d'outplacement. Prix au volume, facturation au siège, facturation personnalisée."
     },
     "hero": {
       "badge": "Pour career coaches · bootcamps · universités · outplacement",
       "title": "RejectCheck pour les équipes qui servent des candidats",
       "subtitle": "Aide tes clients, étudiants, ou candidats à décrocher des entretiens plus vite. Un seul pipeline de diagnostic dual-IA (GPT-4o + Claude), licences en volume, et prix sur mesure pour des équipes de 10 à 10 000 seats.",
-      "availabilityNote": "Actuellement en early-access pour les équipes. Plans individuels en production ; infrastructure équipe provisionnée manuellement par notre équipe sur demande — pas encore de dashboard team self-serve."
+      "availabilityNote": "Actuellement en early-access pour les équipes. Plans individuels en production ; infrastructure équipe provisionnée manuellement par notre équipe sur demande - pas encore de dashboard team self-serve."
     },
     "breadcrumb": {
       "home": "Accueil",
@@ -1125,7 +1125,7 @@
       "items": [
         {
           "label": "Career coaches",
-          "text": "Tu gères 10-50 clients ? Montre-leur un score ATS objectif, un radar des lacunes techniques, et un audit GitHub — pas juste ton avis. Ton coaching devient data-driven. Prix au volume à partir de 10 seats."
+          "text": "Tu gères 10-50 clients ? Montre-leur un score ATS objectif, un radar des lacunes techniques, et un audit GitHub - pas juste ton avis. Ton coaching devient data-driven. Prix au volume à partir de 10 seats."
         },
         {
           "label": "Bootcamps de code",
@@ -1153,7 +1153,7 @@
         {
           "n": "02",
           "title": "On onboarde ton équipe sous 24h",
-          "text": "On provisionne les comptes pour tes clients/étudiants, on envoie un invoice Stripe custom (PO-friendly), et on partage des guides d'onboarding pour tes users. Pas d'import CSV requis — on le fait pour toi."
+          "text": "On provisionne les comptes pour tes clients/étudiants, on envoie un invoice Stripe custom (PO-friendly), et on partage des guides d'onboarding pour tes users. Pas d'import CSV requis - on le fait pour toi."
         },
         {
           "n": "03",
@@ -1178,7 +1178,7 @@
       "roadmap": [
         "Dashboard admin team (vue d'ensemble, analytics d'usage)",
         "Onboarding CSV bulk",
-        "SSO — Google Workspace, Okta, Azure AD",
+        "SSO - Google Workspace, Okta, Azure AD",
         "Rapports PDF white-label avec ton branding",
         "Analytics d'usage par team",
         "Accès API REST pour intégration"
@@ -1186,7 +1186,7 @@
     },
     "pricing": {
       "badge": "Tarifs",
-      "title": "Prix au volume — contacte-nous pour un devis",
+      "title": "Prix au volume - contacte-nous pour un devis",
       "subtitle": "Pas encore d'achat team self-serve. On établit un devis basé sur le nombre de sièges, la durée, et le segment. Les deals typiques se closent en 3 jours ouvrés.",
       "tiers": [
         {
@@ -1233,7 +1233,7 @@
       "items": [
         {
           "question": "Comment sont provisionnés les comptes team aujourd'hui ?",
-          "answer": "Manuellement, par notre équipe, dans les 24 heures suivant le paiement du premier invoice. On crée chaque compte dans notre backend Supabase Auth et on t'envoie les credentials directement. Pas encore de dashboard team ni d'import CSV bulk — c'est sur la roadmap."
+          "answer": "Manuellement, par notre équipe, dans les 24 heures suivant le paiement du premier invoice. On crée chaque compte dans notre backend Supabase Auth et on t'envoie les credentials directement. Pas encore de dashboard team ni d'import CSV bulk - c'est sur la roadmap."
         },
         {
           "question": "Puis-je avoir un invoice custom avec numéro de PO pour la compta ?",
@@ -1241,7 +1241,7 @@
         },
         {
           "question": "Supportez-vous le SSO (Okta, Azure AD, Google Workspace) ?",
-          "answer": "Pas encore comme feature standard. Le SSO est sur la roadmap et disponible comme intégration custom pour les contrats Enterprise — le devis inclut le travail d'ingénierie. Pour les tiers Team et Bootcamp/Université, les users se loggent avec email + mot de passe comme les users individuels."
+          "answer": "Pas encore comme feature standard. Le SSO est sur la roadmap et disponible comme intégration custom pour les contrats Enterprise - le devis inclut le travail d'ingénierie. Pour les tiers Team et Bootcamp/Université, les users se loggent avec email + mot de passe comme les users individuels."
         },
         {
           "question": "Puis-je résilier les licences team mensuelles à tout moment ?",
@@ -1249,11 +1249,11 @@
         },
         {
           "question": "Les membres de l'équipe ont-ils les mêmes features que les users Hired individuels ?",
-          "answer": "Oui — diagnostic dual-IA complet incluant audit GitHub, recoupement LinkedIn, radar des lacunes techniques, détection de red flags, réécriture de CV, et entretien simulé IA vocal. La seule différence c'est la facturation (tu payes, pas eux) et le provisioning (on crée les comptes, pas de self-signup)."
+          "answer": "Oui - diagnostic dual-IA complet incluant audit GitHub, recoupement LinkedIn, radar des lacunes techniques, détection de red flags, réécriture de CV, et entretien simulé IA vocal. La seule différence c'est la facturation (tu payes, pas eux) et le provisioning (on crée les comptes, pas de self-signup)."
         },
         {
           "question": "Peut-on white-label les exports PDF avec notre logo ?",
-          "answer": "Pas encore comme feature standard. Disponible aujourd'hui comme travail d'ingénierie custom pour les contrats Enterprise. Sur la roadmap comme feature standard — on la buildera quand 3+ équipes l'auront demandée."
+          "answer": "Pas encore comme feature standard. Disponible aujourd'hui comme travail d'ingénierie custom pour les contrats Enterprise. Sur la roadmap comme feature standard - on la buildera quand 3+ équipes l'auront demandée."
         },
         {
           "question": "Comment gérez-vous la confidentialité des données candidats ?",
@@ -1263,7 +1263,7 @@
     },
     "cta": {
       "title": "Prêt à discuter ?",
-      "subtitle": "Email-nous ton cas d'usage et le nombre de seats attendu — on répond sous 24 heures avec un devis custom.",
+      "subtitle": "Email-nous ton cas d'usage et le nombre de seats attendu - on répond sous 24 heures avec un devis custom.",
       "emailLabel": "Écrire à business@rejectcheck.com",
       "email": "business@rejectcheck.com",
       "calendlyLabel": "Book un call de 15 min →",

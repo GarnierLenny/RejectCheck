@@ -141,10 +141,10 @@ const COMPETITORS_EN: Competitor[] = [
     tagline: 'AI resume builder with Rezi Score, lifetime pricing, and AI interview practice.',
     website: 'https://www.rezi.ai',
     freeTier: '1 resume, 3 PDF downloads, 1 AI interview',
-    paidEntry: '$29 / month — or $149 lifetime (one-time)',
+    paidEntry: '$29 / month - or $149 lifetime (one-time)',
     topFeatures: [
       'AI Resume Builder with keyword targeting',
-      'Rezi Score — ATS compatibility scoring',
+      'Rezi Score - ATS compatibility scoring',
       'Unlimited AI interview practice (paid)',
       'Resume Agent (AI assistant for rewrites)',
       'PDF / DOCX / Google Drive export',
@@ -164,17 +164,17 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'Resume Worded',
     tagline: 'Free instant resume review + dedicated LinkedIn profile optimization.',
     website: 'https://resumeworded.com',
-    freeTier: 'Free account — instant resume review + sample bullets',
-    paidEntry: 'Pro tier — pricing not published publicly; verify on site',
+    freeTier: 'Free account - instant resume review + sample bullets',
+    paidEntry: 'Pro tier - pricing not published publicly; verify on site',
     topFeatures: [
-      'Score My Resume — instant free feedback',
+      'Score My Resume - instant free feedback',
       'LinkedIn profile optimization (dedicated feature)',
       'Resume targeting against job descriptions',
       '250+ bullet-point samples across industries',
       'ATS-compatible resume templates',
     ],
     bestFor:
-      'Candidates whose LinkedIn presence matters as much as their resume — marketing, sales, and client-facing roles where LinkedIn is the primary discovery channel.',
+      'Candidates whose LinkedIn presence matters as much as their resume - marketing, sales, and client-facing roles where LinkedIn is the primary discovery channel.',
     weakness:
       'Pricing opacity (Pro tier cost not public). No AI interview. No code-portfolio signals.',
     atsCheck: 'yes',
@@ -189,9 +189,9 @@ const COMPETITORS_EN: Competitor[] = [
     tagline: 'Template-rich resume and cover letter builder with AI and ATS checker.',
     website: 'https://www.kickresume.com',
     freeTier: '4 resume templates, 20,000 pre-written phrases, unlimited downloads',
-    paidEntry: '€8 / month (annual) — €24 / month (monthly billing)',
+    paidEntry: '€8 / month (annual) - €24 / month (monthly billing)',
     topFeatures: [
-      '40+ resume templates (paid) — largest library in this list',
+      '40+ resume templates (paid) - largest library in this list',
       'AI Resume & Cover Letter Writer (paid)',
       'ATS Resume Checker (paid only)',
       'LinkedIn and PDF import',
@@ -213,7 +213,7 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'Enhancv',
     tagline: 'Design-forward resume builder with AI content suggestions and ATS check.',
     website: 'https://enhancv.com',
-    freeTier: '7-day trial — all templates, basic sections, max 12 items',
+    freeTier: '7-day trial - all templates, basic sections, max 12 items',
     paidEntry: 'Pro quarterly (verify current price on enhancv.com)',
     topFeatures: [
       'Hundreds of visually polished templates',
@@ -251,7 +251,7 @@ const COMPETITORS_FR: Competitor[] = [
       'Pipeline dual-IA (GPT-4o + Anthropic Claude) en parallèle',
     ],
     bestFor:
-      'Développeurs et candidats techniques qui veulent voir leurs lacunes visualisées et un audit GitHub/LinkedIn — pas juste du matching de mots-clés.',
+      'Développeurs et candidats techniques qui veulent voir leurs lacunes visualisées et un audit GitHub/LinkedIn - pas juste du matching de mots-clés.',
     weakness:
       "Produit plus jeune que Jobscan. Le générateur de lettre de motivation et l'extension Chrome sont annoncés comme 'à venir'.",
     atsCheck: 'yes',
@@ -288,10 +288,10 @@ const COMPETITORS_FR: Competitor[] = [
     tagline: 'Builder de CV IA avec Rezi Score, prix à vie, et pratique d\'entretien IA.',
     website: 'https://www.rezi.ai',
     freeTier: '1 CV, 3 téléchargements PDF, 1 entretien IA',
-    paidEntry: '29 $ / mois — ou 149 $ à vie (paiement unique)',
+    paidEntry: '29 $ / mois - ou 149 $ à vie (paiement unique)',
     topFeatures: [
       'Builder IA avec ciblage de mots-clés',
-      'Rezi Score — scoring de compatibilité ATS',
+      'Rezi Score - scoring de compatibilité ATS',
       "Pratique d'entretien IA illimitée (payant)",
       'Resume Agent (assistant IA pour réécritures)',
       'Export PDF / DOCX / Google Drive',
@@ -311,17 +311,17 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'Resume Worded',
     tagline: 'Revue instantanée gratuite + optimisation LinkedIn dédiée.',
     website: 'https://resumeworded.com',
-    freeTier: 'Compte gratuit — revue instantanée + exemples de bullets',
-    paidEntry: "Tier Pro — prix non publié publiquement ; vérifie sur le site",
+    freeTier: 'Compte gratuit - revue instantanée + exemples de bullets',
+    paidEntry: "Tier Pro - prix non publié publiquement ; vérifie sur le site",
     topFeatures: [
-      'Score My Resume — feedback gratuit instantané',
+      'Score My Resume - feedback gratuit instantané',
       'Optimisation profil LinkedIn (feature dédiée)',
       'Ciblage CV face aux fiches de poste',
       '250+ exemples de bullets par industrie',
       'Templates compatibles ATS',
     ],
     bestFor:
-      'Candidats pour qui la présence LinkedIn compte autant que le CV — marketing, ventes, et rôles client-facing où LinkedIn est le canal primaire.',
+      'Candidats pour qui la présence LinkedIn compte autant que le CV - marketing, ventes, et rôles client-facing où LinkedIn est le canal primaire.',
     weakness:
       "Opacité tarifaire (prix Pro pas public). Pas d'entretien IA. Pas de signaux code-portfolio.",
     atsCheck: 'yes',
@@ -336,9 +336,9 @@ const COMPETITORS_FR: Competitor[] = [
     tagline: 'Builder de CV et lettre avec IA et checker ATS, grande bibliothèque de templates.',
     website: 'https://www.kickresume.com',
     freeTier: '4 templates de CV, 20 000 phrases pré-écrites, téléchargements illimités',
-    paidEntry: '8 € / mois (annuel) — 24 € / mois (facturation mensuelle)',
+    paidEntry: '8 € / mois (annuel) - 24 € / mois (facturation mensuelle)',
     topFeatures: [
-      '40+ templates de CV (payant) — plus grande bibliothèque de cette liste',
+      '40+ templates de CV (payant) - plus grande bibliothèque de cette liste',
       'Writer IA de CV et lettre (payant)',
       'Checker ATS (payant uniquement)',
       'Import LinkedIn et PDF',
@@ -360,7 +360,7 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'Enhancv',
     tagline: 'Builder design-first avec suggestions IA et check ATS.',
     website: 'https://enhancv.com',
-    freeTier: "Essai 7 jours — tous templates, sections de base, max 12 items",
+    freeTier: "Essai 7 jours - tous templates, sections de base, max 12 items",
     paidEntry: 'Pro trimestriel (vérifie le prix actuel sur enhancv.com)',
     topFeatures: [
       'Des centaines de templates visuellement polis',
@@ -388,7 +388,7 @@ export const contentEn: AlternativesContent = {
   badgeLabel: 'Comparison · Updated April 24, 2026',
   heroTitle: '7 Best Jobscan Alternatives in 2026',
   heroIntro:
-    'Jobscan is the most widely known ATS resume scanner, but it is not the only — or always the best — option. Below is an honest, hands-on comparison of six alternatives (plus Jobscan itself) ranging from free to lifetime pricing, covering candidates from software engineers to design professionals.',
+    'Jobscan is the most widely known ATS resume scanner, but it is not the only - or always the best - option. Below is an honest, hands-on comparison of six alternatives (plus Jobscan itself) ranging from free to lifetime pricing, covering candidates from software engineers to design professionals.',
   tldrLabel: 'TL;DR',
   tldr: 'If you want the most mature ATS scanner with the largest keyword database, stay on Jobscan. If you are a software engineer who needs GitHub and LinkedIn auditing plus a voice-based AI mock interview, use RejectCheck. If you want a lifetime license instead of a subscription, choose Rezi ($149 one-time). If LinkedIn optimization is your priority, use Resume Worded. For design-heavy roles, Enhancv or Kickresume give you the largest template libraries.',
   breadcrumbHome: 'Home',
@@ -402,7 +402,7 @@ export const contentEn: AlternativesContent = {
       text: "Jobscan's monthly tier sits at the top of the resume-scanner market. Alternatives like Rezi ($29/mo or $149 lifetime), Kickresume (€8/mo annual), and RejectCheck (€7.99/mo) cover the same ATS-scan use case for meaningfully less per month.",
     },
     {
-      title: 'Keyword matching only — no deeper portfolio signals',
+      title: 'Keyword matching only - no deeper portfolio signals',
       text: 'Jobscan scores your CV against the job description. It does not look at your GitHub commit history, the languages you actually code in, or whether your LinkedIn summary contradicts your CV. For a software engineer, those signals often matter more than keyword density. RejectCheck is built specifically to audit them.',
     },
     {
@@ -415,7 +415,7 @@ export const contentEn: AlternativesContent = {
     },
   ],
   comparisonBadge: 'At a glance',
-  comparisonTitle: 'Jobscan vs. 6 alternatives — quick comparison',
+  comparisonTitle: 'Jobscan vs. 6 alternatives - quick comparison',
   tableHeaders: {
     tool: 'Tool',
     freeTier: 'Free tier',
@@ -471,12 +471,12 @@ export const contentEn: AlternativesContent = {
     {
       scenario: 'You are applying in French-speaking markets',
       pick: 'RejectCheck',
-      why: 'Fully bilingual EN + FR — UI, analysis output, keywords, tone audit.',
+      why: 'Fully bilingual EN + FR - UI, analysis output, keywords, tone audit.',
     },
     {
       scenario: 'You want a truly free full analysis (not just a teaser)',
       pick: 'RejectCheck',
-      why: 'Free tier includes a full deep analysis (1 for guests, 3 for registered users) with ATS simulation, tone audit, and red-flag detection — not just a limited scan.',
+      why: 'Free tier includes a full deep analysis (1 for guests, 3 for registered users) with ATS simulation, tone audit, and red-flag detection - not just a limited scan.',
     },
   ],
   faqBadge: 'FAQ',
@@ -505,7 +505,7 @@ export const contentEn: AlternativesContent = {
     {
       question: 'Is a lifetime plan available for any of these tools?',
       answer:
-        "Rezi offers a $149 lifetime plan as a one-time purchase — the only true lifetime option in this list. Jobscan, RejectCheck, Resume Worded, Kickresume, and Enhancv are subscription-based. Kickresume's annual tier (€96 / year, roughly €8 / month equivalent) is the closest non-lifetime low-commitment option.",
+        "Rezi offers a $149 lifetime plan as a one-time purchase - the only true lifetime option in this list. Jobscan, RejectCheck, Resume Worded, Kickresume, and Enhancv are subscription-based. Kickresume's annual tier (€96 / year, roughly €8 / month equivalent) is the closest non-lifetime low-commitment option.",
     },
     {
       question: 'Which AI models do these tools use?',
@@ -515,10 +515,10 @@ export const contentEn: AlternativesContent = {
     {
       question: 'How accurate are ATS simulators in general?',
       answer:
-        'ATS simulators estimate match rates based on keyword density and presence against the job description. They do not replicate a specific employer ATS (Workday, Greenhouse, Lever, Taleo) exactly because real ATS systems vary by configuration. They are useful as a directional signal — if you score 40%, you are missing meaningful keywords — but no simulator guarantees a real ATS will behave identically. Jobscan itself recommends a 75% match rate; RejectCheck, Rezi, and Resume Worded use similar thresholds.',
+        'ATS simulators estimate match rates based on keyword density and presence against the job description. They do not replicate a specific employer ATS (Workday, Greenhouse, Lever, Taleo) exactly because real ATS systems vary by configuration. They are useful as a directional signal - if you score 40%, you are missing meaningful keywords - but no simulator guarantees a real ATS will behave identically. Jobscan itself recommends a 75% match rate; RejectCheck, Rezi, and Resume Worded use similar thresholds.',
     },
   ],
-  ctaTitle: 'Try RejectCheck — free, no signup',
+  ctaTitle: 'Try RejectCheck - free, no signup',
   ctaSubtitle:
     'Upload your CV, paste a job description, and get a full diagnosis in under 60 seconds: ATS score, technical skill gap radar, GitHub and LinkedIn signal audit, and red flag detection.',
   ctaButton: 'Analyze my CV free',
@@ -536,7 +536,7 @@ export const contentFr: AlternativesContent = {
   badgeLabel: 'Comparaison · Mis à jour le 24 avril 2026',
   heroTitle: '7 meilleures alternatives à Jobscan en 2026',
   heroIntro:
-    "Jobscan est le scanner de CV ATS le plus connu, mais ce n'est pas la seule — ni toujours la meilleure — option. Ci-dessous, une comparaison honnête et hands-on de six alternatives (plus Jobscan lui-même) allant du gratuit au paiement à vie, pour des candidats allant du développeur au design pro.",
+    "Jobscan est le scanner de CV ATS le plus connu, mais ce n'est pas la seule - ni toujours la meilleure - option. Ci-dessous, une comparaison honnête et hands-on de six alternatives (plus Jobscan lui-même) allant du gratuit au paiement à vie, pour des candidats allant du développeur au design pro.",
   tldrLabel: 'TL;DR',
   tldr: "Si tu veux le scanner ATS le plus mature avec la plus grande base de mots-clés, reste sur Jobscan. Si tu es développeur et qu'il te faut un audit GitHub/LinkedIn + entretien simulé IA vocal, utilise RejectCheck. Si tu préfères une licence à vie plutôt qu'un abonnement, choisis Rezi (149 $ unique). Si l'optimisation LinkedIn est ta priorité, utilise Resume Worded. Pour les rôles design-heavy, Enhancv ou Kickresume offrent les plus grandes bibliothèques de templates.",
   breadcrumbHome: 'Accueil',
@@ -550,7 +550,7 @@ export const contentFr: AlternativesContent = {
       text: "Le tier mensuel de Jobscan est au sommet du marché des scanners de CV. Des alternatives comme Rezi (29 $/mois ou 149 $ à vie), Kickresume (8 €/mois annuel), et RejectCheck (7,99 €/mois) couvrent le même cas d'usage ATS pour significativement moins par mois.",
     },
     {
-      title: 'Matching de mots-clés uniquement — pas de signaux portfolio',
+      title: 'Matching de mots-clés uniquement - pas de signaux portfolio',
       text: "Jobscan score ton CV face à la fiche de poste. Il ne regarde pas ton historique de commits GitHub, les langages dans lesquels tu codes vraiment, ni si ton résumé LinkedIn contredit ton CV. Pour un développeur, ces signaux comptent souvent plus que la densité de mots-clés. RejectCheck est construit spécifiquement pour les auditer.",
     },
     {
@@ -563,7 +563,7 @@ export const contentFr: AlternativesContent = {
     },
   ],
   comparisonBadge: "En un coup d'œil",
-  comparisonTitle: 'Jobscan vs. 6 alternatives — comparaison rapide',
+  comparisonTitle: 'Jobscan vs. 6 alternatives - comparaison rapide',
   tableHeaders: {
     tool: 'Outil',
     freeTier: 'Tier gratuit',
@@ -619,12 +619,12 @@ export const contentFr: AlternativesContent = {
     {
       scenario: 'Tu postules sur des marchés francophones',
       pick: 'RejectCheck',
-      why: "Bilingue EN + FR complet — UI, sortie d'analyse, mots-clés, audit de ton.",
+      why: "Bilingue EN + FR complet - UI, sortie d'analyse, mots-clés, audit de ton.",
     },
     {
       scenario: 'Tu veux une vraie analyse gratuite complète (pas un teaser)',
       pick: 'RejectCheck',
-      why: 'Tier gratuit inclut une analyse complète (1 pour invités, 3 pour enregistrés) avec simulation ATS, audit ton, et détection de red flags — pas juste un scan limité.',
+      why: 'Tier gratuit inclut une analyse complète (1 pour invités, 3 pour enregistrés) avec simulation ATS, audit ton, et détection de red flags - pas juste un scan limité.',
     },
   ],
   faqBadge: 'FAQ',
@@ -653,7 +653,7 @@ export const contentFr: AlternativesContent = {
     {
       question: "Un plan à vie est-il disponible sur ces outils ?",
       answer:
-        "Rezi offre un plan à vie à 149 $ en paiement unique — la seule vraie option à vie de la liste. Jobscan, RejectCheck, Resume Worded, Kickresume, et Enhancv sont basés sur abonnement. Le tier annuel de Kickresume (96 €/an, environ 8 €/mois) est l'option la plus proche sans engagement long.",
+        "Rezi offre un plan à vie à 149 $ en paiement unique - la seule vraie option à vie de la liste. Jobscan, RejectCheck, Resume Worded, Kickresume, et Enhancv sont basés sur abonnement. Le tier annuel de Kickresume (96 €/an, environ 8 €/mois) est l'option la plus proche sans engagement long.",
     },
     {
       question: 'Quels modèles IA utilisent ces outils ?',
@@ -663,10 +663,10 @@ export const contentFr: AlternativesContent = {
     {
       question: "Quelle est la précision des simulateurs ATS en général ?",
       answer:
-        "Les simulateurs ATS estiment les taux de match basés sur la densité et la présence de mots-clés face à la fiche de poste. Ils ne répliquent pas exactement un ATS d'employeur spécifique (Workday, Greenhouse, Lever, Taleo) parce que les vrais ATS varient par configuration. Ils sont utiles comme signal directionnel — si tu scores 40 %, il te manque des mots-clés importants — mais aucun simulateur ne garantit qu'un vrai ATS se comportera identiquement. Jobscan lui-même recommande un taux de match de 75 % ; RejectCheck, Rezi, et Resume Worded utilisent des seuils similaires.",
+        "Les simulateurs ATS estiment les taux de match basés sur la densité et la présence de mots-clés face à la fiche de poste. Ils ne répliquent pas exactement un ATS d'employeur spécifique (Workday, Greenhouse, Lever, Taleo) parce que les vrais ATS varient par configuration. Ils sont utiles comme signal directionnel - si tu scores 40 %, il te manque des mots-clés importants - mais aucun simulateur ne garantit qu'un vrai ATS se comportera identiquement. Jobscan lui-même recommande un taux de match de 75 % ; RejectCheck, Rezi, et Resume Worded utilisent des seuils similaires.",
     },
   ],
-  ctaTitle: 'Essaie RejectCheck — gratuit, sans inscription',
+  ctaTitle: 'Essaie RejectCheck - gratuit, sans inscription',
   ctaSubtitle:
     "Téléverse ton CV, colle une fiche de poste, et obtiens un diagnostic complet en moins de 60 secondes : score ATS, radar des lacunes techniques, audit signaux GitHub et LinkedIn, et détection de red flags.",
   ctaButton: 'Analyser mon CV gratuit',

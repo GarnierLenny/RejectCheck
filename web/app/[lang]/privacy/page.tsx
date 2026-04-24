@@ -38,7 +38,7 @@ export default function PrivacyPage() {
               <Eye className="w-6 h-6 text-rc-red" /> 1. {t.privacy.sections.commitment}
             </h2>
             <p className="text-rc-muted leading-relaxed">
-              At RejectCheck, your privacy is not an afterthought—it&apos;s part of our DNA. As a tool built for developers, we understand the importance of data sovereignty. This document explains how we collect, use, and protect your personal data in compliance with the General Data Protection Regulation (GDPR).
+              At RejectCheck, your privacy is not an afterthought-it&apos;s part of our DNA. As a tool built for developers, we understand the importance of data sovereignty. This document explains how we collect, use, and protect your personal data in compliance with the General Data Protection Regulation (GDPR).
             </p>
           </div>
 
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-6 rounded-2xl bg-white border border-rc-border shadow-sm">
                 <h3 className="font-bold mb-2">Registered Users</h3>
-                <p className="text-sm text-rc-muted">We store your email, username, profile picture, and analysis history. For each analysis, we also store your CV text, job description, and — if provided — your LinkedIn profile, GitHub activity, and motivation letter, to power premium features such as CV rewriting and cover letter generation.</p>
+                <p className="text-sm text-rc-muted">We store your email, username, profile picture, and analysis history. For each analysis, we also store your CV text, job description, and - if provided - your LinkedIn profile, GitHub activity, and motivation letter, to power premium features such as CV rewriting and cover letter generation.</p>
               </div>
               <div className="p-6 rounded-2xl bg-rc-surface border border-rc-border">
                 <h3 className="font-bold mb-2">Anonymous Scans</h3>

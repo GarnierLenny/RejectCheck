@@ -126,7 +126,7 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
       <div className="px-8 py-5 border-t border-rc-border bg-rc-surface-hero flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <p className="text-[14px] text-rc-muted leading-snug max-w-[680px]">
           <span className="font-semibold text-rc-text">{t.scoreSidebar.modelConfidence} {result.confidence.score}%</span>
-          {" — "}
+          {" - "}
           {result.confidence.reason}
         </p>
         <button

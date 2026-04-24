@@ -263,7 +263,7 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
 
         {/* Saved profile card */}
         <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-4">Saved profile — autofills /analyze</div>
+          <div className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-4">Saved profile - autofills /analyze</div>
 
           {/* GitHub */}
           <div className="mb-5">

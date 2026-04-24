@@ -211,7 +211,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
       )}
     <div className="grid grid-cols-2 gap-6 flex-1">
 
-      {/* CV Upload — left column */}
+      {/* CV Upload - left column */}
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.cv.label}</span>
@@ -317,7 +317,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
       </div>
 
-      {/* Job listing — right column */}
+      {/* Job listing - right column */}
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.jobListing.label}</span>
@@ -326,7 +326,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         <textarea
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          placeholder={"Senior Full Stack Developer — React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
+          placeholder={"Senior Full Stack Developer - React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
           className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-none outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
         />
         {warningText ? (

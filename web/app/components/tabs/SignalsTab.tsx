@@ -111,7 +111,7 @@ function SignalSection({
 
 export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) {
   const { t } = useLanguage();
-  // Derive hasData from actual content — handles history-loaded results where state vars are empty
+  // Derive hasData from actual content - handles history-loaded results where state vars are empty
   const githubHasData = hasGithub || github.score !== null || github.issues.length > 0 || github.strengths.length > 0;
   const linkedinHasData = hasLinkedin || linkedin.score !== null || linkedin.issues.length > 0 || linkedin.strengths.length > 0;
 
