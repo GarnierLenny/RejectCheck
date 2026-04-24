@@ -74,3 +74,22 @@ body {
 .tabs-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Code snippet line numbers (used by /[lang]/challenge) */
+.shiki-wrapper code {
+  counter-reset: line;
+}
+.shiki-wrapper .line {
+  counter-increment: line;
+}
+.shiki-wrapper .line::before {
+  content: counter(line);
+  display: inline-block;
+  width: 2.25rem;
+  padding-right: 0.75rem;
+  margin-right: 0.75rem;
+  text-align: right;
+  color: rgba(225, 228, 232, 0.32);
+  user-select: none;
+  border-right: 1px solid rgba(225, 228, 232, 0.08);
+}
