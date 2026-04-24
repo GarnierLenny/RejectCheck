@@ -17,6 +17,11 @@ const ROUTES: RoutePath[] = [
 
 const LANGS = ['en', 'fr'] as const
 
+// English-only routes (no FR version yet). Emitted without hreflang alternates.
+const EN_ONLY_ROUTES: RoutePath[] = [
+  { path: '/alternatives/jobscan', changeFrequency: 'monthly', priority: 0.7 },
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
   const entries: MetadataRoute.Sitemap = []
@@ -40,6 +45,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       })
     }
+  }
+
+  for (const route of EN_ONLY_ROUTES) {
+    const url = `${BASE_URL}/en${route.path}`
+    entries.push({
+      url,
+      lastModified,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+      alternates: {
+        languages: {
+          en: url,
+          'x-default': url,
+        },
+      },
+    })
   }
 
   return entries

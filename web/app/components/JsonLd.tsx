@@ -24,7 +24,11 @@ export const organizationSchema: JsonLdSchema = {
   description:
     'RejectCheck is an AI-powered CV and job application diagnosis tool. Dual-AI pipeline (GPT-4o + Claude) delivers ATS simulation, technical skill gap radar, GitHub/LinkedIn signal audit, red-flag detection, CV rewrite, and a voice-based AI mock interview in under 60 seconds.',
   email: 'support@rejectcheck.com',
-  sameAs: [],
+  sameAs: [
+    'https://www.producthunt.com/products/rejectcheck',
+    'https://www.linkedin.com/company/rejectcheck',
+    'https://github.com/GarnierLenny/RejectCheck',
+  ],
 }
 
 export const websiteSchema: JsonLdSchema = {

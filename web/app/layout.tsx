@@ -21,6 +21,21 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://rejectcheck.com"),
   title: "RejectCheck — Find out why your CV got rejected",
   description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
+  applicationName: "RejectCheck",
+  authors: [{ name: "RejectCheck", url: "https://rejectcheck.com" }],
+  creator: "RejectCheck",
+  publisher: "RejectCheck",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
   icons: {
     icon: "/RejectCheck_white.png",
     shortcut: "/RejectCheck_white.png",
@@ -42,7 +57,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "RejectCheck — Find out why your CV got rejected",
     description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis — and exactly what to fix before you hit send.",
     images: ["/RejectCheck_white.png"],
