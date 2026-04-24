@@ -12,7 +12,7 @@ import { getContent } from './content'
 
 type LangParams = { lang: string }
 
-const PAGE_PATH = '/alternatives/rezi'
+const PAGE_PATH = '/alternatives/resume-worded'
 const LAST_UPDATED_ISO = '2026-04-24'
 const PUBLISHED_ISO = '2026-04-24'
 
@@ -52,7 +52,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function ReziAlternativesPage({
+export default async function ResumeWordedAlternativesPage({
   params,
 }: {
   params: Promise<LangParams>
@@ -60,9 +60,8 @@ export default async function ReziAlternativesPage({
   const { lang } = await params
   if (!hasLocale(lang)) notFound()
 
-  // FR version not yet translated — redirect to EN
   if (lang === 'fr') {
-    redirect('/en/alternatives/rezi')
+    redirect('/en/alternatives/resume-worded')
   }
 
   const locale: Locale = 'en'
@@ -114,18 +113,18 @@ export default async function ReziAlternativesPage({
     inLanguage: 'en',
     about: {
       '@type': 'SoftwareApplication',
-      name: 'Rezi',
-      url: 'https://www.rezi.ai',
+      name: 'Resume Worded',
+      url: 'https://resumeworded.com',
     },
   }
 
   return (
     <>
-      <JsonLd id="ld-breadcrumb-alt-rezi" data={breadcrumbs} />
-      <JsonLd id="ld-faq-alt-rezi" data={faqSchema} />
-      <JsonLd id="ld-itemlist-alt-rezi" data={itemListSchema} />
-      <JsonLd id="ld-article-alt-rezi" data={articleSchema} />
-      <AlternativesView content={c} locale={locale} currentSlug="rezi" />
+      <JsonLd id="ld-breadcrumb-alt-rw" data={breadcrumbs} />
+      <JsonLd id="ld-faq-alt-rw" data={faqSchema} />
+      <JsonLd id="ld-itemlist-alt-rw" data={itemListSchema} />
+      <JsonLd id="ld-article-alt-rw" data={articleSchema} />
+      <AlternativesView content={c} locale={locale} currentSlug="resume-worded" />
     </>
   )
 }

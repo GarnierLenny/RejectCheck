@@ -242,7 +242,8 @@
       "copyright": "© 2026 RejectCheck. Construit avec focus.",
       "privacy": "Confidentialité",
       "terms": "CGU",
-      "contact": "Contact"
+      "contact": "Contact",
+      "alternatives": "Comparaisons"
     },
     "trust": {
       "badge": "Faits vérifiables",
@@ -563,7 +564,8 @@
     "footer": {
       "copyright": "RejectCheck © 2026",
       "privacy": "Confidentialité",
-      "terms": "Conditions"
+      "terms": "Conditions",
+      "alternatives": "Comparaisons"
     }
   },
   "atsTab": {
@@ -754,7 +756,8 @@
       "copyright": "© 2026 RejectCheck. Construit avec focus.",
       "privacy": "Confidentialité",
       "terms": "CGU",
-      "contact": "Contact"
+      "contact": "Contact",
+      "alternatives": "Comparaisons"
     },
     "plans": {
       "free": {
@@ -1076,7 +1079,25 @@
       },
       {
         "question": "En quoi RejectCheck est différent des autres outils CV ?",
-        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et propose un entretien simulé IA vocal — pas un chat. Il est bilingue (anglais et français)."
+        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et propose un entretien simulé IA vocal — pas un chat. Il est bilingue (anglais et français).",
+        "seeAlso": [
+          {
+            "label": "Alternatives à Jobscan",
+            "href": "/fr/alternatives/jobscan"
+          },
+          {
+            "label": "Rezi alternatives (EN)",
+            "href": "/en/alternatives/rezi"
+          },
+          {
+            "label": "Resume Worded alternatives (EN)",
+            "href": "/en/alternatives/resume-worded"
+          },
+          {
+            "label": "Toutes les comparaisons",
+            "href": "/fr/alternatives"
+          }
+        ]
       }
     ]
   }

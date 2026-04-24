@@ -838,6 +838,19 @@ export default function Home() {
                     <p className="text-rc-muted text-[14px] md:text-[15px] leading-[1.7]">
                       {item.answer}
                     </p>
+                    {'seeAlso' in item && Array.isArray(item.seeAlso) && item.seeAlso.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+                        {item.seeAlso.map((lnk, j) => (
+                          <Link
+                            key={j}
+                            href={lnk.href}
+                            className="font-mono text-[11px] tracking-wide text-rc-red no-underline hover:underline"
+                          >
+                            {lnk.label} →
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </details>
               </FadeInSection>
@@ -881,6 +894,9 @@ export default function Home() {
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">{t.landing.footer.copyright}</div>
         <div className="flex gap-6">
+          <Link href={localePath("/alternatives")} className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+            {t.landing.footer.alternatives}
+          </Link>
           <Link href={localePath("/privacy")} className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
             {t.landing.footer.privacy} (GDPR)
           </Link>

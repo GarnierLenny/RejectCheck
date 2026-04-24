@@ -123,7 +123,7 @@ export default async function JobscanAlternativesPage({
       <JsonLd id="ld-faq-alt-jobscan" data={faqSchema} />
       <JsonLd id="ld-itemlist-alt-jobscan" data={itemListSchema} />
       <JsonLd id="ld-article-alt-jobscan" data={articleSchema} />
-      <AlternativesView content={c} locale={locale} />
+      <AlternativesView content={c} locale={locale} currentSlug="jobscan" />
     </>
   )
 }

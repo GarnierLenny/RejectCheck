@@ -242,7 +242,8 @@
       "copyright": "© 2026 RejectCheck. Build with focus.",
       "privacy": "Privacy",
       "terms": "Terms",
-      "contact": "Contact"
+      "contact": "Contact",
+      "alternatives": "Comparisons"
     },
     "trust": {
       "badge": "Verifiable facts",
@@ -563,7 +564,8 @@
     "footer": {
       "copyright": "RejectCheck © 2026",
       "privacy": "Privacy",
-      "terms": "Terms"
+      "terms": "Terms",
+      "alternatives": "Comparisons"
     }
   },
   "atsTab": {
@@ -754,7 +756,8 @@
       "copyright": "© 2026 RejectCheck. Build with focus.",
       "privacy": "Privacy",
       "terms": "Terms",
-      "contact": "Contact"
+      "contact": "Contact",
+      "alternatives": "Comparisons"
     },
     "plans": {
       "free": {
@@ -1075,7 +1078,25 @@
       },
       {
         "question": "How is RejectCheck different from other CV tools?",
-        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and offers a voice-based AI mock interview — not a chat. It is bilingual (English and French)."
+        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and offers a voice-based AI mock interview — not a chat. It is bilingual (English and French).",
+        "seeAlso": [
+          {
+            "label": "Jobscan alternatives",
+            "href": "/en/alternatives/jobscan"
+          },
+          {
+            "label": "Rezi alternatives",
+            "href": "/en/alternatives/rezi"
+          },
+          {
+            "label": "Resume Worded alternatives",
+            "href": "/en/alternatives/resume-worded"
+          },
+          {
+            "label": "All comparisons",
+            "href": "/en/alternatives"
+          }
+        ]
       }
     ]
   }

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Navbar } from '../../../components/Navbar'
 import type { AlternativesContent, Competitor } from '../jobscan/content'
 import type { Locale } from '../../dictionaries'
+import { otherAlternatives } from '../_data/registry'
 
 function AtsIcon({
   v,
@@ -33,13 +34,31 @@ function BoolCell({
 export function AlternativesView({
   content: c,
   locale,
+  currentSlug,
 }: {
   content: AlternativesContent
   locale: Locale
+  currentSlug: string
 }) {
   const analyzeHref = `/${locale}/analyze`
   const pricingHref = `/${locale}/pricing`
   const privacyHref = `/${locale}/privacy`
+  const altHubHref = `/${locale}/alternatives`
+  const others = otherAlternatives(currentSlug)
+  const compareOtherLabel =
+    locale === 'fr' ? 'Comparer d\'autres outils' : 'Compare other tools'
+  const compareOtherSubtitle =
+    locale === 'fr'
+      ? "Tu évalues plusieurs concurrents ? Voici les autres comparaisons que nous avons publiées."
+      : 'Evaluating multiple competitors? Here are the other comparisons we have published.'
+  const viewAllLabel =
+    locale === 'fr' ? 'Voir toutes les comparaisons →' : 'View all comparisons →'
+  const readComparisonLabel =
+    locale === 'fr' ? 'Lire la comparaison →' : 'Read the comparison →'
+  const englishOnlyLabel =
+    locale === 'fr' ? 'Anglais uniquement' : 'English only'
+  const altHubLabel =
+    locale === 'fr' ? 'Comparaisons' : 'Comparisons'
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen">
@@ -364,6 +383,66 @@ export function AlternativesView({
         </div>
       </section>
 
+      {/* COMPARE OTHER TOOLS (cross-links) */}
+      {others.length > 0 && (
+        <section className="border-t-[0.5px] border-rc-border bg-rc-bg">
+          <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-16 md:py-20">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-px w-6 bg-rc-red" />
+              <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
+                {compareOtherLabel}
+              </span>
+            </div>
+            <p className="text-rc-muted text-[15px] leading-[1.6] max-w-[640px] mb-8">
+              {compareOtherSubtitle}
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-5 mb-8">
+              {others.map((entry) => {
+                const isAvailableInLocale = entry.bilingual || locale === 'en'
+                const targetLang = isAvailableInLocale ? locale : 'en'
+                const href = `/${targetLang}/alternatives/${entry.slug}`
+                const tagline = entry.tagline[locale]
+                const showEnglishOnly = locale === 'fr' && !entry.bilingual
+
+                return (
+                  <Link
+                    key={entry.slug}
+                    href={href}
+                    className="group no-underline flex flex-col rounded-2xl border border-rc-border bg-rc-surface p-6 transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-muted">
+                        vs {entry.competitor}
+                      </span>
+                      {showEnglishOnly && (
+                        <span className="font-mono text-[9px] tracking-[0.12em] uppercase px-2 py-1 rounded border border-amber-600/30 text-amber-700">
+                          {englishOnlyLabel}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-[19px] md:text-[20px] font-semibold tracking-[-0.01em] text-rc-text mb-3 leading-[1.2]">
+                      {entry.competitor} alternatives
+                    </h3>
+                    <p className="text-rc-muted text-[13px] leading-[1.6] mb-5">{tagline}</p>
+                    <div className="font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
+                      {readComparisonLabel}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            <Link
+              href={altHubHref}
+              className="inline-block font-mono text-[11px] tracking-[0.08em] text-rc-muted no-underline hover:text-rc-red"
+            >
+              {viewAllLabel}
+            </Link>
+          </div>
+        </section>
+      )}
+
       {/* CTA */}
       <section className="border-t-[0.5px] border-rc-border bg-rc-surface">
         <div className="max-w-[900px] mx-auto px-5 md:px-[40px] py-20 md:py-28 text-center">
@@ -401,6 +480,12 @@ export function AlternativesView({
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">{c.footerCopyright}</div>
         <div className="flex gap-6">
+          <Link
+            href={altHubHref}
+            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
+          >
+            {altHubLabel}
+          </Link>
           <Link
             href={privacyHref}
             className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"

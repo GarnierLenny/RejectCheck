@@ -89,9 +89,12 @@ export default function PrivacyPage() {
           </div>
         </section>
 
-        <footer className="mt-24 pt-8 border-t border-rc-border text-center">
+        <footer className="mt-24 pt-8 border-t border-rc-border flex items-center justify-center gap-8">
           <Link href={localePath("/")} className="font-mono text-[11px] tracking-widest uppercase text-rc-hint hover:text-rc-red transition-colors no-underline">
             {t.common.back}
+          </Link>
+          <Link href={localePath("/alternatives")} className="font-mono text-[11px] tracking-widest uppercase text-rc-hint hover:text-rc-red transition-colors no-underline">
+            {t.landing.footer.alternatives}
           </Link>
         </footer>
       </main>
