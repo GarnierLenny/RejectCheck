@@ -3,7 +3,9 @@ import { z } from 'zod';
 export const CreateApplicationSchema = z.object({
   jobTitle: z.string().min(1),
   company: z.string().min(1),
-  status: z.enum(['interested', 'applied', 'interviewing', 'offer', 'rejected']).default('applied'),
+  status: z
+    .enum(['interested', 'applied', 'interviewing', 'offer', 'rejected'])
+    .default('applied'),
   appliedAt: z.string().optional(),
   notes: z.string().optional(),
   analysisId: z.number().int().optional(),
@@ -20,7 +22,9 @@ export const CreateApplicationSchema = z.object({
 export const UpdateApplicationSchema = z.object({
   jobTitle: z.string().min(1).optional(),
   company: z.string().min(1).optional(),
-  status: z.enum(['interested', 'applied', 'interviewing', 'offer', 'rejected']).optional(),
+  status: z
+    .enum(['interested', 'applied', 'interviewing', 'offer', 'rejected'])
+    .optional(),
   appliedAt: z.string().optional(),
   notes: z.string().optional().nullable(),
   analysisId: z.number().int().optional().nullable(),

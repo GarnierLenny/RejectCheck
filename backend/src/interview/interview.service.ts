@@ -1,14 +1,11 @@
-import {
-  Injectable,
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { PrismaService } from '../prisma/prisma.service';
-import { StripeService } from '../stripe/stripe.service';
+import { SUBSCRIPTION_GATE } from '../common/ports/tokens';
+import type { SubscriptionGate } from '../common/ports/subscription.gate';
+import { PremiumRequiredException } from '../common/exceptions';
 import { InterviewAnalysisSchema, TranscriptEntry } from './dto/interview.dto';
 
 const INTERVIEW_AXES = [
@@ -27,7 +24,8 @@ export class InterviewService {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
-    private stripeService: StripeService,
+    @Inject(SUBSCRIPTION_GATE)
+    private readonly subscription: SubscriptionGate,
   ) {
     const openaiKey = this.configService.get<string>('OPENAI_API_KEY');
     if (openaiKey) {
@@ -39,13 +37,8 @@ export class InterviewService {
   }
 
   private async checkPremium(email: string): Promise<void> {
-    const isPremium = await this.stripeService.checkSubscription(email);
-    if (!isPremium) {
-      throw new HttpException(
-        { message: 'Premium subscription required.', code: 'PREMIUM_REQUIRED' },
-        HttpStatus.PAYMENT_REQUIRED,
-      );
-    }
+    const isPremium = await this.subscription.isPremium(email);
+    if (!isPremium) throw new PremiumRequiredException();
   }
 
   private async generateTts(text: string): Promise<string> {
@@ -92,22 +85,33 @@ export class InterviewService {
           input_schema: {
             type: 'object' as const,
             properties: {
-              questions: { type: 'array', items: { type: 'string' }, minItems: 6, maxItems: 6 },
+              questions: {
+                type: 'array',
+                items: { type: 'string' },
+                minItems: 6,
+                maxItems: 6,
+              },
             },
             required: ['questions'],
           },
         },
       ],
       tool_choice: { type: 'tool', name: 'submit_questions' },
-      messages: [{ role: 'user', content: `Job context: ${JSON.stringify(context)}` }],
+      messages: [
+        { role: 'user', content: `Job context: ${JSON.stringify(context)}` },
+      ],
     });
 
     let plan: any;
-    const toolUseBlock = planResponse.content.find((c) => c.type === 'tool_use');
+    const toolUseBlock = planResponse.content.find(
+      (c) => c.type === 'tool_use',
+    );
     if (toolUseBlock && toolUseBlock.type === 'tool_use') {
       plan = toolUseBlock.input;
     } else {
-      throw new BadRequestException('Failed to parse interview questions from AI response');
+      throw new BadRequestException(
+        'Failed to parse interview questions from AI response',
+      );
     }
     const questions: string[] = plan.questions ?? [];
     if (questions.length === 0)
@@ -160,7 +164,8 @@ export class InterviewService {
     if (!attempt) throw new BadRequestException('Interview not found');
 
     // Transcribe audio
-    if (!this.openai) throw new BadRequestException('Audio transcription is not available');
+    if (!this.openai)
+      throw new BadRequestException('Audio transcription is not available');
     const file = new File([new Uint8Array(audioBuffer)], 'audio.webm', {
       type: 'audio/webm',
     });
@@ -238,14 +243,13 @@ export class InterviewService {
           },
         ],
         tool_choice: { type: 'tool', name: 'submit_decision' },
-        messages: [
-          ...conversationHistory,
-          { role: 'user', content: userText },
-        ],
+        messages: [...conversationHistory, { role: 'user', content: userText }],
       });
 
       let decision: any;
-      const decisionTool = decisionResponse.content.find((c) => c.type === 'tool_use');
+      const decisionTool = decisionResponse.content.find(
+        (c) => c.type === 'tool_use',
+      );
       if (decisionTool && decisionTool.type === 'tool_use') {
         decision = decisionTool.input;
       } else {
@@ -382,7 +386,12 @@ Analyze this interview and call submit_interview_analysis with your structured e
     return parsed.data;
   }
 
-  async history(email: string, page: number, limit: number, analysisId?: number) {
+  async history(
+    email: string,
+    page: number,
+    limit: number,
+    analysisId?: number,
+  ) {
     const skip = (page - 1) * limit;
     const where: { email: string; analysisId?: number } = { email };
     if (analysisId !== undefined) {

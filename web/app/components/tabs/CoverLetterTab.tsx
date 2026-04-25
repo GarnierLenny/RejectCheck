@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sparkles, Copy, Check, RefreshCw, Download, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { Loader2, Copy, Check, RefreshCw, Download } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useGenerateCoverLetter } from "../../../lib/mutations";
 import { generateCoverLetterPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
+import { PremiumPaywall } from "../PremiumFeature";
 
 const LANGUAGE_OPTIONS = [
   { value: "auto", label: "Match job description" },
@@ -29,7 +29,7 @@ type Props = {
 };
 
 export function CoverLetterTab({ analysisId, isPremium, company, candidateName, savedCoverLetter }: Props) {
-  const { t, localePath } = useLanguage();
+  const { t } = useLanguage();
   const [language, setLanguage] = useState("auto");
   const [coverLetter, setCoverLetter] = useState<string | null>(savedCoverLetter ?? null);
   const [detectedLanguage, setDetectedLanguage] = useState<string | null>(null);
@@ -39,29 +39,12 @@ export function CoverLetterTab({ analysisId, isPremium, company, candidateName, 
 
   if (!isPremium) {
     return (
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="bg-rc-surface border border-rc-border rounded-[24px] p-8 md:p-12 w-full max-w-[520px] text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rc-red/40 to-transparent" />
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/5 border border-rc-red/10 mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-rc-red" />
-            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">
-              {t.coverLetterTab.premiumBadge}
-            </span>
-          </div>
-          <h3 className="text-2xl font-bold text-rc-text mb-3 tracking-tight">
-            {t.coverLetterTab.premiumTitle}
-          </h3>
-          <p className="text-[15px] text-rc-muted mb-8 leading-relaxed">
-            {t.coverLetterTab.premiumDesc}
-          </p>
-          <Link
-            href={localePath("/pricing")}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20 no-underline font-bold"
-          >
-            {t.coverLetterTab.unlockButton} <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
+      <PremiumPaywall
+        badge={t.coverLetterTab.premiumBadge}
+        title={t.coverLetterTab.premiumTitle}
+        description={t.coverLetterTab.premiumDesc}
+        ctaLabel={t.coverLetterTab.unlockButton}
+      />
     );
   }
 

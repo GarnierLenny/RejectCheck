@@ -47,7 +47,8 @@ const MAX_LINES_HARD = 60;
 const LEAK_LINE = /^\s*\/\/\s*(issue|bug|problem|fixme|todo|xxx)\b/i;
 const INLINE_ISSUE_LABEL = /\bissue\s*[#]?\s*\d+\b/i;
 const BLOCK_ISSUE_LABEL = /\/\*+\s*issue\s*[#]?\s*\d*/i;
-const FILENAME_HEADER = /^\s*\/\/\s*[\w./-]+\.(ts|tsx|js|jsx|vue|svelte|py|java)\s*$/;
+const FILENAME_HEADER =
+  /^\s*\/\/\s*[\w./-]+\.(ts|tsx|js|jsx|vue|svelte|py|java)\s*$/;
 const IMPORT_LINE = /^\s*(import|from)\b/;
 
 /**
@@ -68,7 +69,11 @@ export function validateGeneratedSnippet(
   }
 
   for (const line of lines) {
-    if (LEAK_LINE.test(line) || INLINE_ISSUE_LABEL.test(line) || BLOCK_ISSUE_LABEL.test(line)) {
+    if (
+      LEAK_LINE.test(line) ||
+      INLINE_ISSUE_LABEL.test(line) ||
+      BLOCK_ISSUE_LABEL.test(line)
+    ) {
       throw new BadGatewayException(
         'Generated snippet leaks issue markers in comments.',
       );
@@ -101,6 +106,8 @@ export function validateGeneratedSnippet(
   }
 
   if (!issues || issues.length < 3) {
-    throw new BadGatewayException('Generated snippet must expose at least 3 issues.');
+    throw new BadGatewayException(
+      'Generated snippet must expose at least 3 issues.',
+    );
   }
 }

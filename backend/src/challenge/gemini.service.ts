@@ -1,4 +1,8 @@
-import { BadGatewayException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
@@ -22,7 +26,9 @@ export class GeminiService {
 
   private model() {
     if (!this.client) {
-      throw new InternalServerErrorException('GEMINI_API_KEY is not configured');
+      throw new InternalServerErrorException(
+        'GEMINI_API_KEY is not configured',
+      );
     }
     return this.client.getGenerativeModel({ model: MODEL_NAME });
   }

@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { StripeService } from '../stripe/stripe.service';
+import { SUBSCRIPTION_GATE } from '../common/ports/tokens';
+import type { SubscriptionGate } from '../common/ports/subscription.gate';
+import { PremiumRequiredException } from '../common/exceptions';
 import { GeminiService } from './gemini.service';
 import { ClaudeService } from './claude.service';
 import { ChallengeIssue, DIFFICULTIES, Difficulty } from './dto/challenge.dto';
@@ -18,7 +20,9 @@ import {
 } from './focus-tags';
 
 function startOfDayUtc(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+  );
 }
 
 function daysBetweenUtc(a: Date, b: Date): number {
@@ -26,7 +30,9 @@ function daysBetweenUtc(a: Date, b: Date): number {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
-function stripIssues<T extends { issues: unknown }>(challenge: T): Omit<T, 'issues'> {
+function stripIssues<T extends { issues: unknown }>(
+  challenge: T,
+): Omit<T, 'issues'> {
   const { issues: _issues, ...rest } = challenge;
   return rest;
 }
@@ -35,7 +41,8 @@ function stripIssues<T extends { issues: unknown }>(challenge: T): Omit<T, 'issu
 export class ChallengeService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly stripeService: StripeService,
+    @Inject(SUBSCRIPTION_GATE)
+    private readonly subscription: SubscriptionGate,
     private readonly gemini: GeminiService,
     private readonly claude: ClaudeService,
   ) {}
@@ -43,10 +50,13 @@ export class ChallengeService {
   private async pickFocusTagAndDifficulty(
     language: ChallengeLanguage,
   ): Promise<{ focusTag: FocusTag; difficulty: Difficulty }> {
-    const count = await this.prisma.dailyChallenge.count({ where: { language } });
+    const count = await this.prisma.dailyChallenge.count({
+      where: { language },
+    });
     const tags = getTagsForLanguage(language);
     const focusTag = tags[count % tags.length];
-    const difficulty = DIFFICULTIES[Math.floor(count / tags.length) % DIFFICULTIES.length];
+    const difficulty =
+      DIFFICULTIES[Math.floor(count / tags.length) % DIFFICULTIES.length];
     return { focusTag, difficulty };
   }
 
@@ -58,8 +68,13 @@ export class ChallengeService {
     });
     if (existing) return stripIssues(existing);
 
-    const { focusTag, difficulty } = await this.pickFocusTagAndDifficulty(language);
-    const generated = await this.claude.generateChallenge(language, focusTag, difficulty);
+    const { focusTag, difficulty } =
+      await this.pickFocusTagAndDifficulty(language);
+    const generated = await this.claude.generateChallenge(
+      language,
+      focusTag,
+      difficulty,
+    );
 
     try {
       const created = await this.prisma.dailyChallenge.create({
@@ -100,7 +115,11 @@ export class ChallengeService {
     return challenge;
   }
 
-  async submitFirstAnswer(email: string, challengeId: number, firstAnswer: string) {
+  async submitFirstAnswer(
+    email: string,
+    challengeId: number,
+    firstAnswer: string,
+  ) {
     const challenge = await this.loadChallengeOrThrow(challengeId);
 
     const existing = await this.prisma.challengeAttempt.findUnique({
@@ -158,7 +177,11 @@ export class ChallengeService {
     return { aiChallenge };
   }
 
-  async submitFinalAnswer(email: string, challengeId: number, secondAnswer: string) {
+  async submitFinalAnswer(
+    email: string,
+    challengeId: number,
+    secondAnswer: string,
+  ) {
     const challenge = await this.loadChallengeOrThrow(challengeId);
 
     const attempt = await this.prisma.challengeAttempt.findUnique({
@@ -166,7 +189,9 @@ export class ChallengeService {
     });
 
     if (!attempt || !attempt.aiChallenge) {
-      throw new BadRequestException('Submit the first answer before the final answer.');
+      throw new BadRequestException(
+        'Submit the first answer before the final answer.',
+      );
     }
 
     if (attempt.score > 0) {
@@ -222,7 +247,9 @@ export class ChallengeService {
 
   private async updateStreak(email: string) {
     const today = startOfDayUtc(new Date());
-    const existing = await this.prisma.challengeStreak.findUnique({ where: { email } });
+    const existing = await this.prisma.challengeStreak.findUnique({
+      where: { email },
+    });
 
     if (!existing) {
       return this.prisma.challengeStreak.create({
@@ -269,7 +296,9 @@ export class ChallengeService {
     });
     const completions = attempts.length;
     const averageScore =
-      completions === 0 ? 0 : Math.round(attempts.reduce((a, b) => a + b.score, 0) / completions);
+      completions === 0
+        ? 0
+        : Math.round(attempts.reduce((a, b) => a + b.score, 0) / completions);
     const scoreDistribution = Array(10).fill(0) as number[];
     for (const a of attempts) {
       const bucket = Math.min(9, Math.floor(a.score / 10));
@@ -279,7 +308,9 @@ export class ChallengeService {
   }
 
   async getUserStreak(email: string) {
-    const streak = await this.prisma.challengeStreak.findUnique({ where: { email } });
+    const streak = await this.prisma.challengeStreak.findUnique({
+      where: { email },
+    });
     if (!streak) {
       return { currentStreak: 0, longestStreak: 0, lastCompletedAt: null };
     }
@@ -291,12 +322,11 @@ export class ChallengeService {
   }
 
   async getHistory(email: string) {
-    const hasAccess = await this.stripeService.checkSubscription(email);
+    const hasAccess = await this.subscription.isPremium(email);
     if (!hasAccess) {
-      throw new ForbiddenException({
-        message: 'SHORTLISTED plan required to view challenge history.',
-        code: 'PREMIUM_REQUIRED',
-      });
+      throw new PremiumRequiredException(
+        'SHORTLISTED plan required to view challenge history.',
+      );
     }
     return this.prisma.challengeAttempt.findMany({
       where: { email, score: { gt: 0 } },

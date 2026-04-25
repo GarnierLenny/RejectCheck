@@ -24,17 +24,27 @@ export type FocusTag = (typeof FOCUS_TAGS)[number];
 
 export const FOCUS_TAG_DESCRIPTIONS: Record<FocusTag, string> = {
   naming: 'API/variable/type names that mislead readers or leak internals',
-  error_boundaries: 'exception handling, domain vs transport errors, consistent failure signaling',
-  race_conditions: 'check-then-act, TOCTOU, concurrent mutation of shared state',
+  error_boundaries:
+    'exception handling, domain vs transport errors, consistent failure signaling',
+  race_conditions:
+    'check-then-act, TOCTOU, concurrent mutation of shared state',
   n_plus_one: 'query patterns, sequential fetches in loops, missing batching',
-  solid_srp: 'functions or classes doing more than one thing; responsibilities that should be split',
-  api_contract: 'DTO to domain model leakage, fields that invite misuse, HTTP concerns in domain',
-  null_handling: '|| vs ??, nullable returns that mask failure, missing narrowing on optional fields',
-  async_patterns: 'sequential awaits that should be parallel, unhandled rejections, broken error propagation',
-  type_safety: 'any leaks, unsafe casts, missing narrowing, structural types used as nominal',
-  react_stale_closure: 'effect/callback dependency arrays capturing stale values',
-  react_rerenders: 'unnecessary re-renders, wrong keys, missing memoization at real cost points',
-  data_validation: 'input validation missing or at the wrong boundary, trust in client-supplied data',
+  solid_srp:
+    'functions or classes doing more than one thing; responsibilities that should be split',
+  api_contract:
+    'DTO to domain model leakage, fields that invite misuse, HTTP concerns in domain',
+  null_handling:
+    '|| vs ??, nullable returns that mask failure, missing narrowing on optional fields',
+  async_patterns:
+    'sequential awaits that should be parallel, unhandled rejections, broken error propagation',
+  type_safety:
+    'any leaks, unsafe casts, missing narrowing, structural types used as nominal',
+  react_stale_closure:
+    'effect/callback dependency arrays capturing stale values',
+  react_rerenders:
+    'unnecessary re-renders, wrong keys, missing memoization at real cost points',
+  data_validation:
+    'input validation missing or at the wrong boundary, trust in client-supplied data',
 };
 
 /**
@@ -57,12 +67,16 @@ const FOCUS_TAG_LANGUAGES: Record<FocusTag, readonly ChallengeLanguage[]> = {
   data_validation: ['typescript', 'python', 'java'],
 };
 
-export function getTagsForLanguage(lang: ChallengeLanguage): readonly FocusTag[] {
+export function getTagsForLanguage(
+  lang: ChallengeLanguage,
+): readonly FocusTag[] {
   return FOCUS_TAGS.filter((t) => FOCUS_TAG_LANGUAGES[t].includes(lang));
 }
 
 export const LANGUAGE_HINTS: Record<ChallengeLanguage, string> = {
-  typescript: 'Use realistic TypeScript patterns (NestJS services, React components, Node backend code).',
-  python: 'Use realistic Python patterns (FastAPI, Django, or stdlib — idiomatic type hints when useful).',
+  typescript:
+    'Use realistic TypeScript patterns (NestJS services, React components, Node backend code).',
+  python:
+    'Use realistic Python patterns (FastAPI, Django, or stdlib — idiomatic type hints when useful).',
   java: 'Use realistic Java patterns (Spring Boot services, JPA entities, or plain modern Java 21).',
 };

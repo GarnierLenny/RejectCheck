@@ -145,14 +145,43 @@ export const AnalyzeResponseSchema = z.object({
   job_details: z.object({
     title: z.string(),
     company: z.string(),
-    seniority: z.enum(['junior', 'junior-mid', 'mid', 'mid-senior', 'senior', 'not-mentioned']).nullable().default('not-mentioned'),
+    seniority: z
+      .enum([
+        'junior',
+        'junior-mid',
+        'mid',
+        'mid-senior',
+        'senior',
+        'not-mentioned',
+      ])
+      .nullable()
+      .default('not-mentioned'),
     pay: z.string().nullable().default(null),
     office_location: z.string().nullable().default(null),
-    work_setting: z.enum(['full-remote', 'on-site', 'hybrid', 'not-mentioned']).nullable().default('not-mentioned'),
-    contract_type: z.enum(['CDI', 'CDD', 'freelance', 'internship', 'apprenticeship', 'not-mentioned']).nullable().default('not-mentioned'),
-    languages_required: z.enum(['french-only', 'english-only', 'bilingual', 'not-mentioned']).nullable().default('not-mentioned'),
+    work_setting: z
+      .enum(['full-remote', 'on-site', 'hybrid', 'not-mentioned'])
+      .nullable()
+      .default('not-mentioned'),
+    contract_type: z
+      .enum([
+        'CDI',
+        'CDD',
+        'freelance',
+        'internship',
+        'apprenticeship',
+        'not-mentioned',
+      ])
+      .nullable()
+      .default('not-mentioned'),
+    languages_required: z
+      .enum(['french-only', 'english-only', 'bilingual', 'not-mentioned'])
+      .nullable()
+      .default('not-mentioned'),
     years_of_experience: z.string().nullable().default(null),
-    company_stage: z.enum(['startup', 'scale-up', 'sme', 'enterprise', 'not-mentioned']).nullable().default('not-mentioned'),
+    company_stage: z
+      .enum(['startup', 'scale-up', 'sme', 'enterprise', 'not-mentioned'])
+      .nullable()
+      .default('not-mentioned'),
     jd_language: z.string().default('en'),
   }),
   project_recommendation: ProjectRecommendationSchema,

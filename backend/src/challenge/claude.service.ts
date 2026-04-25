@@ -30,7 +30,9 @@ export class ClaudeService {
     if (key) {
       this.client = new Anthropic({ apiKey: key });
     }
-    if (!this.configService.get<string>('CHALLENGE_GENERATION_PROMPT')?.trim()) {
+    if (
+      !this.configService.get<string>('CHALLENGE_GENERATION_PROMPT')?.trim()
+    ) {
       this.logger.warn(
         'CHALLENGE_GENERATION_PROMPT is not set — falling back to the minimal stub. Production must override this env var.',
       );
@@ -51,11 +53,20 @@ export class ClaudeService {
     difficulty: Difficulty,
   ): Promise<GeneratedChallenge> {
     if (!this.client) {
-      throw new InternalServerErrorException('ANTHROPIC_API_KEY is not configured');
+      throw new InternalServerErrorException(
+        'ANTHROPIC_API_KEY is not configured',
+      );
     }
 
-    const override = this.configService.get<string>('CHALLENGE_GENERATION_PROMPT');
-    const prompt = buildChallengePrompt(language, focusTag, difficulty, override);
+    const override = this.configService.get<string>(
+      'CHALLENGE_GENERATION_PROMPT',
+    );
+    const prompt = buildChallengePrompt(
+      language,
+      focusTag,
+      difficulty,
+      override,
+    );
 
     const response = await this.client.messages.create({
       model: MODEL_NAME,
@@ -64,7 +75,8 @@ export class ClaudeService {
     });
 
     const textBlock = response.content.find((b) => b.type === 'text');
-    const rawText = textBlock && textBlock.type === 'text' ? textBlock.text : '';
+    const rawText =
+      textBlock && textBlock.type === 'text' ? textBlock.text : '';
     if (!rawText) {
       throw new BadGatewayException('Empty response from Claude');
     }
@@ -75,7 +87,9 @@ export class ClaudeService {
     try {
       parsed = JSON.parse(raw);
     } catch {
-      throw new BadGatewayException('Claude returned invalid JSON for challenge generation');
+      throw new BadGatewayException(
+        'Claude returned invalid JSON for challenge generation',
+      );
     }
 
     const safe = GeneratedChallengeSchema.safeParse(parsed);

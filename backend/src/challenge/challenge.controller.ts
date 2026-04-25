@@ -22,7 +22,9 @@ export class ChallengeController {
   constructor(private readonly challengeService: ChallengeService) {}
 
   @Get('today')
-  @ApiOperation({ summary: "Get today's challenge (public, issues are omitted)" })
+  @ApiOperation({
+    summary: "Get today's challenge (public, issues are omitted)",
+  })
   async today(@Query('language') language?: string) {
     const lang =
       language && isChallengeLanguage(language) ? language : DEFAULT_LANGUAGE;
@@ -37,7 +39,9 @@ export class ChallengeController {
 
   @UseGuards(SupabaseGuard)
   @Post('submit/first')
-  @ApiOperation({ summary: 'Submit the first answer and get the Socratic follow-up' })
+  @ApiOperation({
+    summary: 'Submit the first answer and get the Socratic follow-up',
+  })
   async submitFirst(@AuthEmail() email: string, @Body() body: unknown) {
     const parsed = SubmitFirstSchema.safeParse(body);
     if (!parsed.success) {
@@ -67,7 +71,9 @@ export class ChallengeController {
 
   @UseGuards(SupabaseGuard)
   @Get('streak')
-  @ApiOperation({ summary: 'Get the current streak for the authenticated user' })
+  @ApiOperation({
+    summary: 'Get the current streak for the authenticated user',
+  })
   async streak(@AuthEmail() email: string) {
     return this.challengeService.getUserStreak(email);
   }
