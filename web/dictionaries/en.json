@@ -330,6 +330,31 @@
           ]
         }
       ]
+    },
+    "whatsNew": {
+      "badge": "More from RejectCheck",
+      "title": "Beyond one-shot CV analysis",
+      "subtitle": "The CV diagnosis is the core, but RejectCheck now includes daily code review drills, team licensing for coaches and bootcamps, and honest comparisons to every major CV tool.",
+      "items": [
+        {
+          "label": "Daily code review challenge",
+          "description": "One real production code snippet reviewed by dual-AI every day. Build your senior-engineer pattern-matching muscles with a 5-minute daily drill. Streaks, badges, scored debrief.",
+          "ctaLabel": "Try today's challenge",
+          "href": "/challenge"
+        },
+        {
+          "label": "RejectCheck for Teams",
+          "description": "Bulk licensing for career coaches, coding bootcamps, university career centers, and outplacement firms. Volume pricing from 10 seats, contact us for a quote. Early-access, manual onboarding under 24h.",
+          "ctaLabel": "See team pricing",
+          "href": "/for-teams"
+        },
+        {
+          "label": "Compare RejectCheck vs the competition",
+          "description": "Hands-on honest comparisons vs Jobscan, Rezi, Resume Worded, Kickresume, and Enhancv. Published pricing, honest weaknesses, no fluff. Pick the tool that fits your situation.",
+          "ctaLabel": "Browse comparisons",
+          "href": "/alternatives"
+        }
+      ]
     }
   },
   "uploadForm": {

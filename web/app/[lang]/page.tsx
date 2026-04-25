@@ -728,6 +728,53 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ WHAT'S NEW (Challenge · For Teams · Alternatives) ════════════ */}
+      <section id="whats-new" className="border-t-[0.5px] border-rc-border bg-rc-bg">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-24 md:py-28">
+          <FadeInSection>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-6 bg-rc-red" />
+              <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
+                {t.landing.whatsNew.badge}
+              </span>
+            </div>
+            <h2 className="text-[32px] md:text-[44px] font-semibold leading-[1.12] tracking-[-0.02em] text-rc-text mb-4 max-w-[720px]">
+              {t.landing.whatsNew.title}
+            </h2>
+            <p className="text-rc-muted text-[15px] md:text-[16px] leading-[1.7] max-w-[720px] mb-12">
+              {t.landing.whatsNew.subtitle}
+            </p>
+          </FadeInSection>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {t.landing.whatsNew.items.map((item, i) => (
+              <FadeInSection key={i} delay={i * 60}>
+                <Link
+                  href={localePath(item.href)}
+                  className="group block h-full rounded-2xl border border-rc-border bg-rc-surface p-6 md:p-7 no-underline transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
+                >
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="font-mono text-[11px] text-rc-red tracking-[0.16em]">
+                      0{i + 1}
+                    </span>
+                    <div className="h-px flex-1 bg-rc-border" />
+                  </div>
+                  <h3 className="text-[19px] md:text-[20px] font-semibold tracking-[-0.01em] text-rc-text mb-3 leading-[1.25]">
+                    {item.label}
+                  </h3>
+                  <p className="text-rc-muted text-[14px] leading-[1.6] mb-6">
+                    {item.description}
+                  </p>
+                  <div className="font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
+                    {item.ctaLabel} →
+                  </div>
+                </Link>
+              </FadeInSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ VERIFIABLE FACTS ══════════════════════════════════════════════ */}
       <section id="trust" className="border-t-[0.5px] border-rc-border bg-rc-surface-hero">
         <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-24 md:py-28">
