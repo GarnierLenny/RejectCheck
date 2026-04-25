@@ -6,19 +6,21 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import {
-  ChallengeIssue,
-  ScoreResult,
+  type ChallengeIssue,
+  type ScoreResult,
   ScoreResultSchema,
-} from './dto/challenge.dto';
+} from '../dto/challenge.dto';
+import type { AttemptCoach } from '../ports/attempt-coach.provider';
+import { stripJsonFences } from './strip-json-fences';
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
 @Injectable()
-export class GeminiService {
-  private client: GoogleGenerativeAI | null = null;
+export class GeminiAttemptCoach implements AttemptCoach {
+  private readonly client: GoogleGenerativeAI | null = null;
 
-  constructor(private configService: ConfigService) {
-    const key = this.configService.get<string>('GEMINI_API_KEY');
+  constructor(configService: ConfigService) {
+    const key = configService.get<string>('GEMINI_API_KEY');
     if (key) {
       this.client = new GoogleGenerativeAI(key);
     }
@@ -31,14 +33,6 @@ export class GeminiService {
       );
     }
     return this.client.getGenerativeModel({ model: MODEL_NAME });
-  }
-
-  private stripJsonFences(raw: string): string {
-    return raw
-      .trim()
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/```\s*$/i, '')
-      .trim();
   }
 
   async generateSocraticFollowup(
@@ -114,7 +108,7 @@ total must equal issues_found + explanation_quality + prioritization + bonus.
 Do not include any prose outside the JSON object.`;
 
     const result = await this.model().generateContent(prompt);
-    const raw = this.stripJsonFences(result.response.text());
+    const raw = stripJsonFences(result.response.text());
 
     let parsed: unknown;
     try {

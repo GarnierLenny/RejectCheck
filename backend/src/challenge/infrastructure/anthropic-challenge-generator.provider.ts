@@ -7,25 +7,27 @@ import {
 import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
 import {
-  Difficulty,
-  GeneratedChallenge,
+  type Difficulty,
+  type GeneratedChallenge,
   GeneratedChallengeSchema,
-} from './dto/challenge.dto';
-import { ChallengeLanguage, FocusTag } from './focus-tags';
+} from '../dto/challenge.dto';
+import type { ChallengeLanguage, FocusTag } from '../domain/focus-tags';
+import type { ChallengeGenerator } from '../ports/challenge-generator.provider';
 import {
   buildChallengePrompt,
   validateGeneratedSnippet,
 } from './challenge-generation-prompt';
+import { stripJsonFences } from './strip-json-fences';
 
 const MODEL_NAME = 'claude-sonnet-4-6';
 const MAX_TOKENS = 4096;
 
 @Injectable()
-export class ClaudeService {
-  private readonly logger = new Logger(ClaudeService.name);
-  private client: Anthropic | null = null;
+export class AnthropicChallengeGenerator implements ChallengeGenerator {
+  private readonly logger = new Logger(AnthropicChallengeGenerator.name);
+  private readonly client: Anthropic | null = null;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     const key = this.configService.get<string>('ANTHROPIC_API_KEY');
     if (key) {
       this.client = new Anthropic({ apiKey: key });
@@ -39,15 +41,7 @@ export class ClaudeService {
     }
   }
 
-  private stripJsonFences(raw: string): string {
-    return raw
-      .trim()
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/```\s*$/i, '')
-      .trim();
-  }
-
-  async generateChallenge(
+  async generate(
     language: ChallengeLanguage,
     focusTag: FocusTag,
     difficulty: Difficulty,
@@ -74,18 +68,17 @@ export class ClaudeService {
       messages: [{ role: 'user', content: prompt }],
     });
 
-    const textBlock = response.content.find((b) => b.type === 'text');
-    const rawText =
-      textBlock && textBlock.type === 'text' ? textBlock.text : '';
+    const textBlock = response.content.find((b) => b.type === 'text') as
+      | { type: 'text'; text: string }
+      | undefined;
+    const rawText = textBlock?.text ?? '';
     if (!rawText) {
       throw new BadGatewayException('Empty response from Claude');
     }
 
-    const raw = this.stripJsonFences(rawText);
-
     let parsed: unknown;
     try {
-      parsed = JSON.parse(raw);
+      parsed = JSON.parse(stripJsonFences(rawText));
     } catch {
       throw new BadGatewayException(
         'Claude returned invalid JSON for challenge generation',

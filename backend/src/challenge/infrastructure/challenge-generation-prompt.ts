@@ -1,11 +1,11 @@
 import { BadGatewayException } from '@nestjs/common';
-import { ChallengeIssue, Difficulty } from './dto/challenge.dto';
+import type { ChallengeIssue, Difficulty } from '../dto/challenge.dto';
 import {
-  ChallengeLanguage,
+  type ChallengeLanguage,
+  type FocusTag,
   FOCUS_TAG_DESCRIPTIONS,
-  FocusTag,
   LANGUAGE_HINTS,
-} from './focus-tags';
+} from '../domain/focus-tags';
 
 /**
  * Minimal fallback prompt. It works but produces generic output.

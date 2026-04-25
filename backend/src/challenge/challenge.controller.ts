@@ -10,31 +10,45 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { ChallengeService } from './challenge.service';
 import { SubmitFinalSchema, SubmitFirstSchema } from './dto/challenge.dto';
-import { DEFAULT_LANGUAGE, isChallengeLanguage } from './focus-tags';
+import { DEFAULT_LANGUAGE, isChallengeLanguage } from './domain/focus-tags';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { RequiresPremium } from '../stripe/decorators/requires-premium.decorator';
+
+import { GetTodayChallengeUseCase } from './application/get-today-challenge.use-case';
+import { SubmitFirstAnswerUseCase } from './application/submit-first-answer.use-case';
+import { SubmitFinalAnswerUseCase } from './application/submit-final-answer.use-case';
+import { GetDayStatsUseCase } from './application/get-day-stats.use-case';
+import { GetUserStreakUseCase } from './application/get-user-streak.use-case';
+import { GetHistoryUseCase } from './application/get-history.use-case';
 
 @ApiTags('Challenge')
 @Controller('api/challenge')
 export class ChallengeController {
-  constructor(private readonly challengeService: ChallengeService) {}
+  constructor(
+    private readonly getToday: GetTodayChallengeUseCase,
+    private readonly submitFirst: SubmitFirstAnswerUseCase,
+    private readonly submitFinal: SubmitFinalAnswerUseCase,
+    private readonly getDayStats: GetDayStatsUseCase,
+    private readonly getStreak: GetUserStreakUseCase,
+    private readonly getHistoryUc: GetHistoryUseCase,
+  ) {}
 
   @Get('today')
   @ApiOperation({
     summary: "Get today's challenge (public, issues are omitted)",
   })
-  async today(@Query('language') language?: string) {
+  today(@Query('language') language?: string) {
     const lang =
       language && isChallengeLanguage(language) ? language : DEFAULT_LANGUAGE;
-    return this.challengeService.getTodayChallenge(lang);
+    return this.getToday.execute(lang);
   }
 
   @Get('stats/:id')
   @ApiOperation({ summary: 'Get aggregate stats for a given challenge' })
-  async stats(@Param('id', ParseIntPipe) id: number) {
-    return this.challengeService.getDayStats(id);
+  stats(@Param('id', ParseIntPipe) id: number) {
+    return this.getDayStats.execute(id);
   }
 
   @UseGuards(SupabaseGuard)
@@ -42,12 +56,12 @@ export class ChallengeController {
   @ApiOperation({
     summary: 'Submit the first answer and get the Socratic follow-up',
   })
-  async submitFirst(@AuthEmail() email: string, @Body() body: unknown) {
+  submitFirstAnswer(@AuthEmail() email: string, @Body() body: unknown) {
     const parsed = SubmitFirstSchema.safeParse(body);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.issues[0].message);
     }
-    return this.challengeService.submitFirstAnswer(
+    return this.submitFirst.execute(
       email,
       parsed.data.challengeId,
       parsed.data.firstAnswer,
@@ -57,12 +71,12 @@ export class ChallengeController {
   @UseGuards(SupabaseGuard)
   @Post('submit/final')
   @ApiOperation({ summary: 'Submit the final answer and get the score' })
-  async submitFinal(@AuthEmail() email: string, @Body() body: unknown) {
+  submitFinalAnswer(@AuthEmail() email: string, @Body() body: unknown) {
     const parsed = SubmitFinalSchema.safeParse(body);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.issues[0].message);
     }
-    return this.challengeService.submitFinalAnswer(
+    return this.submitFinal.execute(
       email,
       parsed.data.challengeId,
       parsed.data.secondAnswer,
@@ -74,14 +88,14 @@ export class ChallengeController {
   @ApiOperation({
     summary: 'Get the current streak for the authenticated user',
   })
-  async streak(@AuthEmail() email: string) {
-    return this.challengeService.getUserStreak(email);
+  streak(@AuthEmail() email: string) {
+    return this.getStreak.execute(email);
   }
 
-  @UseGuards(SupabaseGuard)
+  @RequiresPremium('shortlisted')
   @Get('history')
   @ApiOperation({ summary: 'Get past challenge attempts (SHORTLISTED+)' })
-  async history(@AuthEmail() email: string) {
-    return this.challengeService.getHistory(email);
+  history(@AuthEmail() email: string) {
+    return this.getHistoryUc.execute(email);
   }
 }
