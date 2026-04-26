@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useLanguage } from "../../context/language";
-import { useJdValidation } from "../hooks/useJdValidation";
+import { useJdValidation, JD_MIN_CHARS } from "../hooks/useJdValidation";
 import type { JdWarningKey } from "../hooks/useJdValidation";
 import { PdfPreviewModal } from "./PdfPreviewModal";
 
@@ -329,11 +329,20 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           placeholder={"Senior Full Stack Developer - React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
           className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-none outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
         />
-        {warningText ? (
-          <p className="font-mono text-[9px] text-rc-amber mt-1.5">{warningText}</p>
-        ) : (
-          <p className="font-mono text-[9px] text-rc-hint mt-1.5">{t.uploadForm.jobListing.hint}</p>
-        )}
+        <div className="flex items-center justify-between gap-2 mt-1.5">
+          {warningText ? (
+            <p className="font-mono text-[9px] text-rc-amber">{warningText}</p>
+          ) : (
+            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.jobListing.hint}</p>
+          )}
+          <p
+            className={`font-mono text-[9px] tabular-nums shrink-0 ${
+              jobDescription.trim().length < JD_MIN_CHARS ? "text-rc-amber" : "text-rc-hint"
+            }`}
+          >
+            {jobDescription.trim().length} / {JD_MIN_CHARS}
+          </p>
+        </div>
 
 
       </div>
@@ -660,7 +669,7 @@ export function UploadForm({
   const liRef = useRef<HTMLInputElement>(null);
   const mlRef = useRef<HTMLInputElement>(null);
 
-  const hasRequired = !!cvFile && jobDescription.trim().length > 0;
+  const hasRequired = !!cvFile && jobDescription.trim().length >= JD_MIN_CHARS;
   const hasStep1 = hasRequired;
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
 

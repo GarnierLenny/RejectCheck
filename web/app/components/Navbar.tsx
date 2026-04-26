@@ -6,8 +6,6 @@ import { AuthNavLink } from "./AuthNavLink";
 import { LangSwitcher } from "./LangSwitcher";
 import { useAuth } from "../../context/auth";
 import { useLanguage } from "../../context/language";
-import { useChallengeStreak } from "../../lib/challenge";
-
 type NavPage = "analyze" | "dashboard" | "pricing" | "challenge";
 
 interface NavbarProps {
@@ -18,7 +16,6 @@ interface NavbarProps {
 export function Navbar({ center, activePage }: NavbarProps = {}) {
   const { user, loading } = useAuth();
   const { t, localePath } = useLanguage();
-  const { data: streak } = useChallengeStreak();
 
   const linkClass = (page: NavPage) =>
     `font-mono text-[11px] tracking-[0.14em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
@@ -27,7 +24,6 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
         : "text-rc-muted hover:text-rc-text"
     }`;
 
-  const streakCount = streak?.currentStreak ?? 0;
   const challengeLabel = t.challenge.navLink;
 
   return (
@@ -65,9 +61,6 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
             </Link>
             <Link href={localePath("/challenge")} className={linkClass("challenge")}>
               {challengeLabel}
-              {streakCount > 0 && (
-                <span className="ml-1 text-rc-red">🔥{streakCount}</span>
-              )}
             </Link>
             <Link href={localePath("/dashboard")} className={linkClass("dashboard")}>
               Dashboard
