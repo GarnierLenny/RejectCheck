@@ -26,10 +26,35 @@ export default tseslint.config(
   },
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      // Tech-debt baseline: every `any` and unsafe-* finding is surfaced as a warning so
+      // they're visible in CI without gating the build. Module-by-module, the hexagonal
+      // refactor (P2/P3) replaces these with proper types and the rules can be promoted
+      // back to 'error' on a per-folder override.
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      "prettier/prettier": ["error", { endOfLine: "auto" }],
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+      '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'warn',
+      // Other pre-existing tech-debt warnings (escalated module-by-module in P2/P3).
+      '@typescript-eslint/require-await': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-require-imports': 'warn',
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    },
+  },
+  {
+    // New code written from Phase 1 onwards must be strict from day one — no `any`,
+    // no unsafe access. This pins the bar for everything in src/common/.
+    files: ['src/common/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unsafe-assignment': 'error',
+      '@typescript-eslint/no-unsafe-call': 'error',
+      '@typescript-eslint/no-unsafe-member-access': 'error',
+      '@typescript-eslint/no-unsafe-return': 'error',
     },
   },
 );

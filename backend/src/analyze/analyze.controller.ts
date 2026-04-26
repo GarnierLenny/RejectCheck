@@ -1,46 +1,81 @@
 import {
-  Controller,
-  Post,
-  Get,
-  Delete,
-  Param,
-  UseInterceptors,
-  UseGuards,
-  UploadedFiles,
-  Body,
-  Res,
-  Req,
   BadRequestException,
-  ForbiddenException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
   Query,
+  Req,
+  Res,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBody,
   ApiConsumes,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
-  ApiOkResponse,
-  ApiBody,
 } from '@nestjs/swagger';
-import { ConfigService } from '@nestjs/config';
-import { AnalyzeService } from './analyze.service';
+
 import {
-  AnalyzeRequestSchema,
   AnalyzeRequestDto,
+  AnalyzeRequestSchema,
 } from './dto/analyze-request.dto';
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { RequiresPremium } from '../stripe/decorators/requires-premium.decorator';
 import { validateJobDescription } from './analyze.utils';
+
+import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
+import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
+import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
+import { ListHistoryUseCase } from './application/list-history.use-case';
+import { GetAnalysisUseCase } from './application/get-analysis.use-case';
+import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
+import {
+  GetProfileUseCase,
+  UpdateProfileUseCase,
+} from './application/profile.use-cases';
+import {
+  AddSavedCvUseCase,
+  ListSavedCvsUseCase,
+  RemoveSavedCvUseCase,
+} from './application/saved-cv.use-cases';
+
+type SseResponse = {
+  setHeader: (k: string, v: string) => void;
+  flushHeaders: () => void;
+  write: (chunk: string) => void;
+  end: () => void;
+  writableEnded: boolean;
+  headersSent: boolean;
+  status: (code: number) => SseResponse;
+  json: (body: unknown) => SseResponse;
+};
 
 @ApiTags('Analyze')
 @Controller('api/analyze')
 export class AnalyzeController {
   constructor(
-    private readonly analyzeService: AnalyzeService,
-    private readonly configService: ConfigService,
+    private readonly analyzeCv: AnalyzeCvUseCase,
+    private readonly rewriteCvUc: RewriteCvUseCase,
+    private readonly generateCoverLetter: GenerateCoverLetterUseCase,
+    private readonly listHistory: ListHistoryUseCase,
+    private readonly getAnalysisUc: GetAnalysisUseCase,
+    private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
+    private readonly getProfileUc: GetProfileUseCase,
+    private readonly updateProfileUc: UpdateProfileUseCase,
+    private readonly listSavedCvsUc: ListSavedCvsUseCase,
+    private readonly addSavedCvUc: AddSavedCvUseCase,
+    private readonly removeSavedCvUc: RemoveSavedCvUseCase,
   ) {}
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
@@ -64,7 +99,7 @@ export class AnalyzeController {
       motivationLetter?: Express.Multer.File[];
     },
     @Body() body: unknown,
-    @Res() res: any,
+    @Res() res: SseResponse,
     @Req() req: Request,
   ) {
     const parsed = AnalyzeRequestSchema.safeParse(body);
@@ -81,77 +116,47 @@ export class AnalyzeController {
       locale,
     } = parsed.data;
 
-    // Capture IP: primary from x-forwarded-for, fallback to req.ip
     const ip =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+
+    const jdValidation = validateJobDescription(jobDescription);
+    if (!jdValidation.valid) {
+      return res.status(422).json({ message: jdValidation.reason });
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
 
     const write = (data: object) =>
       res.write(`data: ${JSON.stringify(data)}\n\n`);
 
     try {
-      // 1. Check Usage Limit
-      const limit = await this.analyzeService.checkUsageLimit(email, ip);
-      if (!limit.allowed) {
-        return res.status(402).json({
-          message: 'Analysis limit reached. Upgrade to continue.',
-          code: 'LIMIT_REACHED',
-        });
-      }
-
-      // 2. Validate job description content
-      const jdValidation = validateJobDescription(jobDescription);
-      if (!jdValidation.valid) {
-        return res.status(422).json({ message: jdValidation.reason });
-      }
-
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-      res.flushHeaders();
-
-      const {
-        result,
-        cvText: parsedCv,
-        linkedinText: parsedLinkedin,
-        githubInfo: parsedGithub,
-        motivationLetterText: parsedMl,
-      } = await this.analyzeService.analyzeApplication(
+      const { result, analysisId } = await this.analyzeCv.execute(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           jobDescription,
+          jobLabel,
           linkedinBuffer: files.linkedin?.[0]?.buffer,
           motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
           motivationLetterText,
           githubUsername,
+          email,
+          ip,
+          isRegistered: !!isRegistered,
           locale,
         },
         (step) => write({ step }),
       );
 
-      // 2. Save Analysis (with GDPR rules handled in service)
-      const { id: analysisId } = await this.analyzeService.saveAnalysis({
-        email,
-        ip,
-        jobDescription,
-        jobLabel,
-        cvText: parsedCv,
-        linkedinText: parsedLinkedin,
-        githubInfo: parsedGithub,
-        motivationLetter: parsedMl,
-        result,
-        isRegistered: !!isRegistered,
-      });
-
       write({ step: 'done', result, analysisId });
     } catch (err: any) {
       if (res.writableEnded) return;
-      if (!res.headersSent) {
-        return res.status(err.status || 500).json({ message: err.message });
-      }
       write({
         step: 'error',
-        message: err.message || 'Analysis failed',
-        code: err.response?.code,
+        message: err?.message || 'Analysis failed',
+        code: err?.code || err?.response?.code,
       });
     } finally {
       if (!res.writableEnded) res.end();
@@ -166,14 +171,14 @@ export class AnalyzeController {
     @Query('page') page = '1',
     @Query('limit') limit = '10',
   ) {
-    return this.analyzeService.getHistory(email, +page, +limit);
+    return this.listHistory.execute(email, +page, +limit);
   }
 
   @UseGuards(SupabaseGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get profile of the authenticated user' })
   async getProfile(@AuthEmail() email: string) {
-    return this.analyzeService.getProfile(email);
+    return this.getProfileUc.execute(email);
   }
 
   @UseGuards(SupabaseGuard)
@@ -181,36 +186,41 @@ export class AnalyzeController {
   @ApiOperation({ summary: 'Update profile of the authenticated user' })
   async updateProfile(
     @AuthEmail() email: string,
-    @Body() body: { username?: string; avatarUrl?: string; displayName?: string; githubUsername?: string; linkedinUrl?: string },
+    @Body()
+    body: {
+      username?: string;
+      avatarUrl?: string;
+      displayName?: string;
+      githubUsername?: string;
+      linkedinUrl?: string;
+    },
   ) {
-    return this.analyzeService.updateProfile(email, body);
+    return this.updateProfileUc.execute(email, body);
   }
 
-  @UseGuards(SupabaseGuard)
+  @RequiresPremium()
   @Get('saved-cvs')
   async listSavedCvs(@AuthEmail() email: string) {
-    const isPremium = await this.analyzeService.checkPremium(email);
-    if (!isPremium) throw new ForbiddenException('Premium subscription required');
-    return this.analyzeService.listSavedCvs(email);
+    return this.listSavedCvsUc.execute(email);
   }
 
-  @UseGuards(SupabaseGuard)
+  @RequiresPremium()
   @Post('saved-cvs')
-  async addSavedCv(@AuthEmail() email: string, @Body() body: { name: string; url: string }) {
-    const isPremium = await this.analyzeService.checkPremium(email);
-    if (!isPremium) throw new ForbiddenException('Premium subscription required');
-    return this.analyzeService.addSavedCv(email, body.name, body.url);
+  async addSavedCv(
+    @AuthEmail() email: string,
+    @Body() body: { name: string; url: string },
+  ) {
+    return this.addSavedCvUc.execute(email, body.name, body.url);
   }
 
-  @UseGuards(SupabaseGuard)
+  @RequiresPremium()
   @Delete('saved-cvs/:id')
   async removeSavedCv(@AuthEmail() email: string, @Param('id') id: string) {
-    const isPremium = await this.analyzeService.checkPremium(email);
-    if (!isPremium) throw new ForbiddenException('Premium subscription required');
-    return this.analyzeService.removeSavedCv(email, parseInt(id));
+    await this.removeSavedCvUc.execute(email, parseInt(id));
+    return { ok: true };
   }
 
-  @UseGuards(SupabaseGuard)
+  @RequiresPremium()
   @Post('rewrite')
   @ApiOperation({
     summary: 'Rewrite a CV based on a previous analysis (premium)',
@@ -218,19 +228,11 @@ export class AnalyzeController {
   async rewrite(
     @AuthEmail() email: string,
     @Body() body: { analysisId: number; locale?: string },
-    @Res() res: any,
+    @Res() res: SseResponse,
   ) {
     const { analysisId, locale = 'en' } = body;
     if (!analysisId) {
       return res.status(400).json({ message: 'analysisId is required' });
-    }
-
-    const isPremium = await this.analyzeService.checkPremium(email);
-    if (!isPremium) {
-      return res.status(402).json({
-        message: 'Premium subscription required',
-        code: 'PREMIUM_REQUIRED',
-      });
     }
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -243,51 +245,36 @@ export class AnalyzeController {
 
     try {
       write({ step: 'rewriting' });
-      const rewriteResult = await this.analyzeService.rewriteCv(
-        analysisId,
-        email,
-        locale,
-      );
-      await this.analyzeService.saveRewrite(analysisId, email, rewriteResult);
-      write({ step: 'done', reconstructed_cv: rewriteResult.reconstructed_cv });
+      const result = await this.rewriteCvUc.execute(analysisId, email, locale);
+      write({ step: 'done', reconstructed_cv: result.reconstructed_cv });
     } catch (err: any) {
       if (!res.writableEnded) {
-        write({ step: 'error', message: err.message || 'Rewrite failed' });
+        write({
+          step: 'error',
+          message: err?.message || 'Rewrite failed',
+          code: err?.code || err?.response?.code,
+        });
       }
     } finally {
       if (!res.writableEnded) res.end();
     }
   }
 
-  @UseGuards(SupabaseGuard)
+  @RequiresPremium('hired')
   @Post('cover-letter')
-  @ApiOperation({ summary: 'Generate a cover letter from an existing analysis' })
-  async coverLetter(
-    @AuthEmail() email: string,
-    @Body() body: unknown,
-    @Res() res: any,
-  ) {
+  @ApiOperation({
+    summary: 'Generate a cover letter from an existing analysis',
+  })
+  async coverLetter(@AuthEmail() email: string, @Body() body: unknown) {
     const parsed = CoverLetterSchema.safeParse(body);
     if (!parsed.success) {
-      return res.status(400).json({ message: parsed.error.issues[0].message });
+      throw new BadRequestException(parsed.error.issues[0].message);
     }
-
-    const isHired = await this.analyzeService.checkHiredPlan(email);
-    if (!isHired) {
-      return res.status(402).json({ message: 'HIRED plan required' });
-    }
-
-    try {
-      const result = await this.analyzeService.generateCoverLetter(
-        email,
-        parsed.data.analysisId,
-        parsed.data.language,
-      );
-      await this.analyzeService.saveCoverLetter(parsed.data.analysisId, email, result.coverLetter);
-      return res.status(200).json(result);
-    } catch (e: any) {
-      return res.status(e.status ?? 500).json({ message: e.message });
-    }
+    return this.generateCoverLetter.execute(
+      email,
+      parsed.data.analysisId,
+      parsed.data.language,
+    );
   }
 
   @UseGuards(SupabaseGuard)
@@ -297,20 +284,10 @@ export class AnalyzeController {
       'Get a specific analysis by ID (must belong to the authenticated user)',
   })
   @ApiOkResponse({ type: AnalyzeResponseDto })
-  async getAnalysis(
-    @AuthEmail() email: string,
-    @Req() req: Request,
-    @Res() res: any,
-  ) {
-    const { id: rawId } = req.params;
-    const id = parseInt(rawId as string);
+  async getAnalysis(@AuthEmail() email: string, @Param('id') rawId: string) {
+    const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
-
-    const analysis = await this.analyzeService.getAnalysisById(id, email);
-    if (!analysis)
-      return res.status(404).json({ message: 'Analysis not found' });
-
-    return res.json(analysis);
+    return this.getAnalysisUc.execute(id, email);
   }
 
   @UseGuards(SupabaseGuard)
@@ -318,11 +295,10 @@ export class AnalyzeController {
   @ApiOperation({
     summary: 'Delete an analysis (must belong to the authenticated user)',
   })
-  async deleteAnalysis(@AuthEmail() email: string, @Req() req: Request) {
-    const { id: rawId } = req.params;
-    const id = parseInt(rawId as string);
+  async deleteAnalysis(@AuthEmail() email: string, @Param('id') rawId: string) {
+    const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
-
-    return this.analyzeService.deleteAnalysis(id, email);
+    await this.deleteAnalysisUc.execute(id, email);
+    return { ok: true };
   }
 }

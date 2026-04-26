@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInterviewHistory } from "../../../lib/queries";
-import Link from "next/link";
-import { ArrowRight, Sparkles, Mic, RotateCcw, Loader2, ChevronDown, ChevronUp, Play, Clock, TrendingUp } from "lucide-react";
+import { Mic, RotateCcw, Loader2, ChevronDown, ChevronUp, Play, Clock, TrendingUp } from "lucide-react";
 import { useLanguage } from "../../../context/language";
+import { PremiumPaywall } from "../PremiumFeature";
 
 type InterviewTabProps = {
   isPremium: boolean;
@@ -194,7 +194,7 @@ function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void
 
 export function InterviewTab({ isPremium, analysisId, email, accessToken, defaultInterviewId }: InterviewTabProps) {
   const queryClient = useQueryClient();
-  const { t, localePath } = useLanguage();
+  const { t } = useLanguage();
   const { data: historyResponse } = useInterviewHistory(1);
   const history = (historyResponse?.data ?? []) as AttemptHistory[];
 
@@ -387,22 +387,12 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
   // ─── PAYWALL ────────────────────────────────────────────────────────────────
   if (!isPremium) {
     return (
-      <div className="flex items-center justify-center py-16 px-4">
-        <div className="bg-rc-surface border border-rc-border rounded-[24px] p-8 md:p-12 w-full max-w-[520px] text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rc-red/40 to-transparent" />
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/5 border border-rc-red/10 mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-rc-red" />
-            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">{t.interviewTab.premiumBadge}</span>
-          </div>
-          <h3 className="text-2xl font-bold text-rc-text mb-3 tracking-tight">{t.interviewTab.premiumTitle}</h3>
-          <p className="text-[15px] text-rc-muted mb-8 leading-relaxed">
-            {t.interviewTab.premiumDesc}
-          </p>
-          <Link href={localePath("/pricing")} className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/20 no-underline font-bold">
-            {t.interviewTab.unlockButton} <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
+      <PremiumPaywall
+        badge={t.interviewTab.premiumBadge}
+        title={t.interviewTab.premiumTitle}
+        description={t.interviewTab.premiumDesc}
+        ctaLabel={t.interviewTab.unlockButton}
+      />
     );
   }
 

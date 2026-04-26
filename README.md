@@ -92,3 +92,54 @@ Browser (port 3000)
 ## Status
 
 Core analysis pipeline, CV rewrite, and AI Interview are all functional end-to-end. Ongoing work is focused on refining AI output quality and expanding the interview evaluation depth.
+
+## Running tests
+
+### Type checking
+
+```bash
+cd web && npm run typecheck
+cd backend && npm run typecheck
+```
+
+### Backend unit tests
+
+```bash
+cd backend && npm test
+```
+
+### End-to-end tests (Playwright)
+
+E2E tests live in `web/e2e/` and exercise the contract of the revenue-critical flows: Stripe checkout + webhook signature, premium endpoint gating, and the public CV analysis pipeline. Tests run against an isolated test environment (separate DB, Stripe test keys, Supabase test project).
+
+**One-time setup:**
+
+1. Start a dedicated Postgres for tests (port 5433):
+   ```bash
+   docker run -d --name rejectcheck-test-pg \
+     -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres \
+     -e POSTGRES_DB=rejectcheck_test -p 5433:5432 postgres:16
+   ```
+2. Copy the example env files and fill in your test secrets:
+   ```bash
+   cp backend/.env.test.example backend/.env.test
+   cp web/.env.test.example web/.env.test
+   ```
+   You need: a Stripe test mode account (sk_test_, whsec_, two test price IDs), a separate Supabase project for tests, and an Anthropic API key. Never reuse production secrets.
+3. Apply migrations to the test DB:
+   ```bash
+   cd backend && DATABASE_URL=postgresql://postgres:postgres@localhost:5433/rejectcheck_test npx prisma migrate deploy
+   ```
+
+**Run the tests:**
+
+```bash
+cd web && npm run test:e2e         # headless
+cd web && npm run test:e2e:ui      # interactive Playwright UI
+```
+
+Playwright auto-starts both servers (backend on `:8889`, web on `:3100`) so dev on `:8888`/`:3000` is unaffected. The HTML report opens after a failure.
+
+### CI
+
+GitHub Actions runs `lint`, `typecheck`, and backend unit tests on every push and PR. E2E tests are not run in CI — execute them locally before merging revenue-critical changes (Stripe, premium gating, analyze pipeline).

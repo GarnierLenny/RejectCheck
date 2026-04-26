@@ -1,46 +1,59 @@
 import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Req,
-  Headers,
   BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import { StripeService } from './stripe.service';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
+import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
+import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 
 @Controller('api/stripe')
 export class StripeController {
-  constructor(private stripeService: StripeService) {}
+  constructor(
+    private readonly createCheckout: CreateCheckoutSessionUseCase,
+    private readonly getSubscription: GetSubscriptionUseCase,
+    private readonly handleWebhookUc: HandleWebhookUseCase,
+  ) {}
 
-  /** Public — creates a checkout session (email is optional, used for pre-filling Stripe form). */
+  /** Public — creates a checkout session (email is optional, used for pre-filling the Stripe form). */
   @Post('checkout')
-  async createCheckout(
+  async createCheckoutSession(
     @Body() body: { plan: 'shortlisted' | 'hired'; email?: string },
   ) {
-    return this.stripeService.createCheckoutSession(body.plan, body.email);
+    return this.createCheckout.execute({
+      plan: body.plan,
+      customerEmail: body.email,
+    });
   }
 
   /** Protected — returns the authenticated user's own subscription only. */
   @UseGuards(SupabaseGuard)
   @Get('subscription')
-  async getSubscription(@AuthEmail() email: string) {
-    return this.stripeService.getSubscription(email);
+  async subscription(@AuthEmail() email: string) {
+    return this.getSubscription.execute(email);
   }
 
-  /** Stripe-signed webhook — verified by stripe-signature header, not by Supabase JWT. */
+  /** Stripe-signed webhook — verified by stripe-signature header, not by Supabase JWT.
+   *  Exempted from rate limiting (Stripe handles retries) and from the global
+   *  validation pipe via the @Req() raw body. */
+  @SkipThrottle()
   @Post('webhook')
-  async handleWebhook(
+  async webhook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,
   ) {
     if (!req.rawBody) throw new BadRequestException('Missing raw body');
-    await this.stripeService.handleWebhook(req.rawBody, signature);
+    await this.handleWebhookUc.execute(req.rawBody, signature);
     return { received: true };
   }
 }

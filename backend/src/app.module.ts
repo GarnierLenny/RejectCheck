@@ -9,13 +9,17 @@ import { StripeModule } from './stripe/stripe.module';
 import { InterviewModule } from './interview/interview.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { ChallengeModule } from './challenge/challenge.module';
+import { validateEnv } from './common/env.schema';
+import { AppThrottlerModule } from './common/throttler.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
+      validate: validateEnv,
     }),
+    AppThrottlerModule,
     PrismaModule,
     AnalyzeModule,
     WaitlistModule,

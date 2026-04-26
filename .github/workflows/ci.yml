@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - 'gh-pages'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-typecheck:
+    name: Lint + Typecheck (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web, backend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+
+      - run: npm ci
+
+      - name: Generate Prisma client (backend only)
+        if: matrix.app == 'backend'
+        run: npx prisma generate
+
+      - run: npm run lint
+        continue-on-error: true # informational: pre-existing lint debt, fix incrementally
+
+      - run: npm run typecheck
+
+  test-backend:
+    name: Backend unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm test

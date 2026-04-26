@@ -2,12 +2,18 @@ import { z } from 'zod';
 
 export const SubmitFirstSchema = z.object({
   challengeId: z.coerce.number().int().positive(),
-  firstAnswer: z.string().min(1, 'Answer is required').max(10000, 'Answer is too long'),
+  firstAnswer: z
+    .string()
+    .min(1, 'Answer is required')
+    .max(10000, 'Answer is too long'),
 });
 
 export const SubmitFinalSchema = z.object({
   challengeId: z.coerce.number().int().positive(),
-  secondAnswer: z.string().min(1, 'Answer is required').max(10000, 'Answer is too long'),
+  secondAnswer: z
+    .string()
+    .min(1, 'Answer is required')
+    .max(10000, 'Answer is too long'),
 });
 
 export const ChallengeIssueSchema = z.object({
