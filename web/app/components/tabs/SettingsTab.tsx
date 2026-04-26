@@ -2,9 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Trash2, Plus, LogOut, AlertTriangle, CreditCard, Eye } from "lucide-react";
+import { Trash2, Plus, LogOut, AlertTriangle, CreditCard, Eye, Upload } from "lucide-react";
 import { PdfPreviewModal } from "../PdfPreviewModal";
 import { ChallengeHeatmap } from "../ChallengeHeatmap";
+import { Heading, FieldLabel, Caption, Text } from "../typography";
+import { Button } from "../Button";
 import { createClient } from "../../../lib/supabase";
 import type { Profile, Subscription, SavedCv } from "../../../lib/queries";
 import { useSavedCvs } from "../../../lib/queries";
@@ -29,11 +31,17 @@ interface SettingsTabProps {
 
 function SavedBadge({ show }: { show: boolean }) {
   return (
-    <span className={`font-mono text-[10px] text-green-600 transition-opacity duration-300 ${show ? "opacity-100" : "opacity-0"}`}>
+    <Caption
+      tone="green"
+      className={`transition-opacity duration-300 ${show ? "opacity-100" : "opacity-0"}`}
+    >
       Saved ✓
-    </span>
+    </Caption>
   );
 }
+
+const inputClass =
+  "flex-1 bg-rc-bg border border-rc-border rounded-md px-3 py-2 text-[14px] leading-5 text-rc-text outline-none focus:border-rc-red/40 focus:ring-2 focus:ring-rc-red/20 transition-colors";
 
 export function SettingsTab({ profile, profileLoading, subscription, session, onSignOut, lang }: SettingsTabProps) {
   const { t } = useLanguage();
@@ -153,28 +161,29 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
 
         {/* Identity card */}
         <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-4">Identity</div>
+          <Heading as="h3" className="mb-4">Identity</Heading>
           <div className="flex items-center gap-3 mb-5">
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-rc-border" />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-rc-bg border border-rc-border flex items-center justify-center font-mono text-[14px] font-bold text-rc-hint">
+              <div className="w-12 h-12 rounded-full bg-rc-bg border border-rc-border flex items-center justify-center text-[14px] font-semibold text-rc-muted">
                 {email.substring(0, 2).toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-[13px] font-medium text-rc-text truncate">{displayName || email}</p>
-              <p className="font-mono text-[10px] text-rc-hint truncate">{email}</p>
+              <Text as="p" weight="medium" className="truncate">{displayName || email}</Text>
+              <Caption as="p" className="truncate">{email}</Caption>
             </div>
           </div>
-          <label className="block mb-1 font-mono text-[9px] uppercase tracking-widest text-rc-hint">Display name</label>
+          <FieldLabel htmlFor="display-name" className="block mb-1.5">Display name</FieldLabel>
           <div className="flex items-center gap-2">
             <input
+              id="display-name"
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
               onBlur={handleNameBlur}
               placeholder="Your name"
-              className="flex-1 bg-rc-bg border border-rc-border rounded px-3 py-2 text-[12px] text-rc-text outline-none focus:border-rc-red/30 transition-colors"
+              className={inputClass}
             />
             <SavedBadge show={nameSaved} />
           </div>
@@ -183,76 +192,93 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
         {/* Subscription card */}
         <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
           <div className="flex items-center gap-2 mb-4">
-            <CreditCard size={13} className="text-rc-hint" />
-            <span className="font-mono text-[9px] uppercase tracking-widest text-rc-hint">Subscription</span>
+            <CreditCard size={14} className="text-rc-muted" />
+            <Heading as="h3">Subscription</Heading>
           </div>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[13px] text-rc-text font-medium">{planLabel}</span>
-            <span className={`font-mono text-[9px] px-2 py-0.5 rounded border ${isActive ? "border-rc-green/30 text-rc-green bg-rc-green/5" : "border-rc-hint/30 text-rc-hint"}`}>
+            <Text weight="medium">{planLabel}</Text>
+            <span
+              className={`text-[12px] leading-4 font-medium px-2 py-0.5 rounded-md border ${
+                isActive
+                  ? "border-rc-green/30 text-rc-green bg-rc-green/5"
+                  : "border-rc-border text-rc-muted"
+              }`}
+            >
               {isActive ? "Active" : "Inactive"}
             </span>
           </div>
           {subscription?.currentPeriodEnd && (
-            <p className="font-mono text-[10px] text-rc-hint mb-3">
+            <Caption as="p" className="block mb-3">
               Renews {new Date(subscription.currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
-            </p>
+            </Caption>
           )}
           {isActive ? (
-            <button
+            <Button
+              variant="default"
+              block
               onClick={() => portalSession.mutate()}
-              disabled={portalSession.isPending}
-              className="w-full font-mono text-[9px] uppercase tracking-widest border border-rc-border text-rc-hint hover:text-rc-text hover:border-rc-red/30 rounded px-3 py-2 transition-all disabled:opacity-50"
+              loading={portalSession.isPending}
             >
               {portalSession.isPending ? "Redirecting…" : "Manage billing"}
-            </button>
+            </Button>
           ) : (
-            <Link
+            <Button
+              as={Link}
               href={`/${lang}/pricing`}
-              className="block w-full text-center font-mono text-[9px] uppercase tracking-widest border border-rc-red/40 text-rc-red hover:bg-rc-red/5 rounded px-3 py-2 transition-all no-underline"
+              variant="default"
+              block
+              className="!text-rc-red !border-rc-red/40 hover:!bg-rc-red/5 hover:!border-rc-red/60 no-underline"
             >
               Upgrade plan
-            </Link>
+            </Button>
           )}
         </div>
 
         {/* Account / Danger zone */}
         <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-4">Account</div>
-          <button
+          <Heading as="h3" className="mb-4">Account</Heading>
+          <Button
+            variant="default"
+            block
+            leadingIcon={<LogOut size={14} />}
             onClick={onSignOut}
-            className="w-full flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-text border border-rc-border hover:border-rc-red/20 rounded px-3 py-2 transition-all mb-2"
+            className="mb-2"
           >
-            <LogOut size={11} />
             Sign out
-          </button>
+          </Button>
           {!confirmDelete ? (
-            <button
+            <Button
+              variant="danger"
+              block
+              leadingIcon={<Trash2 size={14} />}
               onClick={() => setConfirmDelete(true)}
-              className="w-full flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-rc-red/60 hover:text-rc-red border border-rc-red/20 hover:border-rc-red/40 rounded px-3 py-2 transition-all"
             >
-              <Trash2 size={11} />
               Delete account
-            </button>
+            </Button>
           ) : (
-            <div className="border border-rc-red/30 rounded p-3 bg-rc-red/[0.03]">
+            <div className="border border-rc-red/30 rounded-md p-3 bg-rc-red/[0.03]">
               <div className="flex items-center gap-1.5 mb-2">
-                <AlertTriangle size={11} className="text-rc-red" />
-                <span className="font-mono text-[9px] text-rc-red uppercase tracking-widest">This cannot be undone</span>
+                <AlertTriangle size={14} className="text-rc-red" />
+                <Caption tone="red" className="font-medium">This cannot be undone</Caption>
               </div>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="danger"
+                  filled
+                  size="sm"
+                  className="flex-1"
                   onClick={handleDeleteAccount}
-                  disabled={deleteAccount.isPending}
-                  className="flex-1 font-mono text-[9px] uppercase tracking-widest bg-rc-red text-white rounded px-3 py-1.5 transition-all hover:bg-[#c93a39] disabled:opacity-50"
+                  loading={deleteAccount.isPending}
                 >
                   {deleteAccount.isPending ? "Deleting…" : "Confirm"}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
                   onClick={() => setConfirmDelete(false)}
-                  className="font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-text border border-rc-border rounded px-3 py-1.5 transition-all"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -266,20 +292,24 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
 
         {/* Saved profile card */}
         <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-4">Saved profile - autofills /analyze</div>
+          <Heading as="h3">Saved profile</Heading>
+          <Caption as="p" className="block mb-5">Autofills /analyze</Caption>
 
           {/* GitHub */}
           <div className="mb-5">
-            <label className="block mb-1.5 font-mono text-[9px] uppercase tracking-widest text-rc-hint">GitHub username</label>
+            <FieldLabel htmlFor="github-username" className="block mb-1.5">GitHub username</FieldLabel>
             <div className="flex items-center gap-2">
               <div className="flex-1 relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none">github.com/</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[14px] leading-5 text-rc-hint pointer-events-none font-mono">
+                  github.com/
+                </span>
                 <input
+                  id="github-username"
                   value={githubUsername}
                   onChange={e => setGithubUsername(e.target.value)}
                   onBlur={handleGithubBlur}
                   placeholder="username"
-                  className="w-full bg-rc-bg border border-rc-border rounded px-3 py-2 pl-[76px] text-[12px] font-mono text-rc-text outline-none focus:border-rc-red/30 transition-colors"
+                  className="w-full bg-rc-bg border border-rc-border rounded-md py-2 pl-[100px] pr-3 text-[14px] leading-5 font-mono text-rc-text outline-none focus:border-rc-red/40 focus:ring-2 focus:ring-rc-red/20 transition-colors"
                 />
               </div>
               <SavedBadge show={githubSaved} />
@@ -288,36 +318,36 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
 
           {/* Cover letter name */}
           <div className="mb-5">
-            <label className="block mb-1.5 font-mono text-[9px] uppercase tracking-widest text-rc-hint">{t.settingsTab.coverLetterNameLabel}</label>
+            <FieldLabel htmlFor="cover-letter-name" className="block mb-1.5">
+              {t.settingsTab.coverLetterNameLabel}
+            </FieldLabel>
             <div className="flex items-center gap-2">
               <input
+                id="cover-letter-name"
                 value={coverLetterName}
                 onChange={e => setCoverLetterName(e.target.value)}
                 onBlur={handleCoverLetterNameBlur}
                 placeholder={t.settingsTab.coverLetterNamePlaceholder}
-                className="flex-1 bg-rc-bg border border-rc-border rounded px-3 py-2 text-[12px] text-rc-text outline-none focus:border-rc-red/30 transition-colors"
+                className={inputClass}
               />
               <SavedBadge show={coverLetterNameSaved} />
             </div>
-            <p className="mt-1 font-mono text-[9px] text-rc-hint">{t.settingsTab.coverLetterNameHint}</p>
+            <Caption as="p" className="block mt-1.5">{t.settingsTab.coverLetterNameHint}</Caption>
           </div>
 
           {/* CVs */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="font-mono text-[9px] uppercase tracking-widest text-rc-hint">Saved CVs</label>
-              <button
+              <FieldLabel>Saved CVs</FieldLabel>
+              <Button
+                variant="default"
+                size="sm"
+                leadingIcon={<Plus size={14} />}
                 onClick={() => cvRef.current?.click()}
-                disabled={cvUploading}
-                className="flex items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-text border border-rc-border hover:border-rc-red/30 rounded px-2 py-1 transition-all disabled:opacity-50"
+                loading={cvUploading}
               >
-                {cvUploading ? (
-                  <span className="w-3 h-3 border border-rc-red/60 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Plus size={10} />
-                )}
                 Add CV
-              </button>
+              </Button>
               <input
                 ref={cvRef}
                 type="file"
@@ -327,27 +357,29 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
               />
             </div>
             {savedCvs.length === 0 ? (
-              <p className="font-mono text-[10px] text-rc-hint/50 py-2">No CVs saved yet.</p>
+              <Caption as="p" tone="subtle" className="block py-2">No CVs saved yet.</Caption>
             ) : (
               <div className="flex flex-col gap-1.5">
                 {savedCvs.map((cv: SavedCv) => (
-                  <div key={cv.id} className="flex items-center gap-2 px-3 py-2 bg-rc-bg border border-rc-border rounded">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.6)" strokeWidth="1.5">
+                  <div key={cv.id} className="flex items-center gap-2 px-3 py-2 bg-rc-bg border border-rc-border rounded-md">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.6)" strokeWidth="1.5">
                       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
                       <polyline points="14 2 14 8 20 8"/>
                     </svg>
-                    <span className="text-[12px] text-rc-text flex-1 truncate">{cv.name}</span>
+                    <Text className="flex-1 truncate">{cv.name}</Text>
                     <button
                       onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })}
-                      className="text-rc-hint/40 hover:text-rc-hint transition-colors"
+                      className="text-rc-hint hover:text-rc-text transition-colors"
+                      aria-label="Preview"
                     >
-                      <Eye size={11} />
+                      <Eye size={14} />
                     </button>
                     <button
                       onClick={() => deleteSavedCv.mutate(cv.id)}
-                      className="text-rc-hint/40 hover:text-rc-red transition-colors"
+                      className="text-rc-hint hover:text-rc-red transition-colors"
+                      aria-label="Delete"
                     >
-                      <Trash2 size={11} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 ))}
@@ -358,34 +390,32 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
           {/* LinkedIn */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="font-mono text-[9px] uppercase tracking-widest text-rc-hint">LinkedIn PDF</label>
-              {linkedinSaved && <SavedBadge show={true} />}
+              <FieldLabel>LinkedIn PDF</FieldLabel>
+              <SavedBadge show={linkedinSaved} />
             </div>
-            {profile?.linkedinUrl ? (
-              <div className="flex items-center gap-2 px-3 py-2 bg-rc-bg border border-rc-green/30 rounded mb-2">
-                <span className="font-mono text-[9px] font-bold text-[#5ba3d9] w-4 text-center">in</span>
-                <span className="text-[12px] text-rc-text flex-1">linkedin.pdf</span>
+            {profile?.linkedinUrl && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-rc-bg border border-rc-green/30 rounded-md mb-2">
+                <span className="text-[12px] font-bold text-[#0a66c2] w-4 text-center">in</span>
+                <Text className="flex-1">linkedin.pdf</Text>
                 <button
                   onClick={() => setPreviewPdf({ url: profile.linkedinUrl!, name: "linkedin.pdf" })}
-                  className="text-rc-hint/40 hover:text-rc-hint transition-colors"
+                  className="text-rc-hint hover:text-rc-text transition-colors"
+                  aria-label="Preview"
                 >
-                  <Eye size={11} />
+                  <Eye size={14} />
                 </button>
-                <span className="font-mono text-[9px] text-rc-green">✓ Saved</span>
+                <Caption tone="green">✓ Saved</Caption>
               </div>
-            ) : null}
-            <button
+            )}
+            <Button
+              variant="default"
+              block
+              leadingIcon={<Upload size={14} />}
               onClick={() => linkedinRef.current?.click()}
-              disabled={linkedinUploading}
-              className="w-full flex items-center justify-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-[#5ba3d9] border border-rc-border hover:border-[#0a66c2]/30 rounded px-3 py-2 transition-all disabled:opacity-50"
+              loading={linkedinUploading}
             >
-              {linkedinUploading ? (
-                <span className="w-3 h-3 border border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              )}
               {profile?.linkedinUrl ? "Replace LinkedIn PDF" : "Upload LinkedIn PDF"}
-            </button>
+            </Button>
             <input
               ref={linkedinRef}
               type="file"

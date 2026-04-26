@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useChallengeActivity, useChallengeStreak } from "../../lib/challenge";
+import { Heading, Caption } from "./typography";
 
 const CELL = 11;
 const GAP = 3;
@@ -105,26 +106,24 @@ export function ChallengeHeatmap() {
   return (
     <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
       <div className="flex items-center justify-between mb-4">
-        <div className="font-mono text-[9px] uppercase tracking-widest text-rc-hint">
-          Daily challenge activity
-        </div>
-        <div className="flex items-center gap-3 font-mono text-[10px] text-rc-hint">
+        <Heading as="h3">Daily challenge activity</Heading>
+        <Caption className="flex items-center gap-2">
           <span>
-            <span className="text-rc-text font-medium">{total}</span> last 365d
+            <strong className="font-semibold text-rc-text">{total}</strong> last 365d
           </span>
           {streak && (
             <>
               <span className="text-rc-border">·</span>
               <span>
-                streak <span className="text-rc-text font-medium">{streak.currentStreak}</span>
+                streak <strong className="font-semibold text-rc-text">{streak.currentStreak}</strong>
               </span>
               <span className="text-rc-border">·</span>
               <span>
-                best <span className="text-rc-text font-medium">{streak.longestStreak}</span>
+                best <strong className="font-semibold text-rc-text">{streak.longestStreak}</strong>
               </span>
             </>
           )}
-        </div>
+        </Caption>
       </div>
 
       <div className="overflow-x-auto -mx-1 px-1">
@@ -195,7 +194,7 @@ export function ChallengeHeatmap() {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-end gap-3 mt-3 font-mono text-[9px] text-rc-hint">
+          <Caption className="flex items-center justify-end gap-3 mt-3">
             <span className="flex items-center gap-1.5">
               <span className="rounded-[2px] border bg-rc-bg border-rc-border" style={{ width: CELL, height: CELL }} />
               0
@@ -216,7 +215,7 @@ export function ChallengeHeatmap() {
               <span className="rounded-[2px] border bg-rc-red border-rc-red" style={{ width: CELL, height: CELL }} />
               ≥ 90
             </span>
-          </div>
+          </Caption>
         </div>
       </div>
     </div>
