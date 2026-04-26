@@ -22,6 +22,7 @@ import { SubmitFinalAnswerUseCase } from './application/submit-final-answer.use-
 import { GetDayStatsUseCase } from './application/get-day-stats.use-case';
 import { GetUserStreakUseCase } from './application/get-user-streak.use-case';
 import { GetHistoryUseCase } from './application/get-history.use-case';
+import { GetActivityUseCase } from './application/get-activity.use-case';
 
 @ApiTags('Challenge')
 @Controller('api/challenge')
@@ -33,6 +34,7 @@ export class ChallengeController {
     private readonly getDayStats: GetDayStatsUseCase,
     private readonly getStreak: GetUserStreakUseCase,
     private readonly getHistoryUc: GetHistoryUseCase,
+    private readonly getActivityUc: GetActivityUseCase,
   ) {}
 
   @Get('today')
@@ -97,5 +99,14 @@ export class ChallengeController {
   @ApiOperation({ summary: 'Get past challenge attempts (SHORTLISTED+)' })
   history(@AuthEmail() email: string) {
     return this.getHistoryUc.execute(email);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Get('activity')
+  @ApiOperation({
+    summary: 'Get the last year of completed-challenge dates + scores',
+  })
+  activity(@AuthEmail() email: string) {
+    return this.getActivityUc.execute(email);
   }
 }

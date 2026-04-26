@@ -34,6 +34,11 @@ export type Streak = {
   lastCompletedAt: string | null;
 };
 
+export type ActivityEntry = {
+  date: string;
+  score: number;
+};
+
 export type ScoreBreakdown = {
   issues_found: number;
   explanation_quality: number;
@@ -81,6 +86,21 @@ export function useChallengeStreak() {
       }),
     enabled: !!token && !!userId,
     staleTime: 60 * 1000,
+  });
+}
+
+export function useChallengeActivity() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useQuery({
+    queryKey: ['challenge', 'activity', userId],
+    queryFn: () =>
+      apiFetch<ActivityEntry[]>('/api/challenge/activity', {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -145,6 +165,7 @@ export function useSubmitFinalAnswer() {
       qc.invalidateQueries({ queryKey: ['challenge', 'streak'] });
       qc.invalidateQueries({ queryKey: ['challenge', 'stats'] });
       qc.invalidateQueries({ queryKey: ['challenge', 'history'] });
+      qc.invalidateQueries({ queryKey: ['challenge', 'activity'] });
     },
   });
 }

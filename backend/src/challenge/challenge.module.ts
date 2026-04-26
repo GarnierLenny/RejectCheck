@@ -22,6 +22,7 @@ import { SubmitFinalAnswerUseCase } from './application/submit-final-answer.use-
 import { GetDayStatsUseCase } from './application/get-day-stats.use-case';
 import { GetUserStreakUseCase } from './application/get-user-streak.use-case';
 import { GetHistoryUseCase } from './application/get-history.use-case';
+import { GetActivityUseCase } from './application/get-activity.use-case';
 
 // Default bindings: Anthropic generates challenges, Gemini coaches answers.
 // Swapping providers = changing one `useClass` line below.
@@ -41,6 +42,7 @@ import { GetHistoryUseCase } from './application/get-history.use-case';
     GetDayStatsUseCase,
     GetUserStreakUseCase,
     GetHistoryUseCase,
+    GetActivityUseCase,
   ],
 })
 export class ChallengeModule {}

@@ -7,6 +7,7 @@ import type {
   DayStats,
 } from '../domain/challenge.types';
 import type {
+  ActivityEntry,
   AttemptRepository,
   FinalizeAttemptInput,
   UpsertFirstAnswerInput,
@@ -124,6 +125,21 @@ export class PrismaAttemptRepository implements AttemptRepository {
       ...this.toDomain(r),
       challenge: r.challenge,
     }));
+  }
+
+  async listActivity(email: string, since: Date): Promise<ActivityEntry[]> {
+    const rows = await this.prisma.challengeAttempt.findMany({
+      where: { email, score: { gt: 0 }, completedAt: { gte: since } },
+      orderBy: { completedAt: 'asc' },
+      select: { score: true, completedAt: true },
+    });
+    const byDay = new Map<string, number>();
+    for (const r of rows) {
+      const day = r.completedAt.toISOString().slice(0, 10);
+      const prev = byDay.get(day) ?? 0;
+      if (r.score > prev) byDay.set(day, r.score);
+    }
+    return Array.from(byDay, ([date, score]) => ({ date, score }));
   }
 
   private toDomain(row: AttemptRow): ChallengeAttempt {

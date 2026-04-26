@@ -5,6 +5,11 @@ import type {
   DayStats,
 } from '../domain/challenge.types';
 
+export type ActivityEntry = {
+  date: string;
+  score: number;
+};
+
 export type UpsertFirstAnswerInput = {
   email: string;
   challengeId: number;
@@ -38,4 +43,7 @@ export interface AttemptRepository {
 
   /** Premium history (all-time, paginated by `take`). */
   listHistory(email: string, take: number): Promise<AttemptHistoryItem[]>;
+
+  /** Lightweight activity log (date + score) since the given date, completed only. */
+  listActivity(email: string, since: Date): Promise<ActivityEntry[]>;
 }

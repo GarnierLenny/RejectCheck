@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Trash2, Plus, LogOut, AlertTriangle, CreditCard, Eye } from "lucide-react";
 import { PdfPreviewModal } from "../PdfPreviewModal";
+import { ChallengeHeatmap } from "../ChallengeHeatmap";
 import { createClient } from "../../../lib/supabase";
 import type { Profile, Subscription, SavedCv } from "../../../lib/queries";
 import { useSavedCvs } from "../../../lib/queries";
@@ -260,6 +261,8 @@ export function SettingsTab({ profile, profileLoading, subscription, session, on
 
       {/* ── Right column ────────────────────────────── */}
       <div className="flex flex-col gap-4">
+
+        <ChallengeHeatmap />
 
         {/* Saved profile card */}
         <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
