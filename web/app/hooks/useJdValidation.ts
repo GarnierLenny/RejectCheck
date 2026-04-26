@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 
 export const JD_MIN_CHARS = 200;
+export const JD_MAX_CHARS = 8000;
 
 export type JdWarningKey =
   | "tooShort"
+  | "tooLong"
   | "invalidContent"
   | "promptInjection"
   | "invertedFields";
@@ -35,8 +37,9 @@ function checkJd(text: string): JdWarningKey | null {
     return "invertedFields";
   }
 
-  // 3. Too short (char-based — see JD_MIN_CHARS)
+  // 3. Length bounds (see JD_MIN_CHARS / JD_MAX_CHARS)
   if (trimmed.length < JD_MIN_CHARS) return "tooShort";
+  if (trimmed.length > JD_MAX_CHARS) return "tooLong";
 
   const words = trimmed.split(/\s+/);
 

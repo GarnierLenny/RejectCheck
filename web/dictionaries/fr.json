@@ -394,6 +394,7 @@
       "hint": "Plus l'offre est complète, plus le diagnostic est précis.",
       "warnings": {
         "tooShort": "L'offre semble trop courte pour une analyse fiable",
+        "tooLong": "Offre trop longue — tout texte au-delà de 8 000 caractères sera ignoré",
         "invalidContent": "Ce contenu ne ressemble pas à une offre d'emploi",
         "promptInjection": "Contenu invalide détecté",
         "invertedFields": "Ce contenu ressemble à un CV, pas à une offre d'emploi"

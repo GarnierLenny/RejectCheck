@@ -394,6 +394,7 @@
       "hint": "The more complete, the more precise the diagnosis.",
       "warnings": {
         "tooShort": "Job description seems too short for a reliable analysis",
+        "tooLong": "Job description is too long — text past the 8 000 character limit will be ignored",
         "invalidContent": "This doesn't look like a job description",
         "promptInjection": "Invalid content detected",
         "invertedFields": "This looks like a CV, not a job description"

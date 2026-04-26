@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useLanguage } from "../../context/language";
-import { useJdValidation, JD_MIN_CHARS } from "../hooks/useJdValidation";
+import { useJdValidation, JD_MIN_CHARS, JD_MAX_CHARS } from "../hooks/useJdValidation";
 import type { JdWarningKey } from "../hooks/useJdValidation";
 import { PdfPreviewModal } from "./PdfPreviewModal";
 
@@ -335,13 +335,19 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           ) : (
             <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.jobListing.hint}</p>
           )}
-          <p
-            className={`font-mono text-[9px] tabular-nums shrink-0 ${
-              jobDescription.trim().length < JD_MIN_CHARS ? "text-rc-amber" : "text-rc-hint"
-            }`}
-          >
-            {jobDescription.trim().length} / {JD_MIN_CHARS}
-          </p>
+          {(() => {
+            const len = jobDescription.trim().length;
+            const outOfRange = len < JD_MIN_CHARS || len > JD_MAX_CHARS;
+            return (
+              <p
+                className={`font-mono text-[9px] tabular-nums shrink-0 ${
+                  outOfRange ? "text-rc-amber" : "text-rc-hint"
+                }`}
+              >
+                {len < JD_MIN_CHARS ? `${len} / ${JD_MIN_CHARS}` : `${len} / ${JD_MAX_CHARS}`}
+              </p>
+            );
+          })()}
         </div>
 
 
@@ -669,7 +675,8 @@ export function UploadForm({
   const liRef = useRef<HTMLInputElement>(null);
   const mlRef = useRef<HTMLInputElement>(null);
 
-  const hasRequired = !!cvFile && jobDescription.trim().length >= JD_MIN_CHARS;
+  const jdLen = jobDescription.trim().length;
+  const hasRequired = !!cvFile && jdLen >= JD_MIN_CHARS && jdLen <= JD_MAX_CHARS;
   const hasStep1 = hasRequired;
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
 
