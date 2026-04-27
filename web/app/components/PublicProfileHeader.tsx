@@ -6,6 +6,7 @@ import { Camera, Pencil } from "lucide-react";
 import { GenericLinkIcon, detectSocialIcon } from "./SocialIcons";
 import { Heading, Caption, Text } from "./typography";
 import { FollowButton } from "./FollowButton";
+import { ShareMenu } from "./ShareMenu";
 import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useUpdateProfile } from "../../lib/mutations";
@@ -126,22 +127,34 @@ export function PublicProfileHeader({ profile }: Props) {
           </Text>
         )}
 
-        {isOwner ? (
-          <Link
-            href={localePath("/settings")}
-            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-rc-bg border border-rc-border rounded-md font-mono text-[11px] uppercase tracking-[0.12em] text-rc-text hover:border-rc-red/40 transition-colors no-underline"
-          >
-            <Pencil size={12} />
-            {t.publicProfilePage.header.editProfile}
-          </Link>
-        ) : (
-          <div className="mt-4">
+        <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
+          {isOwner ? (
+            <Link
+              href={localePath("/settings")}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-rc-bg border border-rc-border rounded-md font-mono text-[11px] uppercase tracking-[0.12em] text-rc-text hover:border-rc-red/40 transition-colors no-underline"
+            >
+              <Pencil size={12} />
+              {t.publicProfilePage.header.editProfile}
+            </Link>
+          ) : (
             <FollowButton
               username={profile.username}
               isFollowing={profile.isFollowing ?? false}
             />
-          </div>
-        )}
+          )}
+          <ShareMenu
+            url={
+              typeof window !== "undefined"
+                ? `${window.location.origin}${localePath(`/u/${profile.username}`)}`
+                : `https://rejectcheck.com${localePath(`/u/${profile.username}`)}`
+            }
+            text={t.share.profileText.replace(
+              "{user}",
+              profile.displayName ?? `@${profile.username}`,
+            )}
+            size="md"
+          />
+        </div>
 
         <div className="mt-4 flex items-center justify-center gap-4">
           <Link

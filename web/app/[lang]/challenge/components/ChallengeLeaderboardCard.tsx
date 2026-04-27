@@ -5,20 +5,42 @@ import { useState } from "react";
 import { Trophy } from "lucide-react";
 import { Heading, Caption } from "../../../components/typography";
 import { Leaderboard } from "../../../components/Leaderboard";
-import { useChallengeLeaderboard } from "../../../../lib/queries";
+import { ShareMenu } from "../../../components/ShareMenu";
+import { useChallengeLeaderboard, useProfile } from "../../../../lib/queries";
 import { useAuth } from "../../../../context/auth";
 import { useLanguage } from "../../../../context/language";
 import type { LeaderboardScope } from "../../../../lib/queries";
 
 type Props = {
   challengeId: number;
+  score?: number;
+  challengeTitle?: string;
 };
 
-export function ChallengeLeaderboardCard({ challengeId }: Props) {
+export function ChallengeLeaderboardCard({
+  challengeId,
+  score,
+  challengeTitle,
+}: Props) {
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const { localePath, t } = useLanguage();
   const [scope, setScope] = useState<LeaderboardScope>("global");
   const query = useChallengeLeaderboard(challengeId, scope, 10);
+
+  const canShare =
+    user && profile?.username && score !== undefined && challengeTitle;
+
+  const shareUrl =
+    canShare && typeof window !== "undefined"
+      ? `${window.location.origin}${localePath(`/u/${profile.username}`)}`
+      : null;
+  const shareText =
+    canShare && score !== undefined && challengeTitle
+      ? t.share.scoreText
+          .replace("{score}", String(score))
+          .replace("{challenge}", challengeTitle)
+      : "";
 
   return (
     <div className="bg-rc-surface border border-rc-border rounded-lg p-5 mt-5">
@@ -27,9 +49,10 @@ export function ChallengeLeaderboardCard({ challengeId }: Props) {
           <Trophy size={14} className="text-rc-amber" />
           <Heading as="h3">{t.leaderboard.todayTop}</Heading>
         </div>
-        {user && (
-          <ScopeToggle scope={scope} onChange={setScope} />
-        )}
+        <div className="flex items-center gap-2">
+          {canShare && shareUrl && <ShareMenu url={shareUrl} text={shareText} size="sm" />}
+          {user && <ScopeToggle scope={scope} onChange={setScope} />}
+        </div>
       </div>
       <Leaderboard entries={query.data ?? []} isLoading={query.isLoading} />
       <Link

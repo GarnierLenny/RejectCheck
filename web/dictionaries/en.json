@@ -1099,6 +1099,15 @@
       "completedTemplate": "{user} completed {challenge}"
     }
   },
+  "share": {
+    "title": "Share",
+    "x": "Share on X",
+    "linkedin": "Share on LinkedIn",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "profileText": "Check out {user}'s profile on RejectCheck",
+    "scoreText": "I just scored {score} on the RejectCheck challenge \"{challenge}\""
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Challenges",

@@ -188,7 +188,11 @@ function ChallengeContent() {
               return (
                 <>
                   <ScoreCard challenge={challenge} result={finalResult} />
-                  <ChallengeLeaderboardCard challengeId={challenge.id} />
+                  <ChallengeLeaderboardCard
+                    challengeId={challenge.id}
+                    score={finalResult.score}
+                    challengeTitle={challenge.title}
+                  />
                 </>
               );
             }

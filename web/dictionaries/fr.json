@@ -1100,6 +1100,15 @@
       "completedTemplate": "{user} a complété {challenge}"
     }
   },
+  "share": {
+    "title": "Partager",
+    "x": "Partager sur X",
+    "linkedin": "Partager sur LinkedIn",
+    "copyLink": "Copier le lien",
+    "copied": "Copié !",
+    "profileText": "Regarde le profil de {user} sur RejectCheck",
+    "scoreText": "Je viens d'obtenir {score} sur le défi RejectCheck \"{challenge}\""
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Défis",
