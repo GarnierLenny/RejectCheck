@@ -48,7 +48,7 @@ export function proxy(request: NextRequest) {
     const rest = pathname.slice('/analyse'.length)
     const url = request.nextUrl.clone()
     url.pathname = `/fr/analyze${rest}`
-    const res = NextResponse.redirect(url)
+    const res = NextResponse.redirect(url, { status: 301 })
     res.cookies.set(LOCALE_COOKIE, 'fr', { path: '/', maxAge: 60 * 60 * 24 * 365 })
     return res
   }
