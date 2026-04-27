@@ -1017,6 +1017,7 @@
       "usernameHint": "3–30 caractères · lettres, chiffres, _ ou - uniquement · insensible à la casse",
       "usernameInvalid": "3–30 caractères · lettres, chiffres, _ ou - uniquement",
       "usernameTaken": "Username déjà pris",
+      "usernameRateLimited": "Tu pourras à nouveau changer ton username le {date}",
       "claimButton": "Réserver",
       "updateButton": "Mettre à jour",
       "bioLabel": "Bio",

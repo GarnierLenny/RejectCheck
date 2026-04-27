@@ -1016,6 +1016,7 @@
       "usernameHint": "3–30 chars · letters, digits, _ or - only · case-insensitive",
       "usernameInvalid": "3–30 chars · letters, digits, _ or - only",
       "usernameTaken": "Username already taken",
+      "usernameRateLimited": "You can change your username again on {date}",
       "claimButton": "Claim",
       "updateButton": "Update",
       "bioLabel": "Bio",

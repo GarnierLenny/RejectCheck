@@ -12,6 +12,15 @@ export class UsernameTakenError extends Error {
   }
 }
 
+export class UsernameRateLimitError extends Error {
+  retryAt: Date;
+  constructor(retryAt: Date) {
+    super('Username changes are rate-limited');
+    this.name = 'UsernameRateLimitError';
+    this.retryAt = retryAt;
+  }
+}
+
 export function useDeleteAnalysis() {
   const { session } = useAuth();
   const token = session?.access_token;
@@ -69,6 +78,16 @@ export function useClaimUsername() {
         body: JSON.stringify({ username }),
       });
       if (res.status === 409) throw new UsernameTakenError();
+      if (res.status === 429) {
+        try {
+          const body = await res.json();
+          const retryAt = body?.retryAt ? new Date(body.retryAt) : new Date();
+          throw new UsernameRateLimitError(retryAt);
+        } catch (err) {
+          if (err instanceof UsernameRateLimitError) throw err;
+          throw new UsernameRateLimitError(new Date());
+        }
+      }
       if (!res.ok) {
         let message = `HTTP ${res.status}`;
         try {

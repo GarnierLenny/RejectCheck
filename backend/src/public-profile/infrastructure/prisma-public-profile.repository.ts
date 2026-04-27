@@ -254,6 +254,16 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
     });
   }
 
+  async getOwnerStatus(
+    email: string,
+  ): Promise<{ username: string | null; usernameUpdatedAt: Date | null } | null> {
+    const row = await this.prisma.profile.findUnique({
+      where: { email },
+      select: { username: true, usernameUpdatedAt: true },
+    });
+    return row ?? null;
+  }
+
   async updatePublicSettings(
     email: string,
     input: UpdatePublicSettingsInput,

@@ -23,6 +23,15 @@ export interface PublicProfileRepository {
    */
   claimUsername(email: string, username: string): Promise<void>;
 
+  /**
+   * Returns the current username + last update timestamp for the email's
+   * profile. Used by the use case to enforce rate-limiting of username
+   * changes. Returns null when the user has no Profile row yet.
+   */
+  getOwnerStatus(
+    email: string,
+  ): Promise<{ username: string | null; usernameUpdatedAt: Date | null } | null>;
+
   updatePublicSettings(
     email: string,
     input: UpdatePublicSettingsInput,

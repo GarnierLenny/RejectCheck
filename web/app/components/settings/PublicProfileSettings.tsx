@@ -15,6 +15,7 @@ import {
   useClaimUsername,
   useUpdatePublicSettings,
   UsernameTakenError,
+  UsernameRateLimitError,
 } from "../../../lib/mutations";
 
 const inputClass =
@@ -100,6 +101,19 @@ export function PublicProfileSettings({
     } catch (err) {
       if (err instanceof UsernameTakenError) {
         setUsernameError(t.settingsTab.publicProfile.usernameTaken);
+      } else if (err instanceof UsernameRateLimitError) {
+        const dateLocale = lang === "fr" ? "fr-FR" : "en-GB";
+        const formattedDate = err.retryAt.toLocaleDateString(dateLocale, {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+        setUsernameError(
+          t.settingsTab.publicProfile.usernameRateLimited.replace(
+            "{date}",
+            formattedDate,
+          ),
+        );
       } else if (err instanceof Error) {
         setUsernameError(err.message);
       } else {
