@@ -17,6 +17,9 @@ import { ListPublicFollowersUseCase } from './application/list-public-followers.
 import { ListPublicFollowingUseCase } from './application/list-public-following.use-case';
 import { SeenFollowersUseCase } from './application/seen-followers.use-case';
 import { GetFeedUseCase } from './application/get-feed.use-case';
+import { BlockUseCase } from './application/block.use-case';
+import { UnblockUseCase } from './application/unblock.use-case';
+import { ListBlockedUseCase } from './application/list-blocked.use-case';
 
 @Module({
   imports: [PrismaModule],
@@ -31,6 +34,9 @@ import { GetFeedUseCase } from './application/get-feed.use-case';
     ListPublicFollowingUseCase,
     SeenFollowersUseCase,
     GetFeedUseCase,
+    BlockUseCase,
+    UnblockUseCase,
+    ListBlockedUseCase,
   ],
   exports: [FOLLOW_REPOSITORY],
 })

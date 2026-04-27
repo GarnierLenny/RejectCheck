@@ -63,6 +63,24 @@ export type PublicActivityEntry = {
   score: number;
 };
 
+export type PublicAttemptView = {
+  user: {
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  challenge: {
+    id: number;
+    title: string;
+    focusTag: string;
+    difficulty: string;
+    language: string;
+    date: Date;
+  };
+  score: number;
+  completedAt: Date;
+};
+
 export type ClaimUsernameInput = {
   username: string;
 };

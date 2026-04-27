@@ -1,5 +1,6 @@
 import type {
   PublicActivityEntry,
+  PublicAttemptView,
   PublicProfileView,
   UpdatePublicSettingsInput,
 } from '../domain/public-profile.types';
@@ -16,6 +17,16 @@ export interface PublicProfileRepository {
 
   /** Returns [] when the username is unknown OR the profile is private. */
   listActivity(username: string, since: Date): Promise<PublicActivityEntry[]>;
+
+  /**
+   * Returns a finalized challenge attempt by a public profile, used by the
+   * per-challenge share page. Null when profile is missing/private OR the
+   * attempt isn't finalized (score = 0).
+   */
+  findAttempt(
+    username: string,
+    challengeId: number,
+  ): Promise<PublicAttemptView | null>;
 
   /**
    * Set the username for the given email. Throws on uniqueness conflict

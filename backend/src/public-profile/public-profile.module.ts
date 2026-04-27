@@ -11,6 +11,7 @@ import { PrismaPublicProfileRepository } from './infrastructure/prisma-public-pr
 
 import { GetPublicProfileUseCase } from './application/get-public-profile.use-case';
 import { GetPublicActivityUseCase } from './application/get-public-activity.use-case';
+import { GetPublicAttemptUseCase } from './application/get-public-attempt.use-case';
 import { ClaimUsernameUseCase } from './application/claim-username.use-case';
 import { UpdatePublicSettingsUseCase } from './application/update-public-settings.use-case';
 
@@ -24,6 +25,7 @@ import { UpdatePublicSettingsUseCase } from './application/update-public-setting
     },
     GetPublicProfileUseCase,
     GetPublicActivityUseCase,
+    GetPublicAttemptUseCase,
     ClaimUsernameUseCase,
     UpdatePublicSettingsUseCase,
   ],

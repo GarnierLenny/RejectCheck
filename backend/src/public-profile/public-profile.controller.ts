@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -21,6 +22,7 @@ import {
 
 import { GetPublicProfileUseCase } from './application/get-public-profile.use-case';
 import { GetPublicActivityUseCase } from './application/get-public-activity.use-case';
+import { GetPublicAttemptUseCase } from './application/get-public-attempt.use-case';
 import { ClaimUsernameUseCase } from './application/claim-username.use-case';
 import { UpdatePublicSettingsUseCase } from './application/update-public-settings.use-case';
 
@@ -30,6 +32,7 @@ export class PublicProfileController {
   constructor(
     private readonly getProfileUc: GetPublicProfileUseCase,
     private readonly getActivityUc: GetPublicActivityUseCase,
+    private readonly getAttemptUc: GetPublicAttemptUseCase,
   ) {}
 
   @UseGuards(OptionalSupabaseGuard)
@@ -48,6 +51,17 @@ export class PublicProfileController {
   })
   getActivity(@Param('username') username: string) {
     return this.getActivityUc.execute(username);
+  }
+
+  @Get(':username/attempts/:challengeId')
+  @ApiOperation({
+    summary: "Get a public profile's finalized attempt for a given challenge",
+  })
+  getAttempt(
+    @Param('username') username: string,
+    @Param('challengeId', ParseIntPipe) challengeId: number,
+  ) {
+    return this.getAttemptUc.execute(username, challengeId);
   }
 }
 

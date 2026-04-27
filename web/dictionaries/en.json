@@ -1109,6 +1109,18 @@
     "profileText": "Check out {user}'s profile on RejectCheck",
     "scoreText": "I just scored {score} on the RejectCheck challenge \"{challenge}\""
   },
+  "block": {
+    "menuLabel": "More actions",
+    "blockUser": "Block {user}",
+    "confirmText": "Block {user}? You'll auto-unfollow each other and they won't be able to follow you.",
+    "confirmButton": "Block",
+    "blocking": "Blocking…",
+    "cancel": "Cancel",
+    "pageTitle": "Blocked users",
+    "pageSubtitle": "Users you've blocked. They can't follow you and won't appear in your feed.",
+    "empty": "You haven't blocked anyone.",
+    "unblockButton": "Unblock"
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Challenges",
@@ -1189,6 +1201,11 @@
       "title": "Profile not found",
       "description": "This user does not exist, or their profile is private.",
       "cta": "Back home"
+    },
+    "attemptShare": {
+      "completedOn": "Completed on",
+      "viewProfile": "View profile",
+      "tryYourself": "Try the challenge"
     }
   },
   "privacy": {

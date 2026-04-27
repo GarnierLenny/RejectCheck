@@ -1,4 +1,5 @@
 import type {
+  BlockList,
   Feed,
   FollowList,
   ListPaginationInput,
@@ -75,4 +76,35 @@ export interface FollowRepository {
   /** Lookups used by the controller to pivot between email/username/profile id. */
   getProfileIdByEmail(email: string): Promise<number | null>;
   getProfileIdByUsername(username: string): Promise<number | null>;
+
+  // ── Block primitives ────────────────────────────────────────────────────
+  /**
+   * Atomically: insert a Block row, remove any Follow rows in either direction,
+   * decrement the corresponding counters. Returns false if already blocked.
+   */
+  block(blockerProfileId: number, blockedProfileId: number): Promise<boolean>;
+
+  /** Returns true if a Block row was deleted. */
+  unblock(blockerProfileId: number, blockedProfileId: number): Promise<boolean>;
+
+  /** True if A blocks B OR B blocks A — either direction is fatal for follow / visibility. */
+  isBlockedEitherWay(profileIdA: number, profileIdB: number): Promise<boolean>;
+
+  /** Bulk filter: returns the subset of `targetProfileIds` blocked by viewer (in either direction). */
+  blockedEitherWayAmong(
+    viewerProfileId: number,
+    targetProfileIds: number[],
+  ): Promise<Set<number>>;
+
+  /** Bulk filter by email (used by feed/leaderboard which key on email). */
+  blockedEitherWayEmails(
+    viewerProfileId: number,
+    candidateEmails: string[],
+  ): Promise<Set<string>>;
+
+  /** Paginated list of users I have blocked. */
+  listBlocked(
+    blockerProfileId: number,
+    pagination: ListPaginationInput,
+  ): Promise<BlockList>;
 }

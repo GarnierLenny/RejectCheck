@@ -6,6 +6,8 @@ import type {
   FollowResolution,
 } from '../ports/follow.repository';
 import type {
+  BlockList,
+  BlockSummary,
   Feed,
   FeedEntry,
   FollowList,
@@ -295,6 +297,186 @@ export class PrismaFollowRepository implements FollowRepository {
       select: { id: true },
     });
     return row?.id ?? null;
+  }
+
+  async block(
+    blockerProfileId: number,
+    blockedProfileId: number,
+  ): Promise<boolean> {
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Idempotent: if already blocked, no-op
+      const existing = await tx.block.findUnique({
+        where: {
+          blockerId_blockedId: {
+            blockerId: blockerProfileId,
+            blockedId: blockedProfileId,
+          },
+        },
+        select: { id: true },
+      });
+      if (existing) return false;
+
+      await tx.block.create({
+        data: { blockerId: blockerProfileId, blockedId: blockedProfileId },
+      });
+
+      // Mutual unfollow + decrement counters
+      const blockerFollowsBlocked = await tx.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: blockerProfileId,
+            followingId: blockedProfileId,
+          },
+        },
+        select: { id: true },
+      });
+      if (blockerFollowsBlocked) {
+        await tx.follow.delete({ where: { id: blockerFollowsBlocked.id } });
+        await tx.profile.update({
+          where: { id: blockerProfileId },
+          data: { followingCount: { decrement: 1 } },
+        });
+        await tx.profile.update({
+          where: { id: blockedProfileId },
+          data: { followersCount: { decrement: 1 } },
+        });
+      }
+
+      const blockedFollowsBlocker = await tx.follow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: blockedProfileId,
+            followingId: blockerProfileId,
+          },
+        },
+        select: { id: true },
+      });
+      if (blockedFollowsBlocker) {
+        await tx.follow.delete({ where: { id: blockedFollowsBlocker.id } });
+        await tx.profile.update({
+          where: { id: blockedProfileId },
+          data: { followingCount: { decrement: 1 } },
+        });
+        await tx.profile.update({
+          where: { id: blockerProfileId },
+          data: { followersCount: { decrement: 1 } },
+        });
+      }
+
+      return true;
+    });
+    return result;
+  }
+
+  async unblock(
+    blockerProfileId: number,
+    blockedProfileId: number,
+  ): Promise<boolean> {
+    const deleted = await this.prisma.block.deleteMany({
+      where: { blockerId: blockerProfileId, blockedId: blockedProfileId },
+    });
+    return deleted.count > 0;
+  }
+
+  async isBlockedEitherWay(
+    profileIdA: number,
+    profileIdB: number,
+  ): Promise<boolean> {
+    const row = await this.prisma.block.findFirst({
+      where: {
+        OR: [
+          { blockerId: profileIdA, blockedId: profileIdB },
+          { blockerId: profileIdB, blockedId: profileIdA },
+        ],
+      },
+      select: { id: true },
+    });
+    return !!row;
+  }
+
+  async blockedEitherWayAmong(
+    viewerProfileId: number,
+    targetProfileIds: number[],
+  ): Promise<Set<number>> {
+    if (targetProfileIds.length === 0) return new Set();
+    const rows = await this.prisma.block.findMany({
+      where: {
+        OR: [
+          {
+            blockerId: viewerProfileId,
+            blockedId: { in: targetProfileIds },
+          },
+          {
+            blockedId: viewerProfileId,
+            blockerId: { in: targetProfileIds },
+          },
+        ],
+      },
+      select: { blockerId: true, blockedId: true },
+    });
+    const blocked = new Set<number>();
+    for (const row of rows) {
+      blocked.add(row.blockerId === viewerProfileId ? row.blockedId : row.blockerId);
+    }
+    return blocked;
+  }
+
+  async blockedEitherWayEmails(
+    viewerProfileId: number,
+    candidateEmails: string[],
+  ): Promise<Set<string>> {
+    if (candidateEmails.length === 0) return new Set();
+    const candidateProfiles = await this.prisma.profile.findMany({
+      where: { email: { in: candidateEmails } },
+      select: { id: true, email: true },
+    });
+    const idByEmail = new Map(candidateProfiles.map((p) => [p.id, p.email]));
+    const blockedIds = await this.blockedEitherWayAmong(
+      viewerProfileId,
+      [...idByEmail.keys()],
+    );
+    const blockedEmails = new Set<string>();
+    for (const id of blockedIds) {
+      const email = idByEmail.get(id);
+      if (email) blockedEmails.add(email);
+    }
+    return blockedEmails;
+  }
+
+  async listBlocked(
+    blockerProfileId: number,
+    pagination: ListPaginationInput,
+  ): Promise<BlockList> {
+    const rows = await this.prisma.block.findMany({
+      where: {
+        blockerId: blockerProfileId,
+        ...(pagination.cursor !== undefined && {
+          id: { lt: pagination.cursor },
+        }),
+        blocked: { username: { not: null } },
+      },
+      orderBy: { id: 'desc' },
+      take: pagination.limit + 1,
+      select: {
+        id: true,
+        createdAt: true,
+        blocked: {
+          select: { username: true, displayName: true, avatarUrl: true },
+        },
+      },
+    });
+    const hasMore = rows.length > pagination.limit;
+    const sliced = hasMore ? rows.slice(0, pagination.limit) : rows;
+    const nextCursor = hasMore ? sliced[sliced.length - 1].id : null;
+    const entries: BlockSummary[] = sliced
+      .filter((r) => r.blocked.username !== null)
+      .map((r) => ({
+        username: r.blocked.username!,
+        displayName: r.blocked.displayName,
+        avatarUrl: r.blocked.avatarUrl,
+        blockedAt: r.createdAt,
+      }));
+    return { entries, nextCursor };
   }
 
   private followSelect() {

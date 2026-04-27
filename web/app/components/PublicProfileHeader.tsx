@@ -7,6 +7,7 @@ import { GenericLinkIcon, detectSocialIcon } from "./SocialIcons";
 import { Heading, Caption, Text } from "./typography";
 import { FollowButton } from "./FollowButton";
 import { ShareMenu } from "./ShareMenu";
+import { ProfileActionsMenu } from "./ProfileActionsMenu";
 import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useUpdateProfile } from "../../lib/mutations";
@@ -154,6 +155,7 @@ export function PublicProfileHeader({ profile }: Props) {
             )}
             size="md"
           />
+          {user && !isOwner && <ProfileActionsMenu username={profile.username} />}
         </div>
 
         <div className="mt-4 flex items-center justify-center gap-4">

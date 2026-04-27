@@ -1110,6 +1110,18 @@
     "profileText": "Regarde le profil de {user} sur RejectCheck",
     "scoreText": "Je viens d'obtenir {score} sur le défi RejectCheck \"{challenge}\""
   },
+  "block": {
+    "menuLabel": "Plus d'actions",
+    "blockUser": "Bloquer {user}",
+    "confirmText": "Bloquer {user} ? Vous arrêterez de vous suivre mutuellement et iel ne pourra plus te suivre.",
+    "confirmButton": "Bloquer",
+    "blocking": "Blocage…",
+    "cancel": "Annuler",
+    "pageTitle": "Utilisateurs bloqués",
+    "pageSubtitle": "Les utilisateurs que tu as bloqués. Ils ne peuvent pas te suivre et n'apparaissent pas dans ton feed.",
+    "empty": "Tu n'as bloqué personne.",
+    "unblockButton": "Débloquer"
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Défis",
@@ -1190,6 +1202,11 @@
       "title": "Profil introuvable",
       "description": "Cet utilisateur n'existe pas ou son profil est privé.",
       "cta": "Retour à l'accueil"
+    },
+    "attemptShare": {
+      "completedOn": "Complété le",
+      "viewProfile": "Voir le profil",
+      "tryYourself": "Tenter le défi"
     }
   },
   "privacy": {

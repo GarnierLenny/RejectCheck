@@ -114,6 +114,18 @@ export type Feed = {
   nextCursor: number | null;
 };
 
+export type BlockSummary = {
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  blockedAt: string;
+};
+
+export type BlockList = {
+  entries: BlockSummary[];
+  nextCursor: number | null;
+};
+
 export type LeaderboardScope = 'global' | 'following';
 export type LeaderboardPeriod = 'alltime' | 'week';
 
@@ -364,6 +376,26 @@ export function usePublicFollowers(username: string | undefined) {
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: !!username,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useMyBlocked() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useInfiniteQuery({
+    queryKey: ['social', 'me', 'blocked', userId],
+    queryFn: ({ pageParam }) => {
+      const qs = new URLSearchParams();
+      if (pageParam !== undefined) qs.set('cursor', String(pageParam));
+      return apiFetch<BlockList>(`/api/social/me/blocked?${qs.toString()}`, {
+        headers: authHeaders(token!),
+      });
+    },
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!token && !!userId,
     staleTime: 30 * 1000,
   });
 }

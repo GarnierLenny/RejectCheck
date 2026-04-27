@@ -5,6 +5,7 @@ import type {
   AchievementsBundle,
   EarnedAchievement,
   PublicActivityEntry,
+  PublicAttemptView,
   PublicProfileView,
   UpdatePublicSettingsInput,
 } from '../domain/public-profile.types';
@@ -244,6 +245,55 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
       if (r.score > prev) byDay.set(day, r.score);
     }
     return Array.from(byDay, ([date, score]) => ({ date, score }));
+  }
+
+  async findAttempt(
+    username: string,
+    challengeId: number,
+  ): Promise<PublicAttemptView | null> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { username },
+      select: {
+        email: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+        isPublic: true,
+      },
+    });
+    if (!profile || !profile.isPublic || !profile.username) return null;
+
+    const attempt = await this.prisma.challengeAttempt.findUnique({
+      where: {
+        email_challengeId: { email: profile.email, challengeId },
+      },
+      select: {
+        score: true,
+        completedAt: true,
+        challenge: {
+          select: {
+            id: true,
+            title: true,
+            focusTag: true,
+            difficulty: true,
+            language: true,
+            date: true,
+          },
+        },
+      },
+    });
+    if (!attempt || attempt.score <= 0) return null;
+
+    return {
+      user: {
+        username: profile.username,
+        displayName: profile.displayName,
+        avatarUrl: profile.avatarUrl,
+      },
+      challenge: attempt.challenge,
+      score: attempt.score,
+      completedAt: attempt.completedAt,
+    };
   }
 
   async claimUsername(email: string, username: string): Promise<void> {

@@ -204,6 +204,47 @@ export function useUnfollow() {
   });
 }
 
+export function useBlock() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (username: string) =>
+      apiFetch<{ ok: true; created: boolean }>(
+        `/api/social/block/${encodeURIComponent(username)}`,
+        { method: 'POST', headers: authHeaders(token!) },
+      ),
+    onSuccess: (_data, username) => {
+      queryClient.invalidateQueries({ queryKey: ['public-profile', username] });
+      queryClient.invalidateQueries({ queryKey: ['social', 'me', 'following', userId] });
+      queryClient.invalidateQueries({ queryKey: ['social', 'me', 'followers', userId] });
+      queryClient.invalidateQueries({ queryKey: ['social', 'me', 'blocked', userId] });
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+    },
+  });
+}
+
+export function useUnblock() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (username: string) =>
+      apiFetch<{ ok: true; removed: boolean }>(
+        `/api/social/block/${encodeURIComponent(username)}`,
+        { method: 'DELETE', headers: authHeaders(token!) },
+      ),
+    onSuccess: (_data, username) => {
+      queryClient.invalidateQueries({ queryKey: ['public-profile', username] });
+      queryClient.invalidateQueries({ queryKey: ['social', 'me', 'blocked', userId] });
+    },
+  });
+}
+
 export function useMarkFollowersSeen() {
   const { session } = useAuth();
   const token = session?.access_token;

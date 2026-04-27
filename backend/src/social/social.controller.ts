@@ -24,6 +24,9 @@ import { ListPublicFollowersUseCase } from './application/list-public-followers.
 import { ListPublicFollowingUseCase } from './application/list-public-following.use-case';
 import { SeenFollowersUseCase } from './application/seen-followers.use-case';
 import { GetFeedUseCase } from './application/get-feed.use-case';
+import { BlockUseCase } from './application/block.use-case';
+import { UnblockUseCase } from './application/unblock.use-case';
+import { ListBlockedUseCase } from './application/list-blocked.use-case';
 
 @ApiTags('Social')
 @Controller('api/social')
@@ -35,6 +38,9 @@ export class SocialController {
     private readonly listMyFollowing: ListMyFollowingUseCase,
     private readonly seenUc: SeenFollowersUseCase,
     private readonly feedUc: GetFeedUseCase,
+    private readonly blockUc: BlockUseCase,
+    private readonly unblockUc: UnblockUseCase,
+    private readonly listBlockedUc: ListBlockedUseCase,
   ) {}
 
   @UseGuards(SupabaseGuard)
@@ -103,6 +109,31 @@ export class SocialController {
       throw new BadRequestException(parsed.error.issues[0].message);
     }
     return this.feedUc.execute(email, parsed.data);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Post('block/:username')
+  @ApiOperation({ summary: 'Block a user (mutual unfollow + future-follow blocked)' })
+  block(@AuthEmail() email: string, @Param('username') username: string) {
+    return this.blockUc.execute(email, username);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Delete('block/:username')
+  @ApiOperation({ summary: 'Unblock a previously-blocked user' })
+  unblock(@AuthEmail() email: string, @Param('username') username: string) {
+    return this.unblockUc.execute(email, username);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Get('me/blocked')
+  @ApiOperation({ summary: 'List users I have blocked' })
+  myBlocked(@AuthEmail() email: string, @Query() query: unknown) {
+    const parsed = ListPaginationSchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0].message);
+    }
+    return this.listBlockedUc.execute(email, parsed.data);
   }
 }
 

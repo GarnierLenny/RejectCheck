@@ -42,3 +42,15 @@ export type Feed = {
   entries: FeedEntry[];
   nextCursor: number | null;
 };
+
+export type BlockSummary = {
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  blockedAt: Date;
+};
+
+export type BlockList = {
+  entries: BlockSummary[];
+  nextCursor: number | null;
+};

@@ -29,6 +29,13 @@ export class FollowUseCase {
     if (!resolution.followingIsPublic) {
       throw new ForbiddenException('Cannot follow a private profile');
     }
+    const blocked = await this.repo.isBlockedEitherWay(
+      resolution.followerProfileId,
+      resolution.followingProfileId,
+    );
+    if (blocked) {
+      throw new ForbiddenException('Cannot follow a blocked profile');
+    }
     const created = await this.repo.follow(
       resolution.followerProfileId,
       resolution.followingProfileId,
