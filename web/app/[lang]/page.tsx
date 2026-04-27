@@ -965,7 +965,7 @@ export default function Home() {
                   {t.landing.compareSection.jobscan}
                 </span>
                 <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
-                  See full comparison →
+                  {t.landing.compareSection.cardCta}
                 </div>
               </Link>
             </FadeInSection>
@@ -978,7 +978,7 @@ export default function Home() {
                   {t.landing.compareSection.rezi}
                 </span>
                 <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
-                  See full comparison →
+                  {t.landing.compareSection.cardCta}
                 </div>
               </Link>
             </FadeInSection>
@@ -991,7 +991,7 @@ export default function Home() {
                   {t.landing.compareSection.resumeWorded}
                 </span>
                 <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
-                  See full comparison →
+                  {t.landing.compareSection.cardCta}
                 </div>
               </Link>
             </FadeInSection>
