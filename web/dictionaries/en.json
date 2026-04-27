@@ -355,6 +355,15 @@
           "href": "/alternatives"
         }
       ]
+    },
+    "compareSection": {
+      "badge": "Honest comparison",
+      "title": "How RejectCheck compares to Jobscan, Rezi, and Resume Worded",
+      "subtitle": "We don't hide our weaknesses. See the full breakdown vs. the most popular alternatives.",
+      "jobscan": "vs. Jobscan",
+      "rezi": "vs. Rezi",
+      "resumeWorded": "vs. Resume Worded",
+      "viewAll": "See all 7 alternatives →"
     }
   },
   "uploadForm": {
