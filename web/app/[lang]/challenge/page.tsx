@@ -21,6 +21,7 @@ import { ScoreCard } from "./components/ScoreCard";
 import { PushbackCard } from "./components/PushbackCard";
 import { FirstReviewQuote } from "./components/FirstReviewQuote";
 import { SubmitButton } from "./components/SubmitButton";
+import { ChallengeLeaderboardCard } from "./components/ChallengeLeaderboardCard";
 
 type Stage = "idle" | "challenged" | "completed";
 
@@ -184,7 +185,12 @@ function ChallengeContent() {
 
           {(() => {
             if (stage === "completed" && finalResult) {
-              return <ScoreCard challenge={challenge} result={finalResult} />;
+              return (
+                <>
+                  <ScoreCard challenge={challenge} result={finalResult} />
+                  <ChallengeLeaderboardCard challengeId={challenge.id} />
+                </>
+              );
             }
             if (isAnonymous) {
               return <AnonymousOverlay />;

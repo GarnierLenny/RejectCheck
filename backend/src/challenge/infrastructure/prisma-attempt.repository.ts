@@ -63,21 +63,38 @@ export class PrismaAttemptRepository implements AttemptRepository {
   }
 
   async finalize(input: FinalizeAttemptInput): Promise<void> {
-    await this.prisma.challengeAttempt.update({
-      where: {
-        email_challengeId: {
-          email: input.email,
-          challengeId: input.challengeId,
+    await this.prisma.$transaction([
+      this.prisma.challengeAttempt.update({
+        where: {
+          email_challengeId: {
+            email: input.email,
+            challengeId: input.challengeId,
+          },
         },
-      },
-      data: {
-        secondAnswer: input.secondAnswer,
-        score: input.score,
-        scoreBreakdown:
-          input.scoreBreakdown as unknown as Prisma.InputJsonValue,
-        completedAt: input.completedAt,
-      },
-    });
+        data: {
+          secondAnswer: input.secondAnswer,
+          score: input.score,
+          scoreBreakdown:
+            input.scoreBreakdown as unknown as Prisma.InputJsonValue,
+          completedAt: input.completedAt,
+        },
+      }),
+      // Bump denormalized counters used by the all-time leaderboard. Upsert
+      // covers the case where the user has no Profile row yet (e.g. completed
+      // a challenge before opening /settings).
+      this.prisma.profile.upsert({
+        where: { email: input.email },
+        create: {
+          email: input.email,
+          totalChallengeScore: input.score,
+          totalChallengeCount: 1,
+        },
+        update: {
+          totalChallengeScore: { increment: input.score },
+          totalChallengeCount: { increment: 1 },
+        },
+      }),
+    ]);
   }
 
   async getDayStats(challengeId: number): Promise<DayStats> {

@@ -1076,6 +1076,20 @@
     "signOut": "Se déconnecter",
     "claimToEnable": "Réserve un username dans Paramètres pour activer ton profil public"
   },
+  "leaderboard": {
+    "title": "Classement",
+    "subtitle": "Compare-toi aux autres.",
+    "todayTop": "Top scores",
+    "viewFull": "Voir le classement complet",
+    "global": "Global",
+    "following": "Abonnements",
+    "dayShort": "j",
+    "tabs": {
+      "alltime": "Tous les temps",
+      "week": "Cette semaine",
+      "streaks": "Streaks"
+    }
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Défis",

@@ -6,7 +6,7 @@ import { AuthNavLink } from "./AuthNavLink";
 import { LangSwitcher } from "./LangSwitcher";
 import { useAuth } from "../../context/auth";
 import { useLanguage } from "../../context/language";
-type NavPage = "analyze" | "dashboard" | "pricing" | "challenge";
+type NavPage = "analyze" | "dashboard" | "pricing" | "challenge" | "leaderboard";
 
 interface NavbarProps {
   center?: React.ReactNode;
@@ -45,6 +45,9 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
             <Link href={localePath("/challenge")} className={linkClass("challenge")}>
               {challengeLabel}
             </Link>
+            <Link href={localePath("/leaderboard")} className={linkClass("leaderboard")}>
+              {t.leaderboard.title}
+            </Link>
             <Link
               href={localePath("/pricing")}
               className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
@@ -61,6 +64,9 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
             </Link>
             <Link href={localePath("/challenge")} className={linkClass("challenge")}>
               {challengeLabel}
+            </Link>
+            <Link href={localePath("/leaderboard")} className={linkClass("leaderboard")}>
+              {t.leaderboard.title}
             </Link>
             <Link href={localePath("/dashboard")} className={linkClass("dashboard")}>
               Dashboard

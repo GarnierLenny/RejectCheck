@@ -75,6 +75,18 @@ export type FollowList = {
   nextCursor: number | null;
 };
 
+export type LeaderboardScope = 'global' | 'following';
+export type LeaderboardPeriod = 'alltime' | 'week';
+
+export type LeaderboardEntry = {
+  rank: number;
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  score: number;
+  completedAt?: string;
+};
+
 export type PublicActivityEntry = {
   date: string;
   score: number;
@@ -314,6 +326,70 @@ export function usePublicFollowers(username: string | undefined) {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: !!username,
     staleTime: 30 * 1000,
+  });
+}
+
+export function useChallengeLeaderboard(
+  challengeId: number | undefined,
+  scope: LeaderboardScope = 'global',
+  limit = 25,
+) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  return useQuery({
+    queryKey: ['challenge', 'leaderboard', challengeId, scope, limit, token ? 'auth' : 'anon'],
+    queryFn: () => {
+      const qs = new URLSearchParams({ scope, limit: String(limit) });
+      return apiFetch<LeaderboardEntry[]>(
+        `/api/challenge/${challengeId}/leaderboard?${qs.toString()}`,
+        { headers: token ? authHeaders(token) : undefined },
+      );
+    },
+    enabled: !!challengeId,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useGlobalLeaderboard(
+  scope: LeaderboardScope = 'global',
+  period: LeaderboardPeriod = 'alltime',
+  limit = 100,
+) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  return useQuery({
+    queryKey: ['challenge', 'leaderboard', 'global', scope, period, limit, token ? 'auth' : 'anon'],
+    queryFn: () => {
+      const qs = new URLSearchParams({
+        scope,
+        period,
+        limit: String(limit),
+      });
+      return apiFetch<LeaderboardEntry[]>(
+        `/api/challenge/leaderboard/global?${qs.toString()}`,
+        { headers: token ? authHeaders(token) : undefined },
+      );
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useStreakLeaderboard(
+  scope: LeaderboardScope = 'global',
+  limit = 100,
+) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  return useQuery({
+    queryKey: ['challenge', 'leaderboard', 'streaks', scope, limit, token ? 'auth' : 'anon'],
+    queryFn: () => {
+      const qs = new URLSearchParams({ scope, limit: String(limit) });
+      return apiFetch<LeaderboardEntry[]>(
+        `/api/challenge/leaderboard/streaks?${qs.toString()}`,
+        { headers: token ? authHeaders(token) : undefined },
+      );
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

@@ -1075,6 +1075,20 @@
     "signOut": "Sign out",
     "claimToEnable": "Claim a username in Settings to enable your public profile"
   },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "How you stack up against the rest.",
+    "todayTop": "Top scores",
+    "viewFull": "View full leaderboard",
+    "global": "Global",
+    "following": "Following",
+    "dayShort": "d",
+    "tabs": {
+      "alltime": "All-time",
+      "week": "This week",
+      "streaks": "Streaks"
+    }
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Challenges",
