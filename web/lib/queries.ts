@@ -58,6 +58,26 @@ export type PublicProfile = {
     score: number;
     completedAt: string;
   }>;
+  achievements: AchievementsBundle;
+};
+
+export type EarnedAchievement = {
+  slug: string;
+  earnedAt: string | null;
+};
+
+export type AchievementsProgress = {
+  totalCount: number;
+  perfectCount: number;
+  longestStreak: number;
+  languagesCount: number;
+  followersCount: number;
+  focusMasterCounts: Record<string, number>;
+};
+
+export type AchievementsBundle = {
+  earned: EarnedAchievement[];
+  progress: AchievementsProgress;
 };
 
 export type FollowSummary = {

@@ -17,6 +17,28 @@ export type PublicRecentChallenge = {
   completedAt: Date;
 };
 
+export type EarnedAchievement = {
+  /** e.g. "perfect_score" or "focus_master:react_rerenders" (tag-suffixed for parametric achievements). */
+  slug: string;
+  /** null when the exact date can't be derived from existing data (e.g. streak achievements). */
+  earnedAt: Date | null;
+};
+
+export type AchievementsProgress = {
+  totalCount: number;
+  perfectCount: number;
+  longestStreak: number;
+  languagesCount: number;
+  followersCount: number;
+  /** Per-tag count of attempts with score >= 90 — used for `focus_master` progress. */
+  focusMasterCounts: Record<string, number>;
+};
+
+export type AchievementsBundle = {
+  earned: EarnedAchievement[];
+  progress: AchievementsProgress;
+};
+
 export type PublicProfileView = {
   username: string;
   displayName: string | null;
@@ -33,6 +55,7 @@ export type PublicProfileView = {
   isFollowing?: boolean;
   challenges: PublicProfileChallengeStats;
   recentChallenges: PublicRecentChallenge[];
+  achievements: AchievementsBundle;
 };
 
 export type PublicActivityEntry = {

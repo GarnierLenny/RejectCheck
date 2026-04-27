@@ -1123,18 +1123,47 @@
       "title": "Défis récents",
       "empty": "Aucun défi complété pour le moment."
     },
-    "badges": {
+    "achievements": {
       "title": "Succès",
-      "comingSoon": "Bientôt disponible",
+      "earnedOn": "Obtenu",
       "items": {
-        "firstPerfect": "Premier 100",
-        "firstPerfectDesc": "Score de 100 sur un défi",
-        "streak7": "Streak de 7 jours",
-        "streak7Desc": "7 jours consécutifs",
-        "focusMaster": "Maître du focus",
-        "focusMasterDesc": "5 scores parfaits dans un même tag",
-        "polyglot": "Polyglotte",
-        "polyglotDesc": "Résolu dans 3 langages différents"
+        "first_steps": {
+          "label": "Premiers pas",
+          "description": "Termine ton premier défi"
+        },
+        "perfect_score": {
+          "label": "Score parfait",
+          "description": "Obtiens un score de 100 sur un défi"
+        },
+        "triple_crown": {
+          "label": "Triple Couronne",
+          "description": "Obtiens 5 scores parfaits"
+        },
+        "week_warrior": {
+          "label": "Guerrier de la semaine",
+          "description": "Atteins un streak de 7 jours"
+        },
+        "month_warrior": {
+          "label": "Guerrier du mois",
+          "description": "Atteins un streak de 30 jours"
+        },
+        "polyglot": {
+          "label": "Polyglotte",
+          "description": "Résous des défis dans 3 langages différents"
+        },
+        "focus_master": {
+          "label": "Maître du focus",
+          "labelWithTag": "Maître {tag}",
+          "description": "Obtiens un score ≥ 90 sur 5 défis du même focus tag"
+        },
+        "centurion": {
+          "label": "Centurion",
+          "description": "Termine 100 défis"
+        },
+        "connected": {
+          "label": "Connecté",
+          "description": "Atteins 10 followers"
+        }
       }
     },
     "notFound": {

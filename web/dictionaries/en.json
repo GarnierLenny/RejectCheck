@@ -1122,18 +1122,47 @@
       "title": "Recent challenges",
       "empty": "No completed challenges yet."
     },
-    "badges": {
+    "achievements": {
       "title": "Achievements",
-      "comingSoon": "Coming soon",
+      "earnedOn": "Earned",
       "items": {
-        "firstPerfect": "First perfect",
-        "firstPerfectDesc": "Score 100 on a challenge",
-        "streak7": "7-day streak",
-        "streak7Desc": "7 consecutive days",
-        "focusMaster": "Focus master",
-        "focusMasterDesc": "5 perfect scores in one tag",
-        "polyglot": "Polyglot",
-        "polyglotDesc": "Solved 3 different languages"
+        "first_steps": {
+          "label": "First Steps",
+          "description": "Complete your first challenge"
+        },
+        "perfect_score": {
+          "label": "Perfect Score",
+          "description": "Score 100 on a challenge"
+        },
+        "triple_crown": {
+          "label": "Triple Crown",
+          "description": "Get 5 perfect scores"
+        },
+        "week_warrior": {
+          "label": "Week Warrior",
+          "description": "Hit a 7-day streak"
+        },
+        "month_warrior": {
+          "label": "Month Warrior",
+          "description": "Hit a 30-day streak"
+        },
+        "polyglot": {
+          "label": "Polyglot",
+          "description": "Solve challenges in 3 different languages"
+        },
+        "focus_master": {
+          "label": "Focus Master",
+          "labelWithTag": "{tag} Master",
+          "description": "Score ≥ 90 on 5 challenges with the same focus tag"
+        },
+        "centurion": {
+          "label": "Centurion",
+          "description": "Complete 100 challenges"
+        },
+        "connected": {
+          "label": "Connected",
+          "description": "Reach 10 followers"
+        }
       }
     },
     "notFound": {

@@ -5,7 +5,7 @@ import { Navbar } from "../../../components/Navbar";
 import { PublicHeatmap } from "../../../components/PublicHeatmap";
 import { PublicProfileHeader } from "../../../components/PublicProfileHeader";
 import { PublicRecentChallenges } from "../../../components/PublicRecentChallenges";
-import { BadgesPlaceholder } from "../../../components/BadgesPlaceholder";
+import { AchievementsList } from "../../../components/AchievementsList";
 import { getDictionary, hasLocale, type Locale } from "../../dictionaries";
 
 const API_BASE =
@@ -86,14 +86,6 @@ export default async function PublicProfilePage({
 
   if (!profile) notFound();
 
-  const badges = dict.publicProfilePage.badges;
-  const badgeItems = [
-    { label: badges.items.firstPerfect, desc: badges.items.firstPerfectDesc },
-    { label: badges.items.streak7, desc: badges.items.streak7Desc },
-    { label: badges.items.focusMaster, desc: badges.items.focusMasterDesc },
-    { label: badges.items.polyglot, desc: badges.items.polyglotDesc },
-  ];
-
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen">
       <Navbar />
@@ -108,10 +100,9 @@ export default async function PublicProfilePage({
               title={dict.publicProfilePage.heatmap.title}
               lastYearLabel={dict.publicProfilePage.heatmap.lastYear}
             />
-            <BadgesPlaceholder
-              title={badges.title}
-              comingSoonLabel={badges.comingSoon}
-              items={badgeItems}
+            <AchievementsList
+              achievements={profile.achievements}
+              dateLocale={dateLocale}
             />
             <PublicRecentChallenges
               challenges={profile.recentChallenges}

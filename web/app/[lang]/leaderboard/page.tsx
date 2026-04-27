@@ -43,9 +43,6 @@ export default function LeaderboardPage() {
               {t.leaderboard.title}
             </Heading>
           </div>
-          <Caption as="p" className="block">
-            {t.leaderboard.subtitle}
-          </Caption>
         </header>
 
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
