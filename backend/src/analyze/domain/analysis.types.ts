@@ -53,6 +53,11 @@ export type Profile = {
   portfolioUrl: string | null;
   socialLinks: string[];
   coverLetterName: string | null;
+  followersCount: number;
+  followingCount: number;
+  followersLastSeenAt: Date | null;
+  /** Filled by the analyze controller, not the repository. */
+  unreadFollowersCount?: number;
   createdAt: Date;
   updatedAt: Date;
 };

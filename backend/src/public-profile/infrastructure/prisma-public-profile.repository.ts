@@ -11,7 +11,10 @@ import type {
 export class PrismaPublicProfileRepository implements PublicProfileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByUsername(username: string): Promise<PublicProfileView | null> {
+  async findByUsername(
+    username: string,
+    viewerEmail?: string,
+  ): Promise<PublicProfileView | null> {
     const profile = await this.prisma.profile.findUnique({
       where: { username },
     });
@@ -47,6 +50,26 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
       }),
     ]);
 
+    let isFollowing: boolean | undefined;
+    if (viewerEmail && viewerEmail !== profile.email) {
+      const viewer = await this.prisma.profile.findUnique({
+        where: { email: viewerEmail },
+        select: { id: true },
+      });
+      if (viewer) {
+        const row = await this.prisma.follow.findUnique({
+          where: {
+            followerId_followingId: {
+              followerId: viewer.id,
+              followingId: profile.id,
+            },
+          },
+          select: { id: true },
+        });
+        isFollowing = !!row;
+      }
+    }
+
     return {
       username: profile.username!,
       displayName: profile.displayName,
@@ -57,6 +80,9 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
       portfolioUrl: profile.portfolioUrl,
       socialLinks: profile.socialLinks,
       joinedAt: profile.createdAt,
+      followersCount: profile.followersCount,
+      followingCount: profile.followingCount,
+      isFollowing,
       challenges: {
         total: aggregate._count._all,
         avgScore: Math.round(aggregate._avg.score ?? 0),

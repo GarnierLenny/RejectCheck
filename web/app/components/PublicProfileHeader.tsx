@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Camera, Pencil } from "lucide-react";
 import { GenericLinkIcon, detectSocialIcon } from "./SocialIcons";
 import { Heading, Caption, Text } from "./typography";
+import { FollowButton } from "./FollowButton";
 import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useUpdateProfile } from "../../lib/mutations";
@@ -125,7 +126,7 @@ export function PublicProfileHeader({ profile }: Props) {
           </Text>
         )}
 
-        {isOwner && (
+        {isOwner ? (
           <Link
             href={localePath("/settings")}
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-rc-bg border border-rc-border rounded-md font-mono text-[11px] uppercase tracking-[0.12em] text-rc-text hover:border-rc-red/40 transition-colors no-underline"
@@ -133,7 +134,36 @@ export function PublicProfileHeader({ profile }: Props) {
             <Pencil size={12} />
             {t.publicProfilePage.header.editProfile}
           </Link>
+        ) : (
+          <div className="mt-4">
+            <FollowButton
+              username={profile.username}
+              isFollowing={profile.isFollowing ?? false}
+            />
+          </div>
         )}
+
+        <div className="mt-4 flex items-center justify-center gap-4">
+          <Link
+            href={localePath(`/u/${profile.username}/followers`)}
+            className="font-mono text-[11px] text-rc-muted hover:text-rc-text no-underline"
+          >
+            <strong className="font-semibold text-rc-text tabular-nums">
+              {profile.followersCount ?? 0}
+            </strong>{" "}
+            {t.publicProfilePage.header.followersCount}
+          </Link>
+          <span className="text-rc-border">·</span>
+          <Link
+            href={localePath(`/u/${profile.username}/following`)}
+            className="font-mono text-[11px] text-rc-muted hover:text-rc-text no-underline"
+          >
+            <strong className="font-semibold text-rc-text tabular-nums">
+              {profile.followingCount ?? 0}
+            </strong>{" "}
+            {t.publicProfilePage.header.followingCount}
+          </Link>
+        </div>
       </div>
 
       <div className="border-t border-rc-border pt-4 mb-4">

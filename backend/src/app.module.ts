@@ -10,6 +10,7 @@ import { InterviewModule } from './interview/interview.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { ChallengeModule } from './challenge/challenge.module';
 import { PublicProfileModule } from './public-profile/public-profile.module';
+import { SocialModule } from './social/social.module';
 import { validateEnv } from './common/env.schema';
 import { AppThrottlerModule } from './common/throttler.module';
 
@@ -29,6 +30,7 @@ import { AppThrottlerModule } from './common/throttler.module';
     ApplicationsModule,
     ChallengeModule,
     PublicProfileModule,
+    SocialModule,
   ],
   controllers: [AppController],
   providers: [AppService],

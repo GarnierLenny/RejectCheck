@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth';
 import { apiFetch, authHeaders } from './api';
-import type { Profile, Application } from './queries';
+import type { Profile, Application, PublicProfile } from './queries';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -79,6 +79,124 @@ export function useClaimUsername() {
       }
       return (await res.json()) as { username: string };
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+    },
+  });
+}
+
+export function useFollow() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (username: string) =>
+      apiFetch<{ ok: true; created: boolean }>(
+        `/api/social/follow/${encodeURIComponent(username)}`,
+        {
+          method: 'POST',
+          headers: authHeaders(token!),
+        },
+      ),
+    onMutate: async (username) => {
+      const keys = [
+        ['public-profile', username, 'auth'],
+        ['public-profile', username, 'anon'],
+      ];
+      await Promise.all(
+        keys.map((k) => queryClient.cancelQueries({ queryKey: k })),
+      );
+      const snapshots = keys.map((k) => ({
+        key: k,
+        prev: queryClient.getQueryData<PublicProfile>(k),
+      }));
+      for (const { key, prev } of snapshots) {
+        if (prev && !prev.isFollowing) {
+          queryClient.setQueryData<PublicProfile>(key, {
+            ...prev,
+            isFollowing: true,
+            followersCount: prev.followersCount + 1,
+          });
+        }
+      }
+      return { snapshots };
+    },
+    onError: (_err, _username, ctx) => {
+      ctx?.snapshots?.forEach(({ key, prev }) => {
+        if (prev) queryClient.setQueryData(key, prev);
+      });
+    },
+    onSettled: (_data, _err, username) => {
+      queryClient.invalidateQueries({ queryKey: ['public-profile', username] });
+      queryClient.invalidateQueries({ queryKey: ['social', 'me', 'following', userId] });
+    },
+  });
+}
+
+export function useUnfollow() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (username: string) =>
+      apiFetch<{ ok: true; removed: boolean }>(
+        `/api/social/follow/${encodeURIComponent(username)}`,
+        {
+          method: 'DELETE',
+          headers: authHeaders(token!),
+        },
+      ),
+    onMutate: async (username) => {
+      const keys = [
+        ['public-profile', username, 'auth'],
+        ['public-profile', username, 'anon'],
+      ];
+      await Promise.all(
+        keys.map((k) => queryClient.cancelQueries({ queryKey: k })),
+      );
+      const snapshots = keys.map((k) => ({
+        key: k,
+        prev: queryClient.getQueryData<PublicProfile>(k),
+      }));
+      for (const { key, prev } of snapshots) {
+        if (prev && prev.isFollowing) {
+          queryClient.setQueryData<PublicProfile>(key, {
+            ...prev,
+            isFollowing: false,
+            followersCount: Math.max(0, prev.followersCount - 1),
+          });
+        }
+      }
+      return { snapshots };
+    },
+    onError: (_err, _username, ctx) => {
+      ctx?.snapshots?.forEach(({ key, prev }) => {
+        if (prev) queryClient.setQueryData(key, prev);
+      });
+    },
+    onSettled: (_data, _err, username) => {
+      queryClient.invalidateQueries({ queryKey: ['public-profile', username] });
+      queryClient.invalidateQueries({ queryKey: ['social', 'me', 'following', userId] });
+    },
+  });
+}
+
+export function useMarkFollowersSeen() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      apiFetch<{ ok: true }>('/api/social/me/seen-followers', {
+        method: 'POST',
+        headers: authHeaders(token!),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },

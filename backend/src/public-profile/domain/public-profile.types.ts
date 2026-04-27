@@ -27,6 +27,10 @@ export type PublicProfileView = {
   portfolioUrl: string | null;
   socialLinks: string[];
   joinedAt: Date;
+  followersCount: number;
+  followingCount: number;
+  /** Computed only when a viewer email is provided (and viewer != owner). */
+  isFollowing?: boolean;
   challenges: PublicProfileChallengeStats;
   recentChallenges: PublicRecentChallenge[];
 };

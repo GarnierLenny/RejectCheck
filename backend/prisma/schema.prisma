@@ -99,21 +99,40 @@ model Application {
 }
 
 model Profile {
-  id                Int       @id @default(autoincrement())
-  email             String    @unique
-  username          String?   @unique
-  usernameUpdatedAt DateTime?
-  isPublic          Boolean   @default(true)
-  bio               String?
-  avatarUrl         String?
-  displayName       String?
-  githubUsername    String?
-  linkedinUrl       String?
-  portfolioUrl      String?
-  socialLinks       String[]  @default([])
-  coverLetterName   String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  username            String?   @unique
+  usernameUpdatedAt   DateTime?
+  isPublic            Boolean   @default(true)
+  bio                 String?
+  avatarUrl           String?
+  displayName         String?
+  githubUsername      String?
+  linkedinUrl         String?
+  portfolioUrl        String?
+  socialLinks         String[]  @default([])
+  coverLetterName     String?
+  followersCount      Int       @default(0)
+  followingCount      Int       @default(0)
+  followersLastSeenAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  followers Follow[] @relation("FollowFollowing")
+  following Follow[] @relation("FollowFollower")
+}
+
+model Follow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now())
+  follower    Profile  @relation("FollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   Profile  @relation("FollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId, createdAt])
+  @@index([followingId, createdAt])
 }
 
 model SavedCv {

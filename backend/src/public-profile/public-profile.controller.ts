@@ -11,6 +11,8 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { OptionalSupabaseGuard } from '../auth/optional-supabase.guard';
+import { OptionalAuthEmail } from '../auth/optional-auth.decorator';
 
 import {
   ClaimUsernameSchema,
@@ -30,10 +32,14 @@ export class PublicProfileController {
     private readonly getActivityUc: GetPublicActivityUseCase,
   ) {}
 
+  @UseGuards(OptionalSupabaseGuard)
   @Get(':username')
   @ApiOperation({ summary: 'Get a public profile by username' })
-  getProfile(@Param('username') username: string) {
-    return this.getProfileUc.execute(username);
+  getProfile(
+    @Param('username') username: string,
+    @OptionalAuthEmail() viewerEmail: string | undefined,
+  ) {
+    return this.getProfileUc.execute(username, viewerEmail);
   }
 
   @Get(':username/activity')

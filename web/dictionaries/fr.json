@@ -1085,7 +1085,21 @@
       "longestStreak": "Meilleur streak",
       "editProfile": "Modifier le profil",
       "change": "Changer",
-      "uploading": "Téléversement…"
+      "uploading": "Téléversement…",
+      "follow": "Suivre",
+      "following": "Suivi",
+      "unfollow": "Ne plus suivre",
+      "followersCount": "followers",
+      "followingCount": "abonnements",
+      "newFollowers": "{count} nouveaux"
+    },
+    "lists": {
+      "myFollowers": "Mes followers",
+      "myFollowing": "Mes abonnements",
+      "publicFollowers": "Followers de @{username}",
+      "publicFollowing": "@{username} suit",
+      "empty": "Rien à afficher pour l'instant.",
+      "loadMore": "Charger plus"
     },
     "heatmap": {
       "title": "Activité des défis quotidiens",

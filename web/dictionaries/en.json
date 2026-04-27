@@ -1084,7 +1084,21 @@
       "longestStreak": "Longest streak",
       "editProfile": "Edit profile",
       "change": "Change",
-      "uploading": "Uploading…"
+      "uploading": "Uploading…",
+      "follow": "Follow",
+      "following": "Following",
+      "unfollow": "Unfollow",
+      "followersCount": "followers",
+      "followingCount": "following",
+      "newFollowers": "{count} new"
+    },
+    "lists": {
+      "myFollowers": "My followers",
+      "myFollowing": "I follow",
+      "publicFollowers": "Followers of @{username}",
+      "publicFollowing": "@{username} follows",
+      "empty": "Nothing to show yet.",
+      "loadMore": "Load more"
     },
     "heatmap": {
       "title": "Daily challenge activity",

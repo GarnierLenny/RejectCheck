@@ -10,9 +10,12 @@ export class GetPublicProfileUseCase {
     private readonly repo: PublicProfileRepository,
   ) {}
 
-  async execute(rawUsername: string): Promise<PublicProfileView> {
+  async execute(
+    rawUsername: string,
+    viewerEmail?: string,
+  ): Promise<PublicProfileView> {
     const username = rawUsername.toLowerCase();
-    const view = await this.repo.findByUsername(username);
+    const view = await this.repo.findByUsername(username, viewerEmail);
     if (!view) throw new NotFoundException('Profile not found');
     return view;
   }

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/auth';
 import { apiFetch, authHeaders } from './api';
 
@@ -22,6 +22,10 @@ export type Profile = {
   portfolioUrl: string | null;
   socialLinks: string[];
   coverLetterName: string | null;
+  followersCount: number;
+  followingCount: number;
+  followersLastSeenAt: string | null;
+  unreadFollowersCount?: number;
 };
 
 export type PublicProfile = {
@@ -34,6 +38,9 @@ export type PublicProfile = {
   portfolioUrl: string | null;
   socialLinks: string[];
   joinedAt: string;
+  followersCount: number;
+  followingCount: number;
+  isFollowing?: boolean;
   challenges: {
     total: number;
     avgScore: number;
@@ -51,6 +58,21 @@ export type PublicProfile = {
     score: number;
     completedAt: string;
   }>;
+};
+
+export type FollowSummary = {
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  currentStreak: number;
+  followedAt: string;
+  isFollowing?: boolean;
+};
+
+export type FollowList = {
+  entries: FollowSummary[];
+  nextCursor: number | null;
 };
 
 export type PublicActivityEntry = {
@@ -222,12 +244,94 @@ export function useApplications() {
 }
 
 export function usePublicProfile(username: string | undefined) {
+  const { session } = useAuth();
+  const token = session?.access_token;
   return useQuery({
-    queryKey: ['public-profile', username],
+    queryKey: ['public-profile', username, token ? 'auth' : 'anon'],
     queryFn: () =>
-      apiFetch<PublicProfile>(`/api/u/${encodeURIComponent(username!)}`),
+      apiFetch<PublicProfile>(`/api/u/${encodeURIComponent(username!)}`, {
+        headers: token ? authHeaders(token) : undefined,
+      }),
     enabled: !!username,
     staleTime: 60 * 1000,
+  });
+}
+
+function fetchFollowPage(
+  path: string,
+  token: string | undefined,
+  cursor: number | undefined,
+): Promise<FollowList> {
+  const qs = new URLSearchParams();
+  if (cursor !== undefined) qs.set('cursor', String(cursor));
+  return apiFetch<FollowList>(`${path}?${qs.toString()}`, {
+    headers: token ? authHeaders(token) : undefined,
+  });
+}
+
+export function useMyFollowers() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useInfiniteQuery({
+    queryKey: ['social', 'me', 'followers', userId],
+    queryFn: ({ pageParam }) =>
+      fetchFollowPage('/api/social/me/followers', token, pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!token && !!userId,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useMyFollowing() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useInfiniteQuery({
+    queryKey: ['social', 'me', 'following', userId],
+    queryFn: ({ pageParam }) =>
+      fetchFollowPage('/api/social/me/following', token, pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!token && !!userId,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function usePublicFollowers(username: string | undefined) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  return useInfiniteQuery({
+    queryKey: ['social', 'public', 'followers', username, token ? 'auth' : 'anon'],
+    queryFn: ({ pageParam }) =>
+      fetchFollowPage(
+        `/api/u/${encodeURIComponent(username!)}/followers`,
+        token,
+        pageParam,
+      ),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!username,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function usePublicFollowing(username: string | undefined) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  return useInfiniteQuery({
+    queryKey: ['social', 'public', 'following', username, token ? 'auth' : 'anon'],
+    queryFn: ({ pageParam }) =>
+      fetchFollowPage(
+        `/api/u/${encodeURIComponent(username!)}/following`,
+        token,
+        pageParam,
+      ),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!username,
+    staleTime: 30 * 1000,
   });
 }
 

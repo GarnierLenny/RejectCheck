@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { User as UserIcon, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { User as UserIcon, Settings as SettingsIcon, LogOut, Users } from "lucide-react";
 import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useLanguage } from "../../context/language";
@@ -76,7 +76,7 @@ export function AuthNavLink() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center group no-underline"
+        className="relative flex items-center group no-underline"
         aria-haspopup="menu"
         aria-expanded={open}
         title={displayName}
@@ -89,6 +89,15 @@ export function AuthNavLink() {
             initials
           )}
         </div>
+        {(profile?.unreadFollowersCount ?? 0) > 0 && (
+          <span
+            className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-rc-red border-2 border-rc-bg"
+            aria-label={t.publicProfilePage.header.newFollowers.replace(
+              "{count}",
+              String(profile?.unreadFollowersCount ?? 0),
+            )}
+          />
+        )}
       </button>
 
       <div
@@ -143,6 +152,20 @@ export function AuthNavLink() {
                 {t.navDropdown.profile}
               </span>
             )}
+            <Link
+              href={localePath("/social/followers")}
+              onClick={() => setOpen(false)}
+              role="menuitem"
+              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-rc-text hover:bg-rc-bg no-underline"
+            >
+              <Users size={14} className="text-rc-muted" />
+              <span className="flex-1">{t.publicProfilePage.lists.myFollowers}</span>
+              {(profile?.unreadFollowersCount ?? 0) > 0 && (
+                <span className="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rc-red text-white">
+                  {profile?.unreadFollowersCount}
+                </span>
+              )}
+            </Link>
             <Link
               href={localePath("/settings")}
               onClick={() => setOpen(false)}

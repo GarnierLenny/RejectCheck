@@ -5,8 +5,14 @@ import type {
 } from '../domain/public-profile.types';
 
 export interface PublicProfileRepository {
-  /** Returns null when the username is unknown OR the profile is private. */
-  findByUsername(username: string): Promise<PublicProfileView | null>;
+  /**
+   * Returns null when the username is unknown OR the profile is private.
+   * If `viewerEmail` is provided, fills `isFollowing` (false when viewer is owner).
+   */
+  findByUsername(
+    username: string,
+    viewerEmail?: string,
+  ): Promise<PublicProfileView | null>;
 
   /** Returns [] when the username is unknown OR the profile is private. */
   listActivity(username: string, since: Date): Promise<PublicActivityEntry[]>;
