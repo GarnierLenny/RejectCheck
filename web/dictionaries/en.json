@@ -788,6 +788,10 @@
     "titleHighlight": "career fuel.",
     "subtitle": "From first rejection to your dream offer.",
     "subtitleLine2": "Get the edge you deserve.",
+    "compareNote": {
+      "text": "Want to compare us with Jobscan, Rezi, or other tools first?",
+      "link": "See the full alternatives comparison"
+    },
     "recommended": "Recommended",
     "currentPlan": "Current Plan",
     "downgradeToFree": "Downgrade to Free",

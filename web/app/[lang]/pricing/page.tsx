@@ -131,6 +131,16 @@ function PricingContent() {
           </p>
         </div>
 
+        {/* Compare with alternatives note */}
+        <div className="text-center mb-12">
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-rc-bg border border-rc-border text-sm">
+            <span className="text-rc-muted">{t.pricing.compareNote.text}</span>
+            <Link href={localePath('/alternatives')} className="text-rc-red hover:underline font-medium">
+              {t.pricing.compareNote.link} →
+            </Link>
+          </div>
+        </div>
+
         {/* Pricing Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative items-stretch">
           {plans.map((plan) => (

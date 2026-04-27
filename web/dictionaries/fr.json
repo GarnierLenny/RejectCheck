@@ -788,6 +788,10 @@
     "titleHighlight": "carburant carrière.",
     "subtitle": "Du premier rejet à l'offre de vos rêves.",
     "subtitleLine2": "Prenez l'avantage que vous méritez.",
+    "compareNote": {
+      "text": "Tu veux nous comparer à Jobscan, Rezi, ou d'autres outils d'abord ?",
+      "link": "Voir la comparaison complète des alternatives"
+    },
     "recommended": "Recommandé",
     "currentPlan": "Plan actuel",
     "downgradeToFree": "Passer au gratuit",
