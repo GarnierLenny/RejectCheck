@@ -956,45 +956,21 @@ export default function Home() {
           </FadeInSection>
 
           <div className="grid md:grid-cols-3 gap-5">
-            <FadeInSection delay={0}>
-              <Link
-                href={localePath("/alternatives/jobscan")}
-                className="group block h-full rounded-2xl border border-rc-border bg-rc-surface px-6 py-5 no-underline transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
-              >
-                <span className="text-[17px] md:text-[18px] font-semibold tracking-[-0.01em] text-rc-text">
-                  {t.landing.compareSection.jobscan}
-                </span>
-                <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
-                  {t.landing.compareSection.cardCta}
-                </div>
-              </Link>
-            </FadeInSection>
-            <FadeInSection delay={60}>
-              <Link
-                href={localePath("/alternatives/rezi")}
-                className="group block h-full rounded-2xl border border-rc-border bg-rc-surface px-6 py-5 no-underline transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
-              >
-                <span className="text-[17px] md:text-[18px] font-semibold tracking-[-0.01em] text-rc-text">
-                  {t.landing.compareSection.rezi}
-                </span>
-                <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
-                  {t.landing.compareSection.cardCta}
-                </div>
-              </Link>
-            </FadeInSection>
-            <FadeInSection delay={120}>
-              <Link
-                href={localePath("/alternatives/resume-worded")}
-                className="group block h-full rounded-2xl border border-rc-border bg-rc-surface px-6 py-5 no-underline transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
-              >
-                <span className="text-[17px] md:text-[18px] font-semibold tracking-[-0.01em] text-rc-text">
-                  {t.landing.compareSection.resumeWorded}
-                </span>
-                <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
-                  {t.landing.compareSection.cardCta}
-                </div>
-              </Link>
-            </FadeInSection>
+            {t.landing.compareSection.items.map((item, i) => (
+              <FadeInSection key={i} delay={i * 60}>
+                <Link
+                  href={localePath(item.href)}
+                  className="group block h-full rounded-2xl border border-rc-border bg-rc-surface px-6 py-5 no-underline transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
+                >
+                  <span className="text-[17px] md:text-[18px] font-semibold tracking-[-0.01em] text-rc-text">
+                    {item.label}
+                  </span>
+                  <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
+                    {t.landing.compareSection.cardCta} →
+                  </div>
+                </Link>
+              </FadeInSection>
+            ))}
           </div>
 
           <div className="mt-8">
@@ -1002,7 +978,7 @@ export default function Home() {
               href={localePath("/alternatives")}
               className="font-mono text-[11px] tracking-[0.05em] text-rc-red hover:underline no-underline"
             >
-              {t.landing.compareSection.viewAll}
+              {t.landing.compareSection.viewAll} →
             </Link>
           </div>
         </div>
