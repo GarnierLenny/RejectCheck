@@ -355,6 +355,18 @@
           "href": "/alternatives"
         }
       ]
+    },
+    "compareSection": {
+      "badge": "Honest comparison",
+      "title": "How RejectCheck compares to Jobscan, Rezi, and Resume Worded",
+      "subtitle": "We don't hide our weaknesses. See the full breakdown vs. the most popular alternatives.",
+      "items": [
+        { "label": "vs. Jobscan",       "href": "/alternatives/jobscan" },
+        { "label": "vs. Rezi",          "href": "/alternatives/rezi" },
+        { "label": "vs. Resume Worded", "href": "/alternatives/resume-worded" }
+      ],
+      "cardCta": "See full comparison",
+      "viewAll": "See all alternatives"
     }
   },
   "uploadForm": {
@@ -776,6 +788,10 @@
     "titleHighlight": "career fuel.",
     "subtitle": "From first rejection to your dream offer.",
     "subtitleLine2": "Get the edge you deserve.",
+    "compareNote": {
+      "text": "Want to compare us with Jobscan, Rezi, or other tools first?",
+      "link": "See the full alternatives comparison"
+    },
     "recommended": "Recommended",
     "currentPlan": "Current Plan",
     "downgradeToFree": "Downgrade to Free",

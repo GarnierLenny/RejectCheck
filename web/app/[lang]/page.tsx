@@ -937,6 +937,53 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ COMPARE ALTERNATIVES ══════════════════════════════════════════ */}
+      <section id="compare-alternatives" className="border-t-[0.5px] border-rc-border bg-rc-bg">
+        <div className="max-w-[1100px] mx-auto px-5 md:px-[40px] py-24 md:py-28">
+          <FadeInSection>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-px w-6 bg-rc-red" />
+              <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
+                {t.landing.compareSection.badge}
+              </span>
+            </div>
+            <h2 className="text-[32px] md:text-[44px] font-semibold leading-[1.12] tracking-[-0.02em] text-rc-text mb-4 max-w-[720px]">
+              {t.landing.compareSection.title}
+            </h2>
+            <p className="text-rc-muted text-[15px] md:text-[16px] leading-[1.7] max-w-[720px] mb-12">
+              {t.landing.compareSection.subtitle}
+            </p>
+          </FadeInSection>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {t.landing.compareSection.items.map((item, i) => (
+              <FadeInSection key={i} delay={i * 60}>
+                <Link
+                  href={localePath(item.href)}
+                  className="group block h-full rounded-2xl border border-rc-border bg-rc-surface px-6 py-5 no-underline transition-all hover:border-rc-red hover:shadow-[0_8px_28px_rgba(201,58,57,0.08)]"
+                >
+                  <span className="text-[17px] md:text-[18px] font-semibold tracking-[-0.01em] text-rc-text">
+                    {item.label}
+                  </span>
+                  <div className="mt-3 font-mono text-[11px] tracking-[0.08em] text-rc-red group-hover:translate-x-1 transition-transform">
+                    {t.landing.compareSection.cardCta} →
+                  </div>
+                </Link>
+              </FadeInSection>
+            ))}
+          </div>
+
+          <div className="mt-8">
+            <Link
+              href={localePath("/alternatives")}
+              className="font-mono text-[11px] tracking-[0.05em] text-rc-red hover:underline no-underline"
+            >
+              {t.landing.compareSection.viewAll} →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ FOOTER ════════════════════════════════════════════════════════ */}
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">{t.landing.footer.copyright}</div>
