@@ -891,7 +891,12 @@
     "haveAccount": "Already have an account?",
     "privacyLink": "Privacy Policy & GDPR →",
     "confirmEmail": "Check your email to confirm your account, then sign in.",
-    "tryFree": "Try free →"
+    "tryFree": "Try free →",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithLinkedIn": "Continue with LinkedIn",
+    "continueWithGitHub": "Continue with GitHub",
+    "or": "or",
+    "oauthError": "Sign-in was cancelled or failed. Please try again."
   },
   "account": {
     "title": "Account",

@@ -892,7 +892,12 @@
     "haveAccount": "Vous avez déjà un compte ?",
     "privacyLink": "Politique de confidentialité & RGPD →",
     "confirmEmail": "Vérifiez votre email pour confirmer votre compte, puis connectez-vous.",
-    "tryFree": "Essai gratuit →"
+    "tryFree": "Essai gratuit →",
+    "continueWithGoogle": "Continuer avec Google",
+    "continueWithLinkedIn": "Continuer avec LinkedIn",
+    "continueWithGitHub": "Continuer avec GitHub",
+    "or": "ou",
+    "oauthError": "La connexion a été annulée ou a échoué. Veuillez réessayer."
   },
   "account": {
     "title": "Compte",

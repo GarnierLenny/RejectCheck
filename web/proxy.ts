@@ -33,10 +33,11 @@ function hasLocalePrefix(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip internal Next.js paths and API routes
+  // Skip internal Next.js paths, API routes, and locale-agnostic routes
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
+    pathname.startsWith('/auth/') ||
     pathname.includes('.') // static files (favicon.ico, images, etc.)
   ) {
     return NextResponse.next()
