@@ -43,21 +43,32 @@ export type Profile = {
   id: number;
   email: string;
   username: string | null;
+  usernameUpdatedAt: Date | null;
+  isPublic: boolean;
+  bio: string | null;
   avatarUrl: string | null;
   displayName: string | null;
   githubUsername: string | null;
   linkedinUrl: string | null;
+  portfolioUrl: string | null;
+  socialLinks: string[];
   coverLetterName: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
 
+/**
+ * Fields the analyze profile endpoint accepts. `username` and `isPublic`/`bio`
+ * are written through the dedicated public-profile module — never accept them
+ * here.
+ */
 export type ProfileUpdate = {
-  username?: string;
   avatarUrl?: string;
   displayName?: string;
   githubUsername?: string;
   linkedinUrl?: string;
+  portfolioUrl?: string;
+  socialLinks?: string[];
   coverLetterName?: string;
 };
 

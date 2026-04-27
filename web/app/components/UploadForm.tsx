@@ -202,7 +202,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           <span className="text-[10px] text-rc-hint/50">↑</span>
           <p className="font-mono text-[9px] text-rc-hint/50 leading-relaxed">
             Save your CV, LinkedIn & GitHub in{" "}
-            <a href="/account?tab=settings" className="underline underline-offset-2 hover:text-rc-hint transition-colors">
+            <a href="/settings" className="underline underline-offset-2 hover:text-rc-hint transition-colors">
               Settings
             </a>
             {" "}to autofill future analyses.

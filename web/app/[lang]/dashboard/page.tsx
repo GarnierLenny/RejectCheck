@@ -529,7 +529,7 @@ function DashboardContent() {
                     {periodEnd && (
                       <p className="font-mono text-[10px] text-rc-hint">
                         {t.account.home.renewsOn} {periodEnd} ·{" "}
-                        <Link href={localePath("/account")} className="text-rc-red no-underline hover:underline">
+                        <Link href={localePath("/settings")} className="text-rc-red no-underline hover:underline">
                           {t.account.home.managePlan}
                         </Link>
                       </p>

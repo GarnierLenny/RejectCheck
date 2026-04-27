@@ -1,7 +1,3 @@
-"use client";
-
-import { useMemo } from "react";
-import { useChallengeActivity, useChallengeStreak } from "../../lib/challenge";
 import { Heading, Caption } from "./typography";
 import {
   CELL,
@@ -12,46 +8,32 @@ import {
   buildHeatmap,
   cellClass,
   formatDate,
+  type ActivityEntry,
 } from "./heatmap-utils";
 
-export function ChallengeHeatmap() {
-  const { data: activity, isLoading } = useChallengeActivity();
-  const { data: streak } = useChallengeStreak();
+type Props = {
+  activity: ActivityEntry[];
+  title: string;
+  lastYearLabel: string;
+};
 
-  const { grid, monthLabels, total } = useMemo(
-    () => buildHeatmap(activity),
-    [activity],
-  );
+export function PublicHeatmap({ activity, title, lastYearLabel }: Props) {
+  const { grid, monthLabels, total } = buildHeatmap(activity);
 
   const gridWidth = WEEKS * CELL + (WEEKS - 1) * GAP;
   const gridHeight = 7 * CELL + 6 * GAP;
 
   return (
     <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-      <div className="flex items-center justify-between mb-4">
-        <Heading as="h3">Daily challenge activity</Heading>
-        <Caption className="flex items-center gap-2">
-          <span>
-            <strong className="font-semibold text-rc-text">{total}</strong> last 365d
-          </span>
-          {streak && (
-            <>
-              <span className="text-rc-border">·</span>
-              <span>
-                streak <strong className="font-semibold text-rc-text">{streak.currentStreak}</strong>
-              </span>
-              <span className="text-rc-border">·</span>
-              <span>
-                best <strong className="font-semibold text-rc-text">{streak.longestStreak}</strong>
-              </span>
-            </>
-          )}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <Heading as="h3">{title}</Heading>
+        <Caption className="whitespace-nowrap">
+          <strong className="font-semibold text-rc-text">{total}</strong> {lastYearLabel}
         </Caption>
       </div>
 
       <div className="overflow-x-auto -mx-1 px-1">
         <div style={{ width: DAY_LABEL_W + gridWidth }}>
-          {/* Month row */}
           <div
             className="relative h-3 mb-1 font-mono text-[9px] text-rc-hint"
             style={{ marginLeft: DAY_LABEL_W, width: gridWidth }}
@@ -68,7 +50,6 @@ export function ChallengeHeatmap() {
           </div>
 
           <div className="flex" style={{ gap: GAP }}>
-            {/* Day labels */}
             <div
               className="relative font-mono text-[9px] text-rc-hint"
               style={{ width: DAY_LABEL_W - GAP, height: gridHeight }}
@@ -84,7 +65,6 @@ export function ChallengeHeatmap() {
               ))}
             </div>
 
-            {/* Grid: 7 rows × 53 cols, fill column-by-column */}
             <div
               className="grid"
               style={{
@@ -95,7 +75,6 @@ export function ChallengeHeatmap() {
                 width: gridWidth,
                 height: gridHeight,
               }}
-              aria-busy={isLoading}
             >
               {grid.flatMap((col) =>
                 col.map((cell) => (
@@ -116,7 +95,6 @@ export function ChallengeHeatmap() {
             </div>
           </div>
 
-          {/* Legend */}
           <Caption className="flex items-center justify-end gap-3 mt-3">
             <span className="flex items-center gap-1.5">
               <span className="rounded-[2px] border bg-rc-bg border-rc-border" style={{ width: CELL, height: CELL }} />

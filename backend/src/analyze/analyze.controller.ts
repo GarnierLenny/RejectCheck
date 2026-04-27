@@ -29,6 +29,7 @@ import {
 } from './dto/analyze-request.dto';
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
+import { ProfileUpdateSchema } from './dto/profile-update.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
 import { RequiresPremium } from '../stripe/decorators/requires-premium.decorator';
@@ -184,18 +185,21 @@ export class AnalyzeController {
   @UseGuards(SupabaseGuard)
   @Post('profile')
   @ApiOperation({ summary: 'Update profile of the authenticated user' })
-  async updateProfile(
-    @AuthEmail() email: string,
-    @Body()
-    body: {
-      username?: string;
-      avatarUrl?: string;
-      displayName?: string;
-      githubUsername?: string;
-      linkedinUrl?: string;
-    },
-  ) {
-    return this.updateProfileUc.execute(email, body);
+  async updateProfile(@AuthEmail() email: string, @Body() body: unknown) {
+    if (
+      body &&
+      typeof body === 'object' &&
+      'username' in (body as Record<string, unknown>)
+    ) {
+      throw new BadRequestException(
+        'Use POST /api/profile/claim-username to set your username',
+      );
+    }
+    const parsed = ProfileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0].message);
+    }
+    return this.updateProfileUc.execute(email, parsed.data);
   }
 
   @RequiresPremium()

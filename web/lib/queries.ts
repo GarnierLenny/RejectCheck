@@ -12,11 +12,50 @@ export type Subscription = {
 
 export type Profile = {
   username: string | null;
+  usernameUpdatedAt: string | null;
+  isPublic: boolean;
+  bio: string | null;
   avatarUrl: string | null;
   displayName: string | null;
   githubUsername: string | null;
   linkedinUrl: string | null;
+  portfolioUrl: string | null;
+  socialLinks: string[];
   coverLetterName: string | null;
+};
+
+export type PublicProfile = {
+  username: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  githubUsername: string | null;
+  linkedinUrl: string | null;
+  portfolioUrl: string | null;
+  socialLinks: string[];
+  joinedAt: string;
+  challenges: {
+    total: number;
+    avgScore: number;
+    bestScore: number;
+    currentStreak: number;
+    longestStreak: number;
+    lastCompletedAt: string | null;
+  };
+  recentChallenges: Array<{
+    challengeId: number;
+    title: string;
+    focusTag: string;
+    difficulty: string;
+    language: string;
+    score: number;
+    completedAt: string;
+  }>;
+};
+
+export type PublicActivityEntry = {
+  date: string;
+  score: number;
 };
 
 export type SavedCv = {
@@ -179,6 +218,28 @@ export function useApplications() {
         headers: authHeaders(token!),
       }),
     enabled: !!token && !!userId,
+  });
+}
+
+export function usePublicProfile(username: string | undefined) {
+  return useQuery({
+    queryKey: ['public-profile', username],
+    queryFn: () =>
+      apiFetch<PublicProfile>(`/api/u/${encodeURIComponent(username!)}`),
+    enabled: !!username,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function usePublicActivity(username: string | undefined) {
+  return useQuery({
+    queryKey: ['public-profile', 'activity', username],
+    queryFn: () =>
+      apiFetch<PublicActivityEntry[]>(
+        `/api/u/${encodeURIComponent(username!)}/activity`,
+      ),
+    enabled: !!username,
+    staleTime: 60 * 1000,
   });
 }
 

@@ -1,0 +1,2 @@
+ALTER TABLE "Profile" ADD COLUMN "portfolioUrl" TEXT;
+ALTER TABLE "Profile" ADD COLUMN "socialLinks" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

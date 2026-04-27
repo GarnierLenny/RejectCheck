@@ -99,16 +99,21 @@ model Application {
 }
 
 model Profile {
-  id             Int      @id @default(autoincrement())
-  email          String   @unique
-  username       String?
-  avatarUrl      String?
-  displayName    String?
-  githubUsername String?
-  linkedinUrl    String?
-  coverLetterName String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  username          String?   @unique
+  usernameUpdatedAt DateTime?
+  isPublic          Boolean   @default(true)
+  bio               String?
+  avatarUrl         String?
+  displayName       String?
+  githubUsername    String?
+  linkedinUrl       String?
+  portfolioUrl      String?
+  socialLinks       String[]  @default([])
+  coverLetterName   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model SavedCv {

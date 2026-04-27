@@ -996,9 +996,124 @@
     }
   },
   "settingsTab": {
+    "sidebarLabel": "Paramètres",
+    "savedBadge": "Enregistré ✓",
     "coverLetterNameLabel": "Nom sur la lettre de motivation",
     "coverLetterNamePlaceholder": "ex. Jean Dupont",
-    "coverLetterNameHint": "Utilisé pour signer vos lettres de motivation générées par IA"
+    "coverLetterNameHint": "Utilisé pour signer vos lettres de motivation générées par IA",
+    "sections": {
+      "publicProfile": "Profil public",
+      "autofill": "Pré-remplissage analyse",
+      "account": "Compte"
+    },
+    "publicProfile": {
+      "cardTitle": "Profil public",
+      "cardDesc": "Permet aux autres de te trouver sur /u/ton-handle avec tes stats, ton streak et ta heatmap.",
+      "nameLabel": "Nom",
+      "namePlaceholder": "Ton nom",
+      "nameHint": "Ton nom tel qu'il apparaît sur ton profil public et dans les mentions.",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "ton-handle",
+      "usernameHint": "3–30 caractères · lettres, chiffres, _ ou - uniquement · insensible à la casse",
+      "usernameInvalid": "3–30 caractères · lettres, chiffres, _ ou - uniquement",
+      "usernameTaken": "Username déjà pris",
+      "claimButton": "Réserver",
+      "updateButton": "Mettre à jour",
+      "bioLabel": "Bio",
+      "bioPlaceholder": "Une courte ligne sur toi (optionnel)",
+      "urlLabel": "URL",
+      "urlPlaceholder": "https://ton-portfolio.com",
+      "socialLabel": "Comptes sociaux",
+      "socialPlaceholder": "https://…",
+      "addSocial": "Ajouter un compte",
+      "removeSocial": "Supprimer",
+      "publicToggleLabel": "Profil visible publiquement",
+      "publicToggleHint": "Si désactivé, /u/ton-handle renvoie 404.",
+      "shareLabel": "Partage ton profil",
+      "copyButton": "Copier",
+      "copiedLabel": "Copié",
+      "viewButton": "Voir"
+    },
+    "autofill": {
+      "title": "Pré-remplissage analyse",
+      "description": "Données enregistrées pour pré-remplir le formulaire d'analyse — plus besoin de tout recoller.",
+      "githubLabel": "Username GitHub",
+      "githubPlaceholder": "username",
+      "githubHint": "Aussi affiché comme lien sur ton profil public.",
+      "linkedinLabel": "PDF LinkedIn",
+      "uploadLinkedin": "Téléverser le PDF LinkedIn",
+      "replaceLinkedin": "Remplacer le PDF LinkedIn",
+      "linkedinSavedLabel": "Enregistré"
+    },
+    "account": {
+      "title": "Compte",
+      "description": "Gère ton compte, ton abonnement et tes données enregistrées.",
+      "email": "E-mail",
+      "subscription": "Abonnement",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "renews": "Renouvellement",
+      "manageBilling": "Gérer la facturation",
+      "redirecting": "Redirection…",
+      "upgradePlan": "Passer au plan supérieur",
+      "savedCvs": "CVs enregistrés",
+      "addCv": "Ajouter un CV",
+      "noCvsYet": "Aucun CV enregistré pour le moment.",
+      "preview": "Aperçu",
+      "delete": "Supprimer",
+      "accountActions": "Actions du compte",
+      "signOut": "Se déconnecter",
+      "deleteAccount": "Supprimer le compte",
+      "deleteWarning": "Cette action est irréversible",
+      "deleting": "Suppression…",
+      "confirm": "Confirmer",
+      "cancel": "Annuler"
+    }
+  },
+  "navDropdown": {
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "signOut": "Se déconnecter",
+    "claimToEnable": "Réserve un username dans Paramètres pour activer ton profil public"
+  },
+  "publicProfilePage": {
+    "header": {
+      "challenges": "Défis",
+      "avgScore": "Score moyen",
+      "bestScore": "Meilleur score",
+      "currentStreak": "Streak actuel",
+      "longestStreak": "Meilleur streak",
+      "editProfile": "Modifier le profil",
+      "change": "Changer",
+      "uploading": "Téléversement…"
+    },
+    "heatmap": {
+      "title": "Activité des défis quotidiens",
+      "lastYear": "sur les 365 derniers jours"
+    },
+    "recent": {
+      "title": "Défis récents",
+      "empty": "Aucun défi complété pour le moment."
+    },
+    "badges": {
+      "title": "Succès",
+      "comingSoon": "Bientôt disponible",
+      "items": {
+        "firstPerfect": "Premier 100",
+        "firstPerfectDesc": "Score de 100 sur un défi",
+        "streak7": "Streak de 7 jours",
+        "streak7Desc": "7 jours consécutifs",
+        "focusMaster": "Maître du focus",
+        "focusMasterDesc": "5 scores parfaits dans un même tag",
+        "polyglot": "Polyglotte",
+        "polyglotDesc": "Résolu dans 3 langages différents"
+      }
+    },
+    "notFound": {
+      "title": "Profil introuvable",
+      "description": "Cet utilisateur n'existe pas ou son profil est privé.",
+      "cta": "Retour à l'accueil"
+    }
   },
   "privacy": {
     "title": "Politique de confidentialité (RGPD)",

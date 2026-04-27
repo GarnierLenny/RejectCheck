@@ -3,6 +3,15 @@ import { useAuth } from '../context/auth';
 import { apiFetch, authHeaders } from './api';
 import type { Profile, Application } from './queries';
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
+
+export class UsernameTakenError extends Error {
+  constructor() {
+    super('Username already taken');
+    this.name = 'UsernameTakenError';
+  }
+}
+
 export function useDeleteAnalysis() {
   const { session } = useAuth();
   const token = session?.access_token;
@@ -37,6 +46,64 @@ export function useUpdateProfile() {
         },
         body: JSON.stringify(data),
       }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+    },
+  });
+}
+
+export function useClaimUsername() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (username: string) => {
+      const res = await fetch(`${BASE_URL}/api/profile/claim-username`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders(token!),
+        },
+        body: JSON.stringify({ username }),
+      });
+      if (res.status === 409) throw new UsernameTakenError();
+      if (!res.ok) {
+        let message = `HTTP ${res.status}`;
+        try {
+          const body = await res.json();
+          message = body.message || message;
+        } catch { /* ignore */ }
+        throw new Error(message);
+      }
+      return (await res.json()) as { username: string };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+    },
+  });
+}
+
+export function useUpdatePublicSettings() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: { isPublic?: boolean; bio?: string | null }) =>
+      apiFetch<{ isPublic: boolean; bio: string | null }>(
+        '/api/profile/public-settings',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(token!),
+          },
+          body: JSON.stringify(data),
+        },
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },

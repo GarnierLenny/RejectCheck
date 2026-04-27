@@ -995,9 +995,124 @@
     }
   },
   "settingsTab": {
+    "sidebarLabel": "Settings",
+    "savedBadge": "Saved ✓",
     "coverLetterNameLabel": "Name on cover letter",
     "coverLetterNamePlaceholder": "e.g. John Doe",
-    "coverLetterNameHint": "Used to sign your AI-generated cover letters"
+    "coverLetterNameHint": "Used to sign your AI-generated cover letters",
+    "sections": {
+      "publicProfile": "Public profile",
+      "autofill": "Autofill analysis",
+      "account": "Account"
+    },
+    "publicProfile": {
+      "cardTitle": "Public profile",
+      "cardDesc": "Lets others find you at /u/your-username with your challenge stats, streak, and heatmap.",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your name",
+      "nameHint": "Your name as it appears on your public profile and in mentions.",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "your-handle",
+      "usernameHint": "3–30 chars · letters, digits, _ or - only · case-insensitive",
+      "usernameInvalid": "3–30 chars · letters, digits, _ or - only",
+      "usernameTaken": "Username already taken",
+      "claimButton": "Claim",
+      "updateButton": "Update",
+      "bioLabel": "Bio",
+      "bioPlaceholder": "A short line about you (optional)",
+      "urlLabel": "URL",
+      "urlPlaceholder": "https://your-portfolio.com",
+      "socialLabel": "Social accounts",
+      "socialPlaceholder": "https://…",
+      "addSocial": "Add account",
+      "removeSocial": "Remove",
+      "publicToggleLabel": "Profile visible publicly",
+      "publicToggleHint": "When off, /u/your-username returns 404.",
+      "shareLabel": "Share your profile",
+      "copyButton": "Copy",
+      "copiedLabel": "Copied",
+      "viewButton": "View"
+    },
+    "autofill": {
+      "title": "Autofill analysis",
+      "description": "Saved data used to autofill the analyze form so you don't re-paste each time.",
+      "githubLabel": "GitHub username",
+      "githubPlaceholder": "username",
+      "githubHint": "Also shown as a link on your public profile.",
+      "linkedinLabel": "LinkedIn PDF",
+      "uploadLinkedin": "Upload LinkedIn PDF",
+      "replaceLinkedin": "Replace LinkedIn PDF",
+      "linkedinSavedLabel": "Saved"
+    },
+    "account": {
+      "title": "Account",
+      "description": "Manage your account, billing, and saved data.",
+      "email": "Email",
+      "subscription": "Subscription",
+      "active": "Active",
+      "inactive": "Inactive",
+      "renews": "Renews",
+      "manageBilling": "Manage billing",
+      "redirecting": "Redirecting…",
+      "upgradePlan": "Upgrade plan",
+      "savedCvs": "Saved CVs",
+      "addCv": "Add CV",
+      "noCvsYet": "No CVs saved yet.",
+      "preview": "Preview",
+      "delete": "Delete",
+      "accountActions": "Account actions",
+      "signOut": "Sign out",
+      "deleteAccount": "Delete account",
+      "deleteWarning": "This cannot be undone",
+      "deleting": "Deleting…",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    }
+  },
+  "navDropdown": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "claimToEnable": "Claim a username in Settings to enable your public profile"
+  },
+  "publicProfilePage": {
+    "header": {
+      "challenges": "Challenges",
+      "avgScore": "Avg score",
+      "bestScore": "Best score",
+      "currentStreak": "Current streak",
+      "longestStreak": "Longest streak",
+      "editProfile": "Edit profile",
+      "change": "Change",
+      "uploading": "Uploading…"
+    },
+    "heatmap": {
+      "title": "Daily challenge activity",
+      "lastYear": "in the last 365 days"
+    },
+    "recent": {
+      "title": "Recent challenges",
+      "empty": "No completed challenges yet."
+    },
+    "badges": {
+      "title": "Achievements",
+      "comingSoon": "Coming soon",
+      "items": {
+        "firstPerfect": "First perfect",
+        "firstPerfectDesc": "Score 100 on a challenge",
+        "streak7": "7-day streak",
+        "streak7Desc": "7 consecutive days",
+        "focusMaster": "Focus master",
+        "focusMasterDesc": "5 perfect scores in one tag",
+        "polyglot": "Polyglot",
+        "polyglotDesc": "Solved 3 different languages"
+      }
+    },
+    "notFound": {
+      "title": "Profile not found",
+      "description": "This user does not exist, or their profile is private.",
+      "cta": "Back home"
+    }
   },
   "privacy": {
     "title": "Privacy Policy (GDPR)",
