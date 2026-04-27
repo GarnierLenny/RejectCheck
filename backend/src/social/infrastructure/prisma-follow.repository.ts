@@ -6,6 +6,8 @@ import type {
   FollowResolution,
 } from '../ports/follow.repository';
 import type {
+  Feed,
+  FeedEntry,
   FollowList,
   FollowSummary,
   ListPaginationInput,
@@ -188,6 +190,95 @@ export class PrismaFollowRepository implements FollowRepository {
       where: { id: profileId },
       data: { followersLastSeenAt: new Date() },
     });
+  }
+
+  async listFeed(
+    viewerProfileId: number,
+    pagination: ListPaginationInput,
+  ): Promise<Feed> {
+    // Step 1: emails of public profiles I follow (cap 500)
+    const followRows = await this.prisma.follow.findMany({
+      where: {
+        followerId: viewerProfileId,
+        following: { isPublic: true, username: { not: null } },
+      },
+      select: {
+        following: { select: { email: true } },
+      },
+      take: 500,
+    });
+    const emails = followRows.map((r) => r.following.email);
+    if (emails.length === 0) return { entries: [], nextCursor: null };
+
+    // Step 2: their finalized attempts, paginated by ChallengeAttempt.id desc
+    const rows = await this.prisma.challengeAttempt.findMany({
+      where: {
+        email: { in: emails },
+        score: { gt: 0 },
+        ...(pagination.cursor !== undefined && {
+          id: { lt: pagination.cursor },
+        }),
+      },
+      orderBy: { id: 'desc' },
+      take: pagination.limit + 1,
+      select: {
+        id: true,
+        email: true,
+        score: true,
+        completedAt: true,
+        challenge: {
+          select: {
+            id: true,
+            title: true,
+            focusTag: true,
+            difficulty: true,
+            language: true,
+          },
+        },
+      },
+    });
+    if (rows.length === 0) return { entries: [], nextCursor: null };
+
+    const hasMore = rows.length > pagination.limit;
+    const sliced = hasMore ? rows.slice(0, pagination.limit) : rows;
+    const nextCursor = hasMore ? sliced[sliced.length - 1].id : null;
+
+    // Step 3: bulk-fetch profiles for the visible authors (still public)
+    const authorEmails = sliced.map((r) => r.email);
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        email: { in: authorEmails },
+        isPublic: true,
+        username: { not: null },
+      },
+      select: {
+        email: true,
+        username: true,
+        displayName: true,
+        avatarUrl: true,
+      },
+    });
+    const profileByEmail = new Map(profiles.map((p) => [p.email, p]));
+
+    const entries: FeedEntry[] = sliced
+      .map((row): FeedEntry | null => {
+        const author = profileByEmail.get(row.email);
+        if (!author?.username) return null;
+        return {
+          id: row.id,
+          user: {
+            username: author.username,
+            displayName: author.displayName,
+            avatarUrl: author.avatarUrl,
+          },
+          challenge: row.challenge,
+          score: row.score,
+          completedAt: row.completedAt,
+        };
+      })
+      .filter((e): e is FeedEntry => e !== null);
+
+    return { entries, nextCursor };
   }
 
   async getProfileIdByEmail(email: string): Promise<number | null> {

@@ -1090,6 +1090,16 @@
       "streaks": "Streaks"
     }
   },
+  "social": {
+    "feed": {
+      "title": "Activité",
+      "subtitle": "Les derniers défis des gens que tu suis.",
+      "empty": "Suis des gens pour voir leur activité ici.",
+      "discoverCta": "Découvrir les top joueurs",
+      "completedVerb": "a complété",
+      "completedTemplate": "{user} a complété {challenge}"
+    }
+  },
   "publicProfilePage": {
     "header": {
       "challenges": "Défis",

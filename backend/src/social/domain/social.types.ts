@@ -18,3 +18,27 @@ export type ListPaginationInput = {
   cursor?: number;
   limit: number;
 };
+
+export type FeedEntry = {
+  /** ChallengeAttempt.id, used as cursor for pagination. */
+  id: number;
+  user: {
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+  challenge: {
+    id: number;
+    title: string;
+    focusTag: string;
+    difficulty: string;
+    language: string;
+  };
+  score: number;
+  completedAt: Date;
+};
+
+export type Feed = {
+  entries: FeedEntry[];
+  nextCursor: number | null;
+};

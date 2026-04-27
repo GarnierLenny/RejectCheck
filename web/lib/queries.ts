@@ -95,6 +95,25 @@ export type FollowList = {
   nextCursor: number | null;
 };
 
+export type FeedEntry = {
+  id: number;
+  user: { username: string; displayName: string | null; avatarUrl: string | null };
+  challenge: {
+    id: number;
+    title: string;
+    focusTag: string;
+    difficulty: string;
+    language: string;
+  };
+  score: number;
+  completedAt: string;
+};
+
+export type Feed = {
+  entries: FeedEntry[];
+  nextCursor: number | null;
+};
+
 export type LeaderboardScope = 'global' | 'following';
 export type LeaderboardPeriod = 'alltime' | 'week';
 
@@ -345,6 +364,26 @@ export function usePublicFollowers(username: string | undefined) {
     initialPageParam: undefined as number | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: !!username,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useMyFeed() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useInfiniteQuery({
+    queryKey: ['social', 'me', 'feed', userId],
+    queryFn: ({ pageParam }) => {
+      const qs = new URLSearchParams();
+      if (pageParam !== undefined) qs.set('cursor', String(pageParam));
+      return apiFetch<Feed>(`/api/social/me/feed?${qs.toString()}`, {
+        headers: authHeaders(token!),
+      });
+    },
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!token && !!userId,
     staleTime: 30 * 1000,
   });
 }

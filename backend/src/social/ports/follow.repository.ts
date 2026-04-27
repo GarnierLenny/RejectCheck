@@ -1,4 +1,5 @@
 import type {
+  Feed,
   FollowList,
   ListPaginationInput,
 } from '../domain/social.types';
@@ -57,6 +58,16 @@ export interface FollowRepository {
 
   /** Number of followers since the user's last visit to the followers page. */
   countUnreadFollowers(profileId: number): Promise<number>;
+
+  /**
+   * Activity feed: chronological list of finalized challenge attempts from
+   * profiles that `viewerProfileId` follows. Filters to public profiles with
+   * a username. Capped to 500 follows for query bounds.
+   */
+  listFeed(
+    viewerProfileId: number,
+    pagination: ListPaginationInput,
+  ): Promise<Feed>;
 
   /** Mark the followers page as seen — clears the unread count. */
   markFollowersSeen(profileId: number): Promise<void>;

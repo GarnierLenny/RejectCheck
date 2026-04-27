@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { User as UserIcon, Settings as SettingsIcon, LogOut, Users } from "lucide-react";
+import { User as UserIcon, Settings as SettingsIcon, LogOut, Users, Activity } from "lucide-react";
 import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useLanguage } from "../../context/language";
@@ -152,6 +152,15 @@ export function AuthNavLink() {
                 {t.navDropdown.profile}
               </span>
             )}
+            <Link
+              href={localePath("/social/feed")}
+              onClick={() => setOpen(false)}
+              role="menuitem"
+              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-rc-text hover:bg-rc-bg no-underline"
+            >
+              <Activity size={14} className="text-rc-muted" />
+              {t.social.feed.title}
+            </Link>
             <Link
               href={localePath("/social/followers")}
               onClick={() => setOpen(false)}

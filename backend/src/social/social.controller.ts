@@ -23,6 +23,7 @@ import { ListMyFollowingUseCase } from './application/list-my-following.use-case
 import { ListPublicFollowersUseCase } from './application/list-public-followers.use-case';
 import { ListPublicFollowingUseCase } from './application/list-public-following.use-case';
 import { SeenFollowersUseCase } from './application/seen-followers.use-case';
+import { GetFeedUseCase } from './application/get-feed.use-case';
 
 @ApiTags('Social')
 @Controller('api/social')
@@ -33,6 +34,7 @@ export class SocialController {
     private readonly listMyFollowers: ListMyFollowersUseCase,
     private readonly listMyFollowing: ListMyFollowingUseCase,
     private readonly seenUc: SeenFollowersUseCase,
+    private readonly feedUc: GetFeedUseCase,
   ) {}
 
   @UseGuards(SupabaseGuard)
@@ -88,6 +90,19 @@ export class SocialController {
   @ApiOperation({ summary: 'Mark followers list as seen (clears unread count)' })
   seenFollowers(@AuthEmail() email: string) {
     return this.seenUc.execute(email);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Get('me/feed')
+  @ApiOperation({
+    summary: 'Activity feed: recent finalized challenge attempts from people I follow',
+  })
+  feed(@AuthEmail() email: string, @Query() query: unknown) {
+    const parsed = ListPaginationSchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0].message);
+    }
+    return this.feedUc.execute(email, parsed.data);
   }
 }
 
