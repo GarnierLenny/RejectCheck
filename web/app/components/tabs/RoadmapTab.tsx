@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
-import type { AnalysisResult } from "../types";
+import type { AnalysisResult, RoadmapSalaryImpact } from "../types";
 import { SectionHeader } from "../SectionHeader";
 import { getSeverityStyles } from "../types";
 import { useLanguage } from "../../../context/language";
@@ -19,6 +19,19 @@ type PriorityItem = {
   fixSummary: string;
 };
 
+function currencyGlyph(c: string): string {
+  return c === "USD" ? "$" : c === "GBP" ? "£" : "€";
+}
+
+function formatImpactValue(n: number, period: "annual" | "daily"): string {
+  if (period === "daily") return `${Math.round(n)}`;
+  if (n >= 1000) {
+    const k = Math.round(n / 100) / 10;
+    return `${k}k`;
+  }
+  return `${n}`;
+}
+
 const SEV_ORDER = { critical: 0, major: 1, minor: 2 };
 
 function stripMd(text: string): string {
@@ -31,6 +44,18 @@ export function RoadmapTab({ result }: Props) {
 
   const toggle = (id: string) =>
     setDone(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  // Map roadmap_item_id → salary impact (HIRED-only — null for FREE/SHORTLISTED)
+  const salaryImpactById = useMemo(() => {
+    const map = new Map<string, RoadmapSalaryImpact>();
+    result.negotiation_analysis?.roadmap_salary_impact?.forEach((m) => {
+      map.set(m.roadmap_item_id, m);
+    });
+    return map;
+  }, [result.negotiation_analysis?.roadmap_salary_impact]);
+
+  const period = result.negotiation_analysis?.period ?? "annual";
+  const periodSuffix = period === "daily" ? "/day" : "/year";
 
   // Build unified priority list from all issue sources
   const items: PriorityItem[] = [];
@@ -155,6 +180,7 @@ export function RoadmapTab({ result }: Props) {
                 <div className="bg-rc-surface border border-rc-border border-t-0 divide-y divide-rc-border/20">
                   {groupItems.map(item => {
                     const isDone = done.has(item.id);
+                    const impact = salaryImpactById.get(item.id);
                     return (
                       <div
                         key={item.id}
@@ -175,6 +201,17 @@ export function RoadmapTab({ result }: Props) {
                             <span className="font-mono text-[11px] text-rc-hint bg-rc-bg border border-rc-border/40 px-2 py-0.5">
                               {item.source}
                             </span>
+                            {impact && (
+                              <span
+                                className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-rc-green-bg text-rc-green border border-rc-green-border"
+                                title={impact.reasoning ?? t.roadmapSalaryImpact.tooltip}
+                              >
+                                +{currencyGlyph(impact.currency)}
+                                {formatImpactValue(impact.impact_min, period)}–
+                                {formatImpactValue(impact.impact_max, period)}
+                                {periodSuffix}
+                              </span>
+                            )}
                           </div>
                           <p className={`text-[17px] leading-[1.6] mb-1.5 transition-all ${isDone ? "text-rc-hint line-through" : "text-rc-text font-medium"}`}>
                             {item.title}

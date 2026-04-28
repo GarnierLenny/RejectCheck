@@ -38,6 +38,7 @@ import { validateJobDescription } from './analyze.utils';
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
+import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
@@ -69,6 +70,7 @@ export class AnalyzeController {
     private readonly analyzeCv: AnalyzeCvUseCase,
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
+    private readonly generateNegotiationUc: GenerateNegotiationUseCase,
     private readonly listHistory: ListHistoryUseCase,
     private readonly getAnalysisUc: GetAnalysisUseCase,
     private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
@@ -279,6 +281,27 @@ export class AnalyzeController {
       parsed.data.analysisId,
       parsed.data.language,
     );
+  }
+
+  @RequiresPremium('hired')
+  @Post(':id/negotiation')
+  @ApiOperation({
+    summary:
+      'Generate (or fetch cached) negotiation playbook for a given analysis',
+  })
+  async negotiation(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Body() body: { locale?: string } = {},
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const negotiation = await this.generateNegotiationUc.execute(
+      id,
+      email,
+      body?.locale || 'en',
+    );
+    return { negotiation };
   }
 
   @UseGuards(SupabaseGuard)

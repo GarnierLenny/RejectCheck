@@ -12,6 +12,7 @@
 - **Réécriture du CV (premium)** - Réécriture chirurgicale en un clic : mots-clés manquants injectés, ton passif converti, signaux de séniorité ajoutés. Export PDF.
 - **Entretien simulé IA (premium)** - Interviewer IA vocal en temps réel, spécifique au poste. Se termine par un débrief scoré sur la communication, la profondeur technique, et les signaux de leadership.
 - **Générateur de lettre de motivation (premium)** - Génère une lettre taillée pour ton CV et la fiche de poste visée.
+- **Playbook de négociation (tier HIRED)** - Graphique de positionnement salarial avec ta fourchette estimée, leviers de négociation cités à partir d'éléments concrets du CV/JD, email de contre-proposition prêt à envoyer ancré sur un montant défendable, stratégie d'ancrage, phrases d'entretien, et impact € estimé pour chaque action roadmap. Garde-fous anti-hallucination : le salaire divulgué par la JD n'est extrait que s'il est explicite (jamais inféré d'euphémismes type "compétitif") ; la fourchette marché est toujours labelée comme une estimation générale, jamais comme une offre spécifique de cette entreprise.
 
 ## Pour qui
 
@@ -37,7 +38,7 @@ Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
 - **Gratuit (plan REJECTED)** - 1 analyse gratuite, sans compte requis. Simulation ATS, score détaillé, audit ton du CV, audit séniorité.
 - **Shortlisted** - 7,99 €/mois. Analyses illimitées, historique, entretien simulé IA, réécriture CV.
-- **Hired** - 11,99 €/mois. Tout Shortlisted + générateur lettre de motivation, générateur message recruteur, salary reality check, roadmap entretien. Garantie : remboursement du mois en cours si tu décroches le job.
+- **Hired** - 11,99 €/mois. Tout Shortlisted + générateur lettre de motivation, playbook de négociation (email contre-proposition, leviers, positionnement marché, impact € par action roadmap). Garantie : remboursement du mois en cours si tu décroches le job.
 
 ## Pages clés
 

@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   ANALYSIS_REPOSITORY,
   CLAUDE_PROVIDER,
@@ -16,6 +16,8 @@ import type { PdfParser } from '../ports/pdf.parser';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import { decideQuota } from '../domain/quota.policy';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import { extractRoadmapItems } from '../domain/roadmap-items';
 import { QuotaExceededException } from '../../common/exceptions';
 
 const MAX_TEXT_CHARS = 12000;
@@ -53,6 +55,8 @@ export type AnalyzeCvResult = {
  */
 @Injectable()
 export class AnalyzeCvUseCase {
+  private readonly logger = new Logger(AnalyzeCvUseCase.name);
+
   constructor(
     @Inject(ANALYSIS_REPOSITORY) private readonly analyses: AnalysisRepository,
     @Inject(CLAUDE_PROVIDER) private readonly claude: ClaudeProvider,
@@ -98,6 +102,28 @@ export class AnalyzeCvUseCase {
       locale: cmd.locale,
     });
 
+    let negotiation: NegotiationAnalysis | null = null;
+    if (cmd.email && (await this.subs.isHired(cmd.email))) {
+      onStep?.('negotiation_coaching');
+      try {
+        negotiation = await this.claude.generateNegotiation({
+          jobText,
+          result,
+          roadmapItems: extractRoadmapItems(result),
+          locale: cmd.locale ?? 'en',
+        });
+      } catch (err: any) {
+        // Negotiation is best-effort: never fail the whole analysis if it errors.
+        this.logger.warn(
+          `Negotiation generation failed (analysis still succeeds): ${err?.message || err}`,
+        );
+      }
+    }
+
+    if (negotiation) {
+      result.negotiation_analysis = negotiation;
+    }
+
     const analysisId = await this.persist({
       cmd,
       result,
@@ -105,6 +131,7 @@ export class AnalyzeCvUseCase {
       linkedinText,
       githubInfo,
       motivationLetterText,
+      negotiation,
     });
 
     return { result, analysisId };
@@ -162,6 +189,7 @@ export class AnalyzeCvUseCase {
     linkedinText: string;
     githubInfo: string;
     motivationLetterText: string;
+    negotiation: NegotiationAnalysis | null;
   }): Promise<number | null> {
     const { cmd, result } = args;
     const isRegistered = !!cmd.isRegistered;
@@ -188,6 +216,7 @@ export class AnalyzeCvUseCase {
       githubInfo: args.githubInfo || null,
       motivationLetter: args.motivationLetterText || null,
       result,
+      negotiationAnalysis: args.negotiation,
     });
 
     const meta: ApplicationUpsertInput['meta'] = {

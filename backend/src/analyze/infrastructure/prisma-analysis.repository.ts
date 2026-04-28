@@ -10,6 +10,7 @@ import type {
 } from '../ports/analysis.repository';
 import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 
 type AnalysisRow = {
   id: number;
@@ -25,6 +26,7 @@ type AnalysisRow = {
   motivationLetter: string | null;
   coverLetter: string | null;
   result: Prisma.JsonValue | null;
+  negotiationAnalysis: Prisma.JsonValue | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -55,6 +57,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         githubInfo: input.githubInfo,
         motivationLetter: input.motivationLetter,
         result: input.result as unknown as Prisma.InputJsonValue,
+        negotiationAnalysis: input.negotiationAnalysis
+          ? (input.negotiationAnalysis as unknown as Prisma.InputJsonValue)
+          : Prisma.DbNull,
       },
     });
     return { id: created.id };
@@ -116,6 +121,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         jobDescription: true,
         result: true,
         coverLetter: true,
+        negotiationAnalysis: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -128,6 +134,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       jobDescription: row.jobDescription,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
+      negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -184,6 +191,19 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     });
   }
 
+  async attachNegotiation(
+    id: number,
+    email: string,
+    negotiation: NegotiationAnalysis,
+  ): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: {
+        negotiationAnalysis: negotiation as unknown as Prisma.InputJsonValue,
+      },
+    });
+  }
+
   async deleteByIdForEmail(id: number, email: string): Promise<void> {
     const exists = await this.prisma.analysis.findFirst({
       where: { id, email },
@@ -208,6 +228,8 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       motivationLetter: row.motivationLetter,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
+      negotiationAnalysis:
+        (row.negotiationAnalysis as NegotiationAnalysis | null) ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

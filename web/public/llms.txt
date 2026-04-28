@@ -12,6 +12,7 @@
 - **CV rewrite (premium)** - One-click surgical rewrite: missing keywords injected, passive tone converted, seniority signals added. Exports as PDF.
 - **AI mock interview (premium)** - Real-time voice-based AI interviewer, role-specific. Ends with a scored debrief across communication, technical depth, and leadership signals.
 - **Cover letter generator (premium)** - Generates a tailored cover letter from your CV and the target job description.
+- **Negotiation playbook (HIRED tier)** - Market salary positioning chart with the candidate's likely range, leverage points cited from CV/JD evidence, a ready-to-send counter-offer email anchored to a defensible figure, anchoring strategy, interview talking points, and a € impact estimate per roadmap action. Anti-hallucination guardrails: salary disclosed by the JD is extracted only when explicit (no euphemism inference); the broader market range is always labelled as a general estimate, never as a company-specific offer.
 
 ## Who it's for
 
@@ -37,7 +38,7 @@ See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 
 - **Free (REJECTED plan)** - 1 free analysis, no account required. ATS simulation, score breakdown, CV tone audit, seniority audit.
 - **Shortlisted** - €7.99/month. Unlimited analyses, history, AI mock interview, CV rewrite.
-- **Hired** - €11.99/month. Everything in Shortlisted + cover letter generator, recruiter message generator, salary reality check, interview roadmap. Refund guarantee: refund of the current month if you get hired.
+- **Hired** - €11.99/month. Everything in Shortlisted + cover letter generator, negotiation playbook (counter-offer email, leverage points, salary positioning, € impact per roadmap action). Refund guarantee: refund of the current month if you get hired.
 
 ## Key pages
 
