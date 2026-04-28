@@ -55,7 +55,7 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
 - **Features**: Everything in SHORTLISTED, plus:
   - RejectCheck Roadmaps (personalized multi-week preparation roadmap) - *coming soon*
   - Cover Letter Generator (AI-generated cover letter tailored to the job and CV)
-  - **Negotiation Playbook** (market positioning chart, leverage points cited from CV/JD, ready-to-send counter-offer email, anchoring strategy, interview talking points, salary impact € for each roadmap action)
+  - **Negotiation Playbook** (market positioning chart, leverage points cited from CV/JD, ready-to-send counter-offer email, anchoring strategy, interview talking points, salary impact estimate for each roadmap action)
   - Recruiter Message Generator (tailored LinkedIn/email outreach messages) - *coming soon*
   - Chrome Extension (one-click analysis from any job board) - *coming soon*
 - **Guarantee**: If you get hired within your current billing month, RejectCheck refunds that month.
