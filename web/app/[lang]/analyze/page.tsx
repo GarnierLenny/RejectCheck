@@ -20,6 +20,7 @@ import { ProjectTab } from "../../components/tabs/ProjectTab";
 import { ImproveTab } from "../../components/tabs/ImproveTab";
 import { InterviewTab } from "../../components/tabs/InterviewTab";
 import { CoverLetterTab } from "../../components/tabs/CoverLetterTab";
+import { NegotiationTab } from "../../components/tabs/NegotiationTab";
 import { TechnicalRadarChart } from "../../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../utils/export";
 import { useAuth } from "../../../context/auth";
@@ -28,7 +29,7 @@ import { useLanguage } from "../../../context/language";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
+type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -45,7 +46,7 @@ function AnalyzeContent() {
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const t = searchParams.get("tab");
-    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","roadmap","project","improve","interview","cover-letter"];
+    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","negotiation","roadmap","project","improve","interview","cover-letter"];
     return validTabs.includes(t as Tab) ? (t as Tab) : "overview";
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
@@ -308,6 +309,7 @@ function AnalyzeContent() {
     { id: "cv-analysis",  label: t.tabs.cvAnalysis,  badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
     { id: "signals",      label: t.tabs.signals,     badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",        label: t.tabs.redFlags,    badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
+    { id: "negotiation",  label: t.tabs.negotiation, badge: "✦", badgeClass: "text-rc-red" },
     { id: "roadmap",      label: t.tabs.roadmap,     badge: null, badgeClass: "" },
     { id: "project",      label: t.tabs.project,     badge: null, badgeClass: "" },
     { id: "improve",      label: t.tabs.improveCv,   badge: "✦", badgeClass: "text-rc-red" },
@@ -417,6 +419,7 @@ function AnalyzeContent() {
             {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
             {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
             {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
+            {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
             {activeTab === "roadmap"      && <RoadmapTab result={result} />}
             {activeTab === "project"      && <ProjectTab project={result.project_recommendation} />}
             {activeTab === "improve" && (

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth';
 import { apiFetch, authHeaders } from './api';
 import type { Profile, Application, PublicProfile } from './queries';
+import type { NegotiationAnalysis } from '../app/components/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -454,6 +455,26 @@ export function useGenerateCoverLetter() {
             ...authHeaders(token!),
           },
           body: JSON.stringify({ analysisId, language }),
+        },
+      ),
+  });
+}
+
+export function useGenerateNegotiation() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+
+  return useMutation({
+    mutationFn: ({ analysisId, locale }: { analysisId: number; locale?: string }) =>
+      apiFetch<{ negotiation: NegotiationAnalysis }>(
+        `/api/analyze/${analysisId}/negotiation`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(token!),
+          },
+          body: JSON.stringify({ locale: locale ?? 'en' }),
         },
       ),
   });

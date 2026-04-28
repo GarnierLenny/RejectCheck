@@ -64,6 +64,7 @@ model Analysis {
   motivationLetter String?      // Registered users only
   coverLetter      String?      // Saved after HIRED-plan generation
   result           Json?        // Registered users only
+  negotiationAnalysis Json?     // HIRED-only negotiation playbook (market positioning, leverage, counter-offer, talking points, roadmap salary impact)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   application       Application?

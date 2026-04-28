@@ -20,6 +20,78 @@ export type ProjectRecommendation = {
   what_matters: string[];
 };
 
+export type SalaryRange = {
+  min: number;
+  max: number;
+  currency: 'EUR' | 'USD' | 'GBP';
+};
+
+export type LeveragePoint = {
+  label: string;
+  level: 'high' | 'medium' | 'watch';
+  evidence: string;
+  impact_eur?: number | null;
+};
+
+export type CounterOfferEmail = {
+  subject: string;
+  body: string;
+  anchor_amount: number;
+};
+
+export type AnchoringStrategy = {
+  when_to_anchor: string;
+  anchor_amount: number;
+  fallback: string;
+};
+
+export type TalkingPoint = {
+  scenario: string;
+  phrase: string;
+};
+
+export type RoadmapSalaryImpact = {
+  roadmap_item_id: string;
+  impact_min: number;
+  impact_max: number;
+  currency: 'EUR' | 'USD' | 'GBP';
+  reasoning?: string;
+};
+
+export type SalaryPeriod = 'annual' | 'daily';
+
+export type NegotiationAnalysis = {
+  period: SalaryPeriod;
+  market_range: SalaryRange;
+  candidate_range: SalaryRange;
+  jd_disclosed_salary: SalaryRange | null;
+  gap_vs_market: number;
+  gap_reason?: string;
+  how_to_close?: string;
+  leverage_points: LeveragePoint[];
+  counter_offer_email: CounterOfferEmail;
+  anchoring_strategy: AnchoringStrategy;
+  talking_points: TalkingPoint[];
+  roadmap_salary_impact: RoadmapSalaryImpact[];
+  confidence: 'low' | 'medium' | 'high';
+  disclaimer: string;
+  sources: string[];
+};
+
+export type JobDetails = {
+  title: string;
+  company: string;
+  seniority?: string | null;
+  pay?: string | null;
+  office_location?: string | null;
+  work_setting?: string | null;
+  contract_type?: string | null;
+  languages_required?: string | null;
+  years_of_experience?: string | null;
+  company_stage?: string | null;
+  jd_language?: string;
+};
+
 export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"] & {
   technical_analysis: {
     skills: TechnicalSkill[];
@@ -30,6 +102,8 @@ export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"] & {
     seniority_signals: string[];
   };
   project_recommendation: ProjectRecommendation;
+  job_details: JobDetails;
+  negotiation_analysis?: NegotiationAnalysis | null;
 };
 export type Issue = AnalysisResult["audit"]["cv"]["issues"][number];
 export type Fix = AnalysisResult["seniority_analysis"]["fix"];

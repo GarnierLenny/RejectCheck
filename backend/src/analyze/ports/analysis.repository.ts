@@ -1,5 +1,6 @@
 import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 
 export type SaveAnalysisInput = {
   email: string;
@@ -13,6 +14,7 @@ export type SaveAnalysisInput = {
   githubInfo: string | null;
   motivationLetter: string | null;
   result: AnalyzeResponse;
+  negotiationAnalysis?: NegotiationAnalysis | null;
 };
 
 export type ApplicationUpsertInput = {
@@ -70,6 +72,13 @@ export interface AnalysisRepository {
     id: number,
     email: string,
     coverLetter: string,
+  ): Promise<void>;
+
+  /** Persists the HIRED-only negotiation playbook on the analysis row. */
+  attachNegotiation(
+    id: number,
+    email: string,
+    negotiation: NegotiationAnalysis,
   ): Promise<void>;
 
   /** Throws AnalysisNotFoundException if the row doesn't belong to the email. */

@@ -1,5 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { NegotiationAnalysisSchema } from './negotiation-response.dto';
 
 export const FixSchema = z.object({
   summary: z.string(),
@@ -193,6 +194,7 @@ export const AnalyzeResponseSchema = z.object({
     market_context: z.string(),
     seniority_signals: z.array(z.string()),
   }),
+  negotiation_analysis: NegotiationAnalysisSchema.nullable().optional(),
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}

@@ -108,6 +108,7 @@ export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
       'AI CV rewrite with PDF export',
       'Voice-based AI mock interview',
       'Cover letter generator',
+      'Negotiation playbook (counter-offer email, leverage points, salary positioning, per-action impact estimates)',
       'Application tracker',
     ],
     publisher: {

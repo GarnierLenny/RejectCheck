@@ -1,4 +1,5 @@
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 
 /**
  * Domain-level snapshot of a stored analysis. Mirrors the persistence row
@@ -19,6 +20,7 @@ export type StoredAnalysis = {
   motivationLetter: string | null;
   coverLetter: string | null;
   result: AnalyzeResponse | null;
+  negotiationAnalysis: NegotiationAnalysis | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -35,6 +37,7 @@ export type AnalysisDetail = Pick<
   | 'jobDescription'
   | 'result'
   | 'coverLetter'
+  | 'negotiationAnalysis'
   | 'createdAt'
   | 'updatedAt'
 >;
