@@ -45,8 +45,18 @@ See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 - Home (EN): https://rejectcheck.com/en
 - Home (FR): https://rejectcheck.com/fr
 - CV Analyzer: https://rejectcheck.com/en/analyze
+- ATS Checker (free, for developers): https://rejectcheck.com/en/ats-checker
+- Resume Checker (AI, beyond ATS): https://rejectcheck.com/en/resume-checker
+- Software Engineer CV Guide: https://rejectcheck.com/en/software-engineer-cv — full structural guide for engineer CVs (5 sections, senior vs junior signaling, FAQ).
+- Deep CV Review: https://rejectcheck.com/en/cv-review — written critique with before/after rewrites, anchored to a specific role. Distinct from the score-based resume checker.
 - Pricing: https://rejectcheck.com/en/pricing
 - Privacy policy: https://rejectcheck.com/en/privacy
+
+## Guides (long-form, citation-friendly)
+
+- How to Pass ATS in 2026 — A Developer's Guide: https://rejectcheck.com/en/guides/how-to-pass-ats — step-by-step on ATS parsing, format traps, exact-keyword matching, and verification.
+- Why Developers Get Rejected (And Never Find Out Why): https://rejectcheck.com/en/guides/why-developers-get-rejected — the three filters between "Submit" and an interview (ATS, 6-second HR scan, hiring manager review), 9 red flags, junior-vs-senior signals, 3-step iteration framework.
+- Software Engineer Resume Tips — 12 Rules: https://rejectcheck.com/en/guides/software-engineer-resume-tips — actionable tips ranked by impact, with before/after bullet rewrites for hiring manager review.
 
 ## What makes RejectCheck different
 
@@ -69,4 +79,4 @@ Available in English and French. Each page has hreflang alternates. French versi
 - Support: support@rejectcheck.com
 - Website: https://rejectcheck.com
 
-Last updated: 2026-04-23
+Last updated: 2026-04-29

@@ -941,6 +941,22 @@ export default function Home() {
       <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="font-mono text-[13px] text-rc-muted">{t.landing.footer.copyright}</div>
         <div className="flex gap-6 flex-wrap justify-center">
+          {locale === "en" && (
+            <>
+              <Link href="/en/software-engineer-cv" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+                SE CV Guide
+              </Link>
+              <Link href="/en/cv-review" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+                CV Review
+              </Link>
+              <Link href="/en/ats-checker" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+                ATS Checker
+              </Link>
+              <Link href="/en/resume-checker" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
+                Resume Checker
+              </Link>
+            </>
+          )}
           <Link href={localePath("/for-teams")} className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">
             {t.landing.footer.forTeams}
           </Link>
