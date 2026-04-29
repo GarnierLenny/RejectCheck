@@ -26,7 +26,18 @@ const ROUTES: RoutePath[] = [
 const LANGS = ['en', 'fr'] as const
 
 // English-only routes (no FR version). Emitted without hreflang alternates.
-const EN_ONLY_ROUTES: RoutePath[] = []
+const EN_ONLY_ROUTES: RoutePath[] = [
+  // SEO product landings (target: "ats checker", "resume checker", "ats resume checker")
+  { path: '/ats-checker', changeFrequency: 'monthly', priority: 0.85 },
+  { path: '/resume-checker', changeFrequency: 'monthly', priority: 0.85 },
+  // Phase 2 SEO landings (target: "software engineer cv" — top volume; "cv review" — trending UP)
+  { path: '/software-engineer-cv', changeFrequency: 'monthly', priority: 0.85 },
+  { path: '/cv-review', changeFrequency: 'monthly', priority: 0.85 },
+  // Long-form guides (target: AIO / LLM citation for informational queries)
+  { path: '/guides/how-to-pass-ats', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/guides/why-developers-get-rejected', changeFrequency: 'monthly', priority: 0.7 },
+  { path: '/guides/software-engineer-resume-tips', changeFrequency: 'monthly', priority: 0.7 },
+]
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()

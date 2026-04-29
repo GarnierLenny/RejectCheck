@@ -208,6 +208,88 @@ export function faqPageSchema(
   }
 }
 
+export function articleSchema({
+  headline,
+  description,
+  url,
+  datePublished,
+  dateModified,
+  locale = 'en',
+  author = { type: 'Organization', name: 'RejectCheck', url: SITE_URL },
+}: {
+  headline: string
+  description: string
+  url: string
+  datePublished: string
+  dateModified: string
+  locale?: 'en' | 'fr'
+  author?: { type: 'Organization' | 'Person'; name: string; url?: string }
+}): JsonLdSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline,
+    description,
+    author: {
+      '@type': author.type,
+      name: author.name,
+      ...(author.url ? { url: author.url } : {}),
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'RejectCheck',
+      url: SITE_URL,
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/RejectCheck_white.png` },
+    },
+    datePublished,
+    dateModified,
+    mainEntityOfPage: url,
+    inLanguage: locale,
+  }
+}
+
+export function howToPassAtsSchema(url: string): JsonLdSchema {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'How to Pass ATS Filters in 2026',
+    description:
+      'Step-by-step guide to passing Applicant Tracking System filters: format your CV for plain-text parsing, mirror job-description keywords, and avoid the structural traps that trigger auto-rejection.',
+    totalTime: 'PT15M',
+    inLanguage: 'en',
+    step: [
+      {
+        '@type': 'HowToStep',
+        position: 1,
+        name: 'Save your CV as a single-column PDF without images or text boxes',
+        text: 'ATS parsers extract plain text. Tables, columns, headers/footers, text boxes, and images break parsing. Use a single-column layout with standard section headings.',
+        url: `${url}#step-format`,
+      },
+      {
+        '@type': 'HowToStep',
+        position: 2,
+        name: 'Mirror the exact keywords from the job description',
+        text: 'ATS scores you on keyword match. If the JD says "Kubernetes", do not write "K8s". If it says "TypeScript", do not write "TS". Use the exact phrasing in your skills section and bullet points.',
+        url: `${url}#step-keywords`,
+      },
+      {
+        '@type': 'HowToStep',
+        position: 3,
+        name: 'Use standard section headings',
+        text: 'ATS looks for headings like "Experience", "Education", "Skills". Creative labels ("My Journey", "Tech I Love") may not be parsed into the right fields.',
+        url: `${url}#step-headings`,
+      },
+      {
+        '@type': 'HowToStep',
+        position: 4,
+        name: 'Verify your CV passes by running an ATS check',
+        text: 'Before submitting, run your CV through an ATS checker against the specific job description. RejectCheck simulates the ATS layer and surfaces missing keywords with point values.',
+        url: `${url}#step-verify`,
+      },
+    ],
+  }
+}
+
 export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
   const analyzeUrl = `${SITE_URL}/${locale}/analyze`
 
