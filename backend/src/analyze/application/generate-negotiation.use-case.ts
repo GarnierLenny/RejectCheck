@@ -35,7 +35,10 @@ export class GenerateNegotiationUseCase {
     // Cache hit only if the stored entry has the `period` field. Pre-period
     // entries (generated before period awareness shipped) get regenerated so
     // the frontend renders correct units (/day vs /year).
-    if (detail.negotiationAnalysis && (detail.negotiationAnalysis as { period?: string }).period) {
+    if (
+      detail.negotiationAnalysis &&
+      (detail.negotiationAnalysis as { period?: string }).period
+    ) {
       return detail.negotiationAnalysis;
     }
 

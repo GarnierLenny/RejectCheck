@@ -139,7 +139,7 @@ export default async function OgImage({
               letterSpacing: '0.08em',
             }}
           >
-            rejectcheck.com/{lang}
+            {`rejectcheck.com/${lang}`}
           </div>
           <div
             style={{

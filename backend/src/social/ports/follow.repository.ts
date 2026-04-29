@@ -23,7 +23,10 @@ export interface FollowRepository {
   ): Promise<FollowResolution | null>;
 
   /** Idempotent: returns true if a new row was created, false if it already existed. */
-  follow(followerProfileId: number, followingProfileId: number): Promise<boolean>;
+  follow(
+    followerProfileId: number,
+    followingProfileId: number,
+  ): Promise<boolean>;
 
   /** Idempotent: returns true if a row was deleted. */
   unfollow(

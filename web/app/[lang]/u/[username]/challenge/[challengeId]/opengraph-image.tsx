@@ -104,7 +104,7 @@ export default async function OgImage({
               letterSpacing: "0.04em",
             }}
           >
-            {displayName} ({`@${handle}`})
+            {`${displayName} (@${handle})`}
           </div>
           <div
             style={{
@@ -173,7 +173,7 @@ export default async function OgImage({
               letterSpacing: "0.08em",
             }}
           >
-            rejectcheck.com/u/{handle}
+            {`rejectcheck.com/u/${handle}`}
           </div>
           <div
             style={{

@@ -164,7 +164,10 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
     }
     // perfect_score: oldest score = 100
     if (perfectCount >= 1) {
-      earned.push({ slug: 'perfect_score', earnedAt: perfectAttempts[0].completedAt });
+      earned.push({
+        slug: 'perfect_score',
+        earnedAt: perfectAttempts[0].completedAt,
+      });
     }
     // triple_crown: 5 perfect scores — earnedAt = 5th perfect's completedAt
     if (perfectCount >= 5) {
@@ -304,9 +307,10 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
     });
   }
 
-  async getOwnerStatus(
-    email: string,
-  ): Promise<{ username: string | null; usernameUpdatedAt: Date | null } | null> {
+  async getOwnerStatus(email: string): Promise<{
+    username: string | null;
+    usernameUpdatedAt: Date | null;
+  } | null> {
     const row = await this.prisma.profile.findUnique({
       where: { email },
       select: { username: true, usernameUpdatedAt: true },

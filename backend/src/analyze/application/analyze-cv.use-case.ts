@@ -1,4 +1,10 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import {
   ANALYSIS_REPOSITORY,
   CLAUDE_PROVIDER,
@@ -71,7 +77,15 @@ export class AnalyzeCvUseCase {
   ): Promise<AnalyzeCvResult> {
     if (!cmd.cvBuffer) throw new BadRequestException('CV is required');
 
-    await this.assertQuota(cmd.email, cmd.ip);
+    const subscriptionState = await this.resolveSubscriptionState(cmd.email);
+    Sentry.setTag('tier', subscriptionState.tier);
+    Sentry.setTag('plan', subscriptionState.plan);
+
+    await this.assertQuota(
+      cmd.email,
+      cmd.ip,
+      subscriptionState.hasActiveSubscription,
+    );
 
     onStep?.('parsing_cv');
     const cvText = await this.pdf.parse(cmd.cvBuffer);
@@ -103,7 +117,7 @@ export class AnalyzeCvUseCase {
     });
 
     let negotiation: NegotiationAnalysis | null = null;
-    if (cmd.email && (await this.subs.isHired(cmd.email))) {
+    if (cmd.email && subscriptionState.plan === 'hired') {
       onStep?.('negotiation_coaching');
       try {
         negotiation = await this.claude.generateNegotiation({
@@ -137,10 +151,11 @@ export class AnalyzeCvUseCase {
     return { result, analysisId };
   }
 
-  private async assertQuota(email?: string, ip?: string): Promise<void> {
-    const hasActiveSubscription = email
-      ? await this.subs.isPremium(email)
-      : false;
+  private async assertQuota(
+    email: string | undefined,
+    ip: string | undefined,
+    hasActiveSubscription: boolean,
+  ): Promise<void> {
     const countByEmail = email ? await this.analyses.countByEmail(email) : 0;
     const countByIp = ip ? await this.analyses.countByIp(ip) : 0;
 
@@ -157,6 +172,30 @@ export class AnalyzeCvUseCase {
         'Analysis limit reached. Upgrade to continue.',
       );
     }
+  }
+
+  private async resolveSubscriptionState(email: string | undefined): Promise<{
+    tier: 'guest' | 'connected' | 'premium';
+    plan: 'rejected' | 'shortlisted' | 'hired';
+    hasActiveSubscription: boolean;
+  }> {
+    if (!email) {
+      return { tier: 'guest', plan: 'rejected', hasActiveSubscription: false };
+    }
+    const hasActiveSubscription = await this.subs.isPremium(email);
+    if (!hasActiveSubscription) {
+      return {
+        tier: 'connected',
+        plan: 'rejected',
+        hasActiveSubscription: false,
+      };
+    }
+    const hired = await this.subs.isHired(email);
+    return {
+      tier: 'premium',
+      plan: hired ? 'hired' : 'shortlisted',
+      hasActiveSubscription: true,
+    };
   }
 
   private async tryParse(buffer?: Buffer): Promise<string> {

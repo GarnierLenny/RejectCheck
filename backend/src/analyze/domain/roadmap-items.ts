@@ -85,10 +85,7 @@ export function extractRoadmapItems(result: AnalyzeResponse): RoadmapItem[] {
     });
   }
 
-  if (
-    result.cv_tone.detected !== 'active' &&
-    result.cv_tone.fix?.summary
-  ) {
+  if (result.cv_tone.detected !== 'active' && result.cv_tone.fix?.summary) {
     items.push({
       id: 'tone',
       source: 'Profile · Writing',

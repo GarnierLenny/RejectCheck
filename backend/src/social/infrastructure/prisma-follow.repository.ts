@@ -49,7 +49,10 @@ export class PrismaFollowRepository implements FollowRepository {
     try {
       await this.prisma.$transaction([
         this.prisma.follow.create({
-          data: { followerId: followerProfileId, followingId: followingProfileId },
+          data: {
+            followerId: followerProfileId,
+            followingId: followingProfileId,
+          },
         }),
         this.prisma.profile.update({
           where: { id: followerProfileId },
@@ -416,7 +419,9 @@ export class PrismaFollowRepository implements FollowRepository {
     });
     const blocked = new Set<number>();
     for (const row of rows) {
-      blocked.add(row.blockerId === viewerProfileId ? row.blockedId : row.blockerId);
+      blocked.add(
+        row.blockerId === viewerProfileId ? row.blockedId : row.blockerId,
+      );
     }
     return blocked;
   }
@@ -431,10 +436,9 @@ export class PrismaFollowRepository implements FollowRepository {
       select: { id: true, email: true },
     });
     const idByEmail = new Map(candidateProfiles.map((p) => [p.id, p.email]));
-    const blockedIds = await this.blockedEitherWayAmong(
-      viewerProfileId,
-      [...idByEmail.keys()],
-    );
+    const blockedIds = await this.blockedEitherWayAmong(viewerProfileId, [
+      ...idByEmail.keys(),
+    ]);
     const blockedEmails = new Set<string>();
     for (const id of blockedIds) {
       const email = idByEmail.get(id);
