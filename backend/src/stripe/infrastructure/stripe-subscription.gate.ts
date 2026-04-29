@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { SubscriptionGate } from '../../common/ports/subscription.gate';
+import type {
+  SubscriptionGate,
+  SubscriptionState,
+} from '../../common/ports/subscription.gate';
 import { SUBSCRIPTION_REPOSITORY } from '../ports/tokens';
 import type { SubscriptionRepository } from '../ports/subscription.repository';
 import { isActive, isHiredAndActive } from '../domain/subscription.types';
@@ -26,5 +29,13 @@ export class StripeSubscriptionGate implements SubscriptionGate {
   async isHired(email: string): Promise<boolean> {
     const sub = await this.subscriptions.findByEmail(email);
     return isHiredAndActive(sub);
+  }
+
+  async getState(email: string): Promise<SubscriptionState> {
+    const sub = await this.subscriptions.findByEmail(email);
+    return {
+      hasActiveSubscription: isActive(sub),
+      isHired: isHiredAndActive(sub),
+    };
   }
 }

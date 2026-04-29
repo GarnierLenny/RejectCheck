@@ -458,29 +458,18 @@
       "analyzing_linkedin": "LinkedIn Signal",
       "analyzing_github": "GitHub Signal",
       "dual_ai_analysis": "Deep Analysis",
+      "negotiation_coaching": "Negotiation Coaching",
       "finalizing": "Final Diagnostic"
     },
     "claudeTasks": [
-      "ATS Simulation",
-      "Red Flags",
-      "Tone & Seniority",
       "Tech Fit",
-      "Project Blueprint"
+      "Project Blueprint",
+      "ATS Simulation",
+      "Tone & Seniority",
+      "Red Flags"
     ],
-    "claudeThoughts": [
-      "Mapping depth of technical stack...",
-      "Commit cadence suggests strong ownership",
-      "Inferring system design from project scope",
-      "Breadth vs. specialization: assessing...",
-      "Open source signal: collaborative mindset",
-      "Framework maturity curve detected",
-      "Architecture patterns identified",
-      "Cross-referencing job description fit...",
-      "Evaluating technology stack coherence",
-      "Seniority gap detected in scope signals",
-      "Project complexity: assessing scalability signals",
-      "Contribution patterns: analyzing impact..."
-    ]
+    "liveThoughtsPlaceholder": "Claude is reasoning…",
+    "liveThoughtsLabel": "Live reasoning"
   },
   "paywall": {
     "badge": "Free Scan Complete",

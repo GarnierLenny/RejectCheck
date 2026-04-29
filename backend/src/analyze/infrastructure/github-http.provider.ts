@@ -23,18 +23,18 @@ export class GithubHttpProvider implements GithubProvider {
     try {
       const headers = { 'User-Agent': 'RejectCheck-App' };
       const encoded = encodeURIComponent(username);
+      const init = { headers, signal: AbortSignal.timeout(2500) };
 
-      const profileRes = await fetch(
-        `https://api.github.com/users/${encoded}`,
-        { headers },
-      );
+      const [profileRes, reposRes] = await Promise.all([
+        fetch(`https://api.github.com/users/${encoded}`, init),
+        fetch(
+          `https://api.github.com/users/${encoded}/repos?sort=updated&per_page=10`,
+          init,
+        ),
+      ]);
+
       if (!profileRes.ok) return null;
       const profile = (await profileRes.json()) as GithubProfile;
-
-      const reposRes = await fetch(
-        `https://api.github.com/users/${encoded}/repos?sort=updated&per_page=10`,
-        { headers },
-      );
       const repos: GithubRepo[] = reposRes.ok
         ? ((await reposRes.json()) as GithubRepo[])
         : [];

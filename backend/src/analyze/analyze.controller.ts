@@ -150,7 +150,21 @@ export class AnalyzeController {
           isRegistered: !!isRegistered,
           locale,
         },
-        (step) => write({ step }),
+        (e) => {
+          if (e.type === 'step') write({ step: e.step });
+          else if (e.type === 'analysis_delta')
+            write({ step: 'analysis_delta', delta: e.delta });
+          else if (e.type === 'analysis_done')
+            write({
+              step: 'analysis_done',
+              result: e.result,
+              analysisId: e.analysisId,
+            });
+          else if (e.type === 'negotiation_delta')
+            write({ step: 'negotiation_delta', delta: e.delta });
+          else if (e.type === 'negotiation_done')
+            write({ step: 'negotiation_done', negotiation: e.negotiation });
+        },
       );
 
       write({ step: 'done', result, analysisId });
