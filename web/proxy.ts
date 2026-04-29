@@ -38,6 +38,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/auth/') ||
+    pathname.startsWith('/debug-sentry') ||
     pathname.includes('.') // static files (favicon.ico, images, etc.)
   ) {
     return NextResponse.next()

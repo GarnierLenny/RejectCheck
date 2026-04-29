@@ -134,7 +134,8 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       jobDescription: row.jobDescription,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
-      negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
+      negotiationAnalysis:
+        row.negotiationAnalysis as NegotiationAnalysis | null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

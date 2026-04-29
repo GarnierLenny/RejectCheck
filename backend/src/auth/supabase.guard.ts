@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 // Cache the JWKS fetcher — re-used across all requests, keys refreshed lazily by jose
@@ -57,6 +58,10 @@ export class SupabaseGuard implements CanActivate {
         email: payload.email as string,
         sub: payload.sub as string,
       };
+      Sentry.setUser({
+        id: payload.sub as string,
+        email: payload.email as string,
+      });
       return true;
     } catch (err: any) {
       throw new UnauthorizedException(err?.message ?? 'Invalid token');

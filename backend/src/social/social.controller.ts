@@ -46,30 +46,21 @@ export class SocialController {
   @UseGuards(SupabaseGuard)
   @Post('follow/:username')
   @ApiOperation({ summary: 'Follow a user by username' })
-  follow(
-    @AuthEmail() email: string,
-    @Param('username') username: string,
-  ) {
+  follow(@AuthEmail() email: string, @Param('username') username: string) {
     return this.followUc.execute(email, username);
   }
 
   @UseGuards(SupabaseGuard)
   @Delete('follow/:username')
   @ApiOperation({ summary: 'Unfollow a user by username' })
-  unfollow(
-    @AuthEmail() email: string,
-    @Param('username') username: string,
-  ) {
+  unfollow(@AuthEmail() email: string, @Param('username') username: string) {
     return this.unfollowUc.execute(email, username);
   }
 
   @UseGuards(SupabaseGuard)
   @Get('me/followers')
   @ApiOperation({ summary: 'List my followers' })
-  myFollowers(
-    @AuthEmail() email: string,
-    @Query() query: unknown,
-  ) {
+  myFollowers(@AuthEmail() email: string, @Query() query: unknown) {
     const parsed = ListPaginationSchema.safeParse(query);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.issues[0].message);
@@ -80,10 +71,7 @@ export class SocialController {
   @UseGuards(SupabaseGuard)
   @Get('me/following')
   @ApiOperation({ summary: 'List who I follow' })
-  myFollowing(
-    @AuthEmail() email: string,
-    @Query() query: unknown,
-  ) {
+  myFollowing(@AuthEmail() email: string, @Query() query: unknown) {
     const parsed = ListPaginationSchema.safeParse(query);
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.issues[0].message);
@@ -93,7 +81,9 @@ export class SocialController {
 
   @UseGuards(SupabaseGuard)
   @Post('me/seen-followers')
-  @ApiOperation({ summary: 'Mark followers list as seen (clears unread count)' })
+  @ApiOperation({
+    summary: 'Mark followers list as seen (clears unread count)',
+  })
   seenFollowers(@AuthEmail() email: string) {
     return this.seenUc.execute(email);
   }
@@ -101,7 +91,8 @@ export class SocialController {
   @UseGuards(SupabaseGuard)
   @Get('me/feed')
   @ApiOperation({
-    summary: 'Activity feed: recent finalized challenge attempts from people I follow',
+    summary:
+      'Activity feed: recent finalized challenge attempts from people I follow',
   })
   feed(@AuthEmail() email: string, @Query() query: unknown) {
     const parsed = ListPaginationSchema.safeParse(query);
@@ -113,7 +104,9 @@ export class SocialController {
 
   @UseGuards(SupabaseGuard)
   @Post('block/:username')
-  @ApiOperation({ summary: 'Block a user (mutual unfollow + future-follow blocked)' })
+  @ApiOperation({
+    summary: 'Block a user (mutual unfollow + future-follow blocked)',
+  })
   block(@AuthEmail() email: string, @Param('username') username: string) {
     return this.blockUc.execute(email, username);
   }
@@ -162,7 +155,7 @@ export class PublicFollowListsController {
 
   @UseGuards(OptionalSupabaseGuard)
   @Get(':username/following')
-  @ApiOperation({ summary: "List who a public profile follows" })
+  @ApiOperation({ summary: 'List who a public profile follows' })
   following(
     @Param('username') username: string,
     @OptionalAuthEmail() viewerEmail: string | undefined,

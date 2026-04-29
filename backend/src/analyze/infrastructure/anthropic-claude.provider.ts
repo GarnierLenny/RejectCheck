@@ -4,6 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import Anthropic from '@anthropic-ai/sdk';
 import {
   AnalyzeResponse,
@@ -45,6 +46,18 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     });
   }
 
+  private withSentry<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+    Sentry.setTag('provider', 'claude');
+    return Sentry.startSpan(
+      {
+        name: `ai.claude.${operation}`,
+        op: 'ai',
+        attributes: { 'ai.provider': 'claude', 'ai.operation': operation },
+      },
+      fn,
+    );
+  }
+
   async analyzeApplication(
     input: AnalyzeApplicationInput,
   ): Promise<AnalyzeResponse> {
@@ -52,20 +65,22 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     this.logger.log('Requesting full analysis from Claude');
 
     try {
-      const msg = await this.anthropic.messages.create({
-        model: MODEL,
-        max_tokens: 16000,
-        temperature: 0.1,
-        system: technicalPrompt,
-        tools: [SUBMIT_ANALYSIS_TOOL],
-        tool_choice: { type: 'tool', name: 'submit_analysis' },
-        messages: [
-          {
-            role: 'user',
-            content: this.buildAnalyzeUserMessage(input),
-          },
-        ],
-      });
+      const msg = await this.withSentry('analyze', () =>
+        this.anthropic.messages.create({
+          model: MODEL,
+          max_tokens: 16000,
+          temperature: 0.1,
+          system: technicalPrompt,
+          tools: [SUBMIT_ANALYSIS_TOOL],
+          tool_choice: { type: 'tool', name: 'submit_analysis' },
+          messages: [
+            {
+              role: 'user',
+              content: this.buildAnalyzeUserMessage(input),
+            },
+          ],
+        }),
+      );
 
       const toolUse = msg.content.find(
         (block) => (block as { type?: string }).type === 'tool_use',
@@ -178,13 +193,15 @@ ORIGINAL CV:
 ${cvText}`;
 
     try {
-      const msg = await this.anthropic.messages.create({
-        model: MODEL,
-        max_tokens: 8192,
-        temperature: 0.3,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }],
-      });
+      const msg = await this.withSentry('rewrite_cv', () =>
+        this.anthropic.messages.create({
+          model: MODEL,
+          max_tokens: 8192,
+          temperature: 0.3,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMessage }],
+        }),
+      );
 
       const textBlock = msg.content.find((b) => b.type === 'text') as
         | { type: 'text'; text: string }
@@ -285,12 +302,14 @@ Candidate name (for signing only): ${input.candidateName || 'not provided'}
 Language: ${langName}`;
 
     try {
-      const response = await this.anthropic.messages.create({
-        model: MODEL,
-        max_tokens: 2048,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMessage }],
-      });
+      const response = await this.withSentry('cover_letter', () =>
+        this.anthropic.messages.create({
+          model: MODEL,
+          max_tokens: 2048,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMessage }],
+        }),
+      );
 
       const content = response.content[0];
       if (!content) {
@@ -337,17 +356,19 @@ Formatting rules:
     this.logger.log('Requesting negotiation playbook from Claude');
 
     try {
-      const msg = await this.anthropic.messages.create({
-        model: MODEL,
-        max_tokens: 4000,
-        temperature: 0.3,
-        system: NEGOTIATION_SYSTEM_PROMPT,
-        tools: [SUBMIT_NEGOTIATION_TOOL],
-        tool_choice: { type: 'tool', name: 'submit_negotiation_analysis' },
-        messages: [
-          { role: 'user', content: this.buildNegotiationUserMessage(input) },
-        ],
-      });
+      const msg = await this.withSentry('negotiation', () =>
+        this.anthropic.messages.create({
+          model: MODEL,
+          max_tokens: 4000,
+          temperature: 0.3,
+          system: NEGOTIATION_SYSTEM_PROMPT,
+          tools: [SUBMIT_NEGOTIATION_TOOL],
+          tool_choice: { type: 'tool', name: 'submit_negotiation_analysis' },
+          messages: [
+            { role: 'user', content: this.buildNegotiationUserMessage(input) },
+          ],
+        }),
+      );
 
       const toolUse = msg.content.find(
         (block) => (block as { type?: string }).type === 'tool_use',
@@ -363,7 +384,8 @@ Formatting rules:
       const parsed = NegotiationAnalysisSchema.parse(toolUse.input);
 
       // Defensive: recompute gap_vs_market from medians so Claude can't drift.
-      const marketMedian = (parsed.market_range.min + parsed.market_range.max) / 2;
+      const marketMedian =
+        (parsed.market_range.min + parsed.market_range.max) / 2;
       const candMedian =
         (parsed.candidate_range.min + parsed.candidate_range.max) / 2;
       parsed.gap_vs_market = Math.round(marketMedian - candMedian);
@@ -481,4 +503,3 @@ CRITICAL RULES:
     - ALL monetary fields (market, candidate, jd_disclosed, anchor amounts, leverage impact, roadmap impact) must use the SAME currency.
     - In counter_offer_email.body, anchoring_strategy, and talking_points, every numeric mention must include the currency symbol matching the chosen currency ($/£/€) — never mix.
 11. The disclaimer must mention that estimates are based on public market data and are not guarantees.`;
-

@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
-export const LeaderboardScopeSchema = z.enum(['global', 'following']).default('global');
-export const LeaderboardPeriodSchema = z.enum(['alltime', 'week']).default('alltime');
+export const LeaderboardScopeSchema = z
+  .enum(['global', 'following'])
+  .default('global');
+export const LeaderboardPeriodSchema = z
+  .enum(['alltime', 'week'])
+  .default('alltime');
 
 export const ChallengeLeaderboardQuerySchema = z.object({
   scope: LeaderboardScopeSchema,

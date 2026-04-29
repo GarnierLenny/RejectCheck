@@ -36,9 +36,7 @@ export class ListPublicFollowersUseCase {
     );
     const validIds = ids.filter((id): id is number => id !== null);
     const followed = await this.repo.whichAreFollowedBy(viewerId, validIds);
-    const idByUsername = new Map(
-      usernames.map((u, i) => [u, ids[i]]),
-    );
+    const idByUsername = new Map(usernames.map((u, i) => [u, ids[i]]));
     return {
       ...list,
       entries: list.entries.map((entry) => {

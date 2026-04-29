@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { PrismaService } from '../prisma/prisma.service';
@@ -41,14 +42,32 @@ export class InterviewService {
     if (!isPremium) throw new PremiumRequiredException();
   }
 
+  private withSentry<T>(
+    provider: 'claude' | 'openai',
+    operation: string,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    Sentry.setTag('provider', provider);
+    return Sentry.startSpan(
+      {
+        name: `ai.${provider}.${operation}`,
+        op: 'ai',
+        attributes: { 'ai.provider': provider, 'ai.operation': operation },
+      },
+      fn,
+    );
+  }
+
   private async generateTts(text: string): Promise<string> {
     if (!this.openai) return '';
-    const response = await this.openai.audio.speech.create({
-      model: 'tts-1',
-      voice: 'alloy',
-      input: text,
-      response_format: 'mp3',
-    });
+    const response = await this.withSentry('openai', 'tts', () =>
+      this.openai!.audio.speech.create({
+        model: 'tts-1',
+        voice: 'alloy',
+        input: text,
+        response_format: 'mp3',
+      }),
+    );
     const buffer = Buffer.from(await response.arrayBuffer());
     return buffer.toString('base64');
   }
@@ -74,33 +93,41 @@ export class InterviewService {
       seniority: result.seniority_assessment?.detected_level ?? null,
     };
 
-    const planResponse = await this.anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: `You are a senior technical recruiter conducting a job interview. Based on the candidate's analysis, generate exactly 6 interview questions in English that cover: motivation/fit (1), key experiences (2), identified technical gaps (1-2), handling difficult situations (1). Each question should be open-ended and tailored to the specific job and candidate profile.`,
-      tools: [
-        {
-          name: 'submit_questions',
-          description: 'Submit the generated interview questions',
-          input_schema: {
-            type: 'object' as const,
-            properties: {
-              questions: {
-                type: 'array',
-                items: { type: 'string' },
-                minItems: 6,
-                maxItems: 6,
+    const planResponse = await this.withSentry(
+      'claude',
+      'interview_questions',
+      () =>
+        this.anthropic.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          system: `You are a senior technical recruiter conducting a job interview. Based on the candidate's analysis, generate exactly 6 interview questions in English that cover: motivation/fit (1), key experiences (2), identified technical gaps (1-2), handling difficult situations (1). Each question should be open-ended and tailored to the specific job and candidate profile.`,
+          tools: [
+            {
+              name: 'submit_questions',
+              description: 'Submit the generated interview questions',
+              input_schema: {
+                type: 'object' as const,
+                properties: {
+                  questions: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    minItems: 6,
+                    maxItems: 6,
+                  },
+                },
+                required: ['questions'],
               },
             },
-            required: ['questions'],
-          },
-        },
-      ],
-      tool_choice: { type: 'tool', name: 'submit_questions' },
-      messages: [
-        { role: 'user', content: `Job context: ${JSON.stringify(context)}` },
-      ],
-    });
+          ],
+          tool_choice: { type: 'tool', name: 'submit_questions' },
+          messages: [
+            {
+              role: 'user',
+              content: `Job context: ${JSON.stringify(context)}`,
+            },
+          ],
+        }),
+    );
 
     let plan: any;
     const toolUseBlock = planResponse.content.find(
@@ -169,11 +196,16 @@ export class InterviewService {
     const file = new File([new Uint8Array(audioBuffer)], 'audio.webm', {
       type: 'audio/webm',
     });
-    const transcription = await this.openai.audio.transcriptions.create({
-      model: 'whisper-1',
-      file,
-      language: 'en',
-    });
+    const transcription = await this.withSentry(
+      'openai',
+      'whisper_transcribe',
+      () =>
+        this.openai!.audio.transcriptions.create({
+          model: 'whisper-1',
+          file,
+          language: 'en',
+        }),
+    );
     const userText = transcription.text?.trim();
     if (!userText) throw new BadRequestException('Could not transcribe audio');
 
@@ -223,28 +255,39 @@ export class InterviewService {
     let nextMessage: { text: string; audioBase64: string } | null = null;
 
     if (!isLastQuestion || !maxFollowUpsReached) {
-      const decisionResponse = await this.anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        system: `You are a senior recruiter conducting a structured job interview in English. You have a list of questions to ask: ${JSON.stringify(questions)}. Current question index: ${questionIndex}. Follow-ups already asked for this question: ${followUpCount}/2. Rules: If the candidate's answer is vague or incomplete AND follow-ups < 2, ask ONE specific follow-up question. Otherwise, move to the next question (index ${questionIndex + 1}). If all questions done, return done.`,
-        tools: [
-          {
-            name: 'submit_decision',
-            description: 'Submit the interview next-step decision',
-            input_schema: {
-              type: 'object' as const,
-              properties: {
-                action: { type: 'string', enum: ['followup', 'next', 'done'] },
-                nextQuestionIndex: { type: 'number' },
-                message: { type: 'string' },
+      const decisionResponse = await this.withSentry(
+        'claude',
+        'interview_decide',
+        () =>
+          this.anthropic.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 512,
+            system: `You are a senior recruiter conducting a structured job interview in English. You have a list of questions to ask: ${JSON.stringify(questions)}. Current question index: ${questionIndex}. Follow-ups already asked for this question: ${followUpCount}/2. Rules: If the candidate's answer is vague or incomplete AND follow-ups < 2, ask ONE specific follow-up question. Otherwise, move to the next question (index ${questionIndex + 1}). If all questions done, return done.`,
+            tools: [
+              {
+                name: 'submit_decision',
+                description: 'Submit the interview next-step decision',
+                input_schema: {
+                  type: 'object' as const,
+                  properties: {
+                    action: {
+                      type: 'string',
+                      enum: ['followup', 'next', 'done'],
+                    },
+                    nextQuestionIndex: { type: 'number' },
+                    message: { type: 'string' },
+                  },
+                  required: ['action'],
+                },
               },
-              required: ['action'],
-            },
-          },
-        ],
-        tool_choice: { type: 'tool', name: 'submit_decision' },
-        messages: [...conversationHistory, { role: 'user', content: userText }],
-      });
+            ],
+            tool_choice: { type: 'tool', name: 'submit_decision' },
+            messages: [
+              ...conversationHistory,
+              { role: 'user', content: userText },
+            ],
+          }),
+      );
 
       let decision: any;
       const decisionTool = decisionResponse.content.find(
@@ -302,71 +345,73 @@ export class InterviewService {
       )
       .join('\n\n');
 
-    const response = await this.anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      tools: [
-        {
-          name: 'submit_interview_analysis',
-          description: 'Submit the structured interview performance analysis',
-          input_schema: {
-            type: 'object' as const,
-            properties: {
-              axes: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    name: { type: 'string' },
-                    score: { type: 'number', description: '0-10 score' },
-                    feedback: { type: 'string' },
-                  },
-                  required: ['name', 'score', 'feedback'],
-                },
-              },
-              questionFeedback: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    question: { type: 'string' },
-                    answer: { type: 'string' },
-                    verdict: {
-                      type: 'string',
-                      enum: ['good', 'average', 'poor'],
+    const response = await this.withSentry('claude', 'interview_analyze', () =>
+      this.anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        tools: [
+          {
+            name: 'submit_interview_analysis',
+            description: 'Submit the structured interview performance analysis',
+            input_schema: {
+              type: 'object' as const,
+              properties: {
+                axes: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      score: { type: 'number', description: '0-10 score' },
+                      feedback: { type: 'string' },
                     },
-                    comment: { type: 'string' },
+                    required: ['name', 'score', 'feedback'],
                   },
-                  required: ['question', 'answer', 'verdict', 'comment'],
                 },
+                questionFeedback: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      question: { type: 'string' },
+                      answer: { type: 'string' },
+                      verdict: {
+                        type: 'string',
+                        enum: ['good', 'average', 'poor'],
+                      },
+                      comment: { type: 'string' },
+                    },
+                    required: ['question', 'answer', 'verdict', 'comment'],
+                  },
+                },
+                globalVerdict: { type: 'string' },
+                keyStrengths: { type: 'array', items: { type: 'string' } },
+                keyImprovements: { type: 'array', items: { type: 'string' } },
               },
-              globalVerdict: { type: 'string' },
-              keyStrengths: { type: 'array', items: { type: 'string' } },
-              keyImprovements: { type: 'array', items: { type: 'string' } },
+              required: [
+                'axes',
+                'questionFeedback',
+                'globalVerdict',
+                'keyStrengths',
+                'keyImprovements',
+              ],
             },
-            required: [
-              'axes',
-              'questionFeedback',
-              'globalVerdict',
-              'keyStrengths',
-              'keyImprovements',
-            ],
           },
-        },
-      ],
-      tool_choice: { type: 'tool', name: 'submit_interview_analysis' },
-      messages: [
-        {
-          role: 'user',
-          content: `You are an expert interview coach analyzing a mock job interview in English. Evaluate the candidate's performance across these 5 axes: ${INTERVIEW_AXES.join(', ')}. Score each axis from 0 to 10. Be honest but constructive. Provide feedback per question and a global assessment.
+        ],
+        tool_choice: { type: 'tool', name: 'submit_interview_analysis' },
+        messages: [
+          {
+            role: 'user',
+            content: `You are an expert interview coach analyzing a mock job interview in English. Evaluate the candidate's performance across these 5 axes: ${INTERVIEW_AXES.join(', ')}. Score each axis from 0 to 10. Be honest but constructive. Provide feedback per question and a global assessment.
 
 Interview transcript:
 ${formattedTranscript}
 
 Analyze this interview and call submit_interview_analysis with your structured evaluation.`,
-        },
-      ],
-    });
+          },
+        ],
+      }),
+    );
 
     const toolUse = response.content.find((c) => c.type === 'tool_use');
     if (!toolUse || toolUse.type !== 'tool_use') {

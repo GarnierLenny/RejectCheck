@@ -134,7 +134,8 @@ export const SUBMIT_NEGOTIATION_TOOL = {
           },
           anchor_amount: {
             type: 'number' as const,
-            description: 'The € figure to anchor on, in EUR for European roles.',
+            description:
+              'The € figure to anchor on, in EUR for European roles.',
           },
         },
       },

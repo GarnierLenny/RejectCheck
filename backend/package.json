@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx prisma generate && rm -f tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json",
+    "build": "npx prisma generate && rm -f tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json && npm run sentry:sourcemaps",
+    "sentry:sourcemaps": "if [ -n \"$SENTRY_AUTH_TOKEN\" ]; then sentry-cli sourcemaps inject ./dist && sentry-cli sourcemaps upload --release=\"${RAILWAY_GIT_COMMIT_SHA:-development}\" ./dist; else echo 'skip sentry sourcemaps (no token)'; fi",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start --env-file .env",
     "dev": "nest start --watch --env-file .env",
@@ -54,6 +55,7 @@
     "@eslint/js": "^9.18.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@sentry/cli": "^3.4.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.1.0",

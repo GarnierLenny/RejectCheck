@@ -19,7 +19,10 @@ export class ClaimUsernameUseCase {
     private readonly repo: PublicProfileRepository,
   ) {}
 
-  async execute(email: string, username: string): Promise<{ username: string }> {
+  async execute(
+    email: string,
+    username: string,
+  ): Promise<{ username: string }> {
     // Re-claiming the same username is a no-op — don't reset the rate-limit clock.
     const status = await this.repo.getOwnerStatus(email);
     if (status?.username === username) {

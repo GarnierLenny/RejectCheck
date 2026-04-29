@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import * as Sentry from '@sentry/nestjs';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 let jwksCache: ReturnType<typeof createRemoteJWKSet> | null = null;
@@ -44,6 +45,10 @@ export class OptionalSupabaseGuard implements CanActivate {
           email: payload.email as string,
           sub: payload.sub as string,
         };
+        Sentry.setUser({
+          id: payload.sub as string,
+          email: payload.email as string,
+        });
       }
     } catch {
       // Silently ignore — request continues anonymously.

@@ -35,10 +35,7 @@ export class PrismaLeaderboardRepository implements LeaderboardRepository {
         score: { gt: 0 },
         ...(followingEmails && { email: { in: followingEmails } }),
       },
-      orderBy: [
-        { score: 'desc' },
-        { completedAt: 'asc' },
-      ],
+      orderBy: [{ score: 'desc' }, { completedAt: 'asc' }],
       take: limit,
       select: {
         email: true,
@@ -239,11 +236,14 @@ export class PrismaLeaderboardRepository implements LeaderboardRepository {
   }
 
   private async fetchPublicProfiles(emails: string[]): Promise<
-    Map<string, {
-      username: string | null;
-      displayName: string | null;
-      avatarUrl: string | null;
-    }>
+    Map<
+      string,
+      {
+        username: string | null;
+        displayName: string | null;
+        avatarUrl: string | null;
+      }
+    >
   > {
     if (emails.length === 0) return new Map();
     const rows = await this.prisma.profile.findMany({
@@ -271,4 +271,3 @@ export class PrismaLeaderboardRepository implements LeaderboardRepository {
     );
   }
 }
-
