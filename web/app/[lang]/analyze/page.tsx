@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, Suspense, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import type { AnalysisResult } from "../../components/types";
@@ -25,6 +26,7 @@ import { TechnicalRadarChart } from "../../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../utils/export";
 import { useAuth } from "../../../context/auth";
 import { useSubscription, useAnalysis, useProfile, useSavedCvs } from "../../../lib/queries";
+import { consumeSSE } from "../../../lib/sse";
 import { useLanguage } from "../../../context/language";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
@@ -35,6 +37,8 @@ type StoredSubscription = { plan: string; email: string; expiry: number };
 
 function AnalyzeContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, session } = useAuth();
   const { t, localePath, locale } = useLanguage();
   const [jobDescription, setJobDescription] = useState("");
@@ -53,6 +57,7 @@ function AnalyzeContent() {
 
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<string | null>(null);
+  const [streamText, setStreamText] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
@@ -153,6 +158,7 @@ function AnalyzeContent() {
     setLoading(true);
     setError(null);
     setCurrentStep(null);
+    setStreamText("");
 
     try {
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
@@ -170,30 +176,52 @@ function AnalyzeContent() {
         return;
       }
 
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+      type AnalyzePayload = {
+        step: string;
+        delta?: string;
+        result?: AnalysisResult;
+        analysisId?: number | null;
+        negotiation?: AnalysisResult["negotiation_analysis"];
+        message?: string;
+      };
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = JSON.parse(line.slice(6));
-          if (payload.step === "done") {
-            setResult(payload.result);
-            if (payload.analysisId) setAnalysisId(payload.analysisId);
-            setLoading(false);
-          } else if (payload.step === "error") {
-            throw new Error(payload.message);
-          } else {
-            setCurrentStep(payload.step);
+      await consumeSSE<AnalyzePayload>(res, (payload) => {
+        if (payload.step === "analysis_delta") {
+          setStreamText((prev) => prev + (payload.delta ?? ""));
+        } else if (payload.step === "analysis_done") {
+          if (payload.result) setResult(payload.result);
+          if (payload.analysisId) setAnalysisId(payload.analysisId);
+        } else if (payload.step === "negotiation_delta") {
+          setStreamText((prev) => prev + (payload.delta ?? ""));
+        } else if (payload.step === "negotiation_done") {
+          setResult((prev) =>
+            prev ? { ...prev, negotiation_analysis: payload.negotiation } : prev,
+          );
+        } else if (payload.step === "done") {
+          // Fallback: ensure we have a result even if analysis_done was missed.
+          if (payload.result && !result) setResult(payload.result);
+          if (payload.analysisId) {
+            setAnalysisId(payload.analysisId);
+            // Pre-populate the useAnalysis cache so the upcoming urlId change
+            // doesn't trigger a refetch + a brief loading flicker.
+            if (user?.id) {
+              queryClient.setQueryData(
+                ['analysis', payload.analysisId, user.id],
+                { result: payload.result ?? result, jobDescription },
+              );
+            }
+            router.replace(
+              `${localePath('/analyze')}?id=${payload.analysisId}`,
+              { scroll: false },
+            );
           }
+          setLoading(false);
+        } else if (payload.step === "error") {
+          throw new Error(payload.message || "Analysis failed");
+        } else {
+          setCurrentStep(payload.step);
         }
-      }
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Analysis failed");
       setLoading(false);
@@ -212,7 +240,19 @@ function AnalyzeContent() {
     setAnalysisId(null);
     setReconstructedCv(null);
     setFormStep(1);
+    router.replace(localePath('/analyze'), { scroll: false });
   }
+
+  // When the URL drops the analysis id (e.g. user clicked "Analyze" in the
+  // navbar from a result view), the route stays mounted — manually reset the
+  // form state so the user lands on the empty form.
+  const prevUrlIdRef = useRef<number | null>(urlId);
+  useEffect(() => {
+    if (prevUrlIdRef.current !== null && urlId === null && result) {
+      handleReset();
+    }
+    prevUrlIdRef.current = urlId;
+  }, [urlId, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleRewrite() {
     const emailVal = activeSubscription?.email || user?.email;
@@ -237,27 +277,25 @@ function AnalyzeContent() {
 
       setReconstructedCv(null);
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let donePayload: { reconstructed_cv?: string } | null = null;
+      type RewritePayload = {
+        step: string;
+        reconstructed_cv?: string;
+        message?: string;
+      };
+      let reconstructedCvFromStream: string | null = null;
+      let received = false;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = JSON.parse(line.slice(6));
-          if (payload.step === "done") donePayload = payload;
-          else if (payload.step === "error") toast.error(payload.message || "Rewrite failed.");
+      await consumeSSE<RewritePayload>(res, (payload) => {
+        if (payload.step === "done") {
+          received = true;
+          reconstructedCvFromStream = payload.reconstructed_cv ?? null;
+        } else if (payload.step === "error") {
+          toast.error(payload.message || "Rewrite failed.");
         }
-      }
+      });
 
-      if (donePayload) {
-        setReconstructedCv(donePayload.reconstructed_cv ?? null);
+      if (received) {
+        setReconstructedCv(reconstructedCvFromStream);
       } else {
         toast.error("Rewrite returned no result. Please try again.");
       }
@@ -363,10 +401,12 @@ function AnalyzeContent() {
         ) : (!result || !visualLoadingDone) ? (
           (loading || (result && !visualLoadingDone)) ? (
             <LoadingScreen
-              currentStep={result ? "done" : currentStep}
+              currentStep={!loading && result ? "done" : currentStep}
+              streamText={streamText}
               hasGithub={githubUsername.trim().length > 0}
               hasLinkedin={liFile !== null}
               hasML={mlFile !== null || mlText.trim().length > 0}
+              isHired={activeSubscription?.plan === 'hired'}
               onFinished={() => setVisualLoadingDone(true)}
             />
           ) : (

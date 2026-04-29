@@ -47,6 +47,17 @@ export type AnalyzeCvResult = {
   analysisId: number | null;
 };
 
+export type AnalyzeEvent =
+  | { type: 'step'; step: string }
+  | { type: 'analysis_delta'; delta: string }
+  | {
+      type: 'analysis_done';
+      result: AnalyzeResponse;
+      analysisId: number | null;
+    }
+  | { type: 'negotiation_delta'; delta: string }
+  | { type: 'negotiation_done'; negotiation: NegotiationAnalysis };
+
 /**
  * Orchestrates the full analyze flow:
  *  1. quota check (subscription + per-email/per-IP counts)
@@ -73,9 +84,12 @@ export class AnalyzeCvUseCase {
 
   async execute(
     cmd: AnalyzeCvCommand,
-    onStep?: (step: string) => void,
+    onEvent?: (event: AnalyzeEvent) => void,
   ): Promise<AnalyzeCvResult> {
     if (!cmd.cvBuffer) throw new BadRequestException('CV is required');
+
+    const emit = (event: AnalyzeEvent) => onEvent?.(event);
+    const emitStep = (step: string) => emit({ type: 'step', step });
 
     const subscriptionState = await this.resolveSubscriptionState(cmd.email);
     Sentry.setTag('tier', subscriptionState.tier);
@@ -87,26 +101,35 @@ export class AnalyzeCvUseCase {
       subscriptionState.hasActiveSubscription,
     );
 
-    onStep?.('parsing_cv');
-    const cvText = await this.pdf.parse(cmd.cvBuffer);
+    // Emit step labels eagerly so the SSE timeline still reflects the work
+    // about to start; the operations themselves run in parallel below.
+    emitStep('parsing_cv');
+    emitStep('matching_skills');
+    if (cmd.motivationLetterBuffer && !cmd.motivationLetterText) {
+      emitStep('parsing_motivation_letter');
+    }
+    if (cmd.githubUsername) emitStep('analyzing_github');
+
     const jobText = cmd.jobDescription.trim().slice(0, 8000);
 
-    onStep?.('matching_skills');
-    const linkedinText = await this.tryParse(cmd.linkedinBuffer);
-    const motivationLetterText = await this.resolveMotivationLetter(
-      cmd.motivationLetterText,
-      cmd.motivationLetterBuffer,
-      onStep,
-    );
+    const [cvText, linkedinText, motivationLetterText, githubSnapshot] =
+      await Promise.all([
+        this.pdf.parse(cmd.cvBuffer),
+        this.tryParse(cmd.linkedinBuffer),
+        this.resolveMotivationLetter(
+          cmd.motivationLetterText,
+          cmd.motivationLetterBuffer,
+        ),
+        cmd.githubUsername
+          ? this.github.fetchProfile(cmd.githubUsername)
+          : Promise.resolve(null),
+      ]);
 
-    let githubInfo = '';
-    if (cmd.githubUsername) {
-      onStep?.('analyzing_github');
-      const snapshot = await this.github.fetchProfile(cmd.githubUsername);
-      if (snapshot) githubInfo = JSON.stringify(snapshot, null, 2);
-    }
+    const githubInfo = githubSnapshot
+      ? JSON.stringify(githubSnapshot, null, 2)
+      : '';
 
-    onStep?.('dual_ai_analysis');
+    emitStep('dual_ai_analysis');
     const result = await this.claude.analyzeApplication({
       jobText,
       cvText,
@@ -114,30 +137,11 @@ export class AnalyzeCvUseCase {
       linkedinText,
       motivationLetterText,
       locale: cmd.locale,
+      onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });
 
-    let negotiation: NegotiationAnalysis | null = null;
-    if (cmd.email && subscriptionState.plan === 'hired') {
-      onStep?.('negotiation_coaching');
-      try {
-        negotiation = await this.claude.generateNegotiation({
-          jobText,
-          result,
-          roadmapItems: extractRoadmapItems(result),
-          locale: cmd.locale ?? 'en',
-        });
-      } catch (err: any) {
-        // Negotiation is best-effort: never fail the whole analysis if it errors.
-        this.logger.warn(
-          `Negotiation generation failed (analysis still succeeds): ${err?.message || err}`,
-        );
-      }
-    }
-
-    if (negotiation) {
-      result.negotiation_analysis = negotiation;
-    }
-
+    // Persist before announcing analysis_done so the frontend gets a real
+    // analysisId for downstream actions (rewrite, history, negotiation tab).
     const analysisId = await this.persist({
       cmd,
       result,
@@ -145,8 +149,37 @@ export class AnalyzeCvUseCase {
       linkedinText,
       githubInfo,
       motivationLetterText,
-      negotiation,
+      negotiation: null,
     });
+
+    emit({ type: 'analysis_done', result, analysisId });
+
+    if (cmd.email && subscriptionState.plan === 'hired') {
+      emitStep('negotiation_coaching');
+      try {
+        const negotiation = await this.claude.generateNegotiation({
+          jobText,
+          result,
+          roadmapItems: extractRoadmapItems(result),
+          locale: cmd.locale ?? 'en',
+          onDelta: (delta) => emit({ type: 'negotiation_delta', delta }),
+        });
+        result.negotiation_analysis = negotiation;
+        if (analysisId !== null) {
+          await this.analyses.attachNegotiation(
+            analysisId,
+            cmd.email,
+            negotiation,
+          );
+        }
+        emit({ type: 'negotiation_done', negotiation });
+      } catch (err: any) {
+        // Negotiation is best-effort: never fail the whole analysis if it errors.
+        this.logger.warn(
+          `Negotiation generation failed (analysis still succeeds): ${err?.message || err}`,
+        );
+      }
+    }
 
     return { result, analysisId };
   }
@@ -156,8 +189,10 @@ export class AnalyzeCvUseCase {
     ip: string | undefined,
     hasActiveSubscription: boolean,
   ): Promise<void> {
-    const countByEmail = email ? await this.analyses.countByEmail(email) : 0;
-    const countByIp = ip ? await this.analyses.countByIp(ip) : 0;
+    const [countByEmail, countByIp] = await Promise.all([
+      email ? this.analyses.countByEmail(email) : Promise.resolve(0),
+      ip ? this.analyses.countByIp(ip) : Promise.resolve(0),
+    ]);
 
     const decision = decideQuota({
       email,
@@ -182,7 +217,7 @@ export class AnalyzeCvUseCase {
     if (!email) {
       return { tier: 'guest', plan: 'rejected', hasActiveSubscription: false };
     }
-    const hasActiveSubscription = await this.subs.isPremium(email);
+    const { hasActiveSubscription, isHired } = await this.subs.getState(email);
     if (!hasActiveSubscription) {
       return {
         tier: 'connected',
@@ -190,10 +225,9 @@ export class AnalyzeCvUseCase {
         hasActiveSubscription: false,
       };
     }
-    const hired = await this.subs.isHired(email);
     return {
       tier: 'premium',
-      plan: hired ? 'hired' : 'shortlisted',
+      plan: isHired ? 'hired' : 'shortlisted',
       hasActiveSubscription: true,
     };
   }
@@ -211,13 +245,9 @@ export class AnalyzeCvUseCase {
   private async resolveMotivationLetter(
     text: string | undefined,
     buffer: Buffer | undefined,
-    onStep?: (step: string) => void,
   ): Promise<string> {
     if (text) return text.trim().slice(0, MAX_TEXT_CHARS);
-    if (buffer) {
-      onStep?.('parsing_motivation_letter');
-      return this.tryParse(buffer);
-    }
+    if (buffer) return this.tryParse(buffer);
     return '';
   }
 

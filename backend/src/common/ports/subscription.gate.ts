@@ -8,4 +8,14 @@ export interface SubscriptionGate {
   isPremium(email: string): Promise<boolean>;
   /** True only for the top "hired" tier — gates the cover letter feature. */
   isHired(email: string): Promise<boolean>;
+  /**
+   * Combined lookup — fetches both flags in a single DB roundtrip.
+   * Prefer this over calling isPremium + isHired sequentially.
+   */
+  getState(email: string): Promise<SubscriptionState>;
 }
+
+export type SubscriptionState = {
+  hasActiveSubscription: boolean;
+  isHired: boolean;
+};

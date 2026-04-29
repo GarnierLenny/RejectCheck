@@ -10,6 +10,12 @@ export type AnalyzeApplicationInput = {
   linkedinText: string;
   motivationLetterText: string;
   locale?: string;
+  /**
+   * Optional callback invoked for each partial JSON chunk Claude emits while
+   * building the tool_use response. Used by the SSE pipeline to forward
+   * "live thoughts" to the frontend.
+   */
+  onDelta?: (chunk: string) => void;
 };
 
 export type RewriteCvInput = {
@@ -35,6 +41,8 @@ export type GenerateNegotiationInput = {
   result: AnalyzeResponse;
   roadmapItems: RoadmapItem[];
   locale: string;
+  /** Optional callback for streaming negotiation tool_use chunks. */
+  onDelta?: (chunk: string) => void;
 };
 
 export interface ClaudeProvider {

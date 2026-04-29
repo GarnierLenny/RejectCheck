@@ -58,6 +58,23 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     );
   }
 
+  private logCacheUsage(
+    operation: string,
+    usage: {
+      cache_creation_input_tokens?: number | null;
+      cache_read_input_tokens?: number | null;
+      input_tokens?: number;
+    },
+  ): void {
+    const created = usage.cache_creation_input_tokens ?? 0;
+    const read = usage.cache_read_input_tokens ?? 0;
+    if (created || read) {
+      this.logger.debug(
+        `Claude ${operation} cache: read=${read} created=${created} input=${usage.input_tokens ?? 0}`,
+      );
+    }
+  }
+
   async analyzeApplication(
     input: AnalyzeApplicationInput,
   ): Promise<AnalyzeResponse> {
@@ -65,13 +82,21 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     this.logger.log('Requesting full analysis from Claude');
 
     try {
-      const msg = await this.withSentry('analyze', () =>
-        this.anthropic.messages.create({
+      const msg = await this.withSentry('analyze', async () => {
+        const stream = this.anthropic.messages.stream({
           model: MODEL,
           max_tokens: 16000,
           temperature: 0.1,
-          system: technicalPrompt,
-          tools: [SUBMIT_ANALYSIS_TOOL],
+          system: [
+            {
+              type: 'text',
+              text: technicalPrompt,
+              cache_control: { type: 'ephemeral' },
+            },
+          ],
+          tools: [
+            { ...SUBMIT_ANALYSIS_TOOL, cache_control: { type: 'ephemeral' } },
+          ],
           tool_choice: { type: 'tool', name: 'submit_analysis' },
           messages: [
             {
@@ -79,8 +104,14 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
               content: this.buildAnalyzeUserMessage(input),
             },
           ],
-        }),
-      );
+        });
+        if (input.onDelta) {
+          stream.on('inputJson', (partialJson) => input.onDelta!(partialJson));
+        }
+        return stream.finalMessage();
+      });
+
+      this.logCacheUsage('analyze', msg.usage);
 
       const toolUse = msg.content.find(
         (block) => (block as { type?: string }).type === 'tool_use',
@@ -356,19 +387,36 @@ Formatting rules:
     this.logger.log('Requesting negotiation playbook from Claude');
 
     try {
-      const msg = await this.withSentry('negotiation', () =>
-        this.anthropic.messages.create({
+      const msg = await this.withSentry('negotiation', async () => {
+        const stream = this.anthropic.messages.stream({
           model: MODEL,
           max_tokens: 4000,
           temperature: 0.3,
-          system: NEGOTIATION_SYSTEM_PROMPT,
-          tools: [SUBMIT_NEGOTIATION_TOOL],
+          system: [
+            {
+              type: 'text',
+              text: NEGOTIATION_SYSTEM_PROMPT,
+              cache_control: { type: 'ephemeral' },
+            },
+          ],
+          tools: [
+            {
+              ...SUBMIT_NEGOTIATION_TOOL,
+              cache_control: { type: 'ephemeral' },
+            },
+          ],
           tool_choice: { type: 'tool', name: 'submit_negotiation_analysis' },
           messages: [
             { role: 'user', content: this.buildNegotiationUserMessage(input) },
           ],
-        }),
-      );
+        });
+        if (input.onDelta) {
+          stream.on('inputJson', (partialJson) => input.onDelta!(partialJson));
+        }
+        return stream.finalMessage();
+      });
+
+      this.logCacheUsage('negotiation', msg.usage);
 
       const toolUse = msg.content.find(
         (block) => (block as { type?: string }).type === 'tool_use',

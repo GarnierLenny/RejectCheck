@@ -458,29 +458,18 @@
       "analyzing_linkedin": "Signal LinkedIn",
       "analyzing_github": "Signal GitHub",
       "dual_ai_analysis": "Analyse Approfondie",
+      "negotiation_coaching": "Coach Négociation",
       "finalizing": "Diagnostic final"
     },
     "claudeTasks": [
-      "Simulation ATS",
-      "Signaux d'alerte",
-      "Ton & Séniorité",
       "Analyse Tech Fit",
-      "Blueprint Projet"
+      "Blueprint Projet",
+      "Simulation ATS",
+      "Ton & Séniorité",
+      "Signaux d'alerte"
     ],
-    "claudeThoughts": [
-      "Cartographie de la profondeur de la stack technique...",
-      "La cadence de commits suggère un fort ownership",
-      "Inférence de l'architecture système à partir du périmètre projet",
-      "Étendue vs. spécialisation : évaluation en cours...",
-      "Signal open source : esprit collaboratif",
-      "Courbe de maturité des frameworks détectée",
-      "Patterns d'architecture identifiés",
-      "Recoupement avec la description de poste...",
-      "Évaluation de la cohérence de la stack technologique",
-      "Gap de séniorité détecté dans les signaux de périmètre",
-      "Complexité du projet : évaluation des signaux de scalabilité",
-      "Patterns de contribution : analyse de l'impact..."
-    ]
+    "liveThoughtsPlaceholder": "Claude réfléchit…",
+    "liveThoughtsLabel": "Raisonnement en direct"
   },
   "paywall": {
     "badge": "Scan Gratuit Terminé",
