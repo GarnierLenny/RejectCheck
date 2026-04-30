@@ -40,6 +40,7 @@
       "beyondTitle": "Votre CV n'est que {hl}la moitié{/hl} de l'histoire.",
       "beyondDesc": "Les recruteurs vous cherchent sur Google. Nous auditons votre GitHub et LinkedIn avant eux, et signalons tout ce qui pourrait vous coûter l'entretien.",
       "everyTab": "Chaque onglet, un outil",
+      "previewTitle": "Huit onglets. {hl}Un seul rapport.{/hl}",
       "fixTitle": "{hl}Corrigez le problème{/hl}, ne vous contentez pas de le lire.",
       "bridgeLabel": "Recommandation de projet",
       "bridgeTitle": "Combler {hl}l'écart{/hl}.",
