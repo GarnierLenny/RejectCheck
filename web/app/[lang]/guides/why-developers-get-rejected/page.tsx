@@ -16,9 +16,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Why Developers Get Rejected (And Never Find Out Why) — 2026'
+const TITLE = 'Why Developers Get Rejected (2026)'
 const DESCRIPTION =
-  'A developer’s breakdown of the three filters between “Submit application” and the interview: ATS, the 6-second HR scan, and the hiring manager review. The 9 red flags, the senior-vs-junior tone signals, and a 3-step framework to iterate on every rejection.'
+  'The three filters between Submit and the interview: ATS, the 6-second HR scan, and the hiring manager review. 9 red flags and how to iterate on rejections.'
 
 type LangParams = { lang: string }
 

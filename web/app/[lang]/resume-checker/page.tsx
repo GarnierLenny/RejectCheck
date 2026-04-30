@@ -17,9 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'AI Resume Checker for Developers — Beyond ATS, Real Hiring Signals'
+const TITLE = 'AI Resume Checker for Developers'
 const DESCRIPTION =
-  'Resume checker built for developers. Goes past ATS keyword matching: audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags hiring managers reject in 6 seconds. Free first scan.'
+  'Resume checker built for developers. Audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags rejected in 6 seconds. Free.'
 
 type LangParams = { lang: string }
 

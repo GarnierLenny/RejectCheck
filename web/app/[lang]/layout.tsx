@@ -25,8 +25,8 @@ export async function generateMetadata({
     : 'RejectCheck - Comprends pourquoi ton CV a été rejeté'
 
   const description = isEn
-    ? 'AI ATS checker and resume checker for developers. Dual-AI (GPT-4o + Claude) delivers ATS simulation, skill gap radar, GitHub & LinkedIn audit, red-flag detection, CV rewrite, and AI mock interview — in under 60 seconds.'
-    : "Diagnostic IA de CV et candidatures. Dual-IA (GPT-4o + Claude) : simulation ATS, radar des lacunes, audit GitHub & LinkedIn, détection de red flags, réécriture de CV, entretien simulé IA - en moins de 60 secondes."
+    ? 'AI ATS + resume checker for developers. Dual-AI (GPT-4o + Claude) scores ATS, skill gaps, GitHub & LinkedIn — in under 60 seconds. Free.'
+    : "Diagnostic IA de CV pour développeurs. Dual-IA (GPT-4o + Claude) : score ATS, lacunes, audit GitHub & LinkedIn — en 60 secondes. Gratuit."
 
   const ogLocale = isEn ? 'en_US' : 'fr_FR'
   const canonical = `${SITE_URL}/${lang}`

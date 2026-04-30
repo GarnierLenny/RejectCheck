@@ -6,6 +6,7 @@ import {
   breadcrumbSchema,
   faqPageSchema,
 } from '../../components/JsonLd'
+import { SeoFooter } from '../../components/SeoFooter'
 import { getDictionary, hasLocale, type Locale } from '../dictionaries'
 
 type LangParams = { lang: string }
@@ -25,8 +26,8 @@ export async function generateMetadata({
     : 'Tarifs - Gratuit, Shortlisted (7,99 €), Hired (11,99 €)'
 
   const description = isEn
-    ? 'Transparent pricing: 1 free CV analysis forever (no signup), or unlimited analyses with AI mock interview and CV rewrite from €7.99/month. Refund guarantee on the Hired plan if you get hired.'
-    : "Tarification transparente : 1 analyse CV gratuite à vie (sans inscription), ou analyses illimitées avec entretien simulé IA et réécriture de CV à partir de 7,99 €/mois. Garantie de remboursement sur le plan Hired si tu décroches le job."
+    ? '1 free CV analysis forever, no signup. Unlimited from €7.99/month with AI mock interview and CV rewrite. Refund guarantee on Hired.'
+    : "1 analyse CV gratuite à vie, sans inscription. Illimité à partir de 7,99 €/mois avec entretien simulé IA et réécriture. Remboursement sur Hired."
 
   const canonical = `${SITE_URL}/${lang}/pricing`
 
@@ -91,6 +92,7 @@ export default async function PricingLayout({
       ))}
       <JsonLd id="ld-faq-pricing" data={faqSchema} />
       {children}
+      <SeoFooter lang={locale} />
     </>
   )
 }

@@ -35,9 +35,9 @@ type HubCopy = {
 
 const COPY: Record<Locale, HubCopy> = {
   en: {
-    title: 'CV Analyzer Alternatives - Honest Comparisons (2026)',
+    title: 'CV Analyzer Alternatives (2026)',
     description:
-      'Hand-on comparisons of the main CV analyzer and ATS optimization tools - Jobscan, Rezi, Resume Worded, and more. Published pricing, honest weaknesses, and who each tool is actually best for.',
+      'Hands-on comparisons of CV analyzer and ATS tools - Jobscan, Rezi, Resume Worded, and more. Public pricing, honest weaknesses, and who each is best for.',
     badgeLabel: 'All comparisons',
     heroTitle: 'CV analyzer alternatives, compared',
     heroIntro:
@@ -56,9 +56,9 @@ const COPY: Record<Locale, HubCopy> = {
     footerPricing: 'Pricing',
   },
   fr: {
-    title: "Alternatives aux analyseurs de CV - Comparaisons honnêtes (2026)",
+    title: "Alternatives analyseurs de CV (2026)",
     description:
-      "Comparaisons hands-on des principaux outils d'analyse CV et d'optimisation ATS - Jobscan, Rezi, Resume Worded, et plus. Prix publiés, faiblesses honnêtes, et pour qui chaque outil est vraiment le mieux.",
+      "Comparaisons hands-on des outils d'analyse CV et ATS - Jobscan, Rezi, Resume Worded, et plus. Prix publiés, faiblesses honnêtes, et pour qui chaque outil est le mieux.",
     badgeLabel: 'Toutes les comparaisons',
     heroTitle: "Alternatives aux analyseurs de CV, comparées",
     heroIntro:

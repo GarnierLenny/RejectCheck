@@ -16,10 +16,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE =
-  'Software Engineer Resume Tips — 12 Rules That Actually Move the Needle (2026)'
+const TITLE = '12 Software Engineer Resume Tips (2026)'
 const DESCRIPTION =
-  '12 actionable resume tips for software engineers based on what hiring managers actually look for: GitHub signals, ownership phrasing, ATS-friendly format, seniority alignment.'
+  '12 resume tips for software engineers based on what hiring managers look for: GitHub signals, ownership phrasing, ATS-friendly format, seniority alignment.'
 
 type LangParams = { lang: string }
 

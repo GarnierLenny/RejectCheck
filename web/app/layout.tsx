@@ -18,11 +18,11 @@ const chivoMono = Chivo_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rejectcheck.com"),
+  metadataBase: new URL("https://www.rejectcheck.com"),
   title: "RejectCheck - Find out why your CV got rejected",
   description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis - and exactly what to fix before you hit send.",
   applicationName: "RejectCheck",
-  authors: [{ name: "RejectCheck", url: "https://rejectcheck.com" }],
+  authors: [{ name: "RejectCheck", url: "https://www.rejectcheck.com" }],
   creator: "RejectCheck",
   publisher: "RejectCheck",
   robots: {
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "RejectCheck - Find out why your CV got rejected",
     description: "Deep-dive diagnosis across ATS filters, seniority gaps, tone analysis - and exactly what to fix before you hit send.",
-    url: "https://rejectcheck.com",
+    url: "https://www.rejectcheck.com",
     siteName: "RejectCheck",
     images: [
       {

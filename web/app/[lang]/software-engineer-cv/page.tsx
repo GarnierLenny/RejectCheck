@@ -17,10 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE =
-  'Software Engineer CV — How to Write One That Actually Lands Interviews (2026)'
+const TITLE = 'Software Engineer CV Guide (2026)'
 const DESCRIPTION =
-  'How to write a software engineer CV that passes ATS, the 6-second HR scan, and the hiring manager review. Free CV check tailored to a specific engineering role.'
+  'How to write a software engineer CV that passes ATS, the 6-second HR scan, and the hiring manager review. Free check tailored to your target role.'
 
 type LangParams = { lang: string }
 

@@ -17,9 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Free ATS Checker for Developers — Test Your Resume Against ATS Filters'
+const TITLE = 'Free ATS Checker for Developers'
 const DESCRIPTION =
-  'Free ATS resume checker for developers. Simulates the Applicant Tracking System layer that rejects 70% of CVs before a human ever reads them. Find missing keywords, format flags, and exact fixes — tailored to a specific job description.'
+  'Free ATS resume checker for developers. Simulates the layer that rejects 70% of CVs before a human reads them. Find missing keywords and exact fixes.'
 
 type LangParams = { lang: string }
 

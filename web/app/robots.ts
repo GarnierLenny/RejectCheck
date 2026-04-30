@@ -35,7 +35,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/api/',
       },
     ],
-    sitemap: 'https://rejectcheck.com/sitemap.xml',
-    host: 'https://rejectcheck.com',
+    sitemap: 'https://www.rejectcheck.com/sitemap.xml',
+    host: 'https://www.rejectcheck.com',
   }
 }

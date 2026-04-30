@@ -147,7 +147,7 @@ export function PublicProfileHeader({ profile }: Props) {
             url={
               typeof window !== "undefined"
                 ? `${window.location.origin}${localePath(`/u/${profile.username}`)}`
-                : `https://rejectcheck.com${localePath(`/u/${profile.username}`)}`
+                : `https://www.rejectcheck.com${localePath(`/u/${profile.username}`)}`
             }
             text={t.share.profileText.replace(
               "{user}",

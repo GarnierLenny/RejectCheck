@@ -5,7 +5,7 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       'Dual-AI CV diagnosis with skill gap radar, GitHub commit audit, LinkedIn cross-reference, and voice-based AI mock interview.',
-    website: 'https://rejectcheck.com',
+    website: 'https://www.rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month (transparent pricing, published publicly)',
     topFeatures: [
@@ -157,9 +157,9 @@ const COMPETITORS_EN: Competitor[] = [
 ]
 
 export const contentEn: AlternativesContent = {
-  title: '7 Best Resume Worded Alternatives in 2026 (with Transparent Pricing)',
+  title: '7 Resume Worded Alternatives (2026)',
   description:
-    "Looking for a Resume Worded alternative with public pricing, AI interview practice, or GitHub audit? Compare RejectCheck, Jobscan, Rezi, Kickresume, and Enhancv on price, feature depth, and who each is best for. Honest and research-backed.",
+    "Compare RejectCheck, Jobscan, Rezi, Kickresume, and Enhancv on price, feature depth, AI interview practice, and GitHub audit. Public pricing.",
   badgeLabel: 'Comparison · Updated April 24, 2026',
   heroTitle: '7 Best Resume Worded Alternatives in 2026',
   heroIntro:
@@ -309,7 +309,7 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       'Diagnostic de CV dual-IA avec radar des lacunes, audit commits GitHub, recoupement LinkedIn, et entretien simulé IA vocal.',
-    website: 'https://rejectcheck.com',
+    website: 'https://www.rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois (prix transparent, publié publiquement)',
     topFeatures: [
@@ -461,9 +461,9 @@ const COMPETITORS_FR: Competitor[] = [
 ]
 
 export const contentFr: AlternativesContent = {
-  title: '7 meilleures alternatives à Resume Worded en 2026 (avec prix transparents)',
+  title: '7 alternatives Resume Worded (2026)',
   description:
-    "Tu cherches une alternative à Resume Worded avec un prix public, un entretien IA, ou un audit GitHub ? Compare RejectCheck, Jobscan, Rezi, Kickresume, et Enhancv sur le prix, la profondeur des features, et pour qui chacun est le mieux. Honnête et basé sur la recherche.",
+    "Compare RejectCheck, Jobscan, Rezi, Kickresume, et Enhancv sur le prix, la profondeur des features, l'entretien IA, et l'audit GitHub. Prix publics.",
   badgeLabel: 'Comparaison · Mis à jour le 24 avril 2026',
   heroTitle: '7 meilleures alternatives à Resume Worded en 2026',
   heroIntro:

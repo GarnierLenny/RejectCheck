@@ -5,7 +5,7 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       'Dual-AI CV diagnosis tool - not a builder. Tells you what is wrong with the CV you already have.',
-    website: 'https://rejectcheck.com',
+    website: 'https://www.rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month',
     topFeatures: [
@@ -160,7 +160,7 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       "Outil de diagnostic de CV dual-IA - pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
-    website: 'https://rejectcheck.com',
+    website: 'https://www.rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois',
     topFeatures: [
@@ -311,9 +311,9 @@ const COMPETITORS_FR: Competitor[] = [
 ]
 
 export const contentEn: AlternativesContent = {
-  title: '6 Best Rezi Alternatives in 2026 (Free, Lifetime, Non-Subscription)',
+  title: '6 Best Rezi Alternatives (2026)',
   description:
-    'Looking for a Rezi alternative? Compare RejectCheck, Jobscan, Resume Worded, Kickresume, and Enhancv on price, ATS accuracy, free tier depth, and whether they build vs diagnose. Includes the lifetime vs subscription trade-off.',
+    'Compare RejectCheck, Jobscan, Resume Worded, Kickresume, and Enhancv on price, ATS accuracy, free tier depth, and lifetime vs subscription.',
   badgeLabel: 'Comparison · Updated April 24, 2026',
   heroTitle: '6 Best Rezi Alternatives in 2026',
   heroIntro:
@@ -459,9 +459,9 @@ export const contentEn: AlternativesContent = {
 }
 
 export const contentFr: AlternativesContent = {
-  title: '6 meilleures alternatives à Rezi en 2026 (gratuit, à vie, sans abonnement)',
+  title: '6 alternatives à Rezi (2026)',
   description:
-    "Tu cherches une alternative à Rezi ? Compare RejectCheck, Jobscan, Resume Worded, Kickresume, et Enhancv sur le prix, la précision ATS, la profondeur du tier gratuit, et s'ils buildent ou diagnostiquent. Inclut le trade-off à vie vs abonnement.",
+    "Compare RejectCheck, Jobscan, Resume Worded, Kickresume, et Enhancv sur le prix, la précision ATS, le tier gratuit, et le trade-off à vie vs abonnement.",
   badgeLabel: 'Comparaison · Mis à jour le 24 avril 2026',
   heroTitle: '6 meilleures alternatives à Rezi en 2026',
   heroIntro:

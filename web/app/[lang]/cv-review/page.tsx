@@ -17,9 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Deep CV Review for Developers — More Than a Score, a Real Diagnosis'
+const TITLE = 'Deep CV Review for Developers'
 const DESCRIPTION =
-  'Get a deep CV review tailored to a specific engineering role: tone audit, seniority signals, GitHub coherence, narrative consistency. Beyond a score — a full critique a hiring manager would write.'
+  'Deep CV review tailored to a specific engineering role: tone audit, seniority signals, GitHub coherence. The critique a hiring manager would write.'
 
 type LangParams = { lang: string }
 

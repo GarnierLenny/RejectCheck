@@ -91,7 +91,7 @@ const COMPETITORS_EN: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline: 'Dual-AI CV diagnosis with skill gap radar and GitHub/LinkedIn audit.',
-    website: 'https://rejectcheck.com',
+    website: 'https://www.rejectcheck.com',
     freeTier: '1 full analysis (guest) or 3 (registered, free)',
     paidEntry: '€7.99 / month',
     topFeatures: [
@@ -238,7 +238,7 @@ const COMPETITORS_FR: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline: 'Diagnostic de CV dual-IA avec radar des lacunes et audit GitHub/LinkedIn.',
-    website: 'https://rejectcheck.com',
+    website: 'https://www.rejectcheck.com',
     freeTier: '1 analyse complète (invité) ou 3 (enregistré, gratuit)',
     paidEntry: '7,99 € / mois',
     topFeatures: [
@@ -382,9 +382,9 @@ const COMPETITORS_FR: Competitor[] = [
 ]
 
 export const contentEn: AlternativesContent = {
-  title: '7 Best Jobscan Alternatives in 2026 (Free, Paid, AI-Powered)',
+  title: '7 Best Jobscan Alternatives (2026)',
   description:
-    'Looking for a Jobscan alternative? Compare RejectCheck, Rezi, Resume Worded, Kickresume, and Enhancv on price, ATS accuracy, AI models, and who each is best for. Honest, up-to-date, and based on hands-on research.',
+    'Compare RejectCheck, Rezi, Resume Worded, Kickresume, and Enhancv on price, ATS accuracy, AI models, and who each is best for. Hands-on research.',
   badgeLabel: 'Comparison · Updated April 24, 2026',
   heroTitle: '7 Best Jobscan Alternatives in 2026',
   heroIntro:
@@ -530,9 +530,9 @@ export const contentEn: AlternativesContent = {
 }
 
 export const contentFr: AlternativesContent = {
-  title: '7 meilleures alternatives à Jobscan en 2026 (gratuit, payant, IA)',
+  title: '7 alternatives à Jobscan (2026)',
   description:
-    "Tu cherches une alternative à Jobscan ? Compare RejectCheck, Rezi, Resume Worded, Kickresume, et Enhancv sur le prix, la précision ATS, les modèles IA, et pour qui chacun est le mieux. Honnête, à jour, basé sur de la recherche hands-on.",
+    "Compare RejectCheck, Rezi, Resume Worded, Kickresume, et Enhancv sur le prix, la précision ATS, les modèles IA, et pour qui chacun est le mieux.",
   badgeLabel: 'Comparaison · Mis à jour le 24 avril 2026',
   heroTitle: '7 meilleures alternatives à Jobscan en 2026',
   heroIntro:

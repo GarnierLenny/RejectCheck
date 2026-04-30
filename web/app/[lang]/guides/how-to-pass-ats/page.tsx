@@ -19,7 +19,7 @@ const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
 const TITLE = 'How to Pass ATS in 2026 — A Developer’s Guide'
 const DESCRIPTION =
-  'Step-by-step guide for developers: how Applicant Tracking Systems actually work, the format traps that break parsing, and the exact keyword and structure rules that get your CV through to a human.'
+  'Step-by-step for developers: how ATS works, the format traps that break parsing, and the keyword + structure rules that get your CV through to a human.'
 
 type LangParams = { lang: string }
 

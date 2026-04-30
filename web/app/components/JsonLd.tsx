@@ -12,7 +12,7 @@ export function JsonLd({ data, id }: { data: JsonLdSchema | JsonLdSchema[]; id?:
   )
 }
 
-export const SITE_URL = 'https://rejectcheck.com'
+export const SITE_URL = 'https://www.rejectcheck.com'
 
 export const organizationSchema: JsonLdSchema = {
   '@context': 'https://schema.org',
