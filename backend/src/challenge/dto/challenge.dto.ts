@@ -29,6 +29,8 @@ export const GeneratedChallengeSchema = z.object({
   snippet: z.string().min(1),
   question: z.string().min(1),
   issues: z.array(ChallengeIssueSchema).min(1),
+  whatToLookFor: z.array(z.string().min(1)).length(3),
+  hints: z.array(z.string().min(1)).length(3),
   estimatedTime: z.number().int().min(1).max(60),
 });
 

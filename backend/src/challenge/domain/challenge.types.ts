@@ -15,6 +15,8 @@ export type DailyChallenge = {
   snippet: string;
   question: string;
   issues: ChallengeIssue[];
+  whatToLookFor: string[];
+  hints: string[];
   estimatedTime: number;
 };
 

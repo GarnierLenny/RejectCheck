@@ -1348,7 +1348,13 @@
       "tbBullet": "Bullet",
       "fileNameDefault": "snippet.{ext}",
       "fileMetaReadOnly": "read-only",
-      "fileMetaLines": "{count} lines"
+      "fileMetaLines": "{count} lines",
+      "whatToLookForLabel": "What to look for",
+      "whatToLookForEmpty": "No specific watchpoints — read the snippet end-to-end and trust your nose.",
+      "hintsLabel": "Hints",
+      "hintsEmpty": "No hints for this one — you're on your own.",
+      "hintItemLabel": "Hint {n}",
+      "hintReveal": "Reveal"
     }
   },
   "faq": {

@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 import { Navbar } from "../../components/Navbar";
 import { useAuth } from "../../../context/auth";
 import { useLanguage } from "../../../context/language";
@@ -26,6 +27,67 @@ import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
 import { ReviewComposer } from "./components/ReviewComposer";
 
 type Stage = "idle" | "challenged" | "completed";
+
+function BriefCollapse({
+  title,
+  items,
+  emptyText,
+  progressive = false,
+  itemLabel,
+}: {
+  title: string;
+  items: string[];
+  emptyText: string;
+  progressive?: boolean;
+  itemLabel?: string;
+}) {
+  return (
+    <details className="ch-collapse">
+      <summary className="ch-collapse__head">
+        <span className="ch-collapse__chev" aria-hidden>
+          ›
+        </span>
+        <span className="ch-collapse__title">{title}</span>
+        <span className="ch-collapse__count">{items.length || "—"}</span>
+      </summary>
+      <div className="ch-collapse__body">
+        {items.length === 0 ? (
+          <p className="ch-collapse__empty">{emptyText}</p>
+        ) : progressive ? (
+          <div className="ch-collapse__progressive">
+            {items.map((it, i) => {
+              const num = String(i + 1).padStart(2, "0");
+              const label = itemLabel
+                ? itemLabel.replace("{n}", num)
+                : `Item ${num}`;
+              return (
+                <details key={i} className="ch-hint">
+                  <summary className="ch-hint__head">
+                    <span className="ch-hint__num">{num}</span>
+                    <span className="ch-hint__label">{label}</span>
+                    <span className="ch-hint__chev" aria-hidden>
+                      ›
+                    </span>
+                  </summary>
+                  <p className="ch-hint__body">{it}</p>
+                </details>
+              );
+            })}
+          </div>
+        ) : (
+          <ol className="ch-collapse__list">
+            {items.map((it, i) => (
+              <li key={i}>
+                <span className="num">{String(i + 1).padStart(2, "0")}</span>
+                <span>{it}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </details>
+  );
+}
 
 function renderTitle(title: string) {
   // Split on em-dash for editorial italic — keep first part regular, second part italic-serif
@@ -250,8 +312,26 @@ function ChallengeContent() {
               <span className="ch-briefing__head-bar" />
               <b>{t.challenge.ui.briefSection}</b>
             </div>
-            <p>{challenge.question}</p>
-            <p className="ch-briefing__helper">{t.challenge.ui.briefHelper}</p>
+            <div className="ch-briefing__md">
+              <ReactMarkdown
+                allowedElements={["p", "code", "strong", "em"]}
+                unwrapDisallowed
+              >
+                {challenge.question}
+              </ReactMarkdown>
+            </div>
+            <BriefCollapse
+              title={t.challenge.ui.whatToLookForLabel}
+              items={challenge.whatToLookFor}
+              emptyText={t.challenge.ui.whatToLookForEmpty}
+            />
+            <BriefCollapse
+              title={t.challenge.ui.hintsLabel}
+              items={challenge.hints}
+              emptyText={t.challenge.ui.hintsEmpty}
+              progressive
+              itemLabel={t.challenge.ui.hintItemLabel as string}
+            />
           </div>
           {stageSlot}
         </div>

@@ -15,7 +15,7 @@ import type { ChallengeLanguage, FocusTag } from '../domain/focus-tags';
 import type { ChallengeGenerator } from '../ports/challenge-generator.provider';
 import {
   buildChallengePrompt,
-  validateGeneratedSnippet,
+  validateGenerated,
 } from './challenge-generation-prompt';
 import { stripJsonFences } from './strip-json-fences';
 
@@ -91,7 +91,7 @@ export class AnthropicChallengeGenerator implements ChallengeGenerator {
         `Claude challenge did not match schema: ${safe.error.issues[0].message}`,
       );
     }
-    validateGeneratedSnippet(safe.data.snippet, safe.data.issues);
+    validateGenerated(safe.data);
     return safe.data;
   }
 }

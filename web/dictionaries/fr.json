@@ -1349,7 +1349,13 @@
       "tbBullet": "Liste",
       "fileNameDefault": "snippet.{ext}",
       "fileMetaReadOnly": "read-only",
-      "fileMetaLines": "{count} lignes"
+      "fileMetaLines": "{count} lignes",
+      "whatToLookForLabel": "Ce qu'il faut surveiller",
+      "whatToLookForEmpty": "Pas d'indices ciblés — lis le snippet de bout en bout et fais confiance à ton instinct.",
+      "hintsLabel": "Indices",
+      "hintsEmpty": "Pas d'indices pour celui-ci — débrouille-toi.",
+      "hintItemLabel": "Indice {n}",
+      "hintReveal": "Révéler"
     }
   },
   "faq": {
