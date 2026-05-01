@@ -19,6 +19,8 @@ export type PublicChallenge = {
   difficulty: string;
   snippet: string;
   question: string;
+  whatToLookFor: string[];
+  hints: string[];
   estimatedTime: number;
 };
 

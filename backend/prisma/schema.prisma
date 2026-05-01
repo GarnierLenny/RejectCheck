@@ -186,8 +186,10 @@ model DailyChallenge {
   focusTag      String                     // see focus-tags.ts FOCUS_TAGS
   difficulty    String                     // "easy" | "medium" | "hard"
   snippet       String                     // the code to review
-  question      String
-  issues        Json                       // [{ title, description, severity }]
+  question      String                     // markdown (paragraphs, inline `code`, **bold**)
+  issues        Json                       // [{ title, description, severity }] — server-only
+  whatToLookFor Json     @default("[]")    // string[] — public watchpoints (3 items expected on new gen)
+  hints         Json     @default("[]")    // string[] — Socratic guiding questions (3 items expected on new gen)
   estimatedTime Int                        // in minutes
   createdAt     DateTime @default(now())
 

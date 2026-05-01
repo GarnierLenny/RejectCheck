@@ -45,6 +45,8 @@ export class PrismaChallengeRepository implements ChallengeRepository {
           snippet: input.snippet,
           question: input.question,
           issues: input.issues,
+          whatToLookFor: input.whatToLookFor,
+          hints: input.hints,
           estimatedTime: input.estimatedTime,
         },
       });
@@ -74,6 +76,9 @@ export class PrismaChallengeRepository implements ChallengeRepository {
       // The schema stores issues as Prisma.JsonValue. They were written through
       // GeneratedChallengeSchema (Zod) and are reread as-is — cast is safe.
       issues: row.issues as unknown as ChallengeIssue[],
+      // whatToLookFor / hints default to '[]' on insert; coerce null defensively.
+      whatToLookFor: (row.whatToLookFor as unknown as string[] | null) ?? [],
+      hints: (row.hints as unknown as string[] | null) ?? [],
       estimatedTime: row.estimatedTime,
     };
   }

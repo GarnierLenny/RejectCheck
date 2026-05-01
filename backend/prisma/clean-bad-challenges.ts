@@ -6,7 +6,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { config } from 'dotenv';
-import { validateGeneratedSnippet } from '../src/challenge/challenge-generation-prompt';
+import { validateGeneratedSnippet } from '../src/challenge/infrastructure/challenge-generation-prompt';
 import type { ChallengeIssue } from '../src/challenge/dto/challenge.dto';
 
 config();

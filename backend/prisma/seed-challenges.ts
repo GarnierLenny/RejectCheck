@@ -15,14 +15,14 @@ import { config } from 'dotenv';
 import { GeneratedChallengeSchema, DIFFICULTIES, Difficulty } from '../src/challenge/dto/challenge.dto';
 import {
   buildChallengePrompt,
-  validateGeneratedSnippet,
-} from '../src/challenge/challenge-generation-prompt';
+  validateGenerated,
+} from '../src/challenge/infrastructure/challenge-generation-prompt';
 import {
   ChallengeLanguage,
   DEFAULT_LANGUAGE,
   FocusTag,
   getTagsForLanguage,
-} from '../src/challenge/focus-tags';
+} from '../src/challenge/domain/focus-tags';
 
 config();
 
@@ -82,7 +82,7 @@ async function generate(
       `Invalid Claude output for ${focusTag}/${difficulty}: ${safe.error.issues[0].message}`,
     );
   }
-  validateGeneratedSnippet(safe.data.snippet, safe.data.issues);
+  validateGenerated(safe.data);
   return safe.data;
 }
 
@@ -133,6 +133,8 @@ async function main() {
           snippet: gen.snippet,
           question: gen.question,
           issues: gen.issues,
+          whatToLookFor: gen.whatToLookFor,
+          hints: gen.hints,
           estimatedTime: gen.estimatedTime,
         },
       });
