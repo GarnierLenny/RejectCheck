@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Navbar } from "../../components/Navbar";
 import { useAuth } from "../../../context/auth";
@@ -20,10 +20,41 @@ import { AnonymousOverlay } from "./components/AnonymousOverlay";
 import { ScoreCard } from "./components/ScoreCard";
 import { PushbackCard } from "./components/PushbackCard";
 import { FirstReviewQuote } from "./components/FirstReviewQuote";
-import { SubmitButton } from "./components/SubmitButton";
 import { ChallengeLeaderboardCard } from "./components/ChallengeLeaderboardCard";
+import { ChallengeMasthead } from "./components/ChallengeMasthead";
+import { ChallengeStatsStrip } from "./components/ChallengeStatsStrip";
+import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
+import { ReviewComposer } from "./components/ReviewComposer";
 
 type Stage = "idle" | "challenged" | "completed";
+
+function renderTitle(title: string) {
+  // Split on em-dash for editorial italic — keep first part regular, second part italic-serif
+  const dashIdx = title.indexOf("—");
+  if (dashIdx === -1) return <>{title}</>;
+  return (
+    <>
+      {title.slice(0, dashIdx + 1)}
+      <br />
+      <em>{title.slice(dashIdx + 1).trim()}</em>
+    </>
+  );
+}
+
+function useResetCountdown() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const next = new Date(now);
+  next.setHours(24, 0, 0, 0);
+  const ms = next.getTime() - now.getTime();
+  const totalMin = Math.max(0, Math.floor(ms / 60_000));
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return `${h}h ${String(m).padStart(2, "0")}m`;
+}
 
 function ChallengeContent() {
   const { t, locale } = useLanguage();
@@ -42,8 +73,11 @@ function ChallengeContent() {
   const [aiChallenge, setAiChallenge] = useState<string | null>(null);
   const [finalResult, setFinalResult] = useState<FinalResponse | null>(null);
 
+  const countdown = useResetCountdown();
+
   const dateLabel = challengeQuery.data?.date
     ? new Date(challengeQuery.data.date).toLocaleDateString(locale, {
+        weekday: "long",
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -116,17 +150,9 @@ function ChallengeContent() {
     }
   }
 
-  const isAnonymous = !authLoading && !user;
-  const streak = streakQuery.data?.currentStreak ?? 0;
-  const completionsToday = (t.challenge.completionsToday as string).replace(
-    "{count}",
-    String(statsQuery.data?.completions ?? 0),
-  );
-  const streakLabel = (t.challenge.streakDays as string).replace("{count}", String(streak));
-
   if (challengeQuery.isLoading) {
     return (
-      <div className="w-full px-4 md:px-6 py-12 text-center text-rc-muted">
+      <div className="ch-page text-center text-rc-muted py-12">
         {t.common.loading}
       </div>
     );
@@ -134,151 +160,150 @@ function ChallengeContent() {
 
   if (challengeQuery.isError || !challengeQuery.data) {
     return (
-      <div className="w-full px-4 md:px-6 py-12 text-center text-rc-muted">
+      <div className="ch-page text-center text-rc-muted py-12">
         {t.challenge.errors.loadFailed}
       </div>
     );
   }
 
   const challenge = challengeQuery.data;
+  const isAnonymous = !authLoading && !user;
   const canSubmit = !isAnonymous;
 
+  const minRead = (t.challenge.ui.minRead as string).replace(
+    "{minutes}",
+    String(challenge.estimatedTime),
+  );
+  const resetsIn = (t.challenge.ui.resetsIn as string).replace("{time}", countdown);
+
+  // ── State machine slot (right column under briefing) ──
+  let stageSlot: React.ReactNode = null;
+  if (stage === "completed" && finalResult) {
+    stageSlot = <ScoreCard challenge={challenge} result={finalResult} />;
+  } else if (isAnonymous) {
+    stageSlot = <AnonymousOverlay />;
+  } else if (submitFirst.isPending) {
+    stageSlot = (
+      <>
+        <FirstReviewQuote text={firstAnswer} />
+        <PushbackCard loading />
+      </>
+    );
+  } else if (stage === "challenged" && aiChallenge) {
+    stageSlot = (
+      <>
+        <FirstReviewQuote text={firstAnswer} />
+        <PushbackCard text={aiChallenge} />
+        <ReviewComposer
+          value={secondAnswer}
+          onChange={setSecondAnswer}
+          onSubmit={handleSubmitFinal}
+          pending={submitFinal.isPending}
+          disabled={!canSubmit}
+          placeholder={t.challenge.socratic.placeholder}
+          submitLabel={t.challenge.socratic.submit}
+          pendingLabel={t.common.processing}
+          rows={8}
+          autoFocus
+        />
+      </>
+    );
+  } else {
+    stageSlot = (
+      <ReviewComposer
+        value={firstAnswer}
+        onChange={setFirstAnswer}
+        onSubmit={handleSubmitFirst}
+        pending={submitFirst.isPending}
+        disabled={!canSubmit}
+        placeholder={t.challenge.firstAnswer.placeholder}
+        submitLabel={t.challenge.firstAnswer.submit}
+        pendingLabel={t.common.processing}
+        rows={12}
+      />
+    );
+  }
+
+  const showSidebars = !isAnonymous;
+
   return (
-    <div className="w-full px-4 md:px-6 py-4 flex flex-col gap-4 md:flex-1 md:min-h-0">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:flex-1 md:min-h-0">
-        {/* Left: title + code snippet - scrolls internally on desktop */}
-        <div className="flex flex-col gap-4 md:overflow-y-auto md:h-full md:min-h-0">
-          <h1 className="text-[24px] md:text-[30px] font-bold text-rc-text leading-tight">
-            {challenge.title}
-          </h1>
-          <CodeSnippet code={challenge.snippet} language={challenge.language} />
+    <main className="ch-page">
+      <ChallengeMasthead issueNumber={challenge.id} dateLabel={dateLabel} />
+
+      <section className="ch-title-block">
+        <div>
+          <div className="ch-issue-no">
+            <span>{t.challenge.ui.todaysBrief}</span>
+            <span>·</span>
+            <b>{minRead}</b>
+            <span>·</span>
+            <span>{resetsIn}</span>
+          </div>
+          <h1 className="ch-title">{renderTitle(challenge.title)}</h1>
         </div>
-
-        {/* Right: header + question + state machine - scrolls internally on desktop */}
-        <div className="flex flex-col gap-5 md:overflow-y-auto md:h-full md:min-h-0 md:pr-2">
-          <header className="flex flex-wrap items-end justify-between gap-3 pb-4 border-b border-rc-border">
-            <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-              <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-hint">
-                {t.challenge.title}
-              </p>
-              <p className="text-[13px] text-rc-muted">{dateLabel}</p>
-              <ChallengeBadges
-                focusTag={challenge.focusTag}
-                difficulty={challenge.difficulty}
-                estimatedTime={challenge.estimatedTime}
-                language={challenge.language}
-              />
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              {user && streak > 0 && (
-                <p className="font-mono text-[12px] text-rc-red">🔥 {streakLabel}</p>
-              )}
-              <p className="font-mono text-[11px] text-rc-muted">{completionsToday}</p>
-            </div>
-          </header>
-          <section className="space-y-2">
-            <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-hint">
-              {t.challenge.questionLabel}
-            </p>
-            <p className="text-[16px] text-rc-text leading-relaxed">{challenge.question}</p>
-          </section>
-
-          {(() => {
-            if (stage === "completed" && finalResult) {
-              return (
-                <>
-                  <ScoreCard challenge={challenge} result={finalResult} />
-                  <ChallengeLeaderboardCard
-                    challengeId={challenge.id}
-                    score={finalResult.score}
-                    challengeTitle={challenge.title}
-                  />
-                </>
-              );
-            }
-            if (isAnonymous) {
-              return <AnonymousOverlay />;
-            }
-
-            const renderStage: "idle" | "loading" | "challenged" =
-              submitFirst.isPending ? "loading" : stage === "challenged" ? "challenged" : "idle";
-
-            const onTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                e.preventDefault();
-                if (renderStage === "idle" && firstAnswer.trim()) handleSubmitFirst();
-                if (renderStage === "challenged" && secondAnswer.trim()) handleSubmitFinal();
-              }
-            };
-
-            if (renderStage === "loading") {
-              return (
-                <>
-                  <FirstReviewQuote text={firstAnswer} />
-                  <PushbackCard loading />
-                </>
-              );
-            }
-
-            if (renderStage === "challenged" && aiChallenge) {
-              return (
-                <>
-                  <FirstReviewQuote text={firstAnswer} />
-                  <PushbackCard text={aiChallenge} />
-                  <textarea
-                    value={secondAnswer}
-                    onChange={(e) => setSecondAnswer(e.target.value)}
-                    onKeyDown={onTextareaKeyDown}
-                    placeholder={t.challenge.socratic.placeholder}
-                    rows={8}
-                    autoFocus
-                    className="w-full border border-rc-border rounded-xl px-4 py-3 text-[14px] font-mono bg-white focus:border-rc-red focus:outline-none resize-y"
-                  />
-                  <SubmitButton
-                    label={t.challenge.socratic.submit}
-                    pendingLabel={t.common.processing}
-                    onClick={handleSubmitFinal}
-                    pending={submitFinal.isPending}
-                    disabled={submitFinal.isPending || !secondAnswer.trim()}
-                  />
-                </>
-              );
-            }
-
-            return (
-              <>
-                <textarea
-                  value={firstAnswer}
-                  onChange={(e) => setFirstAnswer(e.target.value)}
-                  onKeyDown={onTextareaKeyDown}
-                  placeholder={t.challenge.firstAnswer.placeholder}
-                  rows={12}
-                  disabled={!canSubmit}
-                  className="w-full border border-rc-border rounded-xl px-4 py-3 text-[14px] font-mono bg-white focus:border-rc-red focus:outline-none resize-y"
-                />
-                <SubmitButton
-                  label={t.challenge.firstAnswer.submit}
-                  pendingLabel={t.common.processing}
-                  onClick={handleSubmitFirst}
-                  pending={submitFirst.isPending}
-                  disabled={submitFirst.isPending || !firstAnswer.trim() || !canSubmit}
-                />
-              </>
-            );
-          })()}
+        <div className="ch-title-meta">
+          <ChallengeBadges
+            focusTag={challenge.focusTag}
+            difficulty={challenge.difficulty}
+            estimatedTime={challenge.estimatedTime}
+            language={challenge.language}
+          />
         </div>
-      </div>
-    </div>
+      </section>
+
+      {showSidebars && (
+        <ChallengeStatsStrip
+          streak={streakQuery.data}
+          completions={statsQuery.data?.completions}
+        />
+      )}
+
+      {showSidebars && <ChallengeStreakTrack />}
+
+      <section className="ch-main">
+        <CodeSnippet
+          code={challenge.snippet}
+          language={challenge.language}
+          withChrome
+        />
+        <div className="ch-right-col">
+          <div className="ch-briefing">
+            <div className="ch-briefing__head">
+              <span className="ch-briefing__head-bar" />
+              <b>{t.challenge.ui.briefSection}</b>
+            </div>
+            <p>{challenge.question}</p>
+            <p className="ch-briefing__helper">{t.challenge.ui.briefHelper}</p>
+          </div>
+          {stageSlot}
+        </div>
+      </section>
+
+      {stage === "completed" && finalResult && (
+        <section className="ch-bottom">
+          <ChallengeLeaderboardCard
+            challengeId={challenge.id}
+            score={finalResult.score}
+            challengeTitle={challenge.title}
+          />
+        </section>
+      )}
+      {stage !== "completed" && !isAnonymous && (
+        <section className="ch-bottom">
+          <ChallengeLeaderboardCard challengeId={challenge.id} />
+        </section>
+      )}
+    </main>
   );
 }
 
 export default function ChallengePage() {
   return (
-    <div className="md:h-screen md:flex md:flex-col md:overflow-hidden">
+    <>
       <Navbar activePage="challenge" />
       <Suspense fallback={<div className="py-12 text-center text-rc-muted">Loading…</div>}>
         <ChallengeContent />
       </Suspense>
-    </div>
+    </>
   );
 }

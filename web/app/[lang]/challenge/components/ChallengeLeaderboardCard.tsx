@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Trophy } from "lucide-react";
-import { Heading, Caption } from "../../../components/typography";
+import { Caption } from "../../../components/typography";
 import { Leaderboard } from "../../../components/Leaderboard";
 import { ShareMenu } from "../../../components/ShareMenu";
 import { useChallengeLeaderboard, useProfile } from "../../../../lib/queries";
@@ -43,27 +43,30 @@ export function ChallengeLeaderboardCard({
       : "";
 
   return (
-    <div className="bg-rc-surface border border-rc-border rounded-lg p-5 mt-5">
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Trophy size={14} className="text-rc-amber" />
-          <Heading as="h3">{t.leaderboard.todayTop}</Heading>
+    <div className="bg-rc-surface border border-rc-border rounded-[14px] p-6">
+      <div className="flex items-end justify-between mb-4 gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <Trophy size={16} className="text-rc-amber" />
+          <h3 className="font-sans text-[18px] font-semibold tracking-[-0.01em] text-rc-text leading-none m-0">
+            {t.leaderboard.todayTop}
+          </h3>
         </div>
         <div className="flex items-center gap-2">
           {canShare && shareUrl && <ShareMenu url={shareUrl} text={shareText} size="sm" />}
           {user && <ScopeToggle scope={scope} onChange={setScope} />}
+          <Link
+            href={localePath("/leaderboard")}
+            className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-red no-underline hover:opacity-80 ml-1"
+          >
+            {t.leaderboard.viewFull} →
+          </Link>
         </div>
       </div>
       <Leaderboard entries={query.data ?? []} isLoading={query.isLoading} />
-      <Link
-        href={localePath("/leaderboard")}
-        className="block mt-3 text-center font-mono text-[11px] text-rc-muted hover:text-rc-text no-underline"
-      >
-        {t.leaderboard.viewFull} →
-      </Link>
     </div>
   );
 }
+
 
 export function ScopeToggle({
   scope,

@@ -1322,7 +1322,35 @@
       "medium": "Moyen",
       "hard": "Difficile"
     },
-    "shareText": "J'ai eu {score}/100 sur le défi quotidien RejectCheck 🔥\nSujet : {title}\nSérie : 🔥 {streak} jours\n\nTu fais mieux ? rejectcheck.com/challenge"
+    "shareText": "J'ai eu {score}/100 sur le défi quotidien RejectCheck 🔥\nSujet : {title}\nSérie : 🔥 {streak} jours\n\nTu fais mieux ? rejectcheck.com/challenge",
+    "ui": {
+      "dailyLabel": "RejectCheck Daily · La code review",
+      "issueNumber": "Édition № {id}",
+      "todaysBrief": "Le brief du jour",
+      "minRead": "{minutes} min de lecture",
+      "resetsIn": "Reset dans {time}",
+      "briefSection": "Le brief",
+      "briefHelper": "Déroule ta review comme un commentaire de PR — ce qui cloche, pourquoi c'est grave, ce que tu shipperais.",
+      "currentStreakLabel": "Série en cours",
+      "personalBest": "Meilleure série · {n} jours",
+      "devsToday": "Devs ayant joué aujourd'hui",
+      "noCompletionsYet": "Sois le premier aujourd'hui",
+      "last28Days": "28 derniers jours",
+      "daysCompleted": "{done} / {total} complétés",
+      "composerLabel": "Ta review",
+      "charCounter": "{chars} / {max} · ~{words} mots",
+      "draftSaved": "Brouillon sauvegardé",
+      "citeLine": "Citer une ligne",
+      "today": "Auj.",
+      "days": "JOURS",
+      "tbBold": "G",
+      "tbItalic": "i",
+      "tbCode": "Code",
+      "tbBullet": "Liste",
+      "fileNameDefault": "snippet.{ext}",
+      "fileMetaReadOnly": "read-only",
+      "fileMetaLines": "{count} lignes"
+    }
   },
   "faq": {
     "title": "Questions fréquentes",

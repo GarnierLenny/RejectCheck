@@ -1321,7 +1321,35 @@
       "medium": "Medium",
       "hard": "Hard"
     },
-    "shareText": "I scored {score}/100 on today's RejectCheck Daily Challenge 🔥\nTopic: {title}\nStreak: 🔥 {streak} days\n\nCan you do better? rejectcheck.com/challenge"
+    "shareText": "I scored {score}/100 on today's RejectCheck Daily Challenge 🔥\nTopic: {title}\nStreak: 🔥 {streak} days\n\nCan you do better? rejectcheck.com/challenge",
+    "ui": {
+      "dailyLabel": "RejectCheck Daily · The Code Review",
+      "issueNumber": "Issue № {id}",
+      "todaysBrief": "Today's brief",
+      "minRead": "{minutes} min read",
+      "resetsIn": "Resets in {time}",
+      "briefSection": "The brief",
+      "briefHelper": "Walk through your review like a PR comment — what's wrong, why it matters, what you'd ship.",
+      "currentStreakLabel": "Current streak",
+      "personalBest": "Personal best · {n} days",
+      "devsToday": "Devs solved today",
+      "noCompletionsYet": "Be the first today",
+      "last28Days": "Last 28 days",
+      "daysCompleted": "{done} / {total} completed",
+      "composerLabel": "Your review",
+      "charCounter": "{chars} / {max} · ~{words} words",
+      "draftSaved": "Draft saved locally",
+      "citeLine": "Cite line",
+      "today": "Today",
+      "days": "DAYS",
+      "tbBold": "B",
+      "tbItalic": "i",
+      "tbCode": "Code",
+      "tbBullet": "Bullet",
+      "fileNameDefault": "snippet.{ext}",
+      "fileMetaReadOnly": "read-only",
+      "fileMetaLines": "{count} lines"
+    }
   },
   "faq": {
     "title": "Frequently asked questions",
