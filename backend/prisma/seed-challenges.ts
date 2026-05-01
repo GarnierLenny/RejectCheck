@@ -12,7 +12,11 @@
 import { PrismaClient } from '@prisma/client';
 import Anthropic from '@anthropic-ai/sdk';
 import { config } from 'dotenv';
-import { GeneratedChallengeSchema, DIFFICULTIES, Difficulty } from '../src/challenge/dto/challenge.dto';
+import {
+  GeneratedChallengeSchema,
+  DIFFICULTIES,
+  Difficulty,
+} from '../src/challenge/dto/challenge.dto';
 import {
   buildChallengePrompt,
   validateGenerated,
@@ -31,10 +35,12 @@ const MODEL_NAME = 'claude-sonnet-4-6';
 const MAX_TOKENS = 4096;
 
 const TARGET_LANGUAGE: ChallengeLanguage = DEFAULT_LANGUAGE;
-const TOTAL = 2; // intentionally small to limit Claude spend during dev
+const TOTAL = 1; // intentionally small to limit Claude spend during dev
 
 function startOfDayUtc(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  return new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
+  );
 }
 
 function addDays(d: Date, n: number): Date {
@@ -107,13 +113,17 @@ async function main() {
     const rotationIndex = existingCount + i;
     const focusTag = tags[rotationIndex % tags.length];
     const difficulty =
-      DIFFICULTIES[Math.floor(rotationIndex / tags.length) % DIFFICULTIES.length];
+      DIFFICULTIES[
+        Math.floor(rotationIndex / tags.length) % DIFFICULTIES.length
+      ];
 
     const existing = await prisma.dailyChallenge.findUnique({
       where: { date_language: { date, language: TARGET_LANGUAGE } },
     });
     if (existing) {
-      console.log(`[${date.toISOString().slice(0, 10)}] ${TARGET_LANGUAGE} exists — skipping`);
+      console.log(
+        `[${date.toISOString().slice(0, 10)}] ${TARGET_LANGUAGE} exists — skipping`,
+      );
       skipped++;
       continue;
     }
@@ -144,7 +154,9 @@ async function main() {
     }
   }
 
-  console.log(`\nSeeded ${seeded} new challenges. Skipped ${skipped} existing.`);
+  console.log(
+    `\nSeeded ${seeded} new challenges. Skipped ${skipped} existing.`,
+  );
 }
 
 main()

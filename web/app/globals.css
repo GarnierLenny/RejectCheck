@@ -1509,13 +1509,25 @@ body {
   color: var(--rc-red);
 }
 .ch-hint__body {
-  margin: 0;
   padding: 0 16px 14px 56px;
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.6;
   color: var(--rc-muted);
 }
+.ch-hint__body p { margin: 0 0 8px; }
+.ch-hint__body p:last-child { margin-bottom: 0; }
+.ch-hint__body code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--rc-red-bg);
+  color: var(--rc-red);
+  border: 1px solid var(--rc-red-border);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.ch-hint__body strong { color: var(--rc-text); font-weight: 600; }
+.ch-hint__body em { font-style: italic; }
 
 /* ─── Bottom (leaderboard full width) ─── */
 .ch-bottom {

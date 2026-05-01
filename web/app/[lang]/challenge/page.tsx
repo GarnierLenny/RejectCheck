@@ -69,7 +69,14 @@ function BriefCollapse({
                       ›
                     </span>
                   </summary>
-                  <p className="ch-hint__body">{it}</p>
+                  <div className="ch-hint__body">
+                    <ReactMarkdown
+                      allowedElements={["p", "code", "strong", "em"]}
+                      unwrapDisallowed
+                    >
+                      {it}
+                    </ReactMarkdown>
+                  </div>
                 </details>
               );
             })}
