@@ -1177,6 +1177,103 @@ body {
   border-radius: 0 !important;
   border: none !important;
 }
+/* Selectable lines (PR-style cite) — inline-block creates a containing block for the
+   absolute ::after pseudo, which paints a horizontal bar 9999px wide via inset:0 -9999px.
+   inline-block does NOT double-space (the \n between line spans creates a single line break). */
+.ch-code-shell__body { overflow: hidden; }
+.ch-code-shell__body .shiki-wrapper .line {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  z-index: 0;
+  transition: box-shadow .12s;
+}
+.ch-code-shell__body .shiki-wrapper .line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -9999px;
+  right: -9999px;
+  z-index: -1;
+  pointer-events: none;
+  transition: background .12s;
+}
+.ch-code-shell__body .shiki-wrapper .line:hover::after {
+  background: rgba(201, 58, 57, 0.16);
+}
+.ch-code-shell__body .shiki-wrapper .line.is-selected::after {
+  background: rgba(201, 58, 57, 0.28);
+}
+.ch-code-shell__body .shiki-wrapper .line.is-selected:hover::after {
+  background: rgba(201, 58, 57, 0.34);
+}
+.ch-code-shell__body .shiki-wrapper .line.is-selected {
+  box-shadow: inset 3px 0 0 var(--rc-red);
+}
+
+/* Floating cite action — positioned next to the first selected line */
+.ch-code-shell__body { position: relative; }
+.ch-code-shell__float {
+  position: absolute;
+  right: 12px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 4px 4px 12px;
+  background: rgba(20, 19, 26, 0.96);
+  border: 1px solid var(--rc-red-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  z-index: 5;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  /* Vertically center on the selected line (line-height ~1.65 * 13px ≈ 22px → ~half offset) */
+  transform: translateY(-2px);
+  animation: chFloatIn .12s ease-out;
+}
+@keyframes chFloatIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(-2px); }
+}
+.ch-code-shell__float-range {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+.ch-code-shell__float-count {
+  color: rgba(255, 255, 255, 0.55);
+}
+.ch-code-shell__float-clear {
+  width: 20px; height: 20px;
+  padding: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px; line-height: 1;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.ch-code-shell__float-clear:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+}
+.ch-code-shell__float-action {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--rc-red);
+  color: #fff;
+  border: 1px solid var(--rc-red);
+  cursor: pointer;
+  transition: background .15s;
+}
+.ch-code-shell__float-action:hover { background: var(--rc-red-hover); }
 
 /* ─── Briefing card ─── */
 .ch-briefing {

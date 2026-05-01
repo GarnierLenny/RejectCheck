@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { Navbar } from "../../components/Navbar";
@@ -24,7 +24,7 @@ import { FirstReviewQuote } from "./components/FirstReviewQuote";
 import { ChallengeLeaderboardCard } from "./components/ChallengeLeaderboardCard";
 import { ChallengeStatsStrip } from "./components/ChallengeStatsStrip";
 import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
-import { ReviewComposer } from "./components/ReviewComposer";
+import { ReviewComposer, type ReviewComposerHandle } from "./components/ReviewComposer";
 
 type Stage = "idle" | "challenged" | "completed";
 
@@ -141,6 +141,7 @@ function ChallengeContent() {
   const [aiChallenge, setAiChallenge] = useState<string | null>(null);
   const [finalResult, setFinalResult] = useState<FinalResponse | null>(null);
 
+  const composerRef = useRef<ReviewComposerHandle>(null);
   const countdown = useResetCountdown();
 
   async function handleSubmitFirst() {
@@ -250,6 +251,7 @@ function ChallengeContent() {
         <FirstReviewQuote text={firstAnswer} />
         <PushbackCard text={aiChallenge} />
         <ReviewComposer
+          ref={composerRef}
           value={secondAnswer}
           onChange={setSecondAnswer}
           onSubmit={handleSubmitFinal}
@@ -266,6 +268,7 @@ function ChallengeContent() {
   } else {
     stageSlot = (
       <ReviewComposer
+        ref={composerRef}
         value={firstAnswer}
         onChange={setFirstAnswer}
         onSubmit={handleSubmitFirst}
@@ -312,6 +315,9 @@ function ChallengeContent() {
           code={challenge.snippet}
           language={challenge.language}
           withChrome
+          onCiteLines={(range) =>
+            composerRef.current?.insertText(`${range} `)
+          }
         />
         <div className="ch-right-col">
           <div className="ch-briefing">
