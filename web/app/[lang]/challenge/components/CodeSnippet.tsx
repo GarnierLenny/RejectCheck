@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../../../context/language";
 
+type Token = { content: string; color?: string };
+type Line = Token[];
+
 type Props = {
   code: string;
   language?: string;
@@ -37,51 +40,43 @@ export function CodeSnippet({
   onCiteLines,
 }: Props) {
   const { t } = useLanguage();
-  const [html, setHtml] = useState<string | null>(null);
+  const [lines, setLines] = useState<Line[] | null>(null);
   const [selection, setSelection] = useState<[number, number] | null>(null);
   const [floatTop, setFloatTop] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
   const dragRef = useRef<{ anchor: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { codeToHtml } = await import("shiki");
+      const { codeToTokens } = await import("shiki");
       const shikiLang = SHIKI_LANG_MAP[language] ?? "typescript";
-      const out = await codeToHtml(code, {
-        lang: shikiLang,
+      const out = await codeToTokens(code, {
+        lang: shikiLang as "typescript" | "python" | "java",
         theme: "github-dark",
       });
-      if (!cancelled) setHtml(out);
+      if (!cancelled) {
+        setLines(
+          out.tokens.map((line) =>
+            line.map((tok) => ({ content: tok.content, color: tok.color })),
+          ),
+        );
+      }
     })();
     return () => {
       cancelled = true;
     };
   }, [code, language]);
 
-  // Apply selection highlight whenever selection or html changes
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const lines = container.querySelectorAll<HTMLElement>(".line");
-    const lo = selection ? Math.min(selection[0], selection[1]) : -1;
-    const hi = selection ? Math.max(selection[0], selection[1]) : -1;
-    lines.forEach((el, i) => {
-      const lineNum = i + 1;
-      el.classList.toggle("is-selected", lineNum >= lo && lineNum <= hi);
-    });
-  }, [selection, html]);
-
   // Compute float position next to first selected line
   useEffect(() => {
-    if (!selection || !containerRef.current || !bodyRef.current) {
+    if (!selection || !bodyRef.current) {
       setFloatTop(null);
       return;
     }
     const lo = Math.min(selection[0], selection[1]);
-    const lines = containerRef.current.querySelectorAll<HTMLElement>(".line");
-    const firstLine = lines[lo - 1];
+    const firstLine = lineRefs.current[lo - 1];
     if (!firstLine) {
       setFloatTop(null);
       return;
@@ -89,45 +84,38 @@ export function CodeSnippet({
     const lineRect = firstLine.getBoundingClientRect();
     const bodyRect = bodyRef.current.getBoundingClientRect();
     setFloatTop(lineRect.top - bodyRect.top);
-  }, [selection, html]);
+  }, [selection, lines]);
 
-  function lineNumberOf(target: HTMLElement | null): number | null {
-    if (!target || !containerRef.current) return null;
-    const lineEl = target.closest(".line") as HTMLElement | null;
-    if (!lineEl) return null;
-    const all = Array.from(
-      containerRef.current.querySelectorAll<HTMLElement>(".line"),
-    );
-    const idx = all.indexOf(lineEl);
-    return idx >= 0 ? idx + 1 : null;
-  }
+  const isInRange = (lineNum: number): boolean => {
+    if (!selection) return false;
+    const lo = Math.min(selection[0], selection[1]);
+    const hi = Math.max(selection[0], selection[1]);
+    return lineNum >= lo && lineNum <= hi;
+  };
 
-  function handleMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+  function handleLineDown(lineNum: number, e: React.MouseEvent) {
     if (!onCiteLines) return;
-    const lineNum = lineNumberOf(e.target as HTMLElement);
-    if (lineNum == null) return;
-    e.preventDefault();
     if (e.shiftKey && selection) {
-      const anchor = selection[0]; // keep previous anchor
-      dragRef.current = { anchor };
-      setSelection([anchor, lineNum]);
-    } else {
-      dragRef.current = { anchor: lineNum };
-      setSelection([lineNum, lineNum]);
+      const lo = Math.min(selection[0], selection[1], lineNum);
+      const hi = Math.max(selection[0], selection[1], lineNum);
+      setSelection([lo, hi]);
+      return;
     }
+    dragRef.current = { anchor: lineNum };
+    setSelection([lineNum, lineNum]);
   }
 
-  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+  function handleLineEnter(lineNum: number) {
     if (!dragRef.current) return;
-    const lineNum = lineNumberOf(e.target as HTMLElement);
-    if (lineNum == null) return;
     const { anchor } = dragRef.current;
+    const lo = Math.min(anchor, lineNum);
+    const hi = Math.max(anchor, lineNum);
     setSelection((prev) =>
-      prev && prev[0] === anchor && prev[1] === lineNum ? prev : [anchor, lineNum],
+      prev && prev[0] === lo && prev[1] === hi ? prev : [lo, hi],
     );
   }
 
-  // End drag on global mouseup so the user can release anywhere
+  // End drag globally so user can release anywhere
   useEffect(() => {
     function onUp() {
       dragRef.current = null;
@@ -136,41 +124,64 @@ export function CodeSnippet({
     return () => window.removeEventListener("mouseup", onUp);
   }, []);
 
-  const hideScrollbars =
-    "[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
-
-  const lineCount = code.split("\n").length;
+  const totalLines = lines?.length ?? code.split("\n").length;
   const ext = EXT_MAP[language] ?? language;
   const resolvedFileName =
     fileName ??
     (t.challenge.ui.fileNameDefault as string).replace("{ext}", ext);
   const linesLabel = (t.challenge.ui.fileMetaLines as string).replace(
     "{count}",
-    String(lineCount),
+    String(totalLines),
   );
 
-  const inner = html ? (
+  const inner = (
     <div
-      ref={containerRef}
-      onMouseDown={onCiteLines ? handleMouseDown : undefined}
-      onMouseMove={onCiteLines ? handleMouseMove : undefined}
-      className={`shiki-wrapper overflow-auto bg-[#14131a] text-[13px] ${hideScrollbars} [&_pre]:!bg-transparent [&_pre]:!p-5 [&_pre]:!m-0 [&_pre]:w-max [&_pre]:min-w-full [&_pre]:[scrollbar-width:none] [&_pre::-webkit-scrollbar]:hidden [&_code]:!bg-transparent`}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  ) : (
-    <div className={`bg-[#14131a] overflow-auto ${hideScrollbars}`}>
-      <pre className="text-[#e1e4e8] p-5 text-[13px] font-mono leading-6 w-max min-w-full">
-        {code.split("\n").map((line, i) => (
-          <div key={i}>
-            <span
-              aria-hidden="true"
-              className="inline-block w-9 pr-3 mr-3 text-right text-[rgba(225,228,232,0.32)] select-none border-r border-[rgba(225,228,232,0.08)]"
-            >
-              {i + 1}
-            </span>
-            {line || " "}
-          </div>
-        ))}
+      className="shiki-wrapper bg-[#14131a] text-[13px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-auto"
+    >
+      <pre className="!bg-transparent !p-5 !m-0 w-max min-w-full">
+        <code className="block">
+          {lines
+            ? lines.map((line, i) => {
+                const lineNum = i + 1;
+                const selected = isInRange(lineNum);
+                return (
+                  <div
+                    key={i}
+                    ref={(el) => {
+                      lineRefs.current[i] = el;
+                    }}
+                    className={`line${selected ? " is-selected" : ""}`}
+                    onMouseDown={
+                      onCiteLines
+                        ? (e) => {
+                            e.preventDefault();
+                            handleLineDown(lineNum, e);
+                          }
+                        : undefined
+                    }
+                    onMouseEnter={
+                      onCiteLines ? () => handleLineEnter(lineNum) : undefined
+                    }
+                  >
+                    {line.length === 0 ? (
+                      <span>{" "}</span>
+                    ) : (
+                      line.map((tok, j) => (
+                        <span key={j} style={tok.color ? { color: tok.color } : undefined}>
+                          {tok.content}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                );
+              })
+            : // Loading fallback: plain code text
+              code.split("\n").map((line, i) => (
+                <div key={i} className="line">
+                  {line || " "}
+                </div>
+              ))}
+        </code>
       </pre>
     </div>
   );
@@ -180,12 +191,11 @@ export function CodeSnippet({
   }
 
   const range = selection ? formatRange(selection) : null;
-  const count =
-    selection
-      ? Math.max(selection[0], selection[1]) -
-        Math.min(selection[0], selection[1]) +
-        1
-      : 0;
+  const count = selection
+    ? Math.max(selection[0], selection[1]) -
+      Math.min(selection[0], selection[1]) +
+      1
+    : 0;
   const countLabel =
     count === 1
       ? (t.challenge.ui.citeCountOne as string).replace("{n}", "1")

@@ -1177,39 +1177,21 @@ body {
   border-radius: 0 !important;
   border: none !important;
 }
-/* Selectable lines (PR-style cite) — inline-block creates a containing block for the
-   absolute ::after pseudo, which paints a horizontal bar 9999px wide via inset:0 -9999px.
-   inline-block does NOT double-space (the \n between line spans creates a single line break). */
-.ch-code-shell__body { overflow: hidden; }
+/* Selectable lines (PR-style cite) — block display for natural row layout (no \n needed
+   since each .line is its own block element). Direct red bg for clear visual. */
 .ch-code-shell__body .shiki-wrapper .line {
-  display: inline-block;
-  position: relative;
+  display: block;
   cursor: pointer;
   user-select: none;
-  z-index: 0;
-  transition: box-shadow .12s;
+  transition: background .12s, box-shadow .12s;
+  min-height: 1lh;
 }
-.ch-code-shell__body .shiki-wrapper .line::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -9999px;
-  right: -9999px;
-  z-index: -1;
-  pointer-events: none;
-  transition: background .12s;
+.ch-code-shell__body .shiki-wrapper .line:hover {
+  background: rgba(201, 58, 57, 0.18);
 }
-.ch-code-shell__body .shiki-wrapper .line:hover::after {
-  background: rgba(201, 58, 57, 0.16);
-}
-.ch-code-shell__body .shiki-wrapper .line.is-selected::after {
-  background: rgba(201, 58, 57, 0.28);
-}
-.ch-code-shell__body .shiki-wrapper .line.is-selected:hover::after {
-  background: rgba(201, 58, 57, 0.34);
-}
-.ch-code-shell__body .shiki-wrapper .line.is-selected {
+.ch-code-shell__body .shiki-wrapper .line.is-selected,
+.ch-code-shell__body .shiki-wrapper .line.is-selected:hover {
+  background: rgba(201, 58, 57, 0.42);
   box-shadow: inset 3px 0 0 var(--rc-red);
 }
 
