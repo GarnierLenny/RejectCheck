@@ -1347,6 +1347,7 @@
       "tbItalic": "i",
       "tbCode": "Code",
       "tbBullet": "Liste",
+      "tbNumbered": "1.",
       "fileNameDefault": "snippet.{ext}",
       "fileMetaReadOnly": "read-only",
       "fileMetaLines": "{count} lignes",

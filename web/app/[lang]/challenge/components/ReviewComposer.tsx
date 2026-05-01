@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { useLanguage } from "../../../../context/language";
+
+const getMd = (ed: Editor): string =>
+  (ed.storage as unknown as { markdown: MarkdownStorage }).markdown.getMarkdown();
 
 const MAX_CHARS = 2400;
 
@@ -27,48 +34,94 @@ export function ReviewComposer({
   placeholder,
   submitLabel,
   pendingLabel,
-  rows = 12,
   autoFocus = false,
 }: Props) {
   const { t } = useLanguage();
   const ui = t.challenge.ui;
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [citing, setCiting] = useState(false);
   const [citeValue, setCiteValue] = useState("");
   const citeInputRef = useRef<HTMLInputElement>(null);
+
+  // Refs to keep latest props/state for stable handleKeyDown closure
+  const submitRef = useRef(onSubmit);
+  const stateRef = useRef({ disabled, pending });
+  useEffect(() => {
+    submitRef.current = onSubmit;
+    stateRef.current = { disabled, pending };
+  });
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+      }),
+      Placeholder.configure({ placeholder }),
+      Markdown.configure({
+        html: false,
+        breaks: true,
+        transformPastedText: true,
+      }),
+    ],
+    content: value,
+    editable: !disabled,
+    autofocus: autoFocus,
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: "ch-editor__content",
+        role: "textbox",
+        "aria-label": ui.composerLabel as string,
+      },
+      handleKeyDown(_view, e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault();
+          const ed = editorRef.current;
+          if (!ed) return true;
+          const md = getMd(ed);
+          const { disabled: d, pending: p } = stateRef.current;
+          if (!d && !p && md.trim()) submitRef.current();
+          return true;
+        }
+        return false;
+      },
+    },
+    onUpdate({ editor }) {
+      onChange(getMd(editor));
+    },
+  });
+
+  // Mirror editor in a ref so the keydown closure can read it without re-creating the editor
+  const editorRef = useRef(editor);
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
+
+  // Sync external `value` -> editor (only if divergent, to avoid update loops)
+  useEffect(() => {
+    if (!editor) return;
+    if (getMd(editor) !== value) {
+      editor.commands.setContent(value || "", { emitUpdate: false });
+    }
+  }, [editor, value]);
+
+  // Sync disabled prop -> editor.editable
+  useEffect(() => {
+    if (!editor) return;
+    if (editor.isEditable === disabled) {
+      editor.setEditable(!disabled);
+    }
+  }, [editor, disabled]);
 
   useEffect(() => {
     if (citing) citeInputRef.current?.focus();
   }, [citing]);
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-      e.preventDefault();
-      if (!disabled && !pending && value.trim()) onSubmit();
-    }
-  }
-
-  function insertAtCursor(text: string) {
-    const ta = textareaRef.current;
-    if (!ta) {
-      onChange(value + text);
-      return;
-    }
-    const start = ta.selectionStart ?? value.length;
-    const end = ta.selectionEnd ?? value.length;
-    const next = value.slice(0, start) + text + value.slice(end);
-    onChange(next);
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + text.length;
-      ta.setSelectionRange(pos, pos);
-    });
-  }
-
   function commitCite() {
     const n = Number.parseInt(citeValue, 10);
-    if (Number.isFinite(n) && n > 0) insertAtCursor(`L${n} `);
+    if (Number.isFinite(n) && n > 0 && editor) {
+      editor.chain().focus().insertContent(`L${n} `).run();
+    }
     setCiteValue("");
     setCiting(false);
   }
@@ -80,6 +133,9 @@ export function ReviewComposer({
     .replace("{max}", MAX_CHARS.toLocaleString())
     .replace("{words}", String(words));
 
+  const isActive = (name: string, attrs?: Record<string, unknown>) =>
+    editor?.isActive(name, attrs) ? "is-active" : "";
+
   return (
     <div className="ch-composer">
       <div className="ch-composer__head">
@@ -87,19 +143,61 @@ export function ReviewComposer({
         <span className="ch-composer__counter">{counter}</span>
       </div>
 
-      <div className="ch-composer__toolbar" role="toolbar" aria-label={ui.composerLabel}>
-        <button type="button" className="ch-tb-btn" tabIndex={-1}>
+      <div
+        className="ch-composer__toolbar"
+        role="toolbar"
+        aria-label={ui.composerLabel as string}
+      >
+        <button
+          type="button"
+          className={`ch-tb-btn ${isActive("bold")}`}
+          onClick={() => editor?.chain().focus().toggleBold().run()}
+          disabled={!editor}
+          tabIndex={-1}
+          aria-pressed={!!editor?.isActive("bold")}
+        >
           {ui.tbBold}
         </button>
-        <button type="button" className="ch-tb-btn ch-tb-btn--italic" tabIndex={-1}>
+        <button
+          type="button"
+          className={`ch-tb-btn ch-tb-btn--italic ${isActive("italic")}`}
+          onClick={() => editor?.chain().focus().toggleItalic().run()}
+          disabled={!editor}
+          tabIndex={-1}
+          aria-pressed={!!editor?.isActive("italic")}
+        >
           {ui.tbItalic}
         </button>
-        <button type="button" className="ch-tb-btn" tabIndex={-1}>
+        <button
+          type="button"
+          className={`ch-tb-btn ${isActive("code")}`}
+          onClick={() => editor?.chain().focus().toggleCode().run()}
+          disabled={!editor}
+          tabIndex={-1}
+          aria-pressed={!!editor?.isActive("code")}
+        >
           {ui.tbCode}
         </button>
         <span className="ch-tb-divider" />
-        <button type="button" className="ch-tb-btn" tabIndex={-1}>
+        <button
+          type="button"
+          className={`ch-tb-btn ${isActive("bulletList")}`}
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          disabled={!editor}
+          tabIndex={-1}
+          aria-pressed={!!editor?.isActive("bulletList")}
+        >
           {ui.tbBullet}
+        </button>
+        <button
+          type="button"
+          className={`ch-tb-btn ${isActive("orderedList")}`}
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          disabled={!editor}
+          tabIndex={-1}
+          aria-pressed={!!editor?.isActive("orderedList")}
+        >
+          {ui.tbNumbered}
         </button>
         {citing ? (
           <input
@@ -133,18 +231,9 @@ export function ReviewComposer({
         )}
       </div>
 
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        rows={rows}
-        autoFocus={autoFocus}
-        disabled={disabled}
-        maxLength={MAX_CHARS}
-        className="ch-composer__textarea"
-      />
+      <div className={`ch-editor ${disabled ? "is-disabled" : ""}`}>
+        <EditorContent editor={editor} />
+      </div>
 
       <div className="ch-composer__submit-row">
         {value.length > 0 && (
@@ -153,7 +242,10 @@ export function ReviewComposer({
             {ui.draftSaved}
           </span>
         )}
-        <span className="ch-submit-meta" style={{ marginLeft: value.length > 0 ? "auto" : "0" }}>
+        <span
+          className="ch-submit-meta"
+          style={{ marginLeft: value.length > 0 ? "auto" : "0" }}
+        >
           <span className="ch-kbd">⌘ ↵</span>
         </span>
         <button
@@ -163,8 +255,17 @@ export function ReviewComposer({
           disabled={disabled || pending || !value.trim()}
         >
           {pending ? pendingLabel : submitLabel}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              d="M5 12h14M13 5l7 7-7 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
       </div>
