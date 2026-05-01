@@ -21,7 +21,6 @@ import { ScoreCard } from "./components/ScoreCard";
 import { PushbackCard } from "./components/PushbackCard";
 import { FirstReviewQuote } from "./components/FirstReviewQuote";
 import { ChallengeLeaderboardCard } from "./components/ChallengeLeaderboardCard";
-import { ChallengeMasthead } from "./components/ChallengeMasthead";
 import { ChallengeStatsStrip } from "./components/ChallengeStatsStrip";
 import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
 import { ReviewComposer } from "./components/ReviewComposer";
@@ -57,7 +56,7 @@ function useResetCountdown() {
 }
 
 function ChallengeContent() {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const { user, loading: authLoading } = useAuth();
 
   const challengeQuery = useTodayChallenge();
@@ -74,15 +73,6 @@ function ChallengeContent() {
   const [finalResult, setFinalResult] = useState<FinalResponse | null>(null);
 
   const countdown = useResetCountdown();
-
-  const dateLabel = challengeQuery.data?.date
-    ? new Date(challengeQuery.data.date).toLocaleDateString(locale, {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "";
 
   async function handleSubmitFirst() {
     if (!challengeQuery.data) return;
@@ -170,10 +160,6 @@ function ChallengeContent() {
   const isAnonymous = !authLoading && !user;
   const canSubmit = !isAnonymous;
 
-  const minRead = (t.challenge.ui.minRead as string).replace(
-    "{minutes}",
-    String(challenge.estimatedTime),
-  );
   const resetsIn = (t.challenge.ui.resetsIn as string).replace("{time}", countdown);
 
   // ── State machine slot (right column under briefing) ──
@@ -228,17 +214,8 @@ function ChallengeContent() {
 
   return (
     <main className="ch-page">
-      <ChallengeMasthead issueNumber={challenge.id} dateLabel={dateLabel} />
-
       <section className="ch-title-block">
         <div>
-          <div className="ch-issue-no">
-            <span>{t.challenge.ui.todaysBrief}</span>
-            <span>·</span>
-            <b>{minRead}</b>
-            <span>·</span>
-            <span>{resetsIn}</span>
-          </div>
           <h1 className="ch-title">{renderTitle(challenge.title)}</h1>
         </div>
         <div className="ch-title-meta">
@@ -248,6 +225,7 @@ function ChallengeContent() {
             estimatedTime={challenge.estimatedTime}
             language={challenge.language}
           />
+          <span className="ch-resets">{resetsIn}</span>
         </div>
       </section>
 
