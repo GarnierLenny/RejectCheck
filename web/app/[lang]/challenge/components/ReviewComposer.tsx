@@ -12,8 +12,15 @@ const getMd = (ed: Editor): string =>
 
 const MAX_CHARS = 2400;
 
+export type CiteData = {
+  range: string;
+  language: string;
+  code: string;
+};
+
 export type ReviewComposerHandle = {
   insertText: (text: string) => void;
+  insertCite: (data: CiteData) => void;
 };
 
 type Props = {
@@ -117,7 +124,7 @@ export const ReviewComposer = forwardRef<ReviewComposerHandle, Props>(
       }
     }, [editor, disabled]);
 
-    // Imperative handle for parent to inject text (e.g., line citations from snippet)
+    // Imperative handle for parent to inject text or a code-block citation
     useImperativeHandle(
       ref,
       () => ({
@@ -125,6 +132,33 @@ export const ReviewComposer = forwardRef<ReviewComposerHandle, Props>(
           const ed = editorRef.current;
           if (!ed) return;
           ed.chain().focus().insertContent(text).run();
+        },
+        insertCite: (data: CiteData) => {
+          const ed = editorRef.current;
+          if (!ed) return;
+          ed.chain()
+            .focus()
+            .insertContent([
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    marks: [{ type: "bold" }],
+                    text: data.range,
+                  },
+                ],
+              },
+              {
+                type: "codeBlock",
+                attrs: { language: data.language },
+                content: data.code
+                  ? [{ type: "text", text: data.code }]
+                  : [],
+              },
+              { type: "paragraph" },
+            ])
+            .run();
         },
       }),
       [],

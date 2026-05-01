@@ -1114,7 +1114,7 @@ body {
 /* ─── Main grid ─── */
 .ch-main {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: 28px;
   margin-top: 22px;
   align-items: stretch;

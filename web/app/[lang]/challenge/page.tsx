@@ -315,9 +315,7 @@ function ChallengeContent() {
           code={challenge.snippet}
           language={challenge.language}
           withChrome
-          onCiteLines={(range) =>
-            composerRef.current?.insertText(`${range} `)
-          }
+          onCite={(data) => composerRef.current?.insertCite(data)}
         />
         <div className="ch-right-col">
           <div className="ch-briefing">

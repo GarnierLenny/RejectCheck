@@ -11,7 +11,7 @@ type Props = {
   language?: string;
   withChrome?: boolean;
   fileName?: string;
-  onCiteLines?: (range: string) => void;
+  onCite?: (data: { range: string; language: string; code: string }) => void;
 };
 
 const SHIKI_LANG_MAP: Record<string, string> = {
@@ -37,7 +37,7 @@ export function CodeSnippet({
   language = "typescript",
   withChrome = false,
   fileName,
-  onCiteLines,
+  onCite,
 }: Props) {
   const { t } = useLanguage();
   const [lines, setLines] = useState<Line[] | null>(null);
@@ -94,7 +94,7 @@ export function CodeSnippet({
   };
 
   function handleLineDown(lineNum: number, e: React.MouseEvent) {
-    if (!onCiteLines) return;
+    if (!onCite) return;
     if (e.shiftKey && selection) {
       const lo = Math.min(selection[0], selection[1], lineNum);
       const hi = Math.max(selection[0], selection[1], lineNum);
@@ -152,7 +152,7 @@ export function CodeSnippet({
                     }}
                     className={`line${selected ? " is-selected" : ""}`}
                     onMouseDown={
-                      onCiteLines
+                      onCite
                         ? (e) => {
                             e.preventDefault();
                             handleLineDown(lineNum, e);
@@ -160,7 +160,7 @@ export function CodeSnippet({
                         : undefined
                     }
                     onMouseEnter={
-                      onCiteLines ? () => handleLineEnter(lineNum) : undefined
+                      onCite ? () => handleLineEnter(lineNum) : undefined
                     }
                   >
                     {line.length === 0 ? (
@@ -225,7 +225,7 @@ export function CodeSnippet({
       </div>
       <div className="ch-code-shell__body" ref={bodyRef}>
         {inner}
-        {selection && range && onCiteLines && floatTop != null && (
+        {selection && range && onCite && floatTop != null && (
           <div className="ch-code-shell__float" style={{ top: floatTop }}>
             <span className="ch-code-shell__float-range">{range}</span>
             <span className="ch-code-shell__float-count">{countLabel}</span>
@@ -241,7 +241,17 @@ export function CodeSnippet({
               type="button"
               className="ch-code-shell__float-action"
               onClick={() => {
-                onCiteLines(range);
+                const lo = Math.min(selection[0], selection[1]);
+                const hi = Math.max(selection[0], selection[1]);
+                const codeText = code
+                  .split("\n")
+                  .slice(lo - 1, hi)
+                  .join("\n");
+                onCite({
+                  range,
+                  language: language ?? "typescript",
+                  code: codeText,
+                });
                 setSelection(null);
               }}
             >
