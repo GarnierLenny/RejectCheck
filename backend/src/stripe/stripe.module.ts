@@ -48,6 +48,7 @@ import { PremiumGuard } from './guards/premium.guard';
     PremiumGuard,
   ],
   exports: [
+    STRIPE_CLIENT,
     SUBSCRIPTION_GATE,
     PremiumGuard,
     // Re-export the use case so other modules can resolve it directly when

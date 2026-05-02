@@ -9,6 +9,7 @@ import type {
   PublicProfileView,
   UpdatePublicSettingsInput,
 } from '../domain/public-profile.types';
+import { xpProgress } from '../../xp/domain/tier-config';
 
 @Injectable()
 export class PrismaPublicProfileRepository implements PublicProfileRepository {
@@ -105,6 +106,16 @@ export class PrismaPublicProfileRepository implements PublicProfileRepository {
         completedAt: r.completedAt,
       })),
       achievements,
+      xp: (() => {
+        const totalXp = profile.totalXp;
+        const progress = xpProgress(totalXp);
+        return {
+          totalXp,
+          level: progress.current.level,
+          tier: progress.current.tier,
+          tierLabel: progress.current.tierLabel,
+        };
+      })(),
     };
   }
 

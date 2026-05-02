@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ChallengeController } from './challenge.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { SocialModule } from '../social/social.module';
+import { XpModule } from '../xp/xp.module';
 
 import {
   ATTEMPT_COACH,
@@ -31,7 +32,7 @@ import { GetGlobalLeaderboardUseCase } from './application/get-global-leaderboar
 import { GetStreakLeaderboardUseCase } from './application/get-streak-leaderboard.use-case';
 
 @Module({
-  imports: [StripeModule, SocialModule],
+  imports: [StripeModule, SocialModule, XpModule],
   controllers: [ChallengeController],
   providers: [
     { provide: CHALLENGE_GENERATOR, useClass: AnthropicChallengeGenerator },

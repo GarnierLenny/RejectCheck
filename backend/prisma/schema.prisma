@@ -118,10 +118,13 @@ model Profile {
   followersLastSeenAt DateTime?
   totalChallengeScore Int       @default(0)
   totalChallengeCount Int       @default(0)
+  totalXp             Int       @default(0)
+  level               Int       @default(1)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
   @@index([totalChallengeScore(sort: Desc)])
+  @@index([totalXp(sort: Desc)])
 
   followers Follow[] @relation("FollowFollowing")
   following Follow[] @relation("FollowFollower")
@@ -226,4 +229,33 @@ model ChallengeStreak {
   createdAt       DateTime  @default(now())
 
   @@index([currentStreak(sort: Desc)])
+}
+
+model XpLedger {
+  id          Int      @id @default(autoincrement())
+  email       String
+  amount      Int                              // positive XP grant (negative reserved for future spend)
+  reason      String                           // "challenge_completion" | "first_perfect_focus_tag" | "backfill_legacy"
+  breakdown   Json?                            // optional multiplier breakdown for transparency
+  attemptId   Int?
+  challengeId Int?
+  createdAt   DateTime @default(now())
+
+  @@index([email, createdAt(sort: Desc)])
+  @@index([attemptId])
+}
+
+model UnlockedReward {
+  id                  Int       @id @default(autoincrement())
+  email               String
+  rewardKey           String                          // RewardKey from tier-config
+  unlockedAt          DateTime  @default(now())
+  unlockedAtLevel     Int
+  redeemed            Boolean   @default(false)
+  redeemedAt          DateTime?
+  stripeCouponId      String?                         // null for cosmetic rewards
+  stripePromotionCode String?                         // human-readable code shown to user
+
+  @@unique([email, rewardKey])
+  @@index([email])
 }

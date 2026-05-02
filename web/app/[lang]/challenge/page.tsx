@@ -25,6 +25,8 @@ import { ChallengeLeaderboardCard } from "./components/ChallengeLeaderboardCard"
 import { ChallengeStatsStrip } from "./components/ChallengeStatsStrip";
 import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
 import { ReviewComposer, type ReviewComposerHandle } from "./components/ReviewComposer";
+import { LevelUpModal } from "../../components/LevelUpModal";
+import { useUserXp } from "../../../lib/queries";
 
 type Stage = "idle" | "challenged" | "completed";
 
@@ -142,6 +144,10 @@ function ChallengeContent() {
   const [finalResult, setFinalResult] = useState<FinalResponse | null>(null);
 
   const composerRef = useRef<ReviewComposerHandle>(null);
+  const [levelUp, setLevelUp] = useState<{
+    newLevel: number;
+    newRewards: string[];
+  } | null>(null);
   const countdown = useResetCountdown();
 
   async function handleSubmitFirst() {
@@ -184,6 +190,14 @@ function ChallengeContent() {
             issues: payload.issues ?? [],
             stats: payload.stats,
             streak: { currentStreak: 0, longestStreak: 0, lastCompletedAt: null },
+            xp: {
+              gained: 0,
+              breakdown: { base: 0, scoreMult: 0, streakMult: 1, bonus: 0 },
+              total: 0,
+              oldLevel: 1,
+              newLevel: 1,
+              newRewards: [],
+            },
           });
           setStage("completed");
           toast.message(t.challenge.errors.alreadyCompleted);
@@ -204,6 +218,16 @@ function ChallengeContent() {
       });
       setFinalResult(res);
       setStage("completed");
+      // XP toast + level-up modal
+      if (res.xp && res.xp.gained > 0) {
+        toast.success(`+${res.xp.gained} XP`);
+      }
+      if (res.xp && res.xp.newLevel > res.xp.oldLevel) {
+        setLevelUp({
+          newLevel: res.xp.newLevel,
+          newRewards: res.xp.newRewards,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : t.challenge.errors.submitFailed;
       toast.error(message);
@@ -362,8 +386,48 @@ function ChallengeContent() {
           <ChallengeLeaderboardCard challengeId={challenge.id} />
         </section>
       )}
+
+      <LevelUpModalConnected
+        levelUp={levelUp}
+        onClose={() => setLevelUp(null)}
+      />
     </main>
   );
+}
+
+function LevelUpModalConnected({
+  levelUp,
+  onClose,
+}: {
+  levelUp: { newLevel: number; newRewards: string[] } | null;
+  onClose: () => void;
+}) {
+  const xpQuery = useUserXp();
+  if (!levelUp || !xpQuery.data) return null;
+  return (
+    <LevelUpModal
+      open
+      newLevel={levelUp.newLevel}
+      newTier={xpQuery.data.tier}
+      newTierLabel={xpQuery.data.tierLabel}
+      newRewardLabels={levelUp.newRewards.map((r) =>
+        humanizeRewardKey(r),
+      )}
+      onClose={onClose}
+    />
+  );
+}
+
+function humanizeRewardKey(key: string): string {
+  return key
+    .replace(/^badge_/, "Tier badge: ")
+    .replace(/^discount_(\d+)_(\w+)$/, "$1% off $2")
+    .replace(/^free_month_(\w+)$/, "1 month free $1")
+    .replace(/^free_6mo_(\w+)$/, "6 months free $1")
+    .replace(/^discount_50_(\w+)$/, "50% off $1")
+    .replace(/^animated_tier_ring$/, "Animated tier ring")
+    .replace(/^leaderboard_spotlight$/, "Leaderboard spotlight")
+    .replace(/_/g, " ");
 }
 
 export default function ChallengePage() {

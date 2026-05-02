@@ -59,6 +59,70 @@ export type PublicProfile = {
     completedAt: string;
   }>;
   achievements: AchievementsBundle;
+  xp: PublicProfileXp;
+};
+
+export type PublicProfileXp = {
+  totalXp: number;
+  level: number;
+  tier: TierKey;
+  tierLabel: string;
+};
+
+export type TierKey =
+  | "apprentice"
+  | "junior"
+  | "mid"
+  | "senior"
+  | "staff"
+  | "principal";
+
+export type RewardKey =
+  | "badge_apprentice"
+  | "badge_junior"
+  | "badge_mid"
+  | "badge_senior"
+  | "badge_staff"
+  | "badge_principal"
+  | "animated_tier_ring"
+  | "leaderboard_spotlight"
+  | "discount_10_shortlisted"
+  | "discount_25_shortlisted"
+  | "discount_40_shortlisted"
+  | "free_month_hired"
+  | "discount_50_hired"
+  | "free_6mo_hired";
+
+export type UserXp = {
+  totalXp: number;
+  level: number;
+  tier: TierKey;
+  tierLabel: string;
+  xpInLevel: number;
+  xpForNextLevel: number;
+  percentToNextLevel: number;
+  next: { level: number; tier: TierKey; tierLabel: string; xpRequired: number } | null;
+  rank: number;
+  totalUsers: number;
+};
+
+export type XpTransaction = {
+  id: number;
+  amount: number;
+  reason: string;
+  challengeId: number | null;
+  createdAt: string;
+};
+
+export type RewardStatus = {
+  key: RewardKey;
+  type: "cosmetic" | "stripe_coupon";
+  label: string;
+  description: string;
+  unlockedAtLevel: number;
+  unlocked: boolean;
+  promotionCode: string | null;
+  redeemed: boolean;
 };
 
 export type EarnedAchievement = {
@@ -224,6 +288,49 @@ export function useProfile() {
     queryKey: ['profile', userId],
     queryFn: () =>
       apiFetch<Profile | null>('/api/analyze/profile', {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+  });
+}
+
+// ─── XP / Tiers ──────────────────────────────────────────────────────────────
+
+export function useUserXp() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useQuery({
+    queryKey: ['xp', 'me', userId],
+    queryFn: () =>
+      apiFetch<UserXp>('/api/xp/me', { headers: authHeaders(token!) }),
+    enabled: !!token && !!userId,
+    staleTime: 30 * 1000,
+  });
+}
+
+export function useXpLedger(limit = 50) {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useQuery({
+    queryKey: ['xp', 'ledger', userId, limit],
+    queryFn: () =>
+      apiFetch<XpTransaction[]>(`/api/xp/ledger?limit=${limit}`, {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+  });
+}
+
+export function useRewards() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  return useQuery({
+    queryKey: ['xp', 'rewards', userId],
+    queryFn: () =>
+      apiFetch<RewardStatus[]>('/api/xp/rewards', {
         headers: authHeaders(token!),
       }),
     enabled: !!token && !!userId,

@@ -5,6 +5,8 @@ import Image from "next/image";
 import { AuthNavLink } from "./AuthNavLink";
 import { LangSwitcher } from "./LangSwitcher";
 import { useAuth } from "../../context/auth";
+import { useUserXp } from "../../lib/queries";
+import { TierBadge } from "./TierBadge";
 import { useLanguage } from "../../context/language";
 type NavPage = "analyze" | "dashboard" | "pricing" | "challenge" | "leaderboard";
 
@@ -77,6 +79,7 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
           </>
         )}
 
+        {user && !loading && <TierBadgeNav />}
         <LangSwitcher />
         <AuthNavLink />
 
@@ -91,4 +94,10 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
       </div>
     </nav>
   );
+}
+
+function TierBadgeNav() {
+  const { data } = useUserXp();
+  if (!data) return null;
+  return <TierBadge tier={data.tier} label={`Lvl ${data.level}`} variant="compact" />;
 }

@@ -39,6 +39,13 @@ export type AchievementsBundle = {
   progress: AchievementsProgress;
 };
 
+export type PublicProfileXp = {
+  totalXp: number;
+  level: number;
+  tier: string;       // TierKey from xp/domain/tier-config (kept loose to avoid cross-module type)
+  tierLabel: string;  // "Mid II", etc.
+};
+
 export type PublicProfileView = {
   username: string;
   displayName: string | null;
@@ -56,6 +63,7 @@ export type PublicProfileView = {
   challenges: PublicProfileChallengeStats;
   recentChallenges: PublicRecentChallenge[];
   achievements: AchievementsBundle;
+  xp: PublicProfileXp;
 };
 
 export type PublicActivityEntry = {

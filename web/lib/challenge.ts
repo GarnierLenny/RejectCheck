@@ -48,6 +48,15 @@ export type ScoreBreakdown = {
   bonus: number;
 };
 
+export type XpAwardResult = {
+  gained: number;
+  breakdown: { base: number; scoreMult: number; streakMult: number; bonus: number };
+  total: number;
+  oldLevel: number;
+  newLevel: number;
+  newRewards: string[]; // RewardKey[] but kept loose to avoid cross-module import
+};
+
 export type FinalResponse = {
   score: number;
   scoreBreakdown: ScoreBreakdown;
@@ -56,6 +65,7 @@ export type FinalResponse = {
   issues: ChallengeIssue[];
   stats: DayStats;
   streak: Streak;
+  xp: XpAwardResult;
 };
 
 // ─── Queries ──────────────────────────────────────────────────────────────────

@@ -13,7 +13,8 @@ import { useProfile } from "../../lib/queries";
 import { useUpdateProfile } from "../../lib/mutations";
 import { useLanguage } from "../../context/language";
 import { createClient } from "../../lib/supabase";
-import type { PublicProfile } from "../../lib/queries";
+import type { PublicProfile, TierKey } from "../../lib/queries";
+import { TierBadge } from "./TierBadge";
 
 type Props = {
   profile: PublicProfile;
@@ -120,6 +121,14 @@ export function PublicProfileHeader({ profile }: Props) {
           <Caption as="p" className="font-mono text-[12px] break-all">
             @{profile.username}
           </Caption>
+        )}
+        {profile.xp && (
+          <div className="mt-2">
+            <TierBadge
+              tier={profile.xp.tier as TierKey}
+              label={`Lvl ${profile.xp.level} · ${profile.xp.tierLabel}`}
+            />
+          </div>
         )}
 
         {profile.bio && (

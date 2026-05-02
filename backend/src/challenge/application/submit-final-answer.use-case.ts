@@ -22,6 +22,7 @@ import type {
   StreakSummary,
 } from '../domain/challenge.types';
 import type { ChallengeIssue } from '../dto/challenge.dto';
+import { AwardXpUseCase, type AwardXpResult } from '../../xp/application/award-xp.use-case';
 
 export type SubmitFinalAnswerResult = {
   score: number;
@@ -36,6 +37,7 @@ export type SubmitFinalAnswerResult = {
   issues: ChallengeIssue[];
   stats: DayStats;
   streak: StreakSummary;
+  xp: AwardXpResult;
 };
 
 @Injectable()
@@ -48,6 +50,7 @@ export class SubmitFinalAnswerUseCase {
     @Inject(STREAK_REPOSITORY)
     private readonly streaks: StreakRepository,
     @Inject(ATTEMPT_COACH) private readonly coach: AttemptCoach,
+    private readonly awardXp: AwardXpUseCase,
   ) {}
 
   async execute(
@@ -100,6 +103,22 @@ export class SubmitFinalAnswerUseCase {
     const streak = await this.advanceStreak(email);
     const stats = await this.attempts.getDayStats(challengeId);
 
+    // Re-read the now-finalized attempt to get its DB id (for XP idempotency).
+    const finalAttempt = await this.attempts.findByEmailAndChallenge(
+      email,
+      challengeId,
+    );
+    const xp = await this.awardXp.execute({
+      email,
+      attemptId: finalAttempt?.id ?? attempt.id,
+      challengeId,
+      score: score.total,
+      difficulty: (challenge.difficulty as 'easy' | 'medium' | 'hard') ?? 'easy',
+      currentStreak: streak.currentStreak,
+      // V1: skip first-perfect-on-focus-tag bonus (TODO: query past attempts)
+      isFirstPerfectOnFocusTag: false,
+    });
+
     return {
       score: score.total,
       scoreBreakdown: {
@@ -113,6 +132,7 @@ export class SubmitFinalAnswerUseCase {
       issues: challenge.issues,
       stats,
       streak,
+      xp,
     };
   }
 

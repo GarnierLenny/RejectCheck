@@ -35,6 +35,8 @@ import {
   Tooltip,
 } from "recharts";
 import { Navbar } from "../../components/Navbar";
+import { XpPanel } from "./components/XpPanel";
+import { RewardsList } from "./components/RewardsList";
 
 type HistoryItem = {
   id: number;
@@ -418,6 +420,12 @@ function DashboardContent() {
         </div>
 
         <div className="text-rc-hint font-mono text-sm">
+          {activeTab === "home" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <XpPanel />
+              <RewardsList />
+            </div>
+          )}
           {activeTab === "home" && (() => {
             // ── Radar data ──────────────────────────────────────────────────────
             const splitSkillName = (name: string): string[] =>
