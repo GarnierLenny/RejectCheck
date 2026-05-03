@@ -700,6 +700,37 @@ export function UploadForm({
               mlText={mlText}
             />
           )}
+
+          <div className="flex flex-col gap-1.5 mt-6">
+            {([
+              { n: 1 as const, label: t.analyzeNav.steps.application },
+              { n: 2 as const, label: t.analyzeNav.steps.signals },
+              { n: 3 as const, label: t.analyzeNav.steps.launch },
+            ]).map(({ n, label }, i) => {
+              const state = step > n ? "done" : step === n ? "active" : "idle";
+              return (
+                <div key={n} className="flex flex-col gap-1.5">
+                  {i > 0 && (
+                    <div className={`h-3 w-px ml-[8.5px] ${step > n ? "bg-rc-green" : "bg-rc-border"}`} />
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
+                      state === "done" ? "bg-rc-green text-white"
+                      : state === "active" ? "bg-rc-red text-white"
+                      : "bg-white border border-rc-border text-rc-hint"
+                    }`}>
+                      {state === "done" ? "✓" : n}
+                    </div>
+                    <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
+                      state === "done" ? "text-rc-green"
+                      : state === "active" ? "text-rc-red font-bold"
+                      : "text-rc-hint"
+                    }`}>{label}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* RIGHT WHITE PANEL */}

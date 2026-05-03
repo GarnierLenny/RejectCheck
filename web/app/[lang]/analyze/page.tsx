@@ -359,41 +359,7 @@ function AnalyzeContent() {
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
-      <Navbar
-        activePage="analyze"
-        center={!result && !loading && !paywallReason ? (
-          <div className="flex items-center gap-1.5">
-            {([
-              { n: 1 as const, label: t.analyzeNav.steps.application },
-              { n: 2 as const, label: t.analyzeNav.steps.signals },
-              { n: 3 as const, label: t.analyzeNav.steps.launch },
-            ]).map(({ n, label }, i) => {
-              const state = formStep > n ? "done" : formStep === n ? "active" : "idle";
-              return (
-                <div key={n} className="flex items-center gap-1.5">
-                  {i > 0 && (
-                    <div className={`w-5 h-px ${formStep > n ? "bg-rc-green" : "bg-rc-border"}`} />
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
-                      state === "done" ? "bg-rc-green text-white"
-                      : state === "active" ? "bg-rc-red text-white"
-                      : "bg-white border border-rc-border text-rc-hint"
-                    }`}>
-                      {state === "done" ? "✓" : n}
-                    </div>
-                    <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
-                      state === "done" ? "text-rc-green"
-                      : state === "active" ? "text-rc-red font-bold"
-                      : "text-rc-hint"
-                    }`}>{label}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : undefined}
-      />
+      <Navbar activePage="analyze" />
 
       <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
         {paywallReason ? (
