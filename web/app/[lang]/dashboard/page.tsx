@@ -99,27 +99,21 @@ function EvolutionTooltip({
 
 function AnalysisRowWithInterviews({
   item,
-  isExpanded,
-  onToggle,
   onDelete,
   onExport,
   isDeleting,
   getScoreColor,
   localePath,
-  t,
 }: {
   item: HistoryItem;
-  isExpanded: boolean;
-  onToggle: () => void;
   onDelete: (e: React.MouseEvent, id: number) => void;
   onExport: (e: React.MouseEvent, item: HistoryItem) => void;
   isDeleting: number | null;
   getScoreColor: (score: number) => string;
   localePath: (p: string) => string;
-  t: any;
 }) {
+  const router = useRouter();
   const { data: interviewsData } = useInterviewsByAnalysis(item.id);
-  const interviews = interviewsData?.data ?? [];
 
   const label = item.jobLabel || item.result?.job_details?.title || "Developer";
   const company = item.company ?? item.result?.job_details?.company ?? null;
@@ -127,12 +121,11 @@ function AnalysisRowWithInterviews({
   const scoreClass = getScoreColor(score);
 
   return (
-    <div className={`bg-white border rounded-xl overflow-hidden transition-colors ${isExpanded ? "border-rc-red/20" : "border-[rgba(0,0,0,0.08)]"}`}>
-      {/* Main row */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#faf9f7] transition-colors"
-        onClick={onToggle}
-      >
+    <Link
+      href={localePath(`/analyze?id=${item.id}`)}
+      className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden transition-colors hover:border-rc-red/20 no-underline block"
+    >
+      <div className="flex items-center gap-3 px-4 py-3 hover:bg-[#faf9f7] transition-colors">
         <div className={`w-9 h-9 shrink-0 rounded-lg border flex items-center justify-center font-black text-[11px] ${scoreClass}`}>
           {score}
         </div>
@@ -141,32 +134,31 @@ function AnalysisRowWithInterviews({
           {company && <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>}
         </div>
 
-        {/* Interview chip */}
         {interviewsData !== undefined && interviewsData.total > 0 ? (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 font-mono text-[10px] text-violet-600 shrink-0">
             <Mic className="w-2.5 h-2.5" />
             {interviewsData.total}
           </span>
         ) : (
-          <Link
-            href={localePath(`/analyze?id=${item.id}&tab=interview`)}
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rc-red/5 border border-rc-red/20 font-mono text-[10px] text-rc-red no-underline hover:bg-rc-red/10 transition-colors shrink-0"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(localePath(`/analyze?id=${item.id}&tab=interview`));
+            }}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rc-red/5 border border-rc-red/20 font-mono text-[10px] text-rc-red hover:bg-rc-red/10 transition-colors shrink-0 cursor-pointer"
           >
             <Plus className="w-2.5 h-2.5" /> Interview
-          </Link>
+          </button>
         )}
 
         <p className="font-mono text-[9px] text-rc-hint shrink-0">
           {new Date(item.createdAt).toLocaleDateString()}
         </p>
 
-        {/* Expand toggle */}
-        <ChevronRight
-          className={`w-3.5 h-3.5 text-rc-hint shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
-        />
+        <ChevronRight className="w-3.5 h-3.5 text-rc-hint shrink-0" />
 
-        {/* Actions menu */}
         <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={(e) => onExport(e, item)}
@@ -183,58 +175,7 @@ function AnalysisRowWithInterviews({
           </button>
         </div>
       </div>
-
-      {/* Expanded interviews panel */}
-      {isExpanded && (
-        <div className="border-t border-[rgba(0,0,0,0.06)] bg-[#faf9f7] px-4 py-3">
-          <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-3">
-            {t.account.interviews.nestedLabel}
-          </p>
-
-          {interviews.length === 0 ? (
-            <p className="font-mono text-[11px] text-rc-hint py-2">{t.account.interviews.noInterviews}</p>
-          ) : (
-            <div className="flex flex-col gap-1 mb-3">
-              {interviews.map((iv: any, idx: number) => {
-                const scoreColor = iv.globalScore === null ? "text-rc-hint"
-                  : iv.globalScore >= 7 ? "text-rc-green"
-                  : iv.globalScore >= 4 ? "text-rc-amber"
-                  : "text-rc-red";
-                return (
-                  <div key={iv.id} className="flex items-center gap-3 py-1.5 border-b border-[rgba(0,0,0,0.04)] last:border-0">
-                    <span className={`font-black text-[13px] leading-none w-10 shrink-0 ${scoreColor}`}>
-                      {iv.globalScore !== null ? `${iv.globalScore}/10` : "-"}
-                    </span>
-                    <span className="font-mono text-[11px] text-rc-muted flex-1">
-                      {t.account.interviews.interviewN.replace("{n}", String(interviews.length - idx))}
-                    </span>
-                    <span className="font-mono text-[10px] text-rc-hint">
-                      {new Date(iv.createdAt).toLocaleDateString()}
-                    </span>
-                    <Link
-                      href={localePath(`/analyze?id=${item.id}&interviewId=${iv.id}`)}
-                      className="font-mono text-[10px] text-rc-red no-underline hover:underline"
-                    >
-                      {t.account.interviews.viewDetails}
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <Link
-              href={localePath(`/analyze?id=${item.id}&tab=interview`)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-rc-red text-white rounded-lg font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
-            >
-              <Mic className="w-3 h-3" /> {t.account.interviews.newInterview}
-            </Link>
-            <p className="font-mono text-[10px] text-rc-hint">{t.account.interviews.newInterviewHint}</p>
-          </div>
-        </div>
-      )}
-    </div>
+    </Link>
   );
 }
 
@@ -248,7 +189,6 @@ function DashboardContent() {
   const [analysisPage, setAnalysisPage] = useState(1);
   const [analysisSearch, setAnalysisSearch] = useState("");
   const [evolutionPeriod, setEvolutionPeriod] = useState<"7d" | "30d" | "all">("30d");
-  const [expandedAnalysisId, setExpandedAnalysisId] = useState<number | null>(null);
 
   const DASHBOARD_TABS: { id: DashboardTab; label: string }[] = [
     { id: "home",         label: t.account.tabs.home },
@@ -883,16 +823,11 @@ function DashboardContent() {
                         <AnalysisRowWithInterviews
                           key={item.id}
                           item={item}
-                          isExpanded={expandedAnalysisId === item.id}
-                          onToggle={() =>
-                            setExpandedAnalysisId(expandedAnalysisId === item.id ? null : item.id)
-                          }
                           onDelete={handleDelete}
                           onExport={handleOpenExport}
                           isDeleting={isDeleting}
                           getScoreColor={getScoreColor}
                           localePath={localePath}
-                          t={t}
                         />
                       ))}
                     </div>
