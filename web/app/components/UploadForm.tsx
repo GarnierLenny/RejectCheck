@@ -185,7 +185,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
   jobDescription: string; setJobDescription: (v: string) => void;
   savedCvFiles?: Array<{ id: number; name: string; url: string }>;
 }) {
-  const { t } = useLanguage();
+  const { t, localePath } = useLanguage();
   const [loadingCvId, setLoadingCvId] = useState<number | null>(null);
   const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
   const warningKey = useJdValidation(jobDescription);
@@ -202,7 +202,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           <span className="text-[10px] text-rc-hint/50">↑</span>
           <p className="font-mono text-[9px] text-rc-hint/50 leading-relaxed">
             Save your CV, LinkedIn & GitHub in{" "}
-            <a href="/settings" className="underline underline-offset-2 hover:text-rc-hint transition-colors">
+            <a href={localePath("/settings")} className="underline underline-offset-2 hover:text-rc-hint transition-colors">
               Settings
             </a>
             {" "}to autofill future analyses.

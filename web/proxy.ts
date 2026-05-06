@@ -6,6 +6,19 @@ type Locale = (typeof LOCALES)[number]
 const DEFAULT_LOCALE: Locale = 'en'
 const LOCALE_COOKIE = 'NEXT_LOCALE'
 
+// Search-engine + AI crawlers. For these, we rewrite (200 OK) to the default
+// locale instead of redirecting, so unprefixed canonical URLs (`/`, `/pricing`)
+// serve content directly. The page's <link rel="canonical"> still points to
+// `/en/...`, which lets Google consolidate signals without flagging the URL
+// as "Page with redirect".
+const BOT_UA_PATTERN =
+  /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandex|sogou|exabot|facebot|ia_archiver|applebot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|anthropic-ai|perplexitybot|perplexity-user|google-extended|ccbot|cohere-ai|diffbot|facebookbot|meta-externalagent|amazonbot|youbot/i
+
+function isBot(request: NextRequest): boolean {
+  const ua = request.headers.get('user-agent') ?? ''
+  return BOT_UA_PATTERN.test(ua)
+}
+
 function getPreferredLocale(request: NextRequest): Locale {
   // 1. Respect cookie preference (set when user explicitly switches locale)
   const cookie = request.cookies.get(LOCALE_COOKIE)?.value
@@ -49,7 +62,8 @@ export function proxy(request: NextRequest) {
     const rest = pathname.slice('/analyse'.length)
     const url = request.nextUrl.clone()
     url.pathname = `/fr/analyze${rest}`
-    const res = NextResponse.redirect(url)
+    // 308 = permanent — lets Google consolidate signals to the canonical URL.
+    const res = NextResponse.redirect(url, 308)
     res.cookies.set(LOCALE_COOKIE, 'fr', { path: '/', maxAge: 60 * 60 * 24 * 365 })
     return res
   }
@@ -62,11 +76,20 @@ export function proxy(request: NextRequest) {
     return res
   }
 
-  // Add locale prefix based on cookie / Accept-Language
+  // Bots: rewrite to default locale (no redirect) so unprefixed URLs serve
+  // 200 OK content. Canonical/hreflang in the page head handle indexing.
+  if (isBot(request)) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/${DEFAULT_LOCALE}${pathname}`
+    return NextResponse.rewrite(url)
+  }
+
+  // Humans: redirect to preferred locale. 307 (temporary) is correct here
+  // because the target depends on Accept-Language / cookie content negotiation.
   const locale = getPreferredLocale(request)
   const url = request.nextUrl.clone()
   url.pathname = `/${locale}${pathname}`
-  const res = NextResponse.redirect(url)
+  const res = NextResponse.redirect(url, 307)
   res.cookies.set(LOCALE_COOKIE, locale, { path: '/', maxAge: 60 * 60 * 24 * 365 })
   return res
 }

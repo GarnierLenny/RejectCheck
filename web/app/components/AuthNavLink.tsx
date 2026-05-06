@@ -53,7 +53,7 @@ export function AuthNavLink() {
   if (!user) {
     return (
       <Link
-        href="/login"
+        href={localePath("/login")}
         className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-muted hover:text-rc-text px-4 py-2 transition-colors duration-200 no-underline"
       >
         {LOGIN_LABELS[locale] ?? LOGIN_LABELS.en}
