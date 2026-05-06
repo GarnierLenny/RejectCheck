@@ -420,6 +420,72 @@ function DashboardContent() {
         </div>
 
         <div className="text-rc-hint font-mono text-sm">
+          {activeTab === "home" && (() => {
+            const planLabel = (subscription?.plan || "Rejected").toUpperCase();
+            const periodEnd = subscription?.currentPeriodEnd
+              ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-GB", {
+                  day: "numeric", month: "long", year: "numeric",
+                })
+              : null;
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {/* Score moyen */}
+                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
+                    {t.account.home.avgScore}
+                  </p>
+                  <p className={`text-3xl font-black leading-none ${overviewAvgRisk !== null ? getScoreColor(overviewAvgRisk).split(" ")[0] : "text-rc-hint"}`}>
+                    {overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "-"}
+                  </p>
+                </div>
+
+                {/* Candidatures actives */}
+                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
+                    {t.account.home.activeApplications}
+                  </p>
+                  <p className="text-3xl font-black leading-none text-rc-text">
+                    {activeApplications.length}
+                  </p>
+                  {interviewingApps.length > 0 && (
+                    <p className="font-mono text-[10px] text-rc-amber">
+                      {interviewingApps.length} en entretien
+                    </p>
+                  )}
+                </div>
+
+                {/* Interviews IA */}
+                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
+                    {t.account.home.aiInterviews}
+                  </p>
+                  <p className="text-3xl font-black leading-none text-rc-text">{totalInterviews}</p>
+                  {avgInterviewScore !== null && (
+                    <p className="font-mono text-[10px] text-rc-green">↑ {avgInterviewScore}/10 avg</p>
+                  )}
+                </div>
+
+                {/* Plan actif */}
+                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
+                    {t.account.home.activePlan}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-rc-green animate-pulse" : "bg-rc-hint"}`} />
+                    <p className="text-lg font-black leading-none text-rc-text">{planLabel}</p>
+                  </div>
+                  {periodEnd && (
+                    <p className="font-mono text-[10px] text-rc-hint">
+                      {t.account.home.renewsOn} {periodEnd} ·{" "}
+                      <Link href={localePath("/settings")} className="text-rc-red no-underline hover:underline">
+                        {t.account.home.managePlan}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
           {activeTab === "home" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <XpPanel />
@@ -477,73 +543,8 @@ function DashboardContent() {
               (i) => i.result?.technical_analysis?.skills?.length > 0
             ).length;
 
-            const planLabel = (subscription?.plan || "Rejected").toUpperCase();
-            const periodEnd = subscription?.currentPeriodEnd
-              ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-GB", {
-                  day: "numeric", month: "long", year: "numeric",
-                })
-              : null;
-
             return (
               <div className="flex flex-col gap-6">
-
-                {/* ── 4 stat cards ─────────────────────────────────────── */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {/* Score moyen */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                      {t.account.home.avgScore}
-                    </p>
-                    <p className={`text-3xl font-black leading-none ${overviewAvgRisk !== null ? getScoreColor(overviewAvgRisk).split(" ")[0] : "text-rc-hint"}`}>
-                      {overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "-"}
-                    </p>
-                  </div>
-
-                  {/* Candidatures actives */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                      {t.account.home.activeApplications}
-                    </p>
-                    <p className="text-3xl font-black leading-none text-rc-text">
-                      {activeApplications.length}
-                    </p>
-                    {interviewingApps.length > 0 && (
-                      <p className="font-mono text-[10px] text-rc-amber">
-                        {interviewingApps.length} en entretien
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Interviews IA */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                      {t.account.home.aiInterviews}
-                    </p>
-                    <p className="text-3xl font-black leading-none text-rc-text">{totalInterviews}</p>
-                    {avgInterviewScore !== null && (
-                      <p className="font-mono text-[10px] text-rc-green">↑ {avgInterviewScore}/10 avg</p>
-                    )}
-                  </div>
-
-                  {/* Plan actif */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                      {t.account.home.activePlan}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-rc-green animate-pulse" : "bg-rc-hint"}`} />
-                      <p className="text-lg font-black leading-none text-rc-text">{planLabel}</p>
-                    </div>
-                    {periodEnd && (
-                      <p className="font-mono text-[10px] text-rc-hint">
-                        {t.account.home.renewsOn} {periodEnd} ·{" "}
-                        <Link href={localePath("/settings")} className="text-rc-red no-underline hover:underline">
-                          {t.account.home.managePlan}
-                        </Link>
-                      </p>
-                    )}
-                  </div>
-                </div>
 
                 {/* ── 3-col bottom grid ─────────────────────────────────── */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
