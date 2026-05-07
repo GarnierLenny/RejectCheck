@@ -144,6 +144,44 @@ export class PrismaAttemptRepository implements AttemptRepository {
     }));
   }
 
+  async listRecentByLanguage(
+    email: string,
+    language: string,
+    take: number,
+  ): Promise<AttemptHistoryItem[]> {
+    const rows = await this.prisma.challengeAttempt.findMany({
+      where: { email, score: { gt: 0 }, challenge: { language } },
+      orderBy: { completedAt: 'desc' },
+      take,
+      include: {
+        challenge: {
+          select: {
+            id: true,
+            date: true,
+            language: true,
+            title: true,
+            focusTag: true,
+            difficulty: true,
+            estimatedTime: true,
+          },
+        },
+      },
+    });
+    return rows.map((r) => ({
+      ...this.toDomain(r),
+      challenge: r.challenge,
+    }));
+  }
+
+  async countByEmailAndLanguage(
+    email: string,
+    language: string,
+  ): Promise<number> {
+    return this.prisma.challengeAttempt.count({
+      where: { email, score: { gt: 0 }, challenge: { language } },
+    });
+  }
+
   async listActivity(email: string, since: Date): Promise<ActivityEntry[]> {
     const rows = await this.prisma.challengeAttempt.findMany({
       where: { email, score: { gt: 0 }, completedAt: { gte: since } },

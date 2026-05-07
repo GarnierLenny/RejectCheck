@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AnalyzeController } from './analyze.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { SocialModule } from '../social/social.module';
+import { ChallengeModule } from '../challenge/challenge.module';
 
 import {
   ANALYSIS_REPOSITORY,
@@ -39,7 +40,7 @@ import {
 // SUBSCRIPTION_GATE is provided by StripeModule (exported) and consumed via
 // @Inject(SUBSCRIPTION_GATE) wherever needed in this module.
 @Module({
-  imports: [StripeModule, SocialModule],
+  imports: [StripeModule, SocialModule, ChallengeModule],
   controllers: [AnalyzeController],
   providers: [
     { provide: ANALYSIS_REPOSITORY, useClass: PrismaAnalysisRepository },

@@ -8,6 +8,7 @@ export const SAVED_CV_REPOSITORY = Symbol('SavedCvRepository');
 export const CLAUDE_PROVIDER = Symbol('ClaudeProvider');
 export const GITHUB_PROVIDER = Symbol('GithubProvider');
 export const PDF_PARSER = Symbol('PdfParser');
+export const CHALLENGE_STATS_PROVIDER = Symbol('ChallengeStatsProvider');
 // SUBSCRIPTION_GATE is project-wide — re-export it from common/ports so
 // callers in this module keep a single import path. Module bindings live
 // in StripeModule (provider) and AnalyzeModule (consumer via its export).

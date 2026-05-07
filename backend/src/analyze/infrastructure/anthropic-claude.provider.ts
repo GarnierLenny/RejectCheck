@@ -152,6 +152,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
         job_details: i.job_details,
         technical_analysis: i.technical_analysis,
         project_recommendation: i.project_recommendation,
+        challenge_analysis: i.challenge_analysis,
       };
       return AnalyzeResponseSchema.parse(result);
     } catch (apiErr: any) {
@@ -376,8 +377,19 @@ GITHUB PROJECTS: ${input.githubInfo || 'None provided'}
 LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
 MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
 
+DAILY CODE-REVIEW CHALLENGE TRACK RECORD:
+${formatChallengeStats(input.challengeStats)}
+
+Daily-challenge usage rules:
+- Our daily challenge is a 2-step code review: the user spots issues in a snippet, then answers a Socratic follow-up. Each attempt is scored 0-100 across bug-finding, explanation, prioritization, and a polish bonus. Languages available: typescript, python, java.
+- Map track-record to the JD by **language only** (the challenge language → JD's primary language). Do not infer from focusTag.
+- If the JD's primary stack matches a language present above with a consistent ≥70/100 average over ≥10 attempts, treat it as a *concrete*, observable seniority signal — bump the matching tech_skill's \`current\` by 0.5–1.5 (clamped to 10), and mention it explicitly in \`technical_analysis.seniority_signals\` and \`technical_analysis.reasoning\`.
+- Always populate \`challenge_analysis\`. Use status='cta' when no data or no usable language match (the user is anonymous, has zero attempts, or the JD's primary stack isn't covered by the user's track record). Use status='analyzed' when there is a usable language match with ≥3 attempts.
+- For status='cta': \`cta.message\` must be 1-2 markdown sentences naming the JD's primary language (e.g. "Do daily TypeScript challenges for a month — perfect-scoring 5+ in a row would close the seniority gap your CV doesn't fully prove.").
+- For status='analyzed': \`summary\` celebrates 2-3 *specific* observed strengths (cite avg score, count, focus tags they nail); \`strengths\` is 2-4 short bullet strings; \`bridge_to_project\` explains how the \`project_recommendation\` below covers blind spots the challenges don't (system design, persistence, integrations, end-to-end ownership).
+
 Formatting rules:
-- Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals): bold key terms, italics for nuance, short bullet lists where helpful.
+- Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals, challenge_analysis text fields): bold key terms, italics for nuance, short bullet lists where helpful.
 - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`;
   }
 
@@ -551,3 +563,30 @@ CRITICAL RULES:
     - ALL monetary fields (market, candidate, jd_disclosed, anchor amounts, leverage impact, roadmap impact) must use the SAME currency.
     - In counter_offer_email.body, anchoring_strategy, and talking_points, every numeric mention must include the currency symbol matching the chosen currency ($/£/€) — never mix.
 11. The disclaimer must mention that estimates are based on public market data and are not guarantees.`;
+
+function formatChallengeStats(
+  stats: AnalyzeApplicationInput['challengeStats'],
+): string {
+  if (stats === null) {
+    return 'User is anonymous (not signed in) — no challenge data available. Recommend the daily challenge in the JD\'s primary language as a CTA.';
+  }
+  if (!stats.hasActivity) {
+    return `User is signed in but has never attempted a daily challenge. Streak: 0. Recommend the JD's primary language as a CTA.`;
+  }
+  const lines: string[] = [
+    `Streak: current=${stats.currentStreak}, longest=${stats.longestStreak}`,
+    'Per language (most recent attempts, newest first):',
+  ];
+  for (const lang of stats.perLanguage) {
+    const recent = lang.recentAttempts
+      .map(
+        (a) => `${a.date} (${a.score}/100, ${a.focusTag}, ${a.difficulty})`,
+      )
+      .join(' | ');
+    lines.push(
+      `- ${lang.language}: ${lang.attemptCount} attempts total, avg ${lang.avgScore}/100 over the last ${lang.recentAttempts.length}, last on ${lang.lastCompletedAt}`,
+    );
+    lines.push(`  recent: ${recent}`);
+  }
+  return lines.join('\n');
+}

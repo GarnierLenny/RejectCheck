@@ -7,6 +7,7 @@ import {
 import * as Sentry from '@sentry/nestjs';
 import {
   ANALYSIS_REPOSITORY,
+  CHALLENGE_STATS_PROVIDER,
   CLAUDE_PROVIDER,
   GITHUB_PROVIDER,
   PDF_PARSER,
@@ -19,6 +20,7 @@ import type {
 import type { ClaudeProvider } from '../ports/claude.provider';
 import type { GithubProvider } from '../ports/github.provider';
 import type { PdfParser } from '../ports/pdf.parser';
+import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import { decideQuota } from '../domain/quota.policy';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
@@ -80,6 +82,8 @@ export class AnalyzeCvUseCase {
     @Inject(GITHUB_PROVIDER) private readonly github: GithubProvider,
     @Inject(PDF_PARSER) private readonly pdf: PdfParser,
     @Inject(SUBSCRIPTION_GATE) private readonly subs: SubscriptionGate,
+    @Inject(CHALLENGE_STATS_PROVIDER)
+    private readonly challengeStats: ChallengeStatsProvider,
   ) {}
 
   async execute(
@@ -129,6 +133,18 @@ export class AnalyzeCvUseCase {
       ? JSON.stringify(githubSnapshot, null, 2)
       : '';
 
+    // Best-effort fetch — never fail the analysis if the challenge module is
+    // misbehaving; treat the user as having no track record.
+    const challengeSummary =
+      cmd.email && cmd.isRegistered
+        ? await this.challengeStats.getSummary(cmd.email).catch((err) => {
+            this.logger.warn(
+              `Challenge stats fetch failed (analysis continues): ${err?.message || err}`,
+            );
+            return null;
+          })
+        : null;
+
     emitStep('dual_ai_analysis');
     const result = await this.claude.analyzeApplication({
       jobText,
@@ -136,6 +152,7 @@ export class AnalyzeCvUseCase {
       githubInfo,
       linkedinText,
       motivationLetterText,
+      challengeStats: challengeSummary,
       locale: cmd.locale,
       onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });

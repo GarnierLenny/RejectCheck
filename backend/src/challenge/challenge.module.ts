@@ -3,6 +3,7 @@ import { ChallengeController } from './challenge.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { SocialModule } from '../social/social.module';
 import { XpModule } from '../xp/xp.module';
+import { CHALLENGE_STATS_PROVIDER } from '../analyze/ports/tokens';
 
 import {
   ATTEMPT_COACH,
@@ -19,6 +20,7 @@ import { PrismaChallengeRepository } from './infrastructure/prisma-challenge.rep
 import { PrismaAttemptRepository } from './infrastructure/prisma-attempt.repository';
 import { PrismaStreakRepository } from './infrastructure/prisma-streak.repository';
 import { PrismaLeaderboardRepository } from './infrastructure/prisma-leaderboard.repository';
+import { ChallengeStatsAdapter } from './infrastructure/challenge-stats.adapter';
 
 import { GetTodayChallengeUseCase } from './application/get-today-challenge.use-case';
 import { SubmitFirstAnswerUseCase } from './application/submit-first-answer.use-case';
@@ -41,6 +43,7 @@ import { GetStreakLeaderboardUseCase } from './application/get-streak-leaderboar
     { provide: ATTEMPT_REPOSITORY, useClass: PrismaAttemptRepository },
     { provide: STREAK_REPOSITORY, useClass: PrismaStreakRepository },
     { provide: LEADERBOARD_REPOSITORY, useClass: PrismaLeaderboardRepository },
+    { provide: CHALLENGE_STATS_PROVIDER, useClass: ChallengeStatsAdapter },
 
     GetTodayChallengeUseCase,
     SubmitFirstAnswerUseCase,
@@ -53,5 +56,6 @@ import { GetStreakLeaderboardUseCase } from './application/get-streak-leaderboar
     GetGlobalLeaderboardUseCase,
     GetStreakLeaderboardUseCase,
   ],
+  exports: [CHALLENGE_STATS_PROVIDER],
 })
 export class ChallengeModule {}

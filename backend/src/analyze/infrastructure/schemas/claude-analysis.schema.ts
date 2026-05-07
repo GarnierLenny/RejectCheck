@@ -142,6 +142,60 @@ export const SUBMIT_ANALYSIS_TOOL = {
           'seniority_signals',
         ],
       },
+      challenge_analysis: {
+        type: 'object' as const,
+        description:
+          "Analysis of the candidate's daily code-review challenge track record, surfaced at the top of the 'Bridge the Gap' tab. Always populate, even when the user has no data (use status='cta').",
+        properties: {
+          status: {
+            type: 'string' as const,
+            enum: ['cta', 'analyzed'],
+            description:
+              "'cta' when the user has no usable challenge data (anonymous or zero attempts in the JD's primary language). 'analyzed' when there is enough data to celebrate strengths.",
+          },
+          matched_language: {
+            type: ['string', 'null'] as const,
+            enum: ['typescript', 'python', 'java', null],
+            description:
+              "The challenge language identified as matching the JD's primary stack, or null if no match.",
+          },
+          cta: {
+            type: ['object', 'null'] as const,
+            description:
+              "Set when status='cta'. Otherwise null.",
+            properties: {
+              language: {
+                type: 'string' as const,
+                description:
+                  "Human label of the language to recommend (e.g. 'TypeScript', 'Python', 'Java'). Pick whichever maps to the JD's primary stack; if the JD's stack isn't covered by our challenges (typescript/python/java), pick the closest one.",
+              },
+              message: {
+                type: 'string' as const,
+                description:
+                  "1-2 markdown sentences inviting the candidate to start daily challenges, e.g. 'Do daily TypeScript challenges for a month — perfect-scoring 5+ in a row would close the seniority gap your CV doesn't fully prove.'",
+              },
+            },
+            required: ['language', 'message'],
+          },
+          summary: {
+            type: ['string', 'null'] as const,
+            description:
+              "Set when status='analyzed'. 2-4 markdown sentences that celebrate what the user does well in their attempts (e.g. 'Consistent 80+/100 across 23 TypeScript reviews, with strong nullable-handling and async-pattern detection.'). Otherwise null.",
+          },
+          strengths: {
+            type: ['array', 'null'] as const,
+            items: { type: 'string' as const },
+            description:
+              "Set when status='analyzed'. 2-4 short markdown bullet strings. Otherwise null.",
+          },
+          bridge_to_project: {
+            type: ['string', 'null'] as const,
+            description:
+              "Set when status='analyzed'. 1-2 markdown sentences explaining how the project_recommendation below covers the blind spots the daily challenges can't (e.g. system design, persistence, integrations, end-to-end ownership). Otherwise null.",
+          },
+        },
+        required: ['status'],
+      },
       project_recommendation: {
         type: 'object' as const,
         properties: {
@@ -456,6 +510,7 @@ export const SUBMIT_ANALYSIS_TOOL = {
     required: [
       'technical_analysis',
       'project_recommendation',
+      'challenge_analysis',
       'overall',
       'keyword_match',
       'experience_level',

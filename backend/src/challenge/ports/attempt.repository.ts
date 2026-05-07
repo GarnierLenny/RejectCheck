@@ -46,4 +46,17 @@ export interface AttemptRepository {
 
   /** Lightweight activity log (date + score) since the given date, completed only. */
   listActivity(email: string, since: Date): Promise<ActivityEntry[]>;
+
+  /**
+   * Most recent finalized attempts in a given challenge language, newest first.
+   * Used by cross-module signals (e.g. analyze module's challenge-stats adapter).
+   */
+  listRecentByLanguage(
+    email: string,
+    language: string,
+    take: number,
+  ): Promise<AttemptHistoryItem[]>;
+
+  /** Total number of finalized attempts an email has done in a given language. */
+  countByEmailAndLanguage(email: string, language: string): Promise<number>;
 }

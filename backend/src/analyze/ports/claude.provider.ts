@@ -2,6 +2,7 @@ import type { AnalyzeResponse } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type { RewriteResponse } from '../dto/rewrite-response.dto';
 import type { RoadmapItem } from '../domain/roadmap-items';
+import type { ChallengeStatsSummary } from '../domain/challenge-stats.types';
 
 export type AnalyzeApplicationInput = {
   jobText: string;
@@ -9,6 +10,7 @@ export type AnalyzeApplicationInput = {
   githubInfo: string;
   linkedinText: string;
   motivationLetterText: string;
+  challengeStats: ChallengeStatsSummary | null;
   locale?: string;
   /**
    * Optional callback invoked for each partial JSON chunk Claude emits while

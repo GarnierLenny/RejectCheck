@@ -57,6 +57,24 @@ export const ProjectRecommendationSchema = z.object({
   what_matters: strOrArr,
 });
 
+export const ChallengeAnalysisSchema = z.object({
+  status: z.enum(['cta', 'analyzed']),
+  matched_language: z
+    .enum(['typescript', 'python', 'java'])
+    .nullable()
+    .optional(),
+  cta: z
+    .object({
+      language: z.string(),
+      message: z.string(),
+    })
+    .nullable()
+    .optional(),
+  summary: z.string().nullable().optional(),
+  strengths: z.array(z.string()).nullable().optional(),
+  bridge_to_project: z.string().nullable().optional(),
+});
+
 export const TechnicalSkillSchema = z.object({
   name: z.string(),
   expected: z.number().min(0).max(10),
@@ -186,6 +204,7 @@ export const AnalyzeResponseSchema = z.object({
     jd_language: z.string().default('en'),
   }),
   project_recommendation: ProjectRecommendationSchema,
+  challenge_analysis: ChallengeAnalysisSchema.optional(),
   technical_analysis: z.object({
     reasoning: z.string(),
     skill_priority: z.array(z.string()).default([]),

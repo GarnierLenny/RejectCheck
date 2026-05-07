@@ -7,6 +7,22 @@ export type TechnicalSkill = {
   evidence: string;
 };
 
+export type ChallengeAnalysisLanguage = 'typescript' | 'python' | 'java';
+
+export type ChallengeAnalysisCta = {
+  language: string;
+  message: string;
+};
+
+export type ChallengeAnalysis = {
+  status: 'cta' | 'analyzed';
+  matched_language?: ChallengeAnalysisLanguage | null;
+  cta?: ChallengeAnalysisCta | null;
+  summary?: string | null;
+  strengths?: string[] | null;
+  bridge_to_project?: string | null;
+};
+
 export type ProjectRecommendation = {
   name: string;
   description: string;
@@ -102,6 +118,7 @@ export type AnalysisResult = components["schemas"]["AnalyzeResponseDto"] & {
     seniority_signals: string[];
   };
   project_recommendation: ProjectRecommendation;
+  challenge_analysis?: ChallengeAnalysis | null;
   job_details: JobDetails;
   negotiation_analysis?: NegotiationAnalysis | null;
 };
