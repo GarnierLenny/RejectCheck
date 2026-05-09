@@ -17,9 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'AI Resume Checker for Developers'
+const TITLE = 'AI Resume Checker'
 const DESCRIPTION =
-  'Resume checker built for developers. Audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags rejected in 6 seconds. Free.'
+  'Resume checker optimised for developers — works for any role. Audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags rejected in 6 seconds. Free.'
 
 type LangParams = { lang: string }
 
@@ -70,7 +70,7 @@ const FAQ_ITEMS = [
   {
     question: 'How is this different from generic resume checkers?',
     answer:
-      'Generic resume checkers grade tone and grammar against template rules. RejectCheck audits developer-specific signals: GitHub commit patterns, repo quality, README presence, LinkedIn-CV consistency, "I worked on" vs "I owned and shipped" tone. It is calibrated for engineering hires.',
+      'Generic resume checkers grade tone and grammar against template rules. RejectCheck audits role-specific signals: GitHub commit patterns and repo quality for engineers, portfolio coherence and case-study depth for PMs and designers, LinkedIn consistency, "I worked on" vs "I owned and shipped" tone. It is calibrated for engineering hires, but works for any role.',
   },
   {
     question: 'Will the resume checker rewrite my CV?',
@@ -127,7 +127,7 @@ export default async function ResumeCheckerPage({
           <div className="flex items-center gap-3 mb-8">
             <div className="h-px w-6 bg-rc-red" />
             <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
-              Resume Checker · For developers
+              Resume Checker · Optimised for devs. Works for any role.
             </span>
           </div>
           <h1 className="text-[40px] md:text-[58px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[820px] mb-6">
@@ -396,7 +396,7 @@ export default async function ResumeCheckerPage({
 
         <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="font-mono text-[13px] text-rc-muted">
-            © RejectCheck — Built for developers
+            © RejectCheck — Optimised for developers
           </div>
           <div className="flex gap-6 flex-wrap justify-center">
             <Link

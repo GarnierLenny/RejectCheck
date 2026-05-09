@@ -17,9 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Free ATS Checker for Developers'
+const TITLE = 'Free ATS Checker'
 const DESCRIPTION =
-  'Free ATS resume checker for developers. Simulates the layer that rejects 70% of CVs before a human reads them. Find missing keywords and exact fixes.'
+  'Free ATS resume checker, optimised for developers and works for any role. Simulates the layer that rejects 70% of CVs before a human reads them. Find missing keywords and exact fixes.'
 
 type LangParams = { lang: string }
 
@@ -70,7 +70,7 @@ const FAQ_ITEMS = [
   {
     question: 'How is RejectCheck different from Jobscan or Resume Worded?',
     answer:
-      'Most ATS checkers stop at keyword matching. RejectCheck adds a developer-specific layer: GitHub signal audit, technical skill gap radar, seniority audit, and red-flag detection (vague titles, passive voice, employment gaps). It is built for engineers, not generic candidates.',
+      'Most ATS checkers stop at keyword matching. RejectCheck adds a role-aware layer: GitHub signal audit for engineers, portfolio and case-study scoring for PMs and designers, technical skill gap radar, seniority audit, and red-flag detection (vague titles, passive voice, employment gaps).',
   },
   {
     question: 'Why do ATS systems reject so many resumes?',
@@ -122,7 +122,7 @@ export default async function AtsCheckerPage({
           <div className="flex items-center gap-3 mb-8">
             <div className="h-px w-6 bg-rc-red" />
             <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
-              ATS Checker · For developers
+              ATS Checker · Optimised for devs. Works for any role.
             </span>
           </div>
           <h1 className="text-[40px] md:text-[58px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[820px] mb-6">
@@ -385,7 +385,7 @@ export default async function AtsCheckerPage({
 
         <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="font-mono text-[13px] text-rc-muted">
-            © RejectCheck — Built for developers
+            © RejectCheck — Optimised for developers
           </div>
           <div className="flex gap-6 flex-wrap justify-center">
             <Link

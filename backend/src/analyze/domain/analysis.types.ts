@@ -59,6 +59,13 @@ export type Profile = {
   followersCount: number;
   followingCount: number;
   followersLastSeenAt: Date | null;
+  roleType: string | null;
+  roleTypeOther: string | null;
+  experienceLevel: string | null;
+  techStack: string[];
+  languages: string[];
+  onboardedAt: Date | null;
+  onboardingSkipped: boolean;
   /** Filled by the analyze controller, not the repository. */
   unreadFollowersCount?: number;
   createdAt: Date;
@@ -78,6 +85,13 @@ export type ProfileUpdate = {
   portfolioUrl?: string;
   socialLinks?: string[];
   coverLetterName?: string;
+  roleType?: string | null;
+  roleTypeOther?: string | null;
+  experienceLevel?: string | null;
+  techStack?: string[];
+  languages?: string[];
+  onboardedAt?: Date | null;
+  onboardingSkipped?: boolean;
 };
 
 export type SavedCv = {

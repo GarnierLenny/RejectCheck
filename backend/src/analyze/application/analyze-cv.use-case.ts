@@ -11,6 +11,7 @@ import {
   CLAUDE_PROVIDER,
   GITHUB_PROVIDER,
   PDF_PARSER,
+  PROFILE_REPOSITORY,
   SUBSCRIPTION_GATE,
 } from '../ports/tokens';
 import type {
@@ -20,6 +21,7 @@ import type {
 import type { ClaudeProvider } from '../ports/claude.provider';
 import type { GithubProvider } from '../ports/github.provider';
 import type { PdfParser } from '../ports/pdf.parser';
+import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import { decideQuota } from '../domain/quota.policy';
@@ -84,6 +86,8 @@ export class AnalyzeCvUseCase {
     @Inject(SUBSCRIPTION_GATE) private readonly subs: SubscriptionGate,
     @Inject(CHALLENGE_STATS_PROVIDER)
     private readonly challengeStats: ChallengeStatsProvider,
+    @Inject(PROFILE_REPOSITORY)
+    private readonly profiles: ProfileRepository,
   ) {}
 
   async execute(
@@ -138,11 +142,19 @@ export class AnalyzeCvUseCase {
     const challengeSummary =
       cmd.email && cmd.isRegistered
         ? await this.challengeStats.getSummary(cmd.email).catch((err) => {
-            this.logger.warn(
-              `Challenge stats fetch failed (analysis continues): ${err?.message || err}`,
-            );
-            return null;
-          })
+              this.logger.warn(
+                `Challenge stats fetch failed (analysis continues): ${err?.message || err}`,
+              );
+              return null;
+            })
+        : null;
+
+    // Profile context drives prompt selection (roleType) and enriches the user
+    // message (experienceLevel, techStack, languages). Anonymous users keep
+    // the default software-engineer prompt.
+    const profile =
+      cmd.email && cmd.isRegistered
+        ? await this.profiles.findByEmail(cmd.email).catch(() => null)
         : null;
 
     emitStep('dual_ai_analysis');
@@ -154,6 +166,11 @@ export class AnalyzeCvUseCase {
       motivationLetterText,
       challengeStats: challengeSummary,
       locale: cmd.locale,
+      userRoleType: profile?.roleType ?? null,
+      userRoleTypeOther: profile?.roleTypeOther ?? null,
+      userExperienceLevel: profile?.experienceLevel ?? null,
+      userTechStack: profile?.techStack ?? [],
+      userLanguages: profile?.languages ?? [],
       onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });
 

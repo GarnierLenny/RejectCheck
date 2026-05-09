@@ -24,7 +24,7 @@
     "tryFree": "Essai gratuit →"
   },
   "landing": {
-    "badge": "Pour les développeurs",
+    "badge": "Optimisé pour les devs. Fonctionne pour tous les métiers.",
     "hero": {
       "title": "Découvrez pourquoi votre candidature a été rejetée",
       "titleItalic": "avant qu'elle ne le soit.",
@@ -1045,7 +1045,25 @@
     "sections": {
       "publicProfile": "Profil public",
       "autofill": "Pré-remplissage analyse",
+      "targeting": "Ciblage",
       "account": "Compte"
+    },
+    "targeting": {
+      "cardTitle": "Ciblage",
+      "cardDesc": "Indique à Claude par quel angle évaluer ton CV. Modifiable à tout moment.",
+      "roleLabel": "Type de poste visé",
+      "roleHint": "Détermine le prompt utilisé et les signaux pondérés (GitHub vs portfolio vs LinkedIn).",
+      "roleOtherLabel": "Précise le poste",
+      "roleOtherPlaceholder": "ex. Solutions Architect, Technical Writer…",
+      "experienceLabel": "Niveau d'expérience",
+      "experienceHint": "Les CV junior et senior se font rejeter pour des raisons complètement différentes.",
+      "techStackLabel": "Tech stack (1–3)",
+      "techStackHint": "Affiché uniquement pour les rôles software / data.",
+      "languagesLabel": "Langues parlées",
+      "languagesHint": "Conversationnel ou plus. Sert à détecter les mismatches avec le marché ciblé.",
+      "retakeButton": "Refaire l'onboarding",
+      "retakeHint": "Repasser les 4 questions du formulaire. Tes réponses actuelles sont pré-remplies.",
+      "linksRedirect": "Gère tes liens (GitHub, LinkedIn, Portfolio) dans Profil public et Pré-remplissage analyse."
     },
     "publicProfile": {
       "cardTitle": "Profil public",
@@ -1612,6 +1630,153 @@
       "privacy": "Confidentialité (RGPD)",
       "pricing": "Tarifs individuels",
       "alternatives": "Comparaisons"
+    }
+  },
+  "onboarding": {
+    "nav": {
+      "stepLabel": "Étape {n} / {total}",
+      "skip": "Finir plus tard"
+    },
+    "enterToContinue": "Appuie sur {key} Entrée",
+    "continue": "Continuer",
+    "back": "Retour",
+    "step1": {
+      "eyebrow": "Le brief · 60 secondes",
+      "title": "D'abord,",
+      "titleAccent": "c'est quoi ton move ?",
+      "sub": "Choisis le plus proche. On ajuste le modèle de risque de rejet selon le métier, donc ça compte.",
+      "otherLabel": "Dis-le-nous avec tes mots",
+      "otherPlaceholder": "ex. Solutions Architect, Technical Writer…"
+    },
+    "step2": {
+      "eyebrow": "02 · Tu en es où",
+      "title": "Tu en es où",
+      "titleAccent": "sur la courbe ?",
+      "sub": "Les CV junior et senior se font rejeter pour des raisons complètement différentes. C'est comme ça qu'on sait quels red flags chercher."
+    },
+    "step3": {
+      "eyebrow": "03 · Ta stack",
+      "title": "Choisis tes",
+      "titleAccent": "armes principales.",
+      "titleSuffix": "",
+      "sub": "Ce que tu mettrais vraiment en haut de ton CV. Pas les langages que tu \"as touchés une fois en TP.\" La limite à 3 est volontaire.",
+      "counter": "{n} / 3 choisies",
+      "seeAll": "+ Voir tout",
+      "modalTitle": "Toutes les stacks & spécialisations",
+      "modalSearch": "Cherche un framework, langage, runtime…",
+      "modalDone": "OK"
+    },
+    "step4": {
+      "eyebrow": "04 · Langues",
+      "title": "Langues que tu parles,",
+      "titleAccent": "conversationnel ou plus.",
+      "sub": "Un dev junior qui parle allemand couramment pour un poste à Berlin : le score change radicalement. Choisis-en au moins une.",
+      "searchPlaceholder": "Cherche une langue… (English, Français, 中文)",
+      "addAnother": "+ Voir tout",
+      "counter": "{n} sélectionnée(s)"
+    },
+    "step5": {
+      "eyebrow": "Dernière étape · Où on peut te trouver",
+      "title": "Mets un lien ou deux.",
+      "titleAccent": "Laisse le signal parler.",
+      "sub": "On récupère tes commits publics, ton historique de posts et tes données portfolio pour valider ce que ton CV avance. Rien de privé. Saute un champ si tu n'en as pas.",
+      "finish": "Terminer · lancer ma première analyse",
+      "savingState": "Sauvegarde · on lance ton radar…",
+      "helperLine": "Modifiable plus tard",
+      "linkedinUploadLabel": "Upload PDF LinkedIn",
+      "linkedinUploadingLabel": "Upload en cours…",
+      "linkedinReplaceLabel": "Remplacer",
+      "linkedinDeleteLabel": "Retirer"
+    },
+    "step6": {
+      "eyebrow": "C'est bon",
+      "title": "Ton radar est",
+      "titleAccent": "calibré.",
+      "sub": "On a ajusté le modèle à ton métier, ton niveau, ta stack. Maintenant passe ton CV dedans. La plupart des gens sont surpris par ce qui en sort.",
+      "cta": "M'emmener vers /analyze →"
+    },
+    "roles": {
+      "software": "Software / Dev",
+      "product": "Product",
+      "design": "Design / UX",
+      "data": "Data / ML / IA",
+      "marketing": "Marketing / Growth",
+      "ops": "Ops / Réception",
+      "sales": "Sales / Business",
+      "other": "Autre chose"
+    },
+    "rolesMeta": {
+      "software": "Front, back, full-stack, mobile",
+      "product": "PM, APM, Product Ops",
+      "design": "Product, brand, research",
+      "data": "DS, MLE, analytics, AI eng",
+      "marketing": "Content, SEO, performance",
+      "ops": "COO, BizOps, hospitalité",
+      "sales": "AE, BDR, partnerships",
+      "other": "Précise ton métier"
+    },
+    "experience": {
+      "student": "Étudiant·e",
+      "junior": "Junior",
+      "mid": "Mid-level",
+      "senior": "Senior",
+      "lead": "Lead / Staff",
+      "switcher": "Reconversion"
+    },
+    "experienceMeta": {
+      "student": "Encore en école",
+      "junior": "0 à 2 ans",
+      "mid": "2 à 5 ans",
+      "senior": "5 à 10 ans",
+      "lead": "10+ ans",
+      "switcher": "Changement de carrière"
+    },
+    "banners": {
+      "software": {
+        "title": "Calibré pour les rôles software",
+        "text": "GitHub recommandé. Ton historique de commits c'est la moitié du signal. LinkedIn et un portfolio aident, mais GitHub c'est ce que les recruteurs cliquent en premier."
+      },
+      "data": {
+        "title": "Calibré pour les rôles data / ML",
+        "text": "On inspecte tes notebooks, ton profil Kaggle et tes contributions de datasets sur GitHub. LinkedIn complète le récit côté credentials."
+      },
+      "product": {
+        "title": "Calibré pour les rôles product",
+        "text": "Le hiring PM s'appuie sur LinkedIn : recommandations, scope du job, logos des boîtes. Un portfolio de case studies fait la différence à partir du mid."
+      },
+      "design": {
+        "title": "Calibré pour les rôles design",
+        "text": "Le portfolio est tout. On le traite comme l'artefact principal. LinkedIn n'est qu'un signal secondaire pour la timeline carrière."
+      },
+      "marketing": {
+        "title": "Calibré pour marketing / growth",
+        "text": "LinkedIn pour le réseau et l'historique ; portfolio (ou un doc de published work) pour les vraies preuves : campagnes, articles, dashboards."
+      },
+      "ops": {
+        "title": "Calibré pour les rôles ops",
+        "text": "LinkedIn porte 80% du signal. On va pas t'embêter avec un portfolio dont t'as pas besoin."
+      },
+      "sales": {
+        "title": "Calibré pour sales / business",
+        "text": "LinkedIn fait le gros boulot : quota, ancienneté, et recommandations c'est ce que les recruteurs scannent."
+      },
+      "other": {
+        "title": "Setup adaptatif",
+        "text": "Mets ce qui est pertinent. On déterminera quels signaux comptent une fois qu'on aura vu ton CV."
+      }
+    },
+    "fieldLabels": {
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "portfolio": "Portfolio"
+    },
+    "fieldPlaceholders": {
+      "github": "github.com/tonhandle",
+      "portfolio": "ton-domaine.com"
+    },
+    "pills": {
+      "recommended": "Recommandé",
+      "optional": "Optionnel"
     }
   }
 }

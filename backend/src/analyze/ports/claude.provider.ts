@@ -12,6 +12,13 @@ export type AnalyzeApplicationInput = {
   motivationLetterText: string;
   challengeStats: ChallengeStatsSummary | null;
   locale?: string;
+  // Profile-derived context for role-aware analysis. All optional — analysis
+  // works without them (falls back to default software-engineer prompt).
+  userRoleType?: string | null;
+  userRoleTypeOther?: string | null;
+  userExperienceLevel?: string | null;
+  userTechStack?: string[];
+  userLanguages?: string[];
   /**
    * Optional callback invoked for each partial JSON chunk Claude emits while
    * building the tool_use response. Used by the SSE pipeline to forward

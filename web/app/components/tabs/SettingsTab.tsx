@@ -5,16 +5,18 @@ import {
   User as UserIcon,
   Settings as SettingsIcon,
   Wand2,
+  Crosshair,
 } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { Caption } from "../typography";
 import { PublicProfileSettings } from "../settings/PublicProfileSettings";
 import { AutofillAnalyzeSettings } from "../settings/AutofillAnalyzeSettings";
 import { AccountSettings } from "../settings/AccountSettings";
+import { TargetingSettings } from "../settings/TargetingSettings";
 import { useLanguage } from "../../../context/language";
 import type { Profile, Subscription } from "../../../lib/queries";
 
-type Section = "public-profile" | "autofill" | "account";
+type Section = "public-profile" | "autofill" | "targeting" | "account";
 
 interface SettingsTabProps {
   profile: Profile | null;
@@ -38,6 +40,7 @@ export function SettingsTab({
   const sections: { id: Section; label: string; icon: typeof UserIcon }[] = [
     { id: "public-profile", label: t.settingsTab.sections.publicProfile, icon: UserIcon },
     { id: "autofill", label: t.settingsTab.sections.autofill, icon: Wand2 },
+    { id: "targeting", label: t.settingsTab.sections.targeting, icon: Crosshair },
     { id: "account", label: t.settingsTab.sections.account, icon: SettingsIcon },
   ];
 
@@ -79,6 +82,9 @@ export function SettingsTab({
         )}
         {section === "autofill" && (
           <AutofillAnalyzeSettings profile={profile} session={session} />
+        )}
+        {section === "targeting" && (
+          <TargetingSettings profile={profile} lang={lang} />
         )}
         {section === "account" && (
           <AccountSettings

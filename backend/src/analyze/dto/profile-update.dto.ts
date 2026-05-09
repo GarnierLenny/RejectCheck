@@ -14,6 +14,19 @@ export const ProfileUpdateSchema = z
     portfolioUrl: z.string().optional(),
     socialLinks: z.array(z.string().max(500)).max(8).optional(),
     coverLetterName: z.string().optional(),
+    roleType: z
+      .enum(['software', 'product', 'design', 'data', 'marketing', 'ops', 'sales', 'other'])
+      .nullable()
+      .optional(),
+    roleTypeOther: z.string().max(60).nullable().optional(),
+    experienceLevel: z
+      .enum(['student', 'junior', 'mid', 'senior', 'lead', 'switcher'])
+      .nullable()
+      .optional(),
+    techStack: z.array(z.string().max(40)).max(3).optional(),
+    languages: z.array(z.string().max(40)).max(20).optional(),
+    onboardedAt: z.coerce.date().nullable().optional(),
+    onboardingSkipped: z.boolean().optional(),
   })
   .strict();
 

@@ -78,8 +78,10 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
   async analyzeApplication(
     input: AnalyzeApplicationInput,
   ): Promise<AnalyzeResponse> {
-    const technicalPrompt = this.config.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
-    this.logger.log('Requesting full analysis from Claude');
+    const technicalPrompt = this.resolveTechnicalPrompt(input.userRoleType);
+    this.logger.log(
+      `Requesting full analysis from Claude (role=${input.userRoleType ?? 'default'})`,
+    );
 
     try {
       const msg = await this.withSentry('analyze', async () => {
@@ -288,7 +290,7 @@ ${cvText}`;
       .map((k) => k.keyword)
       .join(', ');
 
-    const systemPrompt = `You are an expert career coach writing cover letters for software developers.
+    const systemPrompt = `You are an expert career coach writing cover letters for jobseekers — calibrated for software roles by default, equally fluent across PM, design, marketing, sales, ops, and other non-engineering roles when the JD calls for it.
 Write in ${langName}.
 
 Tone and format rules (strictly enforced):
@@ -359,12 +361,22 @@ Language: ${langName}`;
     }
   }
 
+  private resolveTechnicalPrompt(roleType?: string | null): string {
+    const fallback = this.config.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
+    if (!roleType || roleType === 'software') return fallback;
+    const specificKey = `SYSTEM_TECHNICAL_PROMPT_${roleType.toUpperCase()}`;
+    const specific = this.config.get<string>(specificKey);
+    if (specific) return specific;
+    const generic = this.config.get<string>('SYSTEM_TECHNICAL_PROMPT_GENERIC');
+    return generic ?? fallback;
+  }
+
   private buildAnalyzeUserMessage(input: AnalyzeApplicationInput): string {
     return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
 
 Perform a complete application analysis.
 
-JOB DESCRIPTION:
+${this.formatCandidateContext(input)}JOB DESCRIPTION:
 ${input.jobText}
 
 ---
@@ -384,13 +396,41 @@ Daily-challenge usage rules:
 - Our daily challenge is a 2-step code review: the user spots issues in a snippet, then answers a Socratic follow-up. Each attempt is scored 0-100 across bug-finding, explanation, prioritization, and a polish bonus. Languages available: typescript, python, java.
 - Map track-record to the JD by **language only** (the challenge language → JD's primary language). Do not infer from focusTag.
 - If the JD's primary stack matches a language present above with a consistent ≥70/100 average over ≥10 attempts, treat it as a *concrete*, observable seniority signal — bump the matching tech_skill's \`current\` by 0.5–1.5 (clamped to 10), and mention it explicitly in \`technical_analysis.seniority_signals\` and \`technical_analysis.reasoning\`.
-- Always populate \`challenge_analysis\`. Use status='cta' when no data or no usable language match (the user is anonymous, has zero attempts, or the JD's primary stack isn't covered by the user's track record). Use status='analyzed' when there is a usable language match with ≥3 attempts.
+- **Relevance gate (decide whether to include \`challenge_analysis\` AT ALL):**
+  - If the JD is for a **non-engineering role** (Product Manager, designer, marketer, sales, ops, finance, legal, recruiter, etc.) → **OMIT** \`challenge_analysis\` entirely. Do not include the field in the tool input.
+  - If the JD is engineering but its primary stack is outside {typescript, python, java} AND the user has no track record on a closely related language → **OMIT** \`challenge_analysis\` entirely.
+  - Otherwise → include \`challenge_analysis\` per the rules below.
+- When included: use status='cta' when there is no usable data on the JD's primary language (anonymous, zero attempts on that language, etc.); use status='analyzed' when there is data on a matching or closely related language with ≥3 attempts.
 - For status='cta': \`cta.message\` must be 1-2 markdown sentences naming the JD's primary language (e.g. "Do daily TypeScript challenges for a month — perfect-scoring 5+ in a row would close the seniority gap your CV doesn't fully prove.").
-- For status='analyzed': \`summary\` celebrates 2-3 *specific* observed strengths (cite avg score, count, focus tags they nail); \`strengths\` is 2-4 short bullet strings; \`bridge_to_project\` explains how the \`project_recommendation\` below covers blind spots the challenges don't (system design, persistence, integrations, end-to-end ownership).
+- For status='analyzed': \`summary\` celebrates 2-3 *specific* observed strengths (cite avg score, count, focus tags they nail); \`strengths\` is 2-4 short bullet strings; \`bridge_to_project\` explains how the \`project_recommendation\` below covers blind spots the challenges don't (system design, persistence, integrations, end-to-end ownership). If the user's track record is on a closely related language (e.g. Python attempts for a Go backend role), explicitly frame it as transferable rigor rather than a 1:1 stack signal.
 
 Formatting rules:
 - Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals, challenge_analysis text fields): bold key terms, italics for nuance, short bullet lists where helpful.
 - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`;
+  }
+
+  private formatCandidateContext(input: AnalyzeApplicationInput): string {
+    const lines: string[] = [];
+    if (input.userRoleType) {
+      const role =
+        input.userRoleType === 'other' && input.userRoleTypeOther
+          ? `${input.userRoleType} (${input.userRoleTypeOther})`
+          : input.userRoleType;
+      lines.push(`- Target role family: ${role}`);
+    }
+    if (input.userExperienceLevel) {
+      lines.push(`- Self-reported experience level: ${input.userExperienceLevel}`);
+    }
+    if (input.userTechStack && input.userTechStack.length > 0) {
+      lines.push(`- Primary tech stack: ${input.userTechStack.join(', ')}`);
+    }
+    if (input.userLanguages && input.userLanguages.length > 0) {
+      lines.push(
+        `- Conversational languages: ${input.userLanguages.join(', ')}`,
+      );
+    }
+    if (lines.length === 0) return '';
+    return `CANDIDATE PROFILE (self-declared, weight against CV evidence — never override the CV):\n${lines.join('\n')}\n\n---\n\n`;
   }
 
   async generateNegotiation(

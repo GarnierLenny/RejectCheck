@@ -14,7 +14,7 @@ RejectCheck was built around a different premise: a rejection isn't just a forma
 
 Where other tools stop at feedback, RejectCheck goes further. It tells you what skills you're missing, then gives you a concrete plan to actually build them: project ideas with specs, CV rewrites, and time estimates. And if you want to stress-test your application before the real thing, the AI Interview puts you through a live voice interview tailored to the specific job — questions adapted to your gaps, your profile, and the JD's expectations.
 
-The target user is a developer who wants to be the right candidate, not just look like one.
+RejectCheck is optimised for developers, but works for any role — PMs, designers, marketers, and ops candidates get role-aware analysis too. The target user is anyone who wants to be the right candidate, not just look like one.
 
 ---
 

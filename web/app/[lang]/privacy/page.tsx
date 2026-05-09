@@ -38,7 +38,7 @@ export default function PrivacyPage() {
               <Eye className="w-6 h-6 text-rc-red" /> 1. {t.privacy.sections.commitment}
             </h2>
             <p className="text-rc-muted leading-relaxed">
-              At RejectCheck, your privacy is not an afterthought-it&apos;s part of our DNA. As a tool built for developers, we understand the importance of data sovereignty. This document explains how we collect, use, and protect your personal data in compliance with the General Data Protection Regulation (GDPR).
+              At RejectCheck, your privacy is not an afterthought-it&apos;s part of our DNA. As a tool optimised for developers, we understand the importance of data sovereignty. This document explains how we collect, use, and protect your personal data in compliance with the General Data Protection Regulation (GDPR).
             </p>
           </div>
 

@@ -24,7 +24,7 @@
     "tryFree": "Try free →"
   },
   "landing": {
-    "badge": "For developers",
+    "badge": "Optimised for devs. Works for any role.",
     "hero": {
       "title": "Find out why your job application got rejected",
       "titleItalic": "before it does.",
@@ -1044,7 +1044,25 @@
     "sections": {
       "publicProfile": "Public profile",
       "autofill": "Autofill analysis",
+      "targeting": "Targeting",
       "account": "Account"
+    },
+    "targeting": {
+      "cardTitle": "Targeting",
+      "cardDesc": "Tells Claude which lens to use when scoring your CV. Editable any time.",
+      "roleLabel": "Target role",
+      "roleHint": "Drives which prompt and which signals (GitHub vs portfolio vs LinkedIn) we weigh heaviest.",
+      "roleOtherLabel": "Tell us the role",
+      "roleOtherPlaceholder": "e.g. Solutions Architect, Technical Writer…",
+      "experienceLabel": "Experience level",
+      "experienceHint": "Junior CVs and Senior CVs get rejected for completely different reasons.",
+      "techStackLabel": "Tech stack (1–3)",
+      "techStackHint": "Only shown for software / data roles.",
+      "languagesLabel": "Languages you speak",
+      "languagesHint": "Conversational or better. Used to detect language mismatches with the target market.",
+      "retakeButton": "Re-take onboarding",
+      "retakeHint": "Walk through the full 4-question flow again. Existing values are pre-filled.",
+      "linksRedirect": "Manage links (GitHub, LinkedIn, Portfolio) in Public profile and Autofill analysis."
     },
     "publicProfile": {
       "cardTitle": "Public profile",
@@ -1611,6 +1629,153 @@
       "privacy": "Privacy (GDPR)",
       "pricing": "Individual Pricing",
       "alternatives": "Comparisons"
+    }
+  },
+  "onboarding": {
+    "nav": {
+      "stepLabel": "Step {n} / {total}",
+      "skip": "Save & finish later"
+    },
+    "enterToContinue": "Press {key} Enter",
+    "continue": "Continue",
+    "back": "Back",
+    "step1": {
+      "eyebrow": "The brief · 60 seconds",
+      "title": "First,",
+      "titleAccent": "what's your move?",
+      "sub": "Pick the closest one. We tune the rejection-risk model differently for every role, so this matters.",
+      "otherLabel": "Tell us in your own words",
+      "otherPlaceholder": "e.g. Solutions Architect, Tech Writer…"
+    },
+    "step2": {
+      "eyebrow": "02 · Where you're at",
+      "title": "Where are you",
+      "titleAccent": "on the curve?",
+      "sub": "Junior CVs and Senior CVs get rejected for completely different reasons. This tells the model which red flags to look for."
+    },
+    "step3": {
+      "eyebrow": "03 · Your stack",
+      "title": "Pick your",
+      "titleAccent": "main weapons.",
+      "titleSuffix": "",
+      "sub": "What you'd actually put in the top half of your CV. Not stuff you \"touched once at uni.\" Three is the cap on purpose.",
+      "counter": "{n} / 3 chosen",
+      "seeAll": "+ See all",
+      "modalTitle": "All stacks & specs",
+      "modalSearch": "Search frameworks, languages, runtimes…",
+      "modalDone": "Done"
+    },
+    "step4": {
+      "eyebrow": "04 · Languages",
+      "title": "Languages you speak,",
+      "titleAccent": "conversational or better.",
+      "sub": "A junior dev fluent in German is a totally different match for a Berlin role. Pick at least one.",
+      "searchPlaceholder": "Search a language… (English, Français, 中文)",
+      "addAnother": "+ Show all",
+      "counter": "{n} selected"
+    },
+    "step5": {
+      "eyebrow": "Last bit · Where to find you",
+      "title": "Drop a link or two.",
+      "titleAccent": "Let the signal speak.",
+      "sub": "We pull public commits, post history, and portfolio data to back up what your CV claims. Nothing private. Skip any field if you don't have it.",
+      "finish": "Finish · run my first analysis",
+      "savingState": "Saving · spinning up your radar…",
+      "helperLine": "You can edit later",
+      "linkedinUploadLabel": "Upload LinkedIn PDF",
+      "linkedinUploadingLabel": "Uploading…",
+      "linkedinReplaceLabel": "Replace",
+      "linkedinDeleteLabel": "Remove"
+    },
+    "step6": {
+      "eyebrow": "You're set",
+      "title": "Your radar is",
+      "titleAccent": "calibrated.",
+      "sub": "We've tuned the model to your role, level, and stack. Time to put your CV through it. Most people are surprised by what comes back.",
+      "cta": "Take me to /analyze →"
+    },
+    "roles": {
+      "software": "Software / Dev",
+      "product": "Product",
+      "design": "Design / UX",
+      "data": "Data / ML / AI",
+      "marketing": "Marketing / Growth",
+      "ops": "Ops / Réception",
+      "sales": "Sales / Business",
+      "other": "Something else"
+    },
+    "rolesMeta": {
+      "software": "Front, back, full-stack, mobile",
+      "product": "PM, APM, Product Ops",
+      "design": "Product, brand, research",
+      "data": "DS, MLE, analytics, AI eng",
+      "marketing": "Content, SEO, performance",
+      "ops": "COO, BizOps, hospitality",
+      "sales": "AE, BDR, partnerships",
+      "other": "Tell us what you do"
+    },
+    "experience": {
+      "student": "Student",
+      "junior": "Junior",
+      "mid": "Mid-level",
+      "senior": "Senior",
+      "lead": "Lead / Staff",
+      "switcher": "Career switcher"
+    },
+    "experienceMeta": {
+      "student": "Still in school",
+      "junior": "0 to 2 years",
+      "mid": "2 to 5 years",
+      "senior": "5 to 10 years",
+      "lead": "10+ years",
+      "switcher": "Reconverting"
+    },
+    "banners": {
+      "software": {
+        "title": "Tuned for software roles",
+        "text": "GitHub is recommended. Your commit history is half the signal. LinkedIn and a portfolio site help, but GitHub is what hiring managers click first."
+      },
+      "data": {
+        "title": "Tuned for data / ML roles",
+        "text": "We pull notebooks, Kaggle profile, and dataset contributions from GitHub. LinkedIn fills in the credentials story."
+      },
+      "product": {
+        "title": "Tuned for product roles",
+        "text": "PM hiring leans on LinkedIn: recommendations, scope of work, company logos. A case-study portfolio is the differentiator at mid+ level."
+      },
+      "design": {
+        "title": "Tuned for design roles",
+        "text": "Portfolio is everything. We treat it as the primary artifact. LinkedIn is secondary signal for your career timeline."
+      },
+      "marketing": {
+        "title": "Tuned for marketing / growth",
+        "text": "LinkedIn for the network and history; portfolio (or a published-work doc) for the actual receipts: campaigns, posts, dashboards."
+      },
+      "ops": {
+        "title": "Tuned for operations",
+        "text": "LinkedIn carries 80% of the signal here. We won't bug you for a portfolio you don't need."
+      },
+      "sales": {
+        "title": "Tuned for sales / business",
+        "text": "LinkedIn does the heavy lifting: quota, tenure, and recommendations are what recruiters scan for."
+      },
+      "other": {
+        "title": "Adaptive setup",
+        "text": "Drop whatever's relevant. We'll figure out which signals matter once we see your CV."
+      }
+    },
+    "fieldLabels": {
+      "github": "GitHub",
+      "linkedin": "LinkedIn",
+      "portfolio": "Portfolio"
+    },
+    "fieldPlaceholders": {
+      "github": "github.com/yourhandle",
+      "portfolio": "your-domain.com"
+    },
+    "pills": {
+      "recommended": "Recommended",
+      "optional": "Optional"
     }
   }
 }

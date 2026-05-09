@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../../../context/auth";
-import { useSubscription, useAnalysisHistory, useInterviewHistory, useApplications, useInterviewsByAnalysis } from "../../../lib/queries";
+import { useSubscription, useAnalysisHistory, useInterviewHistory, useApplications, useInterviewsByAnalysis, useProfile } from "../../../lib/queries";
 import { useDeleteAnalysis, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../lib/mutations";
 import { ApplicationsTab } from "../../components/tabs/ApplicationsTab";
 import { useLanguage } from "../../../context/language";
@@ -185,6 +185,7 @@ function DashboardContent() {
   const { t, localePath } = useLanguage();
 
   const { user, session, loading: authLoading } = useAuth();
+  const { data: profile } = useProfile();
 
   const [analysisPage, setAnalysisPage] = useState(1);
   const [analysisSearch, setAnalysisSearch] = useState("");
@@ -237,6 +238,18 @@ function DashboardContent() {
       router.replace(localePath("/login"));
     }
   }, [authLoading, user, router]);
+
+  // Redirect to onboarding if the profile has neither been completed nor
+  // explicitly skipped. Legacy accounts get `onboardingSkipped=true` set via
+  // the SQL migration so they are not forced through the flow.
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
+    if (!profile) return;
+    if (profile.onboardedAt == null && profile.onboardingSkipped !== true) {
+      router.replace(localePath("/onboarding"));
+    }
+  }, [authLoading, user, profile, router, localePath]);
 
   useEffect(() => {
     if (searchParams.get("success") === "true") {

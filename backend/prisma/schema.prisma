@@ -120,6 +120,13 @@ model Profile {
   totalChallengeCount Int       @default(0)
   totalXp             Int       @default(0)
   level               Int       @default(1)
+  roleType            String?
+  roleTypeOther       String?
+  experienceLevel     String?
+  techStack           String[]  @default([])
+  languages           String[]  @default([])
+  onboardedAt         DateTime?
+  onboardingSkipped   Boolean   @default(false)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

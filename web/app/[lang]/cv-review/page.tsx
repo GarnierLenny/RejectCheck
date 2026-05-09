@@ -17,9 +17,9 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Deep CV Review for Developers'
+const TITLE = 'Deep CV Review'
 const DESCRIPTION =
-  'Deep CV review tailored to a specific engineering role: tone audit, seniority signals, GitHub coherence. The critique a hiring manager would write.'
+  'Deep CV review tailored to a specific role — optimised for engineering, works for any job: tone audit, seniority signals, GitHub or portfolio coherence. The critique a hiring manager would write.'
 
 type LangParams = { lang: string }
 
@@ -127,7 +127,7 @@ export default async function CvReviewPage({
           <div className="flex items-center gap-3 mb-8">
             <div className="h-px w-6 bg-rc-red" />
             <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-red">
-              Deep CV Review · For developers
+              Deep CV Review · Optimised for devs. Works for any role.
             </span>
           </div>
           <h1 className="text-[40px] md:text-[58px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[860px] mb-6">
@@ -440,7 +440,7 @@ export default async function CvReviewPage({
 
         <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="font-mono text-[13px] text-rc-muted">
-            © RejectCheck — Built for developers
+            © RejectCheck — Optimised for developers
           </div>
           <div className="flex gap-6 flex-wrap justify-center">
             <Link

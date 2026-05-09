@@ -10,6 +10,24 @@ export type Subscription = {
   currentPeriodEnd: string;
 };
 
+export type RoleType =
+  | 'software'
+  | 'product'
+  | 'design'
+  | 'data'
+  | 'marketing'
+  | 'ops'
+  | 'sales'
+  | 'other';
+
+export type ExperienceLevel =
+  | 'student'
+  | 'junior'
+  | 'mid'
+  | 'senior'
+  | 'lead'
+  | 'switcher';
+
 export type Profile = {
   username: string | null;
   usernameUpdatedAt: string | null;
@@ -26,6 +44,13 @@ export type Profile = {
   followingCount: number;
   followersLastSeenAt: string | null;
   unreadFollowersCount?: number;
+  roleType: RoleType | null;
+  roleTypeOther: string | null;
+  experienceLevel: ExperienceLevel | null;
+  techStack: string[];
+  languages: string[];
+  onboardedAt: string | null;
+  onboardingSkipped: boolean;
 };
 
 export type PublicProfile = {

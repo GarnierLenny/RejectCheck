@@ -482,7 +482,7 @@ export default async function SoftwareEngineerCvPage({
 
         <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="font-mono text-[13px] text-rc-muted">
-            © RejectCheck — Built for developers
+            © RejectCheck — Optimised for developers
           </div>
           <div className="flex gap-6 flex-wrap justify-center">
             <Link

@@ -145,7 +145,7 @@ export const SUBMIT_ANALYSIS_TOOL = {
       challenge_analysis: {
         type: 'object' as const,
         description:
-          "Analysis of the candidate's daily code-review challenge track record, surfaced at the top of the 'Bridge the Gap' tab. Always populate, even when the user has no data (use status='cta').",
+          "OPTIONAL — Analysis of the candidate's daily code-review challenge track record, surfaced at the top of the 'Bridge the Gap' tab. OMIT this field entirely (do not include it in the tool input) when the JD is for a non-engineering role (PM, designer, marketing, sales, ops, etc.) OR when the JD's primary stack is outside {typescript, python, java} and the candidate has no track record on a closely related language. Otherwise, populate with status='cta' (no usable data) or status='analyzed' (data exists).",
         properties: {
           status: {
             type: 'string' as const,
@@ -510,7 +510,6 @@ export const SUBMIT_ANALYSIS_TOOL = {
     required: [
       'technical_analysis',
       'project_recommendation',
-      'challenge_analysis',
       'overall',
       'keyword_match',
       'experience_level',
