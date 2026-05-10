@@ -17,7 +17,8 @@ import { CvAnalysisTab } from "../../components/tabs/CvAnalysisTab";
 import { SignalsTab } from "../../components/tabs/SignalsTab";
 import { FlagsTab } from "../../components/tabs/FlagsTab";
 import { RoadmapTab } from "../../components/tabs/RoadmapTab";
-import { ProjectTab } from "../../components/tabs/ProjectTab";
+import { BridgeTab } from "../../components/tabs/BridgeTab";
+import { TECH_ROLES } from "../../../lib/onboarding-data";
 import { ImproveTab } from "../../components/tabs/ImproveTab";
 import { InterviewTab } from "../../components/tabs/InterviewTab";
 import { CoverLetterTab } from "../../components/tabs/CoverLetterTab";
@@ -47,6 +48,7 @@ function AnalyzeContent() {
   const [mlFile, setMlFile] = useState<File | null>(null);
   const [mlText, setMlText] = useState("");
   const [githubUsername, setGithubUsername] = useState("");
+  const [portfolioUrl, setPortfolioUrl] = useState("");
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const t = searchParams.get("tab");
@@ -337,7 +339,16 @@ function AnalyzeContent() {
     setIsExportingPdf(false);
   };
 
-  const hasGithubVal = githubUsername.trim().length > 0 || result?.audit.github.score !== null;
+  // For non-tech roles (PM, design, marketing, ops, sales, other) we silently
+  // hide the GitHub-related sections — the user didn't even submit a GitHub
+  // username and the JD doesn't expect one. Anonymous users (no profile) and
+  // legacy onboardingSkipped accounts (roleType === null) keep the inclusive
+  // behaviour.
+  const isTechRole =
+    !profile?.roleType || TECH_ROLES.includes(profile.roleType);
+  const hasGithubVal =
+    isTechRole &&
+    (githubUsername.trim().length > 0 || result?.audit.github.score !== null);
   const hasLinkedinVal = liFile !== null || result?.audit.linkedin.score !== null;
   const hasMLVal = mlFile !== null || mlText.trim().length > 0 || (result as any)?.motivationLetter !== undefined;
 
@@ -345,7 +356,7 @@ function AnalyzeContent() {
     { id: "overview",     label: t.tabs.skillGap },
     { id: "ats",          label: t.tabs.atsFilter,   badge: result.ats_simulation.would_pass ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />, badgeClass: result.ats_simulation.would_pass ? "text-rc-green" : "text-rc-red" },
     { id: "cv-analysis",  label: t.tabs.cvAnalysis,  badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
-    { id: "signals",      label: t.tabs.signals,     badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
+    { id: "signals",      label: t.tabs.signals,     badge: String((isTechRole ? result.audit.github.issues.length : 0) + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",        label: t.tabs.redFlags,    badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
     { id: "negotiation",  label: t.tabs.negotiation, badge: "✦", badgeClass: "text-rc-red" },
     { id: "roadmap",      label: t.tabs.roadmap,     badge: null, badgeClass: "" },
@@ -384,10 +395,14 @@ function AnalyzeContent() {
                 mlText={mlText} setMlText={setMlText}
                 jobDescription={jobDescription} setJobDescription={setJobDescription}
                 githubUsername={githubUsername} setGithubUsername={setGithubUsername}
+                portfolioUrl={portfolioUrl} setPortfolioUrl={setPortfolioUrl}
                 onSubmit={handleSubmit} loading={false} error={error}
                 step={formStep} onStepChange={setFormStep}
                 savedCvFiles={savedCvs}
                 savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
+                savedPortfolioUrl={profile?.portfolioUrl ?? undefined}
+                roleType={profile?.roleType ?? null}
+                roleLabel={profile?.roleType ? t.onboarding.roles[profile.roleType] : null}
               />
             </div>
           )
@@ -427,7 +442,7 @@ function AnalyzeContent() {
             {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
             {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
             {activeTab === "roadmap"      && <RoadmapTab result={result} />}
-            {activeTab === "project"      && <ProjectTab project={result.project_recommendation} />}
+            {activeTab === "project"      && <BridgeTab result={result} />}
             {activeTab === "improve" && (
               <ImproveTab
                 reconstructedCv={reconstructedCv}

@@ -377,7 +377,8 @@
       "title": "Signals",
       "description": "Each additional signal sharpens the diagnosis. GitHub reveals what the CV doesn't say. LinkedIn confirms consistency.",
       "hintTitle": "All optional",
-      "hintBody": "Skip this step if you want. You can analyze with CV + listing only."
+      "hintBody": "Skip this step if you want. You can analyze with CV + listing only.",
+      "calibratedFor": "Calibrated for {role}"
     },
     "leftStep3": {
       "title": "All set",
@@ -410,6 +411,16 @@
       "dropPrompt": "Drop your LinkedIn PDF export",
       "exportHint": "Settings → Data → Get a copy",
       "precision": "+precision"
+    },
+    "portfolio": {
+      "label": "Portfolio",
+      "hint": "case studies · process · craft",
+      "placeholder": "your-domain.com",
+      "precision": "+precision"
+    },
+    "pills": {
+      "recommended": "Recommended",
+      "optional": "Optional"
     },
     "coverLetter": {
       "label": "Cover letter",
@@ -449,6 +460,7 @@
       "words": "words · pasted",
       "activeSignal": "Active signal",
       "linkedinPdf": "LinkedIn PDF",
+      "portfolioProvided": "Portfolio link",
       "coverLetterPasted": "Pasted text"
     }
   },

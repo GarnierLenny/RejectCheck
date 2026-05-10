@@ -377,7 +377,8 @@
       "title": "Signaux",
       "description": "Chaque signal supplémentaire affine le diagnostic. GitHub révèle ce que le CV ne dit pas. LinkedIn confirme la cohérence.",
       "hintTitle": "Tout est optionnel",
-      "hintBody": "Ignorez cette étape si vous voulez. Vous pouvez analyser avec CV + offre uniquement."
+      "hintBody": "Ignorez cette étape si vous voulez. Vous pouvez analyser avec CV + offre uniquement.",
+      "calibratedFor": "Calibré pour {role}"
     },
     "leftStep3": {
       "title": "Prêt",
@@ -410,6 +411,16 @@
       "dropPrompt": "Déposez votre export PDF LinkedIn",
       "exportHint": "Paramètres → Données → Obtenir une copie",
       "precision": "+précision"
+    },
+    "portfolio": {
+      "label": "Portfolio",
+      "hint": "case studies · process · craft",
+      "placeholder": "ton-domaine.com",
+      "precision": "+précision"
+    },
+    "pills": {
+      "recommended": "Recommandé",
+      "optional": "Optionnel"
     },
     "coverLetter": {
       "label": "Lettre de motivation",
@@ -448,6 +459,7 @@
       "jobListing": "Offre d'emploi",
       "words": "mots · collé",
       "activeSignal": "Signal actif",
+      "portfolioProvided": "Lien portfolio",
       "linkedinPdf": "PDF LinkedIn",
       "coverLetterPasted": "Texte collé"
     }

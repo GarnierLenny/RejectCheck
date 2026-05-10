@@ -1,10 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "../../context/language";
 import { useJdValidation, JD_MIN_CHARS, JD_MAX_CHARS } from "../hooks/useJdValidation";
 import type { JdWarningKey } from "../hooks/useJdValidation";
 import { PdfPreviewModal } from "./PdfPreviewModal";
+import {
+  URL_PRESETS,
+  type UrlField,
+} from "../../lib/onboarding-data";
+import type { RoleType } from "../../lib/queries";
 
 type Props = {
   cvFile: File | null;
@@ -15,6 +20,8 @@ type Props = {
   setJobDescription: (v: string) => void;
   githubUsername: string;
   setGithubUsername: (v: string) => void;
+  portfolioUrl: string;
+  setPortfolioUrl: (v: string) => void;
   mlFile: File | null;
   setMlFile: (f: File | null) => void;
   mlText: string;
@@ -26,6 +33,11 @@ type Props = {
   onStepChange: (s: 1 | 2 | 3) => void;
   savedCvFiles?: Array<{ id: number; name: string; url: string }>;
   savedLinkedinUrl?: string;
+  savedPortfolioUrl?: string;
+  /** Drives which signal cards are shown in Step 2 + their recommended pill. */
+  roleType?: RoleType | null;
+  /** Localised role label, displayed in LeftStep2 as "Calibrated for {role}". */
+  roleLabel?: string | null;
 };
 
 type AccuracyLevel = {
@@ -121,20 +133,27 @@ function LeftStep1() {
   );
 }
 
-function LeftStep2() {
+function LeftStep2({ roleLabel }: { roleLabel?: string | null }) {
   const { t } = useLanguage();
   return (
-    <LeftPanel
-      stepTag={t.uploadForm.steps.step2}
-      title={<>{t.uploadForm.steps.signals}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-      description={t.uploadForm.leftStep2.description}
-      hint={{ title: t.uploadForm.leftStep2.hintTitle, body: t.uploadForm.leftStep2.hintBody }}
-    />
+    <div>
+      <LeftPanel
+        stepTag={t.uploadForm.steps.step2}
+        title={<>{t.uploadForm.steps.signals}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
+        description={t.uploadForm.leftStep2.description}
+        hint={{ title: t.uploadForm.leftStep2.hintTitle, body: t.uploadForm.leftStep2.hintBody }}
+      />
+      {roleLabel && (
+        <p className="mt-3 font-mono text-[8px] uppercase tracking-[0.18em] text-rc-red/70">
+          {t.uploadForm.leftStep2.calibratedFor.replace("{role}", roleLabel)}
+        </p>
+      )}
+    </div>
   );
 }
 
-function LeftStep3({ cvFile, jobDescription, githubUsername, liFile, mlFile, mlText }: {
-  cvFile: File | null; jobDescription: string; githubUsername: string;
+function LeftStep3({ cvFile, jobDescription, githubUsername, portfolioUrl, liFile, mlFile, mlText }: {
+  cvFile: File | null; jobDescription: string; githubUsername: string; portfolioUrl: string;
   liFile: File | null; mlFile: File | null; mlText: string;
 }) {
   const { t } = useLanguage();
@@ -143,6 +162,7 @@ function LeftStep3({ cvFile, jobDescription, githubUsername, liFile, mlFile, mlT
     jobDescription.trim() ? { icon: "JD", name: t.uploadForm.recap.jobListing, val: `${jobDescription.trim().split(/\s+/).length} ${t.uploadForm.recap.words}` } : null,
     githubUsername.trim() ? { icon: "GH", name: `github.com/${githubUsername}`, val: t.uploadForm.recap.activeSignal } : null,
     liFile ? { icon: "in", name: liFile.name, val: t.uploadForm.recap.linkedinPdf } : null,
+    portfolioUrl.trim() ? { icon: "P", name: portfolioUrl.trim(), val: t.uploadForm.recap.portfolioProvided } : null,
     (mlFile || mlText.trim()) ? { icon: "✉", name: mlFile ? mlFile.name : t.uploadForm.coverLetter.label, val: mlFile ? "PDF" : t.uploadForm.recap.coverLetterPasted } : null,
   ].filter((x): x is { icon: string; name: string; val: string } => x !== null);
 
@@ -359,26 +379,253 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
   );
 }
 
+function PillBadge({
+  label,
+  recommended,
+}: {
+  label: string;
+  recommended: boolean;
+}) {
+  if (recommended) {
+    return (
+      <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">
+        {label}
+      </span>
+    );
+  }
+  return (
+    <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-hint border border-rc-border px-1.5 py-0.5 rounded">
+      {label}
+    </span>
+  );
+}
+
+function GithubCard({
+  githubUsername,
+  setGithubUsername,
+  recommended,
+}: {
+  githubUsername: string;
+  setGithubUsername: (v: string) => void;
+  recommended: boolean;
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className="border border-rc-border rounded overflow-hidden">
+      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+        <div className="w-6 h-6 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
+          <img src="/icons/github.svg" alt="GitHub" width="12" height="12" className="invert" />
+        </div>
+        <div className="flex-1">
+          <div className="text-[12px] font-medium text-rc-text">GitHub</div>
+          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.github.hint}</p>
+        </div>
+        <PillBadge
+          label={recommended ? t.uploadForm.pills.recommended : t.uploadForm.pills.optional}
+          recommended={recommended}
+        />
+      </div>
+      <div className="px-3 py-2.5">
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none select-none">github.com/</span>
+          <input
+            type="text"
+            placeholder="username"
+            value={githubUsername}
+            onChange={(e) => setGithubUsername(e.target.value)}
+            className="w-full bg-rc-bg border border-rc-border rounded py-2 pr-3 pl-[74px] text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PortfolioCard({
+  portfolioUrl,
+  setPortfolioUrl,
+  recommended,
+}: {
+  portfolioUrl: string;
+  setPortfolioUrl: (v: string) => void;
+  recommended: boolean;
+}) {
+  const { t } = useLanguage();
+  return (
+    <div className="border border-rc-border rounded overflow-hidden">
+      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+        <div className="w-6 h-6 rounded bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.6">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <div className="text-[12px] font-medium text-rc-text">{t.uploadForm.portfolio.label}</div>
+          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.portfolio.hint}</p>
+        </div>
+        <PillBadge
+          label={recommended ? t.uploadForm.pills.recommended : t.uploadForm.pills.optional}
+          recommended={recommended}
+        />
+      </div>
+      <div className="px-3 py-2.5">
+        <input
+          type="url"
+          placeholder={t.uploadForm.portfolio.placeholder}
+          value={portfolioUrl}
+          onChange={(e) => setPortfolioUrl(e.target.value)}
+          className="w-full bg-rc-bg border border-rc-border rounded py-2 px-3 text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
+        />
+      </div>
+    </div>
+  );
+}
+
 function RightStep2({
   githubUsername, setGithubUsername,
   liFile, setLiFile, liRef,
+  portfolioUrl, setPortfolioUrl,
   mlFile, setMlFile, mlRef,
   mlText, setMlText,
   mlMode, setMlMode,
   savedLinkedinUrl,
+  roleType,
 }: {
   githubUsername: string; setGithubUsername: (v: string) => void;
   liFile: File | null; setLiFile: (f: File | null) => void;
   liRef: React.RefObject<HTMLInputElement | null>;
+  portfolioUrl: string; setPortfolioUrl: (v: string) => void;
   mlFile: File | null; setMlFile: (f: File | null) => void;
   mlRef: React.RefObject<HTMLInputElement | null>;
   savedLinkedinUrl?: string;
   mlText: string; setMlText: (v: string) => void;
   mlMode: "file" | "text"; setMlMode: (m: "file" | "text") => void;
+  roleType?: RoleType | null;
 }) {
   const { t } = useLanguage();
   const [loadingLi, setLoadingLi] = useState(false);
   const [previewLi, setPreviewLi] = useState(false);
+
+  // URL_PRESETS drives both the order and the recommended pill per role.
+  // Anonymous / legacy users (roleType == null) fall back to the inclusive
+  // software preset so they keep the historical behaviour.
+  const preset = URL_PRESETS[roleType ?? "software"];
+  const isRecommended = (f: UrlField) => preset.recommended.includes(f);
+
+  const linkedinCard = (
+    <div className="border border-rc-border rounded overflow-hidden">
+      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+        <div className="w-6 h-6 rounded bg-[#0A66C2] flex items-center justify-center shrink-0">
+          <span className="font-mono text-[9px] font-bold text-white">in</span>
+        </div>
+        <div className="flex-1">
+          <div className="text-[12px] font-medium text-rc-text">LinkedIn</div>
+          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.hint}</p>
+        </div>
+        <PillBadge
+          label={isRecommended("linkedin") ? t.uploadForm.pills.recommended : t.uploadForm.pills.optional}
+          recommended={isRecommended("linkedin")}
+        />
+      </div>
+      <div className="px-3 py-2.5">
+        {!liFile ? (
+          savedLinkedinUrl ? (
+            <div className="flex flex-col gap-1.5">
+              <div className={`group flex items-center gap-3 px-3.5 py-3 bg-[#0a66c2]/[0.03] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded transition-all duration-200 ${loadingLi ? "opacity-60" : ""}`}>
+                <button
+                  type="button"
+                  disabled={loadingLi}
+                  onClick={async () => {
+                    setLoadingLi(true);
+                    try {
+                      const blob = await fetch(savedLinkedinUrl).then(r => r.blob());
+                      setLiFile(new File([blob], 'linkedin.pdf', { type: 'application/pdf' }));
+                    } finally {
+                      setLoadingLi(false);
+                    }
+                  }}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-not-allowed"
+                >
+                  <div className="w-8 h-8 rounded bg-[#0a66c2]/8 border border-[#0a66c2]/20 flex items-center justify-center shrink-0">
+                    {loadingLi ? (
+                      <span className="w-3.5 h-3.5 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <span className="font-mono text-[9px] font-bold text-[#5ba3d9]">in</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] font-medium text-rc-text">linkedin.pdf</p>
+                    <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
+                  </div>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(91,163,217,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewLi(true)}
+                  className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => liRef.current?.click()}
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-rc-border hover:border-[#0a66c2]/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-[#5ba3d9] transition-all"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload a different file
+              </button>
+            </div>
+          ) : (
+          <div
+            onClick={() => liRef.current?.click()}
+            className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
+          >
+            <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
+            <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
+          </div>
+          )
+        ) : (
+          <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span className="text-[11px] text-rc-text flex-1 truncate">{liFile.name}</span>
+            <button type="button" onClick={() => { if (liRef.current) liRef.current.value = ""; setLiFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        )}
+        <input type="file" ref={liRef} accept=".pdf" className="hidden" onChange={(e) => setLiFile(e.target.files?.[0] || null)} />
+      </div>
+    </div>
+  );
+
+  function renderField(field: UrlField) {
+    if (field === "github") {
+      return (
+        <GithubCard
+          key="github"
+          githubUsername={githubUsername}
+          setGithubUsername={setGithubUsername}
+          recommended={isRecommended("github")}
+        />
+      );
+    }
+    if (field === "linkedin") {
+      return <div key="linkedin">{linkedinCard}</div>;
+    }
+    return (
+      <PortfolioCard
+        key="portfolio"
+        portfolioUrl={portfolioUrl}
+        setPortfolioUrl={setPortfolioUrl}
+        recommended={isRecommended("portfolio")}
+      />
+    );
+  }
+
   return (
     <>
     {previewLi && savedLinkedinUrl && (
@@ -386,116 +633,8 @@ function RightStep2({
     )}
     <div className="flex flex-col gap-3 flex-1">
 
-      {/* GitHub */}
-      <div className="border border-rc-border rounded overflow-hidden">
-        <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
-            <img src="/icons/github.svg" alt="GitHub" width="12" height="12" className="invert" />
-          </div>
-          <div className="flex-1">
-            <div className="text-[12px] font-medium text-rc-text">GitHub</div>
-            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.github.hint}</p>
-          </div>
-          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">{t.uploadForm.github.precision}</span>
-        </div>
-        <div className="px-3 py-2.5">
-          <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none select-none">github.com/</span>
-            <input
-              type="text"
-              placeholder="username"
-              value={githubUsername}
-              onChange={(e) => setGithubUsername(e.target.value)}
-              className="w-full bg-rc-bg border border-rc-border rounded py-2 pr-3 pl-[74px] text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* LinkedIn */}
-      <div className="border border-rc-border rounded overflow-hidden">
-        <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#0A66C2] flex items-center justify-center shrink-0">
-            <span className="font-mono text-[9px] font-bold text-white">in</span>
-          </div>
-          <div className="flex-1">
-            <div className="text-[12px] font-medium text-rc-text">LinkedIn</div>
-            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.hint}</p>
-          </div>
-          <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-amber border border-rc-amber/30 px-1.5 py-0.5 rounded">{t.uploadForm.linkedin.precision}</span>
-        </div>
-        <div className="px-3 py-2.5">
-          {!liFile ? (
-            savedLinkedinUrl ? (
-              <div className="flex flex-col gap-1.5">
-                <div className={`group flex items-center gap-3 px-3.5 py-3 bg-[#0a66c2]/[0.03] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded transition-all duration-200 ${loadingLi ? "opacity-60" : ""}`}>
-                  <button
-                    type="button"
-                    disabled={loadingLi}
-                    onClick={async () => {
-                      setLoadingLi(true);
-                      try {
-                        const blob = await fetch(savedLinkedinUrl).then(r => r.blob());
-                        setLiFile(new File([blob], 'linkedin.pdf', { type: 'application/pdf' }));
-                      } finally {
-                        setLoadingLi(false);
-                      }
-                    }}
-                    className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-not-allowed"
-                  >
-                    <div className="w-8 h-8 rounded bg-[#0a66c2]/8 border border-[#0a66c2]/20 flex items-center justify-center shrink-0">
-                      {loadingLi ? (
-                        <span className="w-3.5 h-3.5 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <span className="font-mono text-[9px] font-bold text-[#5ba3d9]">in</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-medium text-rc-text">linkedin.pdf</p>
-                      <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
-                    </div>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(91,163,217,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewLi(true)}
-                    className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => liRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-rc-border hover:border-[#0a66c2]/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-[#5ba3d9] transition-all"
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  Upload a different file
-                </button>
-              </div>
-            ) : (
-            <div
-              onClick={() => liRef.current?.click()}
-              className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
-            >
-              <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
-              <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
-            </div>
-            )
-          ) : (
-            <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              <span className="text-[11px] text-rc-text flex-1 truncate">{liFile.name}</span>
-              <button type="button" onClick={() => { if (liRef.current) liRef.current.value = ""; setLiFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            </div>
-          )}
-          <input type="file" ref={liRef} accept=".pdf" className="hidden" onChange={(e) => setLiFile(e.target.files?.[0] || null)} />
-        </div>
-      </div>
+      {/* Adaptive URL fields per role */}
+      {preset.fields.map((f) => renderField(f))}
 
       {/* Motivation Letter */}
       <div className="border border-rc-border rounded overflow-hidden">
@@ -663,17 +802,30 @@ export function UploadForm({
   liFile, setLiFile,
   jobDescription, setJobDescription,
   githubUsername, setGithubUsername,
+  portfolioUrl, setPortfolioUrl,
   mlFile, setMlFile,
   mlText, setMlText,
   onSubmit, loading, error,
   step, onStepChange,
-  savedCvFiles, savedLinkedinUrl,
+  savedCvFiles, savedLinkedinUrl, savedPortfolioUrl,
+  roleType, roleLabel,
 }: Props) {
   const { t } = useLanguage();
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
   const fileRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLInputElement>(null);
   const mlRef = useRef<HTMLInputElement>(null);
+  const portfolioHydrated = useRef(false);
+
+  // Pre-fill portfolio URL once from the saved profile value, and only if the
+  // user hasn't already typed something. Mirrors the GitHub username pattern.
+  useEffect(() => {
+    if (portfolioHydrated.current) return;
+    if (savedPortfolioUrl && !portfolioUrl.trim()) {
+      setPortfolioUrl(savedPortfolioUrl);
+    }
+    portfolioHydrated.current = true;
+  }, [savedPortfolioUrl, portfolioUrl, setPortfolioUrl]);
 
   const jdLen = jobDescription.trim().length;
   const hasRequired = !!cvFile && jdLen >= JD_MIN_CHARS && jdLen <= JD_MAX_CHARS;
@@ -689,12 +841,13 @@ export function UploadForm({
         {/* LEFT DARK PANEL */}
         <div className="bg-[#1a1917] px-6 py-7 flex flex-col justify-between">
           {step === 1 && <LeftStep1 />}
-          {step === 2 && <LeftStep2 />}
+          {step === 2 && <LeftStep2 roleLabel={roleLabel} />}
           {step === 3 && (
             <LeftStep3
               cvFile={cvFile}
               jobDescription={jobDescription}
               githubUsername={githubUsername}
+              portfolioUrl={portfolioUrl}
               liFile={liFile}
               mlFile={mlFile}
               mlText={mlText}
@@ -746,10 +899,12 @@ export function UploadForm({
             <RightStep2
               githubUsername={githubUsername} setGithubUsername={setGithubUsername}
               liFile={liFile} setLiFile={setLiFile} liRef={liRef}
+              portfolioUrl={portfolioUrl} setPortfolioUrl={setPortfolioUrl}
               mlFile={mlFile} setMlFile={setMlFile} mlRef={mlRef}
               mlText={mlText} setMlText={setMlText}
               mlMode={mlMode} setMlMode={setMlMode}
               savedLinkedinUrl={savedLinkedinUrl}
+              roleType={roleType}
             />
           )}
           {step === 3 && (
