@@ -49,7 +49,7 @@ export class RegenerateDeepUseCase {
 
     const profile = await this.profiles.findByEmail(email).catch(() => null);
 
-    const hot = extractHot(stored.result);
+    const hot = extractHot(stored.result, stored.deepAnalysis);
 
     const deep = await this.claude.analyzeApplicationDeep({
       hot,
@@ -76,8 +76,14 @@ export class RegenerateDeepUseCase {
 /**
  * Strips the deep-pass fields from a stored AnalyzeResponse to recover the
  * hot-pass shape needed by `analyzeApplicationDeep` for grounding.
+ *
+ * `technical_analysis` may live in either `result` (new format) or
+ * `deepAnalysis` (mid-format) — we accept both for backward compatibility.
  */
-function extractHot(result: AnalyzeResponse): HotAnalyzeResponse {
+function extractHot(
+  result: AnalyzeResponse,
+  deepAnalysis: { technical_analysis?: unknown } | null,
+): HotAnalyzeResponse {
   return {
     score: result.score,
     verdict: result.verdict,
@@ -126,6 +132,14 @@ function extractHot(result: AnalyzeResponse): HotAnalyzeResponse {
     ),
     correlation: result.correlation,
     job_details: result.job_details,
+    // New format: technical_analysis is part of `result` (hot). Mid-format:
+    // it was stored on `deepAnalysis`. Either way, surface it to the deep
+    // pass for grounding context. Cast through unknown — the consumers only
+    // read the shape, the Zod schema doesn't re-validate here.
+    technical_analysis: (result.technical_analysis ??
+      (deepAnalysis?.technical_analysis as
+        | HotAnalyzeResponse['technical_analysis']
+        | undefined))!,
     challenge_analysis: result.challenge_analysis,
   };
 }

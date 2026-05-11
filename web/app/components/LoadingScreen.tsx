@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Zap, Cpu, Search, FileText, Handshake } from "lucide-react";
+import { Zap, Cpu, Search, FileText } from "lucide-react";
 import { Anthropic, Github, Linkedin } from "react-bootstrap-icons";
 import { useLanguage } from "../../context/language";
 
@@ -18,14 +18,16 @@ type Props = {
 
 type StepStatus = "pending" | "running" | "done" | "skipped";
 
+// The loading screen now only covers the HOT phase. As soon as the SSE flow
+// emits `analysis_done`, the page swaps in the result view (with skeletons for
+// deep + nego content). The post-hot steps (negotiation_coaching, finalizing)
+// happen invisibly in the background while the user reads their score.
 const STEPS_CONFIG_BASE = [
   { id: "parsing_cv"           as const, Icon: FileText,  lane: "center" as const },
   { id: "matching_skills"      as const, Icon: Search,    lane: "center" as const },
   { id: "analyzing_linkedin"   as const, Icon: Linkedin,  lane: "center" as const },
   { id: "analyzing_github"     as const, Icon: Github,    lane: "center" as const },
   { id: "dual_ai_analysis"     as const, Icon: Zap,       lane: "split"  as const },
-  { id: "negotiation_coaching" as const, Icon: Handshake, lane: "center" as const, hiredOnly: true },
-  { id: "finalizing"           as const, Icon: Sparkles,  lane: "center" as const },
 ];
 
 
@@ -188,20 +190,25 @@ export function LoadingScreen({ currentStep, streamText = "", hasGithub, hasLink
 
   const CLAUDE_TASKS = t.loadingScreen.claudeTasks as string[];
 
-  // Filter the optional hired-only steps so non-premium users get a 6-node
-  // pipeline and hired users get the 7-node version including negotiation.
-  const STEPS_CONFIG = STEPS_CONFIG_BASE.filter((s) => !s.hiredOnly || isHired);
-  const SVG_W = STEPS_CONFIG.length === 7 ? 1230 : 1100;
+  // All users see the same 5-step pipeline (hot-pass only — negotiation +
+  // finalizing run invisibly after the user is already on the result view).
+  // `isHired` is kept in props for symmetry with the rest of the flow but
+  // no longer changes the visible pipeline length.
+  void isHired;
+  const STEPS_CONFIG = STEPS_CONFIG_BASE;
+  const SVG_W = 1100;
 
   const [internalStepIdx, setInternalStepIdx] = useState(0);
   const [isFullyDone,     setIsFullyDone]     = useState(false);
 
   // Each Claude sub-task is detected when its top-level JSON key appears in
-  // the streamed tool_use input. Order matches the schema's declaration order
-  // (which Claude tends to follow under strict tool_choice).
+  // the streamed tool_use input. Keys must match what the HOT pass actually
+  // emits (the loading screen only covers the hot phase; technical_analysis
+  // and project_recommendation are generated in the deep pass and surface as
+  // skeletons in the result view).
   const CLAUDE_TASK_KEYS = [
-    'technical_analysis',
-    'project_recommendation',
+    'audit_cv',
+    'audit_jd_match',
     'ats_simulation',
     'cv_tone',
     'hidden_red_flags',
@@ -245,16 +252,13 @@ export function LoadingScreen({ currentStep, streamText = "", hasGithub, hasLink
     ? CLAUDE_TASKS_COUNT
     : taskDone.filter(Boolean).length;
 
-  // 3. Finalization — fires onFinished once the last step has been "running"
-  // for 3 s. The 4 → 5 transition is handled by the step timer once the
-  // backend signal allows it (or once the sub-task split is visually done).
+  // 3. Finalization — fires onFinished as a fallback once the split sub-tasks
+  // are all visually done. The page transitions away from the loading screen
+  // as soon as the `analysis_done` SSE event arrives (via setVisualLoadingDone
+  // in the parent), so this timer rarely fires in practice — it just protects
+  // against an edge case where the parent never unmounts us.
   useEffect(() => {
     const lastIdx = STEPS_CONFIG.length - 1;
-    const virtualSplitDone = claudeP === CLAUDE_TASKS_COUNT;
-    if (internalStepIdx === 4 && virtualSplitDone && backendDone) {
-      const t = setTimeout(() => setInternalStepIdx(5), 1500);
-      return () => clearTimeout(t);
-    }
     if (internalStepIdx === lastIdx && !isFullyDone) {
       const t = setTimeout(() => { setIsFullyDone(true); onFinished?.(); }, 3000);
       return () => clearTimeout(t);

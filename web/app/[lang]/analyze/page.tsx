@@ -85,6 +85,12 @@ function AnalyzeContent() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
+  // True between `handleSubmit` and the SSE `done` event. While streaming, we
+  // ignore inbound state from useAnalysis (URL just got primed at
+  // analysis_done, so the query has data but it's stale wrt deep/nego that
+  // are still streaming). Lets the SSE handler stay the source of truth.
+  const streamingRef = useRef(false);
+
   const urlId = searchParams.get('id') ? parseInt(searchParams.get('id')!) : null;
 
   const { data: subscriptionData } = useSubscription();
@@ -140,6 +146,11 @@ function AnalyzeContent() {
 
   useEffect(() => {
     if (!savedAnalysis) return;
+    // We're in the middle of an in-progress submission (URL just got primed
+    // with the new id at analysis_done). Skip — the SSE stream is the source
+    // of truth, and overwriting state with a fetched snapshot here would
+    // race against incoming deep_done / negotiation_done events.
+    if (streamingRef.current) return;
     setResult(savedAnalysis.result);
     setJobDescription(savedAnalysis.jobDescription || '');
     if (urlId) setAnalysisId(urlId);
@@ -163,6 +174,12 @@ function AnalyzeContent() {
 
   useEffect(() => {
     if (!urlId) return;
+    // Don't override the SSE-driven loading state while a fresh submission
+    // is still streaming — the URL was just primed at analysis_done, so the
+    // cache has data and `loadingById` is already false. Trusting it here
+    // would prematurely flip the loading flag and let the savedAnalysis
+    // effect overwrite our streamed result.
+    if (streamingRef.current) return;
     setLoading(loadingById);
   }, [loadingById, urlId]);
 
@@ -194,6 +211,7 @@ function AnalyzeContent() {
     setCurrentStep(null);
     setStreamText("");
     setDeepStatus('pending');
+    streamingRef.current = true;
 
     let deepArrived = false;
 
@@ -223,45 +241,88 @@ function AnalyzeContent() {
         message?: string;
       };
 
+      // Tracks the latest known result during the stream so we can keep the
+      // queryClient cache in sync with each SSE event. Closure-captured
+      // because React state updates are async and we need the freshest copy.
+      let latestResult: AnalysisResult | null = null;
+      let latestAnalysisId: number | null = null;
+
+      const primeQueryCache = () => {
+        if (latestAnalysisId && latestResult && user?.id) {
+          queryClient.setQueryData(
+            ['analysis', latestAnalysisId, user.id],
+            { result: latestResult, jobDescription },
+          );
+        }
+      };
+
       await consumeSSE<AnalyzePayload>(res, (payload) => {
         if (payload.step === "analysis_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "analysis_done") {
-          if (payload.result) setResult(payload.result);
-          if (payload.analysisId) setAnalysisId(payload.analysisId);
+          if (payload.result) {
+            latestResult = payload.result;
+            setResult(payload.result);
+          }
+          if (payload.analysisId) {
+            latestAnalysisId = payload.analysisId;
+            setAnalysisId(payload.analysisId);
+            primeQueryCache();
+            // Reflect the new id in the URL immediately so a reload during
+            // deep/nego streaming doesn't drop the user back to the form.
+            router.replace(
+              `${localePath('/analyze')}?id=${payload.analysisId}`,
+              { scroll: false },
+            );
+          }
+          // Transition out of the loading screen as soon as the hot pass is
+          // done — the user sees the score immediately while deep + nego
+          // continue streaming into skeletons.
+          setVisualLoadingDone(true);
         } else if (payload.step === "deep_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "deep_done") {
           if (payload.deep) {
             deepArrived = true;
             const deep = payload.deep;
-            setResult((prev) =>
-              prev ? mergeDeepIntoResult(prev, deep) : prev,
-            );
+            setResult((prev) => {
+              if (!prev) return prev;
+              const merged = mergeDeepIntoResult(prev, deep);
+              latestResult = merged;
+              primeQueryCache();
+              return merged;
+            });
             setDeepStatus('ready');
           }
         } else if (payload.step === "negotiation_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "negotiation_done") {
-          setResult((prev) =>
-            prev ? { ...prev, negotiation_analysis: payload.negotiation } : prev,
-          );
+          setResult((prev) => {
+            if (!prev) return prev;
+            const merged = { ...prev, negotiation_analysis: payload.negotiation };
+            latestResult = merged;
+            primeQueryCache();
+            return merged;
+          });
         } else if (payload.step === "done") {
           // Fallback: ensure we have a result even if analysis_done was missed.
-          if (payload.result && !result) setResult(payload.result);
-          if (payload.analysisId) {
+          if (payload.result && !latestResult) {
+            latestResult = payload.result;
+            setResult(payload.result);
+          }
+          if (payload.analysisId && !latestAnalysisId) {
+            latestAnalysisId = payload.analysisId;
             setAnalysisId(payload.analysisId);
-            // Pre-populate the useAnalysis cache so the upcoming urlId change
-            // doesn't trigger a refetch + a brief loading flicker.
-            if (user?.id) {
-              queryClient.setQueryData(
-                ['analysis', payload.analysisId, user.id],
-                { result: payload.result ?? result, jobDescription },
-              );
-            }
             router.replace(
               `${localePath('/analyze')}?id=${payload.analysisId}`,
               { scroll: false },
+            );
+          }
+          // Final cache prime with whatever the backend considers complete.
+          if (payload.result && latestAnalysisId && user?.id) {
+            queryClient.setQueryData(
+              ['analysis', latestAnalysisId, user.id],
+              { result: payload.result, jobDescription },
             );
           }
           setLoading(false);
@@ -280,6 +341,8 @@ function AnalyzeContent() {
       setLoading(false);
       setCurrentStep(null);
       if (!deepArrived) setDeepStatus('failed');
+    } finally {
+      streamingRef.current = false;
     }
   }
 

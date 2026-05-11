@@ -2,6 +2,7 @@
 
 import type { AnalysisResult } from "../types";
 import { SectionHeader } from "../SectionHeader";
+import { AtsKeywordsSkeleton } from "../skeletons/AtsKeywordsSkeleton";
 import { useLanguage } from "../../../context/language";
 
 type Keyword = NonNullable<
@@ -61,6 +62,10 @@ function KeywordRow({ kw, checked, onToggle, accent, maxImpact }: { kw: Keyword;
 export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
   const { t } = useLanguage();
   const atsThreshold = ats.threshold ?? ATS_THRESHOLD_FALLBACK;
+  // `critical_missing_keywords` is populated in the deep pass. While we wait
+  // for `deep_done`, the field is `undefined` (vs `[]` which legitimately
+  // means "no missing keywords found") — drives the skeleton state below.
+  const missingKeywordsLoading = ats.critical_missing_keywords === undefined;
   const missingKeywords = ats.critical_missing_keywords ?? [];
   const simulatedScore = Math.min(100, Math.round(
     ats.score + Array.from(checkedKeywords).reduce((sum, kw) => {
@@ -152,37 +157,41 @@ export function AtsTab({ ats, checkedKeywords, onToggle, onReset }: Props) {
           }
         />
 
-        <div className="bg-rc-surface border border-rc-border overflow-hidden">
-          {requiredKws.length > 0 && (
-            <div className="p-6 border-b border-rc-border">
-              <div className="flex items-center gap-2 mb-5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-red font-bold">{t.atsTab.required}</span>
-                <span className="font-mono text-[11px] text-rc-hint">- {t.atsTab.requiredMention.replace('{count}', String(requiredKws.reduce((s, k) => s + k.jd_frequency, 0)))}</span>
+        {missingKeywordsLoading ? (
+          <AtsKeywordsSkeleton />
+        ) : (
+          <div className="bg-rc-surface border border-rc-border overflow-hidden">
+            {requiredKws.length > 0 && (
+              <div className="p-6 border-b border-rc-border">
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
+                  <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-red font-bold">{t.atsTab.required}</span>
+                  <span className="font-mono text-[11px] text-rc-hint">- {t.atsTab.requiredMention.replace('{count}', String(requiredKws.reduce((s, k) => s + k.jd_frequency, 0)))}</span>
+                </div>
+                <div className="space-y-4">
+                  {requiredKws.map((kw) => (
+                    <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-red bg-rc-red/10" maxImpact={maxImpact} />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-4">
-                {requiredKws.map((kw) => (
-                  <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-red bg-rc-red/10" maxImpact={maxImpact} />
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
-          {preferredKws.length > 0 && (
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
-                <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-amber font-bold">{t.atsTab.preferred}</span>
-                <span className="font-mono text-[11px] text-rc-hint">- {t.atsTab.preferredNote}</span>
+            {preferredKws.length > 0 && (
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
+                  <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-rc-amber font-bold">{t.atsTab.preferred}</span>
+                  <span className="font-mono text-[11px] text-rc-hint">- {t.atsTab.preferredNote}</span>
+                </div>
+                <div className="space-y-4">
+                  {preferredKws.map((kw) => (
+                    <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-amber bg-rc-amber/10" maxImpact={maxImpact} />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-4">
-                {preferredKws.map((kw) => (
-                  <KeywordRow key={kw.keyword} kw={kw} checked={checkedKeywords.has(kw.keyword)} onToggle={() => onToggle(kw.keyword)} accent="text-rc-amber bg-rc-amber/10" maxImpact={maxImpact} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
     </div>

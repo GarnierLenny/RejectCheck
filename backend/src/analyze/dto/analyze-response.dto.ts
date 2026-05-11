@@ -223,6 +223,13 @@ export const HotAnalyzeResponseSchema = z.object({
     explanation: z.string(),
   }),
   job_details: JobDetailsSchema,
+  /**
+   * Required for NEW analyses (Claude's hot tool schema marks it required),
+   * but kept optional here so we can replay mid-format DB rows where the
+   * field was still stored under `deepAnalysis`. The merge helper handles
+   * the fallback.
+   */
+  technical_analysis: TechnicalAnalysisSchema.optional(),
   challenge_analysis: ChallengeAnalysisSchema.optional(),
 });
 
@@ -232,7 +239,13 @@ export const HotAnalyzeResponseSchema = z.object({
 // =============================================================================
 
 export const DeepAnalyzeResponseSchema = z.object({
-  technical_analysis: TechnicalAnalysisSchema,
+  /**
+   * Kept optional for backward compatibility: analyses created before
+   * `technical_analysis` was moved into the hot pass stored it in this
+   * field. The merge helper falls back to it when the hot result lacks
+   * the field. New analyses won't populate this.
+   */
+  technical_analysis: TechnicalAnalysisSchema.optional(),
   project_recommendation: ProjectRecommendationSchema,
   ats_critical_missing_keywords: z.array(AtsCriticalMissingKeywordSchema),
   fixes: z.object({
@@ -269,7 +282,7 @@ export const AnalyzeResponseSchema = z.object({
     score: z.number().min(0).max(100),
     threshold: z.number().min(0).max(100),
     reason: z.string(),
-    critical_missing_keywords: z.array(AtsCriticalMissingKeywordSchema),
+    critical_missing_keywords: z.array(AtsCriticalMissingKeywordSchema).optional(),
   }),
   seniority_analysis: z.object({
     expected: z.string(),
@@ -351,7 +364,9 @@ export function mergeHotAndDeep(
     breakdown: hot.breakdown,
     ats_simulation: {
       ...hot.ats_simulation,
-      critical_missing_keywords: deep?.ats_critical_missing_keywords ?? [],
+      // Leave undefined when deep hasn't arrived — the frontend uses this to
+      // distinguish "loading the keyword list" from "no missing keywords".
+      critical_missing_keywords: deep?.ats_critical_missing_keywords,
     },
     seniority_analysis: {
       ...hot.seniority_analysis,
@@ -393,7 +408,9 @@ export function mergeHotAndDeep(
     job_details: hot.job_details,
     challenge_analysis: hot.challenge_analysis,
     project_recommendation: deep?.project_recommendation,
-    technical_analysis: deep?.technical_analysis,
+    // technical_analysis lives in the hot pass for new analyses; fall back to
+    // deep for analyses created before the move (mid-format DB rows).
+    technical_analysis: hot.technical_analysis ?? deep?.technical_analysis,
   };
   return merged;
 }

@@ -92,7 +92,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
 
     const requestStartedAt = Date.now();
     let firstDeltaAt: number | null = null;
-    const HOT_MAX_TOKENS = 5000;
+    const HOT_MAX_TOKENS = 6000;
 
     try {
       const msg = await this.withSentry('analyze_hot', async () => {
@@ -175,6 +175,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
         hidden_red_flags: i.hidden_red_flags,
         correlation: i.correlation,
         job_details: i.job_details,
+        technical_analysis: i.technical_analysis,
         challenge_analysis: i.challenge_analysis,
       };
       return HotAnalyzeResponseSchema.parse(hot);

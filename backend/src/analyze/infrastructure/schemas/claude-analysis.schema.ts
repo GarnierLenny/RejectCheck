@@ -148,6 +148,71 @@ const auditHotSchema = (description: string) => ({
   required: ['score', 'issues', 'strengths'],
 });
 
+const TECHNICAL_ANALYSIS_SCHEMA = {
+  type: 'object' as const,
+  description:
+    'Technical skill gap analysis. Drives the Skill Gap radar chart on the result view — generated in the hot pass so the user lands on a fully-populated overview tab.',
+  properties: {
+    reasoning: {
+      type: 'string' as const,
+      description:
+        'High-level synthesis of the technical match. ≤ 60 words.',
+    },
+    skill_priority: {
+      type: 'array' as const,
+      description:
+        'The 5 skill names ordered from most to least critical for THIS specific job',
+      items: { type: 'string' as const },
+      minItems: 5,
+      maxItems: 5,
+    },
+    skills: {
+      type: 'array' as const,
+      items: {
+        type: 'object' as const,
+        properties: {
+          name: { type: 'string' as const },
+          expected: { type: 'number' as const },
+          current: { type: 'number' as const },
+          evidence: {
+            type: 'string' as const,
+            description:
+              'Short concrete justification of the current/expected score. ≤ 25 words.',
+          },
+        },
+        required: ['name', 'expected', 'current', 'evidence'],
+      },
+      minItems: 5,
+      maxItems: 5,
+    },
+    recommendation: {
+      type: 'string' as const,
+      description:
+        'Actionable strategic advice for the candidate. ≤ 50 words.',
+    },
+    market_context: {
+      type: 'string' as const,
+      description:
+        'Market positioning insight (demand, salary signal, hiring difficulty). ≤ 50 words.',
+    },
+    seniority_signals: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 4,
+      description:
+        'At most 4 short signals (each ≤ 15 words) — observable proofs of seniority.',
+    },
+  },
+  required: [
+    'reasoning',
+    'skill_priority',
+    'skills',
+    'recommendation',
+    'market_context',
+    'seniority_signals',
+  ],
+};
+
 const ATS_CRITICAL_MISSING_KEYWORD_SCHEMA = {
   type: 'object' as const,
   properties: {
@@ -435,6 +500,7 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
         },
         required: ['detected', 'explanation'],
       },
+      technical_analysis: TECHNICAL_ANALYSIS_SCHEMA,
       job_details: {
         type: 'object' as const,
         description: 'Structured metadata extracted from the job description.',
@@ -543,6 +609,7 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
       'audit_jd_match',
       'hidden_red_flags',
       'correlation',
+      'technical_analysis',
       'job_details',
     ],
   },
@@ -551,72 +618,10 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
 export const SUBMIT_ANALYSIS_DEEP_TOOL = {
   name: 'submit_analysis_deep',
   description:
-    'Submit the DEEP analysis pass that runs after the hot pass. Generate technical_analysis, the Bridge-the-Gap project_recommendation, ATS critical missing keywords, and ALL fix blocks. Each fix array MUST have the same length as the corresponding hot-pass array (one fix per issue/red flag, in order).',
+    'Submit the DEEP analysis pass that runs after the hot pass. Generate the Bridge-the-Gap project_recommendation, ATS critical missing keywords, and ALL fix blocks. Each fix array MUST have the same length as the corresponding hot-pass array (one fix per issue/red flag, in order).',
   input_schema: {
     type: 'object' as const,
     properties: {
-      technical_analysis: {
-        type: 'object' as const,
-        properties: {
-          reasoning: {
-            type: 'string' as const,
-            description:
-              'High-level synthesis of the technical match. ≤ 60 words.',
-          },
-          skill_priority: {
-            type: 'array' as const,
-            description:
-              'The 5 skill names ordered from most to least critical for THIS specific job',
-            items: { type: 'string' as const },
-            minItems: 5,
-            maxItems: 5,
-          },
-          skills: {
-            type: 'array' as const,
-            items: {
-              type: 'object' as const,
-              properties: {
-                name: { type: 'string' as const },
-                expected: { type: 'number' as const },
-                current: { type: 'number' as const },
-                evidence: {
-                  type: 'string' as const,
-                  description:
-                    'Short concrete justification of the current/expected score. ≤ 25 words.',
-                },
-              },
-              required: ['name', 'expected', 'current', 'evidence'],
-            },
-            minItems: 5,
-            maxItems: 5,
-          },
-          recommendation: {
-            type: 'string' as const,
-            description:
-              'Actionable strategic advice for the candidate. ≤ 50 words.',
-          },
-          market_context: {
-            type: 'string' as const,
-            description:
-              'Market positioning insight (demand, salary signal, hiring difficulty). ≤ 50 words.',
-          },
-          seniority_signals: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-            maxItems: 4,
-            description:
-              'At most 4 short signals (each ≤ 15 words) — observable proofs of seniority.',
-          },
-        },
-        required: [
-          'reasoning',
-          'skill_priority',
-          'skills',
-          'recommendation',
-          'market_context',
-          'seniority_signals',
-        ],
-      },
       project_recommendation: {
         type: 'object' as const,
         properties: {
@@ -741,7 +746,6 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
       },
     },
     required: [
-      'technical_analysis',
       'project_recommendation',
       'ats_critical_missing_keywords',
       'fixes',

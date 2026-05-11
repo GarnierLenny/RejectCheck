@@ -243,9 +243,15 @@ export type AnalysisResult = {
 /**
  * Shape of the `deep` payload pushed to the frontend on the `deep_done` SSE
  * event. The frontend re-merges this into the local `AnalysisResult` by index.
+ *
+ * `technical_analysis` is generated in the HOT pass (it powers the Skill Gap
+ * radar that lands as the default tab), so it's not part of the deep payload.
+ * The field stays optional on mid-format analyses that pre-date the move —
+ * see `mergeDeepIntoResult` for the backward-compat fallback.
  */
 export type DeepAnalysisPayload = {
-  technical_analysis: {
+  /** Backward-compat only: present on mid-format DB rows. New analyses don't have this. */
+  technical_analysis?: {
     skills: TechnicalSkill[];
     skill_priority: string[];
     recommendation: string;
@@ -327,7 +333,10 @@ export function mergeDeepIntoResult(
       ...flag,
       fix: deep.fixes.hidden_red_flags[i] ?? flag.fix,
     })),
-    technical_analysis: deep.technical_analysis,
+    // technical_analysis lives in the hot result for new analyses, so it's
+    // already on `result`. For mid-format analyses replayed via getAnalysis,
+    // the deep payload may still carry it — keep it as a fallback.
+    technical_analysis: result.technical_analysis ?? deep.technical_analysis,
     project_recommendation: deep.project_recommendation,
   };
 }
