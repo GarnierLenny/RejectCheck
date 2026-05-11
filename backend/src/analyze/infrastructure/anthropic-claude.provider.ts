@@ -8,7 +8,10 @@ import * as Sentry from '@sentry/nestjs';
 import Anthropic from '@anthropic-ai/sdk';
 import {
   AnalyzeResponse,
-  AnalyzeResponseSchema,
+  DeepAnalyzeResponse,
+  DeepAnalyzeResponseSchema,
+  HotAnalyzeResponse,
+  HotAnalyzeResponseSchema,
 } from '../dto/analyze-response.dto';
 import {
   NegotiationAnalysis,
@@ -19,13 +22,17 @@ import {
   RewriteResponseSchema,
 } from '../dto/rewrite-response.dto';
 import type {
+  AnalyzeApplicationDeepInput,
   AnalyzeApplicationInput,
   ClaudeProvider,
   GenerateCoverLetterInput,
   GenerateNegotiationInput,
   RewriteCvInput,
 } from '../ports/claude.provider';
-import { SUBMIT_ANALYSIS_TOOL } from './schemas/claude-analysis.schema';
+import {
+  SUBMIT_ANALYSIS_DEEP_TOOL,
+  SUBMIT_ANALYSIS_HOT_TOOL,
+} from './schemas/claude-analysis.schema';
 import { SUBMIT_NEGOTIATION_TOOL } from './schemas/claude-negotiation.schema';
 
 const MODEL = 'claude-sonnet-4-6';
@@ -75,31 +82,38 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     }
   }
 
-  async analyzeApplication(
+  async analyzeApplicationHot(
     input: AnalyzeApplicationInput,
-  ): Promise<AnalyzeResponse> {
+  ): Promise<HotAnalyzeResponse> {
     const technicalPrompt = this.resolveTechnicalPrompt(input.userRoleType);
     this.logger.log(
-      `Requesting full analysis from Claude (role=${input.userRoleType ?? 'default'})`,
+      `Requesting HOT analysis from Claude (role=${input.userRoleType ?? 'default'})`,
     );
 
+    const requestStartedAt = Date.now();
+    let firstDeltaAt: number | null = null;
+    const HOT_MAX_TOKENS = 5000;
+
     try {
-      const msg = await this.withSentry('analyze', async () => {
+      const msg = await this.withSentry('analyze_hot', async () => {
         const stream = this.anthropic.messages.stream({
           model: MODEL,
-          max_tokens: 16000,
+          max_tokens: HOT_MAX_TOKENS,
           temperature: 0.1,
           system: [
             {
               type: 'text',
               text: technicalPrompt,
-              cache_control: { type: 'ephemeral' },
+              cache_control: { type: 'ephemeral', ttl: '1h' },
             },
           ],
           tools: [
-            { ...SUBMIT_ANALYSIS_TOOL, cache_control: { type: 'ephemeral' } },
+            {
+              ...SUBMIT_ANALYSIS_HOT_TOOL,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
           ],
-          tool_choice: { type: 'tool', name: 'submit_analysis' },
+          tool_choice: { type: 'tool', name: 'submit_analysis_hot' },
           messages: [
             {
               role: 'user',
@@ -107,13 +121,21 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
             },
           ],
         });
-        if (input.onDelta) {
-          stream.on('inputJson', (partialJson) => input.onDelta!(partialJson));
-        }
+        stream.on('inputJson', (partialJson) => {
+          if (firstDeltaAt === null) firstDeltaAt = Date.now();
+          input.onDelta?.(partialJson);
+        });
         return stream.finalMessage();
       });
 
-      this.logCacheUsage('analyze', msg.usage);
+      this.logTimingLine(
+        'analyze_hot',
+        HOT_MAX_TOKENS,
+        requestStartedAt,
+        firstDeltaAt,
+        msg.usage,
+      );
+      this.logCacheUsage('analyze_hot', msg.usage);
 
       const toolUse = msg.content.find(
         (block) => (block as { type?: string }).type === 'tool_use',
@@ -121,15 +143,16 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
 
       if (!toolUse) {
         this.logger.error(
-          `Claude returned no tool_use block: ${JSON.stringify(msg.content).slice(0, 300)}`,
+          `Claude returned no tool_use block (hot): ${JSON.stringify(msg.content).slice(0, 300)}`,
         );
         throw new InternalServerErrorException('Analysis failed');
       }
 
-      // The shape of toolUse.input mirrors SUBMIT_ANALYSIS_TOOL.input_schema. We
-      // remap to the AnalyzeResponse domain shape, then validate via Zod.
+      // Tool input mirrors SUBMIT_ANALYSIS_HOT_TOOL.input_schema. Remap to the
+      // HotAnalyzeResponse domain shape (overall flattened, breakdown grouped,
+      // audit nested), then validate via Zod.
       const i = toolUse.input as Record<string, any>;
-      const result: AnalyzeResponse = {
+      const hot: HotAnalyzeResponse = {
         score: i.overall.score,
         verdict: i.overall.verdict,
         confidence: i.overall.confidence,
@@ -152,18 +175,125 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
         hidden_red_flags: i.hidden_red_flags,
         correlation: i.correlation,
         job_details: i.job_details,
-        technical_analysis: i.technical_analysis,
-        project_recommendation: i.project_recommendation,
         challenge_analysis: i.challenge_analysis,
       };
-      return AnalyzeResponseSchema.parse(result);
+      return HotAnalyzeResponseSchema.parse(hot);
     } catch (apiErr: any) {
       this.logger.error(
-        `Claude analyzeApplication failed: ${apiErr?.message || apiErr}`,
+        `Claude analyzeApplicationHot failed: ${apiErr?.message || apiErr}`,
         apiErr?.stack,
       );
       throw new InternalServerErrorException('Analysis failed');
     }
+  }
+
+  async analyzeApplicationDeep(
+    input: AnalyzeApplicationDeepInput,
+  ): Promise<DeepAnalyzeResponse> {
+    const technicalPrompt = this.resolveTechnicalPrompt(input.userRoleType);
+    this.logger.log(
+      `Requesting DEEP analysis from Claude (role=${input.userRoleType ?? 'default'})`,
+    );
+
+    const requestStartedAt = Date.now();
+    let firstDeltaAt: number | null = null;
+    const DEEP_MAX_TOKENS = 14000;
+
+    try {
+      const msg = await this.withSentry('analyze_deep', async () => {
+        const stream = this.anthropic.messages.stream({
+          model: MODEL,
+          max_tokens: DEEP_MAX_TOKENS,
+          temperature: 0.1,
+          system: [
+            {
+              type: 'text',
+              text: technicalPrompt,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tools: [
+            {
+              ...SUBMIT_ANALYSIS_DEEP_TOOL,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tool_choice: { type: 'tool', name: 'submit_analysis_deep' },
+          messages: [
+            {
+              role: 'user',
+              content: this.buildAnalyzeDeepUserMessage(input),
+            },
+          ],
+        });
+        stream.on('inputJson', (partialJson) => {
+          if (firstDeltaAt === null) firstDeltaAt = Date.now();
+          input.onDelta?.(partialJson);
+        });
+        return stream.finalMessage();
+      });
+
+      this.logTimingLine(
+        'analyze_deep',
+        DEEP_MAX_TOKENS,
+        requestStartedAt,
+        firstDeltaAt,
+        msg.usage,
+      );
+      this.logCacheUsage('analyze_deep', msg.usage);
+
+      const toolUse = msg.content.find(
+        (block) => (block as { type?: string }).type === 'tool_use',
+      ) as ToolUseBlock | undefined;
+
+      if (!toolUse) {
+        this.logger.error(
+          `Claude returned no tool_use block (deep): ${JSON.stringify(msg.content).slice(0, 300)}`,
+        );
+        throw new InternalServerErrorException('Deep analysis failed');
+      }
+
+      // Deep tool input shape matches DeepAnalyzeResponse 1:1, no remapping.
+      return DeepAnalyzeResponseSchema.parse(toolUse.input);
+    } catch (apiErr: any) {
+      this.logger.error(
+        `Claude analyzeApplicationDeep failed: ${apiErr?.message || apiErr}`,
+        apiErr?.stack,
+      );
+      throw new InternalServerErrorException('Deep analysis failed');
+    }
+  }
+
+  private logTimingLine(
+    op: string,
+    maxTokensCap: number,
+    requestStartedAt: number,
+    firstDeltaAt: number | null,
+    usage: {
+      input_tokens?: number;
+      output_tokens?: number;
+      cache_creation_input_tokens?: number | null;
+      cache_read_input_tokens?: number | null;
+    },
+  ): void {
+    const completedAt = Date.now();
+    const totalMs = completedAt - requestStartedAt;
+    const ttftMs =
+      firstDeltaAt !== null ? firstDeltaAt - requestStartedAt : null;
+    const genMs = firstDeltaAt !== null ? completedAt - firstDeltaAt : null;
+    const outputTokens = usage.output_tokens ?? 0;
+    const inputTokens = usage.input_tokens ?? 0;
+    const cacheRead = usage.cache_read_input_tokens ?? 0;
+    const cacheCreated = usage.cache_creation_input_tokens ?? 0;
+    const tps =
+      genMs && genMs > 0 ? Math.round((outputTokens / genMs) * 1000) : null;
+
+    this.logger.log(
+      `[ANALYZE_TIMING_AI] op=${op} model=${MODEL} max_tokens_cap=${maxTokensCap} ` +
+        `total_ms=${totalMs} ttft_ms=${ttftMs ?? 'n/a'} gen_ms=${genMs ?? 'n/a'} ` +
+        `input_tokens=${inputTokens} output_tokens=${outputTokens} ` +
+        `cache_read=${cacheRead} cache_created=${cacheCreated} tps=${tps ?? 'n/a'}`,
+    );
   }
 
   async rewriteCv(input: RewriteCvInput): Promise<RewriteResponse> {
@@ -409,7 +539,87 @@ Formatting rules:
 - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`;
   }
 
-  private formatCandidateContext(input: AnalyzeApplicationInput): string {
+  private buildAnalyzeDeepUserMessage(
+    input: AnalyzeApplicationDeepInput,
+  ): string {
+    const hot = input.hot;
+
+    // Compact owner summary: lets Claude know how many fixes to generate per
+    // array (each one indexed by position) without re-streaming the full hot
+    // result.
+    const issueLine = (
+      issues: Array<{ severity: string; category: string; what: string; why: string }>,
+      label: string,
+    ): string => {
+      if (!issues.length) return `${label}: (none — empty fix array)`;
+      const lines = issues
+        .map(
+          (it, idx) =>
+            `  [${idx}] (${it.severity}/${it.category}) ${it.what} — ${it.why}`,
+        )
+        .join('\n');
+      return `${label} (${issues.length} item${issues.length > 1 ? 's' : ''}, generate one fix per index in order):\n${lines}`;
+    };
+
+    const redFlagsSummary = hot.hidden_red_flags.length
+      ? hot.hidden_red_flags
+          .map((rf, idx) => `  [${idx}] ${rf.flag} — ${rf.perception}`)
+          .join('\n')
+      : '  (none — empty fix array)';
+
+    return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
+
+Generate the DEEP analysis pass for the application below. The HOT pass has already produced scores, audits, and red flag titles. Your job now is to:
+
+1. Produce \`technical_analysis\` (reasoning, 5 ranked skills, recommendation, market_context, seniority_signals).
+2. Produce a single \`project_recommendation\` (the Bridge-the-Gap project — keep it strong and specific, this is the main user-facing artefact).
+3. List the ATS \`critical_missing_keywords\` ordered by score_impact desc.
+4. Generate ONE \`fix\` per issue / red flag / seniority gap / tone diagnostic identified in the hot pass. Each fix array MUST have the SAME LENGTH as its hot counterpart, in the SAME ORDER.
+
+${this.formatCandidateContext(input)}JOB DESCRIPTION:
+${input.jobText}
+
+---
+
+CANDIDATE EVIDENCE:
+CV / RESUME:
+${input.cvText}
+
+GITHUB PROJECTS: ${input.githubInfo || 'None provided'}
+LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
+MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
+
+DAILY CODE-REVIEW CHALLENGE TRACK RECORD:
+${formatChallengeStats(input.challengeStats)}
+
+---
+
+HOT-PASS SUMMARY (anchor your fixes to these exact items, in order):
+
+Overall: score=${hot.score} verdict=${hot.verdict} (confidence=${hot.confidence.score})
+
+ATS: would_pass=${hot.ats_simulation.would_pass} score=${hot.ats_simulation.score}/${hot.ats_simulation.threshold}
+Seniority: expected=${hot.seniority_analysis.expected} detected=${hot.seniority_analysis.detected} gap=${hot.seniority_analysis.gap}
+Tone: ${hot.cv_tone.detected}
+
+${issueLine(hot.audit.cv.issues as any, 'audit_cv issues')}
+
+${issueLine(hot.audit.github.issues as any, 'audit_github issues')}
+
+${issueLine(hot.audit.linkedin.issues as any, 'audit_linkedin issues')}
+
+hidden_red_flags (${hot.hidden_red_flags.length} item${hot.hidden_red_flags.length === 1 ? '' : 's'}, generate one fix per index in order):
+${redFlagsSummary}
+
+Formatting rules (same as hot pass):
+- Use markdown in all text fields (reasoning, recommendation, market_context, evidence, seniority_signals, fix.summary, fix.steps).
+- skill_priority: list the exact 5 skill names from most to least critical for this specific job.
+- Each \`fix\` MUST include all required sub-fields (summary, steps, example, project_idea, time_required). Use null for example or project_idea only when truly not applicable.`;
+  }
+
+  private formatCandidateContext(
+    input: AnalyzeApplicationInput | AnalyzeApplicationDeepInput,
+  ): string {
     const lines: string[] = [];
     if (input.userRoleType) {
       const role =

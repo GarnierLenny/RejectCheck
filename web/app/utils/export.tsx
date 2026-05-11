@@ -93,11 +93,12 @@ confidence: ${result.confidence?.score ?? 'N/A'}
 > **Simulated Score:** ${result.ats_simulation.score}/100 (threshold: ${result.ats_simulation.threshold})
 > ${result.ats_simulation.reason}`);
 
-  if (result.ats_simulation.critical_missing_keywords.length > 0) {
+  const missingKeywords = result.ats_simulation.critical_missing_keywords ?? [];
+  if (missingKeywords.length > 0) {
     b.push(`### 🔑 Missing Critical Keywords
 | Keyword | Frequency | Required | Score Impact | Missing From |
 | :--- | :--- | :--- | :--- | :--- |
-${result.ats_simulation.critical_missing_keywords.map((kw: any) =>
+${missingKeywords.map((kw: any) =>
   `| **${kw.keyword}** | ${kw.jd_frequency}× | ${kw.required ? 'Yes' : 'No'} | -${kw.score_impact} | ${(kw.sections_missing as string[]).join(', ')} |`
 ).join('\n')}`);
   }
@@ -151,9 +152,11 @@ ${(result.technical_analysis.seniority_signals as string[]).map(s => `- ${s}`).j
 > ${result.seniority_analysis.gap}
 > **Strength Identified:** ${result.seniority_analysis.strength}`);
 
-  b.push(`**Immediate Fix:** ${result.seniority_analysis.fix.summary}
+  if (result.seniority_analysis.fix) {
+    b.push(`**Immediate Fix:** ${result.seniority_analysis.fix.summary}
 **Est. Time:** ${result.seniority_analysis.fix.time_required}
 ${result.seniority_analysis.fix.steps?.map((s: string) => `- [ ] ${s}`).join('\n') || ''}`);
+  }
 
   if (result.correlation) {
     b.push(`### 🔗 Tone × Seniority Correlation
@@ -168,9 +171,9 @@ ${result.seniority_analysis.fix.steps?.map((s: string) => `- [ ] ${s}`).join('\n
 **Examples from your CV:**
 ${(result.cv_tone.examples as string[]).map(ex => `- ${ex}`).join('\n')}
 
-**Fix:** ${result.cv_tone.fix.summary}
+${result.cv_tone.fix ? `**Fix:** ${result.cv_tone.fix.summary}
 **Est. Time:** ${result.cv_tone.fix.time_required}
-${result.cv_tone.fix.steps?.map((s: string) => `- [ ] ${s}`).join('\n') || ''}`);
+${result.cv_tone.fix.steps?.map((s: string) => `- [ ] ${s}`).join('\n') || ''}` : ''}`);
 
   // 7. Detailed Audit Issues
   if (result.audit.cv.issues.length > 0) {

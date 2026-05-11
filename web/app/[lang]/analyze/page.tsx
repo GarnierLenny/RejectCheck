@@ -5,7 +5,11 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import type { AnalysisResult } from "../../components/types";
+import type {
+  AnalysisResult,
+  DeepAnalysisPayload,
+} from "../../components/types";
+import { mergeDeepIntoResult } from "../../components/types";
 
 import { UploadForm } from "../../components/UploadForm";
 import { Navbar } from "../../components/Navbar";
@@ -27,6 +31,7 @@ import { TechnicalRadarChart } from "../../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../utils/export";
 import { useAuth } from "../../../context/auth";
 import { useSubscription, useAnalysis, useProfile, useSavedCvs } from "../../../lib/queries";
+import { useRegenerateDeep } from "../../../lib/mutations";
 import { consumeSSE } from "../../../lib/sse";
 import { useLanguage } from "../../../context/language";
 import { toast } from "sonner";
@@ -70,6 +75,13 @@ function AnalyzeContent() {
   const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
   const [isRewriting, setIsRewriting] = useState(false);
   const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
+  // Deep-pass status: 'pending' while we're still streaming the first run,
+  // 'failed' if the SSE flow ended without a deep_done event, 'ready' once
+  // we've merged a deep payload into the result. Drives skeletons + the
+  // inline "Regenerate" buttons.
+  const [deepStatus, setDeepStatus] = useState<'pending' | 'failed' | 'ready'>(
+    'ready',
+  );
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -79,6 +91,20 @@ function AnalyzeContent() {
   const { data: profile } = useProfile();
   const { data: savedCvs } = useSavedCvs();
   const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(urlId);
+  const regenerateDeep = useRegenerateDeep();
+
+  function handleRegenerateDeep() {
+    if (!analysisId) return;
+    regenerateDeep.mutate(analysisId, {
+      onSuccess: ({ deep }) => {
+        setResult((prev) => (prev ? mergeDeepIntoResult(prev, deep) : prev));
+        setDeepStatus('ready');
+      },
+      onError: () => {
+        toast.error('Could not regenerate the deep analysis. Try again.');
+      },
+    });
+  }
 
   const bootstrappedRef = useRef(false);
   useEffect(() => {
@@ -120,6 +146,12 @@ function AnalyzeContent() {
     if (savedAnalysis.rewrite) {
       setReconstructedCv(savedAnalysis.rewrite.reconstructed_cv ?? null);
     }
+    // Loaded analyses come pre-merged from the backend. If the deep fields
+    // are still missing, the original deep pass must have failed — surface
+    // the regenerate UI.
+    setDeepStatus(
+      savedAnalysis.result?.project_recommendation ? 'ready' : 'failed',
+    );
     setVisualLoadingDone(true);
     setLoading(false);
   }, [savedAnalysis]);
@@ -161,6 +193,9 @@ function AnalyzeContent() {
     setError(null);
     setCurrentStep(null);
     setStreamText("");
+    setDeepStatus('pending');
+
+    let deepArrived = false;
 
     try {
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
@@ -183,6 +218,7 @@ function AnalyzeContent() {
         delta?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
+        deep?: DeepAnalysisPayload;
         negotiation?: AnalysisResult["negotiation_analysis"];
         message?: string;
       };
@@ -193,6 +229,17 @@ function AnalyzeContent() {
         } else if (payload.step === "analysis_done") {
           if (payload.result) setResult(payload.result);
           if (payload.analysisId) setAnalysisId(payload.analysisId);
+        } else if (payload.step === "deep_delta") {
+          setStreamText((prev) => prev + (payload.delta ?? ""));
+        } else if (payload.step === "deep_done") {
+          if (payload.deep) {
+            deepArrived = true;
+            const deep = payload.deep;
+            setResult((prev) =>
+              prev ? mergeDeepIntoResult(prev, deep) : prev,
+            );
+            setDeepStatus('ready');
+          }
         } else if (payload.step === "negotiation_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "negotiation_done") {
@@ -218,6 +265,10 @@ function AnalyzeContent() {
             );
           }
           setLoading(false);
+          // The backend swallows deep-pass errors silently — if we never saw
+          // a deep_done event, mark deep as failed so the UI surfaces the
+          // inline regenerate buttons.
+          if (!deepArrived) setDeepStatus('failed');
         } else if (payload.step === "error") {
           throw new Error(payload.message || "Analysis failed");
         } else {
@@ -228,6 +279,7 @@ function AnalyzeContent() {
       setError(err instanceof Error ? err.message : "Analysis failed");
       setLoading(false);
       setCurrentStep(null);
+      if (!deepArrived) setDeepStatus('failed');
     }
   }
 
@@ -415,6 +467,25 @@ function AnalyzeContent() {
               onExportPdf={exportToPdf}
               isExportingPdf={isExportingPdf}
             />
+
+            {deepStatus === 'failed' && (
+              <div className="mb-6 p-4 bg-rc-amber/10 border border-rc-amber/30 flex items-center justify-between gap-4">
+                <div className="text-[13px] text-rc-text leading-snug">
+                  <span className="font-semibold uppercase tracking-wider text-rc-amber font-mono text-[11px] block mb-1">
+                    Some content didn&apos;t load
+                  </span>
+                  Fixes, the Bridge-the-Gap project, and technical analysis
+                  couldn&apos;t be generated. Regenerate to fill them in.
+                </div>
+                <button
+                  onClick={handleRegenerateDeep}
+                  disabled={regenerateDeep.isPending}
+                  className="shrink-0 font-mono text-[12px] uppercase tracking-[0.12em] px-4 py-2 border border-rc-amber/50 text-rc-amber hover:bg-rc-amber/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {regenerateDeep.isPending ? 'Regenerating…' : 'Regenerate'}
+                </button>
+              </div>
+            )}
 
             {/* Tab nav */}
             <div className="mb-8 border-b border-rc-border">

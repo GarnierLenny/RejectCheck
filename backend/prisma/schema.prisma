@@ -63,7 +63,8 @@ model Analysis {
   githubInfo       String?      // Registered users only
   motivationLetter String?      // Registered users only
   coverLetter      String?      // Saved after HIRED-plan generation
-  result           Json?        // Registered users only
+  result           Json?        // Registered users only — hot pass fields (scores, audits without fixes, red flag titles, etc.)
+  deepAnalysis     Json?        // Cold path generated post-analysis_done (fixes, project_recommendation, technical_analysis, ats critical_missing_keywords). Null for legacy analyses where `result` already contains everything.
   negotiationAnalysis Json?     // HIRED-only negotiation playbook (market positioning, leverage, counter-offer, talking points, roadmap salary impact)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt

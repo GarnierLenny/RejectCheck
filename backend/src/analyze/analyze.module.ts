@@ -24,6 +24,7 @@ import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
+import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
@@ -54,6 +55,7 @@ import {
     RewriteCvUseCase,
     GenerateCoverLetterUseCase,
     GenerateNegotiationUseCase,
+    RegenerateDeepUseCase,
     ListHistoryUseCase,
     GetAnalysisUseCase,
     DeleteAnalysisUseCase,

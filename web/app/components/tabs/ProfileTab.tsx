@@ -1,5 +1,6 @@
 import type { AnalysisResult } from "../types";
 import { FixBlock } from "../FixBlock";
+import { FixBlockSkeleton } from "../skeletons/FixBlockSkeleton";
 import { ArrowRight, CheckCircle2, XCircle, Link, TrendingUp, MessageSquare } from "lucide-react";
 
 type Props = {
@@ -63,7 +64,11 @@ export function ProfileTab({ result }: Props) {
         {/* Gap explanation */}
         <p className="text-[13px] text-rc-muted leading-relaxed italic mb-5">{seniority_analysis.gap}</p>
 
-        <FixBlock fix={seniority_analysis.fix} />
+        {seniority_analysis.fix ? (
+          <FixBlock fix={seniority_analysis.fix} />
+        ) : (
+          <FixBlockSkeleton />
+        )}
       </div>
 
       {/* ── Tone Audit ────────────────────────────────────────── */}
@@ -99,7 +104,11 @@ export function ProfileTab({ result }: Props) {
           })}
         </div>
 
-        <FixBlock fix={cv_tone.fix} />
+        {cv_tone.fix ? (
+          <FixBlock fix={cv_tone.fix} />
+        ) : (
+          <FixBlockSkeleton />
+        )}
       </div>
 
       {/* ── Correlation block (conditional) ───────────────────── */}

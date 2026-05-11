@@ -1,4 +1,8 @@
-import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type {
+  AnalyzeResponse,
+  HotAnalyzeResponse,
+  DeepAnalyzeResponse,
+} from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type { RewriteResponse } from '../dto/rewrite-response.dto';
 import type { RoadmapItem } from '../domain/roadmap-items';
@@ -25,6 +29,11 @@ export type AnalyzeApplicationInput = {
    * "live thoughts" to the frontend.
    */
   onDelta?: (chunk: string) => void;
+};
+
+export type AnalyzeApplicationDeepInput = AnalyzeApplicationInput & {
+  /** Hot pass result, used as grounding for the deep pass. */
+  hot: HotAnalyzeResponse;
 };
 
 export type RewriteCvInput = {
@@ -55,7 +64,12 @@ export type GenerateNegotiationInput = {
 };
 
 export interface ClaudeProvider {
-  analyzeApplication(input: AnalyzeApplicationInput): Promise<AnalyzeResponse>;
+  analyzeApplicationHot(
+    input: AnalyzeApplicationInput,
+  ): Promise<HotAnalyzeResponse>;
+  analyzeApplicationDeep(
+    input: AnalyzeApplicationDeepInput,
+  ): Promise<DeepAnalyzeResponse>;
   rewriteCv(input: RewriteCvInput): Promise<RewriteResponse>;
   generateCoverLetter(input: GenerateCoverLetterInput): Promise<string>;
   generateNegotiation(

@@ -649,10 +649,10 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           </View>
           <Text style={styles.body}>{result.ats_simulation.reason}</Text>
 
-          {result.ats_simulation.critical_missing_keywords.length > 0 && (
+          {(result.ats_simulation.critical_missing_keywords?.length ?? 0) > 0 && (
             <View style={{ ...styles.howToFix, borderLeftColor: redColor, backgroundColor: "#fff5f5", borderLeftWidth: 2, marginTop: 12 }}>
               <Text style={{ fontSize: 11, fontWeight: 700, color: redColor, marginBottom: 8 }}>Critical Missing Keywords:</Text>
-              {result.ats_simulation.critical_missing_keywords.map((kw: any) => (
+              {result.ats_simulation.critical_missing_keywords?.map((kw: any) => (
                 <View key={kw.keyword} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#fecaca" }}>
                   <Text style={{ fontSize: 10, fontWeight: 700, color: "#333", flex: 1 }}>{kw.keyword}</Text>
                   <Text style={{ fontSize: 9, color: "#888", width: 50, textAlign: "center" }}>{kw.jd_frequency}× in JD</Text>
@@ -767,12 +767,12 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               Strength: {stripMd(result.seniority_analysis.strength)}
             </Text>
           )}
-          {result.seniority_analysis.fix?.steps?.length > 0 && (
+          {(result.seniority_analysis.fix?.steps?.length ?? 0) > 0 && (
             <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
-                Fix: {stripMd(result.seniority_analysis.fix.summary)} - {result.seniority_analysis.fix.time_required}
+                Fix: {stripMd(result.seniority_analysis.fix?.summary ?? '')} - {result.seniority_analysis.fix?.time_required ?? ''}
               </Text>
-              {(result.seniority_analysis.fix.steps as string[]).map((step, i) => (
+              {(result.seniority_analysis.fix?.steps as string[] | undefined)?.map((step, i) => (
                 <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 3 }}>
                   <Text style={{ fontSize: 9, color: "#d97706" }}>•</Text>
                   <Text style={{ fontSize: 10, color: "#78350f", flex: 1 }}>{stripMd(step)}</Text>
@@ -810,12 +810,12 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               );
             })}
           </View>
-          {result.cv_tone.fix?.steps?.length > 0 && (
+          {(result.cv_tone.fix?.steps?.length ?? 0) > 0 && (
             <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
-                Fix: {stripMd(result.cv_tone.fix.summary)} - {result.cv_tone.fix.time_required}
+                Fix: {stripMd(result.cv_tone.fix?.summary ?? '')} - {result.cv_tone.fix?.time_required ?? ''}
               </Text>
-              {(result.cv_tone.fix.steps as string[]).map((step, i) => (
+              {(result.cv_tone.fix?.steps as string[] | undefined)?.map((step, i) => (
                 <View key={i} style={{ flexDirection: "row", gap: 6, marginBottom: 3 }}>
                   <Text style={{ fontSize: 9, color: "#d97706" }}>•</Text>
                   <Text style={{ fontSize: 10, color: "#78350f", flex: 1 }}>{stripMd(step)}</Text>

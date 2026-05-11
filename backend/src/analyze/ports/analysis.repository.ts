@@ -1,5 +1,9 @@
 import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
-import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type {
+  AnalyzeResponse,
+  DeepAnalyzeResponse,
+  HotAnalyzeResponse,
+} from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 
 export type SaveAnalysisInput = {
@@ -13,7 +17,9 @@ export type SaveAnalysisInput = {
   linkedinText: string | null;
   githubInfo: string | null;
   motivationLetter: string | null;
-  result: AnalyzeResponse;
+  /** Hot-pass result, or full merged result for backward compat. */
+  result: AnalyzeResponse | HotAnalyzeResponse;
+  deepAnalysis?: DeepAnalyzeResponse | null;
   negotiationAnalysis?: NegotiationAnalysis | null;
 };
 
@@ -79,6 +85,13 @@ export interface AnalysisRepository {
     id: number,
     email: string,
     negotiation: NegotiationAnalysis,
+  ): Promise<void>;
+
+  /** Persists the deep-pass result on the analysis row. */
+  attachDeepAnalysis(
+    id: number,
+    email: string,
+    deep: DeepAnalyzeResponse,
   ): Promise<void>;
 
   /** Throws AnalysisNotFoundException if the row doesn't belong to the email. */

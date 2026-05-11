@@ -1,6 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import { type Issue, getSeverityStyles } from "./types";
 import { FixBlock } from "./FixBlock";
+import { FixBlockSkeleton } from "./skeletons/FixBlockSkeleton";
 
 const severityBorder: Record<string, string> = {
   critical: "border-l-[3px] border-l-rc-red",
@@ -33,7 +34,7 @@ export function IssueItem({ issue }: { issue: Issue }) {
         <ReactMarkdown>{issue.why}</ReactMarkdown>
       </div>
 
-      <FixBlock fix={issue.fix} />
+      {issue.fix ? <FixBlock fix={issue.fix} /> : <FixBlockSkeleton />}
     </div>
   );
 }

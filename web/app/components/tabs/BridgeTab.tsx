@@ -4,6 +4,7 @@ import { CheckCircle2, Zap, Target, ArrowRight, Layers, ShieldCheck, Gauge, Ligh
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "../types";
 import { ChallengeAnalysisCard } from "./ChallengeAnalysisCard";
+import { ProjectRecommendationSkeleton } from "../skeletons/ProjectRecommendationSkeleton";
 
 type Props = {
   result: AnalysisResult;
@@ -21,12 +22,9 @@ export function BridgeTab({ result }: Props) {
 
   if (!project) {
     return (
-      <div className="p-12 text-center bg-rc-surface/20 rounded-2xl border border-rc-border/30 border-dashed">
-        <CheckCircle2 className="w-12 h-12 text-rc-green mx-auto mb-4 opacity-20" />
-        <h3 className="font-sans font-bold text-[22px] tracking-tight uppercase mb-2">No Project Needed</h3>
-        <p className="text-rc-muted text-sm mx-auto max-w-[300px]">
-          Your technical profile already aligns perfectly with this role&apos;s requirements.
-        </p>
+      <div className="space-y-6">
+        <ChallengeAnalysisCard analysis={result.challenge_analysis} />
+        <ProjectRecommendationSkeleton />
       </div>
     );
   }

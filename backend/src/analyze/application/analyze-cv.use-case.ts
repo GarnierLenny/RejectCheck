@@ -25,7 +25,11 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import { decideQuota } from '../domain/quota.policy';
-import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type {
+  AnalyzeResponse,
+  DeepAnalyzeResponse,
+} from '../dto/analyze-response.dto';
+import { mergeHotAndDeep } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import { extractRoadmapItems } from '../domain/roadmap-items';
 import { QuotaExceededException } from '../../common/exceptions';
@@ -56,9 +60,15 @@ export type AnalyzeEvent =
   | { type: 'analysis_delta'; delta: string }
   | {
       type: 'analysis_done';
+      /**
+       * Merged response with deep fields undefined — the frontend renders
+       * skeletons for those sections until `deep_done` arrives.
+       */
       result: AnalyzeResponse;
       analysisId: number | null;
     }
+  | { type: 'deep_delta'; delta: string }
+  | { type: 'deep_done'; deep: DeepAnalyzeResponse }
   | { type: 'negotiation_delta'; delta: string }
   | { type: 'negotiation_done'; negotiation: NegotiationAnalysis };
 
@@ -96,6 +106,16 @@ export class AnalyzeCvUseCase {
   ): Promise<AnalyzeCvResult> {
     if (!cmd.cvBuffer) throw new BadRequestException('CV is required');
 
+    const executeStartedAt = Date.now();
+    const timings = {
+      parse_inputs_ms: 0,
+      profile_ctx_ms: 0,
+      claude_hot_ms: 0,
+      claude_deep_ms: 0,
+      persist_ms: 0,
+      negotiation_ms: 0,
+    };
+
     const emit = (event: AnalyzeEvent) => onEvent?.(event);
     const emitStep = (step: string) => emit({ type: 'step', step });
 
@@ -120,6 +140,7 @@ export class AnalyzeCvUseCase {
 
     const jobText = cmd.jobDescription.trim().slice(0, 8000);
 
+    const parseStart = Date.now();
     const [cvText, linkedinText, motivationLetterText, githubSnapshot] =
       await Promise.all([
         this.pdf.parse(cmd.cvBuffer),
@@ -132,11 +153,13 @@ export class AnalyzeCvUseCase {
           ? this.github.fetchProfile(cmd.githubUsername)
           : Promise.resolve(null),
       ]);
+    timings.parse_inputs_ms = Date.now() - parseStart;
 
     const githubInfo = githubSnapshot
       ? JSON.stringify(githubSnapshot, null, 2)
       : '';
 
+    const profileCtxStart = Date.now();
     // Best-effort fetch — never fail the analysis if the challenge module is
     // misbehaving; treat the user as having no track record.
     const challengeSummary =
@@ -156,9 +179,9 @@ export class AnalyzeCvUseCase {
       cmd.email && cmd.isRegistered
         ? await this.profiles.findByEmail(cmd.email).catch(() => null)
         : null;
+    timings.profile_ctx_ms = Date.now() - profileCtxStart;
 
-    emitStep('dual_ai_analysis');
-    const result = await this.claude.analyzeApplication({
+    const claudeInput = {
       jobText,
       cvText,
       githubInfo,
@@ -171,11 +194,23 @@ export class AnalyzeCvUseCase {
       userExperienceLevel: profile?.experienceLevel ?? null,
       userTechStack: profile?.techStack ?? [],
       userLanguages: profile?.languages ?? [],
+    };
+
+    emitStep('dual_ai_analysis');
+    const hotStart = Date.now();
+    const hot = await this.claude.analyzeApplicationHot({
+      ...claudeInput,
       onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });
+    timings.claude_hot_ms = Date.now() - hotStart;
+
+    // Merged result — deep fields are undefined until the deep pass completes.
+    // The frontend renders skeletons for those sections in the meantime.
+    const result = mergeHotAndDeep(hot, null);
 
     // Persist before announcing analysis_done so the frontend gets a real
     // analysisId for downstream actions (rewrite, history, negotiation tab).
+    const persistStart = Date.now();
     const analysisId = await this.persist({
       cmd,
       result,
@@ -183,13 +218,36 @@ export class AnalyzeCvUseCase {
       linkedinText,
       githubInfo,
       motivationLetterText,
-      negotiation: null,
     });
+    timings.persist_ms = Date.now() - persistStart;
 
     emit({ type: 'analysis_done', result, analysisId });
 
+    // Deep pass — silent fail: if it errors, the frontend will detect a
+    // missing deep_done and show "Regenerate" buttons.
+    emitStep('deep_analysis');
+    const deepStart = Date.now();
+    try {
+      const deep = await this.claude.analyzeApplicationDeep({
+        ...claudeInput,
+        hot,
+        onDelta: (delta) => emit({ type: 'deep_delta', delta }),
+      });
+      Object.assign(result, mergeHotAndDeep(hot, deep));
+      if (analysisId !== null && cmd.email) {
+        await this.analyses.attachDeepAnalysis(analysisId, cmd.email, deep);
+      }
+      emit({ type: 'deep_done', deep });
+    } catch (err: any) {
+      this.logger.warn(
+        `Deep pass failed (analysis still succeeds, frontend will show regenerate UI): ${err?.message || err}`,
+      );
+    }
+    timings.claude_deep_ms = Date.now() - deepStart;
+
     if (cmd.email && subscriptionState.plan === 'hired') {
       emitStep('negotiation_coaching');
+      const negStart = Date.now();
       try {
         const negotiation = await this.claude.generateNegotiation({
           jobText,
@@ -213,7 +271,23 @@ export class AnalyzeCvUseCase {
           `Negotiation generation failed (analysis still succeeds): ${err?.message || err}`,
         );
       }
+      timings.negotiation_ms = Date.now() - negStart;
     }
+
+    const totalMs = Date.now() - executeStartedAt;
+    this.logger.log(
+      `[ANALYZE_TIMING_USECASE] total_ms=${totalMs} ` +
+        `parse_inputs_ms=${timings.parse_inputs_ms} ` +
+        `profile_ctx_ms=${timings.profile_ctx_ms} ` +
+        `claude_hot_ms=${timings.claude_hot_ms} ` +
+        `claude_deep_ms=${timings.claude_deep_ms} ` +
+        `persist_ms=${timings.persist_ms} ` +
+        `negotiation_ms=${timings.negotiation_ms} ` +
+        `tier=${subscriptionState.tier} plan=${subscriptionState.plan} ` +
+        `has_github=${!!cmd.githubUsername} ` +
+        `has_linkedin=${!!cmd.linkedinBuffer} ` +
+        `has_motiv=${!!(cmd.motivationLetterBuffer || cmd.motivationLetterText)}`,
+    );
 
     return { result, analysisId };
   }
@@ -292,7 +366,6 @@ export class AnalyzeCvUseCase {
     linkedinText: string;
     githubInfo: string;
     motivationLetterText: string;
-    negotiation: NegotiationAnalysis | null;
   }): Promise<number | null> {
     const { cmd, result } = args;
     const isRegistered = !!cmd.isRegistered;
@@ -319,7 +392,6 @@ export class AnalyzeCvUseCase {
       githubInfo: args.githubInfo || null,
       motivationLetter: args.motivationLetterText || null,
       result,
-      negotiationAnalysis: args.negotiation,
     });
 
     const meta: ApplicationUpsertInput['meta'] = {

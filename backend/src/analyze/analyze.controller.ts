@@ -39,6 +39,7 @@ import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
+import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
@@ -71,6 +72,7 @@ export class AnalyzeController {
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
     private readonly generateNegotiationUc: GenerateNegotiationUseCase,
+    private readonly regenerateDeepUc: RegenerateDeepUseCase,
     private readonly listHistory: ListHistoryUseCase,
     private readonly getAnalysisUc: GetAnalysisUseCase,
     private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
@@ -160,6 +162,10 @@ export class AnalyzeController {
               result: e.result,
               analysisId: e.analysisId,
             });
+          else if (e.type === 'deep_delta')
+            write({ step: 'deep_delta', delta: e.delta });
+          else if (e.type === 'deep_done')
+            write({ step: 'deep_done', deep: e.deep });
           else if (e.type === 'negotiation_delta')
             write({ step: 'negotiation_delta', delta: e.delta });
           else if (e.type === 'negotiation_done')
@@ -295,6 +301,22 @@ export class AnalyzeController {
       parsed.data.analysisId,
       parsed.data.language,
     );
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Post(':id/regenerate-deep')
+  @ApiOperation({
+    summary:
+      'Regenerate the deep-pass content (fixes, project_recommendation, technical_analysis) for an analysis whose first deep pass failed.',
+  })
+  async regenerateDeep(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const deep = await this.regenerateDeepUc.execute(id, email);
+    return { deep };
   }
 
   @RequiresPremium('hired')

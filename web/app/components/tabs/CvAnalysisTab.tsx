@@ -3,6 +3,7 @@
 import type { AnalysisResult } from "../types";
 import { IssueItem } from "../IssueItem";
 import { FixBlock } from "../FixBlock";
+import { FixBlockSkeleton } from "../skeletons/FixBlockSkeleton";
 import { SectionHeader } from "../SectionHeader";
 import { ArrowRight, CheckCircle2, XCircle, Link } from "lucide-react";
 import { useLanguage } from "../../../context/language";
@@ -86,7 +87,11 @@ export function CvAnalysisTab({ result }: Props) {
             )}
 
             <p className="text-[17px] text-rc-muted leading-[1.7] italic mb-5">{seniority_analysis.gap}</p>
-            <FixBlock fix={seniority_analysis.fix} />
+            {seniority_analysis.fix ? (
+              <FixBlock fix={seniority_analysis.fix} />
+            ) : (
+              <FixBlockSkeleton />
+            )}
           </div>
 
           {/* Tone Audit card */}
@@ -122,7 +127,11 @@ export function CvAnalysisTab({ result }: Props) {
               })}
             </div>
 
-            <FixBlock fix={cv_tone.fix} />
+            {cv_tone.fix ? (
+              <FixBlock fix={cv_tone.fix} />
+            ) : (
+              <FixBlockSkeleton />
+            )}
           </div>
 
           {/* Correlation callout */}

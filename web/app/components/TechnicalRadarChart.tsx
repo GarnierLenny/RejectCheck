@@ -12,6 +12,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "./types";
 import { SectionHeader } from "./SectionHeader";
+import { TechnicalAnalysisSkeleton } from "./skeletons/TechnicalAnalysisSkeleton";
 import { useLanguage } from "../../context/language";
 
 interface Props {
@@ -21,6 +22,9 @@ interface Props {
 export function TechnicalRadarChart({ data }: Props) {
   const { t } = useLanguage();
   const tr = t.technicalRadar;
+  if (!data) {
+    return <TechnicalAnalysisSkeleton />;
+  }
   const chartData = data.skills.map((s) => ({
     subject: s.name,
     current: s.current,

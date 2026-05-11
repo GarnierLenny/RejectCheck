@@ -1,25 +1,49 @@
 /**
- * JSON schemas Claude must conform to via tool_use. Extracted verbatim from
- * the legacy analyze.service.ts so the contract with the model is unchanged.
+ * JSON schemas Claude must conform to via tool_use.
+ *
+ * The analysis is split into two passes for latency optimization:
+ *
+ * - SUBMIT_ANALYSIS_HOT_TOOL: scores, audits without fixes, red flag titles,
+ *   seniority/tone without their .fix. Output ~2k tokens. Streams in ~25-40s.
+ *
+ * - SUBMIT_ANALYSIS_DEEP_TOOL: technical_analysis, project_recommendation,
+ *   ATS critical missing keywords, and all fix blocks indexed by their owner
+ *   in the hot result. Output ~6-8k tokens. Streams in ~80-110s after
+ *   analysis_done.
  *
  * Any change here directly impacts the structured output Claude returns, so
- * keep edits minimal and re-test against the AnalyzeResponseSchema (Zod) on
- * the consumer side after any tweak.
+ * keep edits minimal and re-test against the Zod schemas on the consumer side.
  */
 
 const FIX_SCHEMA = {
   type: 'object' as const,
   properties: {
-    summary: { type: 'string' as const },
-    steps: { type: 'array' as const, items: { type: 'string' as const } },
+    summary: {
+      type: 'string' as const,
+      description:
+        'One concise sentence stating the fix. ≤ 25 words. No preamble.',
+    },
+    steps: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 4,
+      description:
+        'At most 4 actionable steps. Each step ≤ 15 words, imperative voice.',
+    },
     example: {
       anyOf: [
         { type: 'null' as const },
         {
           type: 'object' as const,
           properties: {
-            before: { type: 'string' as const },
-            after: { type: 'string' as const },
+            before: {
+              type: 'string' as const,
+              description: 'Verbatim snippet from the CV. ≤ 25 words.',
+            },
+            after: {
+              type: 'string' as const,
+              description: 'The rewritten version. ≤ 25 words.',
+            },
           },
           required: ['before', 'after'],
         },
@@ -31,27 +55,49 @@ const FIX_SCHEMA = {
         {
           type: 'object' as const,
           properties: {
-            name: { type: 'string' as const },
-            description: { type: 'string' as const },
+            name: {
+              type: 'string' as const,
+              description: 'Short project title in UPPERCASE. ≤ 6 words.',
+            },
+            description: {
+              type: 'string' as const,
+              description:
+                'What the project does, in one or two sentences. ≤ 35 words.',
+            },
             endpoints: {
               type: 'array' as const,
               items: { type: 'string' as const },
+              maxItems: 5,
+              description:
+                'At most 5 short endpoint identifiers (e.g. "GET /users", "POST /auth/login").',
             },
             bonus: {
               anyOf: [{ type: 'null' as const }, { type: 'string' as const }],
+              description:
+                'Optional stretch goal. ≤ 20 words. null if not applicable.',
             },
-            proves: { type: 'string' as const },
+            proves: {
+              type: 'string' as const,
+              description:
+                'What skill this project demonstrates. ≤ 15 words.',
+            },
           },
           required: ['name', 'description', 'endpoints', 'bonus', 'proves'],
         },
       ],
     },
-    time_required: { type: 'string' as const },
+    time_required: {
+      type: 'string' as const,
+      description:
+        'Short time estimate (e.g. "30 min", "2-3 hours", "1 weekend").',
+    },
   },
   required: ['summary', 'steps', 'example', 'project_idea', 'time_required'],
 };
 
-const ISSUE_SCHEMA = {
+// Issue without `fix` — fix is generated in the deep pass and indexed by issue
+// position in the corresponding audit array.
+const ISSUE_HOT_SCHEMA = {
   type: 'object' as const,
   properties: {
     severity: {
@@ -72,12 +118,11 @@ const ISSUE_SCHEMA = {
     },
     what: { type: 'string' as const },
     why: { type: 'string' as const },
-    fix: FIX_SCHEMA,
   },
-  required: ['severity', 'category', 'what', 'why', 'fix'],
+  required: ['severity', 'category', 'what', 'why'],
 };
 
-const auditSchema = (description: string) => ({
+const auditHotSchema = (description: string) => ({
   type: 'object' as const,
   description,
   properties: {
@@ -86,62 +131,57 @@ const auditSchema = (description: string) => ({
       minimum: 0,
       maximum: 100,
     },
-    strengths: { type: 'array' as const, items: { type: 'string' as const } },
-    issues: { type: 'array' as const, items: ISSUE_SCHEMA },
+    strengths: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 4,
+      description: 'At most 4 strengths. Pick the most impactful, drop the rest.',
+    },
+    issues: {
+      type: 'array' as const,
+      items: ISSUE_HOT_SCHEMA,
+      maxItems: 4,
+      description:
+        'At most 4 issues, ordered by severity (critical → minor). Prioritise — drop low-impact items rather than listing them all.',
+    },
   },
   required: ['score', 'issues', 'strengths'],
 });
 
-export const SUBMIT_ANALYSIS_TOOL = {
-  name: 'submit_analysis',
+const ATS_CRITICAL_MISSING_KEYWORD_SCHEMA = {
+  type: 'object' as const,
+  properties: {
+    keyword: {
+      type: 'string' as const,
+      description: 'The missing keyword. Single term or short phrase.',
+    },
+    jd_frequency: { type: 'number' as const },
+    required: { type: 'boolean' as const },
+    sections_missing: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 4,
+      description:
+        'At most 4 CV sections where the keyword should appear (e.g. "skills", "experience").',
+    },
+    score_impact: { type: 'number' as const },
+  },
+  required: [
+    'keyword',
+    'jd_frequency',
+    'required',
+    'sections_missing',
+    'score_impact',
+  ],
+};
+
+export const SUBMIT_ANALYSIS_HOT_TOOL = {
+  name: 'submit_analysis_hot',
   description:
-    'Submit the completed full application analysis as structured data.',
+    'Submit the FAST analysis pass: scores, audits without fixes, red flag titles, seniority/tone diagnostics. Fix blocks, project recommendation, technical analysis, and ATS critical keywords are produced in a separate deep pass that runs immediately after.',
   input_schema: {
     type: 'object' as const,
     properties: {
-      technical_analysis: {
-        type: 'object' as const,
-        properties: {
-          reasoning: { type: 'string' as const },
-          skill_priority: {
-            type: 'array' as const,
-            description:
-              'The 5 skill names ordered from most to least critical for THIS specific job',
-            items: { type: 'string' as const },
-            minItems: 5,
-            maxItems: 5,
-          },
-          skills: {
-            type: 'array' as const,
-            items: {
-              type: 'object' as const,
-              properties: {
-                name: { type: 'string' as const },
-                expected: { type: 'number' as const },
-                current: { type: 'number' as const },
-                evidence: { type: 'string' as const },
-              },
-              required: ['name', 'expected', 'current', 'evidence'],
-            },
-            minItems: 5,
-            maxItems: 5,
-          },
-          recommendation: { type: 'string' as const },
-          market_context: { type: 'string' as const },
-          seniority_signals: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-          },
-        },
-        required: [
-          'reasoning',
-          'skill_priority',
-          'skills',
-          'recommendation',
-          'market_context',
-          'seniority_signals',
-        ],
-      },
       challenge_analysis: {
         type: 'object' as const,
         description:
@@ -180,7 +220,7 @@ export const SUBMIT_ANALYSIS_TOOL = {
           summary: {
             type: ['string', 'null'] as const,
             description:
-              "Set when status='analyzed'. 2-4 markdown sentences that celebrate what the user does well in their attempts (e.g. 'Consistent 80+/100 across 23 TypeScript reviews, with strong nullable-handling and async-pattern detection.'). Otherwise null.",
+              "Set when status='analyzed'. 2-4 markdown sentences that celebrate what the user does well in their attempts. Otherwise null.",
           },
           strengths: {
             type: ['array', 'null'] as const,
@@ -191,55 +231,10 @@ export const SUBMIT_ANALYSIS_TOOL = {
           bridge_to_project: {
             type: ['string', 'null'] as const,
             description:
-              "Set when status='analyzed'. 1-2 markdown sentences explaining how the project_recommendation below covers the blind spots the daily challenges can't (e.g. system design, persistence, integrations, end-to-end ownership). Otherwise null.",
+              "Set when status='analyzed'. 1-2 markdown sentences explaining how the project_recommendation (deep pass) covers the blind spots the daily challenges can't. Otherwise null.",
           },
         },
         required: ['status'],
-      },
-      project_recommendation: {
-        type: 'object' as const,
-        properties: {
-          name: { type: 'string' as const },
-          description: { type: 'string' as const },
-          technologies: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-          },
-          key_features: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-          },
-          architecture: { type: 'string' as const },
-          advanced_concepts: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-          },
-          success_criteria: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-          },
-          difficulty_level: {
-            type: 'string' as const,
-            enum: ['Intermediate', 'Advanced', 'Expert'],
-          },
-          why_it_matters: { type: 'string' as const },
-          what_matters: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-          },
-        },
-        required: [
-          'name',
-          'description',
-          'technologies',
-          'key_features',
-          'architecture',
-          'advanced_concepts',
-          'success_criteria',
-          'difficulty_level',
-          'why_it_matters',
-          'what_matters',
-        ],
       },
       overall: {
         type: 'object' as const,
@@ -265,7 +260,8 @@ export const SUBMIT_ANALYSIS_TOOL = {
               score: { type: 'number' as const, minimum: 0, maximum: 100 },
               reason: {
                 type: 'string' as const,
-                description: 'One sentence explaining the confidence level',
+                description:
+                  'One sentence explaining the confidence level. ≤ 25 words.',
               },
             },
             required: ['score', 'reason'],
@@ -297,56 +293,50 @@ export const SUBMIT_ANALYSIS_TOOL = {
       },
       ats_simulation: {
         type: 'object' as const,
+        description:
+          'ATS pass/fail signal. The detailed list of critical_missing_keywords is generated in the deep pass.',
         properties: {
           would_pass: { type: 'boolean' as const },
           score: { type: 'number' as const, minimum: 0, maximum: 100 },
           threshold: { type: 'number' as const, minimum: 0, maximum: 100 },
-          reason: { type: 'string' as const },
-          critical_missing_keywords: {
-            type: 'array' as const,
-            items: {
-              type: 'object' as const,
-              properties: {
-                keyword: { type: 'string' as const },
-                jd_frequency: { type: 'number' as const },
-                required: { type: 'boolean' as const },
-                sections_missing: {
-                  type: 'array' as const,
-                  items: { type: 'string' as const },
-                },
-                score_impact: { type: 'number' as const },
-              },
-              required: [
-                'keyword',
-                'jd_frequency',
-                'required',
-                'sections_missing',
-                'score_impact',
-              ],
-            },
+          reason: {
+            type: 'string' as const,
+            description:
+              'One sentence explaining the pass/fail and the main driver. ≤ 30 words.',
           },
         },
-        required: [
-          'would_pass',
-          'score',
-          'threshold',
-          'reason',
-          'critical_missing_keywords',
-        ],
+        required: ['would_pass', 'score', 'threshold', 'reason'],
       },
       seniority_analysis: {
         type: 'object' as const,
+        description:
+          'Seniority diagnostic. The .fix is generated in the deep pass.',
         properties: {
-          expected: { type: 'string' as const },
-          detected: { type: 'string' as const },
-          gap: { type: 'string' as const },
-          strength: { type: 'string' as const },
-          fix: FIX_SCHEMA,
+          expected: {
+            type: 'string' as const,
+            description: 'Seniority the JD targets, e.g. "Senior". ≤ 8 words.',
+          },
+          detected: {
+            type: 'string' as const,
+            description:
+              'Seniority the CV signals, e.g. "Mid-level". ≤ 8 words.',
+          },
+          gap: {
+            type: 'string' as const,
+            description:
+              'One sentence describing the mismatch. ≤ 25 words.',
+          },
+          strength: {
+            type: 'string' as const,
+            description:
+              'One sentence describing what the candidate has going for them. ≤ 25 words.',
+          },
         },
-        required: ['expected', 'detected', 'gap', 'strength', 'fix'],
+        required: ['expected', 'detected', 'gap', 'strength'],
       },
       cv_tone: {
         type: 'object' as const,
+        description: 'Tone diagnostic. The .fix is generated in the deep pass.',
         properties: {
           detected: {
             type: 'string' as const,
@@ -355,17 +345,21 @@ export const SUBMIT_ANALYSIS_TOOL = {
           examples: {
             type: 'array' as const,
             items: { type: 'string' as const },
+            maxItems: 4,
+            description:
+              'At most 4 short verbatim snippets from the CV. Each ≤ 20 words.',
           },
-          fix: FIX_SCHEMA,
         },
-        required: ['detected', 'examples', 'fix'],
+        required: ['detected', 'examples'],
       },
-      audit_cv: auditSchema('CV structure, content and positioning audit.'),
-      audit_github: auditSchema(
-        'GitHub profile audit. score=null and empty arrays if GitHub not provided.',
+      audit_cv: auditHotSchema(
+        'CV structure, content and positioning audit. Issue fixes generated in deep pass.',
       ),
-      audit_linkedin: auditSchema(
-        'LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided.',
+      audit_github: auditHotSchema(
+        'GitHub profile audit. score=null and empty arrays if GitHub not provided. Issue fixes generated in deep pass.',
+      ),
+      audit_linkedin: auditHotSchema(
+        'LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided. Issue fixes generated in deep pass.',
       ),
       audit_jd_match: {
         type: 'object' as const,
@@ -373,6 +367,9 @@ export const SUBMIT_ANALYSIS_TOOL = {
         properties: {
           required_skills: {
             type: 'array' as const,
+            maxItems: 8,
+            description:
+              'At most 8 required skills from the JD, ordered by criticality. Drop nice-to-haves rather than listing every keyword.',
             items: {
               type: 'object' as const,
               properties: {
@@ -381,7 +378,11 @@ export const SUBMIT_ANALYSIS_TOOL = {
                 evidence: {
                   anyOf: [
                     { type: 'null' as const },
-                    { type: 'string' as const },
+                    {
+                      type: 'string' as const,
+                      description:
+                        'Short quote or paraphrase from the CV proving the skill. ≤ 20 words. null if not found.',
+                    },
                   ],
                 },
               },
@@ -389,29 +390,48 @@ export const SUBMIT_ANALYSIS_TOOL = {
             },
           },
           experience_gap: {
-            anyOf: [{ type: 'null' as const }, { type: 'string' as const }],
+            anyOf: [
+              { type: 'null' as const },
+              {
+                type: 'string' as const,
+                description:
+                  'One sentence on years-of-experience mismatch. ≤ 30 words. null if no gap.',
+              },
+            ],
           },
         },
         required: ['required_skills', 'experience_gap'],
       },
       hidden_red_flags: {
         type: 'array' as const,
-        description: 'Subtle signals that would concern a senior recruiter.',
+        description:
+          'At most 3 subtle signals that would concern a senior recruiter. Each entry only has its flag + perception here; the .fix is generated in the deep pass and indexed by position. Pick the most damaging — drop weaker ones rather than diluting.',
+        maxItems: 3,
         items: {
           type: 'object' as const,
           properties: {
-            flag: { type: 'string' as const },
-            perception: { type: 'string' as const },
-            fix: FIX_SCHEMA,
+            flag: {
+              type: 'string' as const,
+              description: 'Short label of the red flag. ≤ 10 words.',
+            },
+            perception: {
+              type: 'string' as const,
+              description:
+                'How a senior recruiter reads it. ≤ 30 words.',
+            },
           },
-          required: ['flag', 'perception', 'fix'],
+          required: ['flag', 'perception'],
         },
       },
       correlation: {
         type: 'object' as const,
         properties: {
           detected: { type: 'boolean' as const },
-          explanation: { type: 'string' as const },
+          explanation: {
+            type: 'string' as const,
+            description:
+              'One sentence on the tone × seniority interaction. ≤ 30 words.',
+          },
         },
         required: ['detected', 'explanation'],
       },
@@ -508,8 +528,6 @@ export const SUBMIT_ANALYSIS_TOOL = {
       },
     },
     required: [
-      'technical_analysis',
-      'project_recommendation',
       'overall',
       'keyword_match',
       'experience_level',
@@ -526,6 +544,207 @@ export const SUBMIT_ANALYSIS_TOOL = {
       'hidden_red_flags',
       'correlation',
       'job_details',
+    ],
+  },
+};
+
+export const SUBMIT_ANALYSIS_DEEP_TOOL = {
+  name: 'submit_analysis_deep',
+  description:
+    'Submit the DEEP analysis pass that runs after the hot pass. Generate technical_analysis, the Bridge-the-Gap project_recommendation, ATS critical missing keywords, and ALL fix blocks. Each fix array MUST have the same length as the corresponding hot-pass array (one fix per issue/red flag, in order).',
+  input_schema: {
+    type: 'object' as const,
+    properties: {
+      technical_analysis: {
+        type: 'object' as const,
+        properties: {
+          reasoning: {
+            type: 'string' as const,
+            description:
+              'High-level synthesis of the technical match. ≤ 60 words.',
+          },
+          skill_priority: {
+            type: 'array' as const,
+            description:
+              'The 5 skill names ordered from most to least critical for THIS specific job',
+            items: { type: 'string' as const },
+            minItems: 5,
+            maxItems: 5,
+          },
+          skills: {
+            type: 'array' as const,
+            items: {
+              type: 'object' as const,
+              properties: {
+                name: { type: 'string' as const },
+                expected: { type: 'number' as const },
+                current: { type: 'number' as const },
+                evidence: {
+                  type: 'string' as const,
+                  description:
+                    'Short concrete justification of the current/expected score. ≤ 25 words.',
+                },
+              },
+              required: ['name', 'expected', 'current', 'evidence'],
+            },
+            minItems: 5,
+            maxItems: 5,
+          },
+          recommendation: {
+            type: 'string' as const,
+            description:
+              'Actionable strategic advice for the candidate. ≤ 50 words.',
+          },
+          market_context: {
+            type: 'string' as const,
+            description:
+              'Market positioning insight (demand, salary signal, hiring difficulty). ≤ 50 words.',
+          },
+          seniority_signals: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 4,
+            description:
+              'At most 4 short signals (each ≤ 15 words) — observable proofs of seniority.',
+          },
+        },
+        required: [
+          'reasoning',
+          'skill_priority',
+          'skills',
+          'recommendation',
+          'market_context',
+          'seniority_signals',
+        ],
+      },
+      project_recommendation: {
+        type: 'object' as const,
+        properties: {
+          name: {
+            type: 'string' as const,
+            description: 'Project title. ≤ 6 words.',
+          },
+          description: {
+            type: 'string' as const,
+            description:
+              'What the project does and why it bridges the gap. ≤ 50 words.',
+          },
+          technologies: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 8,
+          },
+          key_features: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 4,
+            description:
+              'At most 4 key features. Each ≤ 12 words, action-oriented.',
+          },
+          architecture: {
+            type: 'string' as const,
+            description:
+              'Short technical sketch of how the system is laid out. ≤ 50 words.',
+          },
+          advanced_concepts: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 3,
+            description: 'At most 3 concepts. Each ≤ 10 words.',
+          },
+          success_criteria: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 4,
+            description: 'At most 4 criteria. Each ≤ 12 words.',
+          },
+          difficulty_level: {
+            type: 'string' as const,
+            enum: ['Intermediate', 'Advanced', 'Expert'],
+          },
+          why_it_matters: {
+            type: 'string' as const,
+            description:
+              'Why building this matters for THIS specific JD. ≤ 50 words.',
+          },
+          what_matters: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 4,
+            description: 'At most 4 priority items. Each ≤ 12 words.',
+          },
+        },
+        required: [
+          'name',
+          'description',
+          'technologies',
+          'key_features',
+          'architecture',
+          'advanced_concepts',
+          'success_criteria',
+          'difficulty_level',
+          'why_it_matters',
+          'what_matters',
+        ],
+      },
+      ats_critical_missing_keywords: {
+        type: 'array' as const,
+        description:
+          'At most 5 keywords from the JD that are absent or under-represented in the CV. Order by score_impact desc — drop low-impact entries rather than padding.',
+        maxItems: 5,
+        items: ATS_CRITICAL_MISSING_KEYWORD_SCHEMA,
+      },
+      fixes: {
+        type: 'object' as const,
+        description:
+          'All fix blocks indexed by their owner in the hot result. Array lengths MUST match the hot pass exactly (one fix per issue/red flag, in order). Generate the fix object FIRST in each array; do not skip indices.',
+        properties: {
+          seniority_analysis: FIX_SCHEMA,
+          cv_tone: FIX_SCHEMA,
+          audit_cv_issues: {
+            type: 'array' as const,
+            items: FIX_SCHEMA,
+            maxItems: 4,
+            description:
+              'One fix per issue in audit_cv.issues, same order. Length MUST match the hot audit_cv.issues array.',
+          },
+          audit_github_issues: {
+            type: 'array' as const,
+            items: FIX_SCHEMA,
+            maxItems: 4,
+            description:
+              'One fix per issue in audit_github.issues, same order. Length MUST match the hot audit_github.issues array.',
+          },
+          audit_linkedin_issues: {
+            type: 'array' as const,
+            items: FIX_SCHEMA,
+            maxItems: 4,
+            description:
+              'One fix per issue in audit_linkedin.issues, same order. Length MUST match the hot audit_linkedin.issues array.',
+          },
+          hidden_red_flags: {
+            type: 'array' as const,
+            items: FIX_SCHEMA,
+            maxItems: 3,
+            description:
+              'One fix per entry in hidden_red_flags, same order. Length MUST match the hot hidden_red_flags array.',
+          },
+        },
+        required: [
+          'seniority_analysis',
+          'cv_tone',
+          'audit_cv_issues',
+          'audit_github_issues',
+          'audit_linkedin_issues',
+          'hidden_red_flags',
+        ],
+      },
+    },
+    required: [
+      'technical_analysis',
+      'project_recommendation',
+      'ats_critical_missing_keywords',
+      'fixes',
     ],
   },
 };

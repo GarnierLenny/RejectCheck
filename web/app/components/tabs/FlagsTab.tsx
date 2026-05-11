@@ -2,6 +2,7 @@
 
 import type { AnalysisResult } from "../types";
 import { FixBlock } from "../FixBlock";
+import { FixBlockSkeleton } from "../skeletons/FixBlockSkeleton";
 import { SectionHeader } from "../SectionHeader";
 import { useLanguage } from "../../../context/language";
 
@@ -117,7 +118,7 @@ export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown
                 <span className="font-mono text-[11px] uppercase text-rc-amber font-bold mr-2">{t.flagsTab.recruiterPerception}</span>
                 {flag.perception}
               </div>
-              <FixBlock fix={flag.fix} />
+              {flag.fix ? <FixBlock fix={flag.fix} /> : <FixBlockSkeleton />}
             </div>
           ))}
         </div>

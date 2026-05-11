@@ -9,7 +9,10 @@ import type {
   SaveAnalysisInput,
 } from '../ports/analysis.repository';
 import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
-import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type {
+  AnalyzeResponse,
+  DeepAnalyzeResponse,
+} from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 
 type AnalysisRow = {
@@ -26,6 +29,7 @@ type AnalysisRow = {
   motivationLetter: string | null;
   coverLetter: string | null;
   result: Prisma.JsonValue | null;
+  deepAnalysis: Prisma.JsonValue | null;
   negotiationAnalysis: Prisma.JsonValue | null;
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +61,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         githubInfo: input.githubInfo,
         motivationLetter: input.motivationLetter,
         result: input.result as unknown as Prisma.InputJsonValue,
+        deepAnalysis: input.deepAnalysis
+          ? (input.deepAnalysis as unknown as Prisma.InputJsonValue)
+          : Prisma.DbNull,
         negotiationAnalysis: input.negotiationAnalysis
           ? (input.negotiationAnalysis as unknown as Prisma.InputJsonValue)
           : Prisma.DbNull,
@@ -120,6 +127,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         company: true,
         jobDescription: true,
         result: true,
+        deepAnalysis: true,
         coverLetter: true,
         negotiationAnalysis: true,
         createdAt: true,
@@ -134,6 +142,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       jobDescription: row.jobDescription,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
+      deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
       negotiationAnalysis:
         row.negotiationAnalysis as NegotiationAnalysis | null,
       createdAt: row.createdAt,
@@ -205,6 +214,19 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     });
   }
 
+  async attachDeepAnalysis(
+    id: number,
+    email: string,
+    deep: DeepAnalyzeResponse,
+  ): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: {
+        deepAnalysis: deep as unknown as Prisma.InputJsonValue,
+      },
+    });
+  }
+
   async deleteByIdForEmail(id: number, email: string): Promise<void> {
     const exists = await this.prisma.analysis.findFirst({
       where: { id, email },
@@ -229,6 +251,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       motivationLetter: row.motivationLetter,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
+      deepAnalysis: (row.deepAnalysis as DeepAnalyzeResponse | null) ?? null,
       negotiationAnalysis:
         (row.negotiationAnalysis as NegotiationAnalysis | null) ?? null,
       createdAt: row.createdAt,

@@ -1,10 +1,20 @@
-import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type {
+  AnalyzeResponse,
+  DeepAnalyzeResponse,
+} from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 
 /**
  * Domain-level snapshot of a stored analysis. Mirrors the persistence row
  * but is decoupled from Prisma — repositories return this shape, not the
  * generated Prisma model. Adapters do the mapping.
+ *
+ * `result` may contain either:
+ *  - the full legacy response (for analyses created before the hot/deep split), or
+ *  - the hot-pass-only response (for new analyses; deep fields live in `deepAnalysis`).
+ *
+ * Consumers that need the merged shape should use `mergeHotAndDeep` from the DTO
+ * module — `getAnalysis.use-case.ts` performs this merge at retrieval time.
  */
 export type StoredAnalysis = {
   id: number;
@@ -20,6 +30,7 @@ export type StoredAnalysis = {
   motivationLetter: string | null;
   coverLetter: string | null;
   result: AnalyzeResponse | null;
+  deepAnalysis: DeepAnalyzeResponse | null;
   negotiationAnalysis: NegotiationAnalysis | null;
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +47,7 @@ export type AnalysisDetail = Pick<
   | 'company'
   | 'jobDescription'
   | 'result'
+  | 'deepAnalysis'
   | 'coverLetter'
   | 'negotiationAnalysis'
   | 'createdAt'

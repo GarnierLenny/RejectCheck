@@ -4,7 +4,9 @@ import type { AnalysisResult } from "../types";
 import { SectionHeader } from "../SectionHeader";
 import { useLanguage } from "../../../context/language";
 
-type Keyword = AnalysisResult["ats_simulation"]["critical_missing_keywords"][number];
+type Keyword = NonNullable<
+  AnalysisResult["ats_simulation"]["critical_missing_keywords"]
+>[number];
 
 type Props = {
   ats: AnalysisResult["ats_simulation"];
