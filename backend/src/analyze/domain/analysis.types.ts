@@ -78,6 +78,13 @@ export type Profile = {
   languages: string[];
   onboardedAt: Date | null;
   onboardingSkipped: boolean;
+  /**
+   * ProfileDigest metadata exposed to the frontend so it can render a
+   * "Profile last synced…" indicator and a refresh button. The digest body
+   * itself isn't returned through this domain type — it's an
+   * implementation detail of the analyze flow.
+   */
+  digestUpdatedAt: Date | null;
   /** Filled by the analyze controller, not the repository. */
   unreadFollowersCount?: number;
   createdAt: Date;

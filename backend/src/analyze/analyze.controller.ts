@@ -39,6 +39,7 @@ import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
+import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
@@ -72,6 +73,7 @@ export class AnalyzeController {
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
     private readonly generateNegotiationUc: GenerateNegotiationUseCase,
+    private readonly generateProfileDigestUc: GenerateProfileDigestUseCase,
     private readonly regenerateDeepUc: RegenerateDeepUseCase,
     private readonly listHistory: ListHistoryUseCase,
     private readonly getAnalysisUc: GetAnalysisUseCase,
@@ -202,6 +204,30 @@ export class AnalyzeController {
   @ApiOperation({ summary: 'Get profile of the authenticated user' })
   async getProfile(@AuthEmail() email: string) {
     return this.getProfileUc.execute(email);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Post('profile/refresh-digest')
+  @ApiOperation({
+    summary:
+      'Regenerate the ProfileDigest for the authenticated user from their current profile sources (GitHub username, portfolio URL, optional inline CV/LinkedIn text). Sources missing from the request are pulled from the stored Profile row.',
+  })
+  async refreshProfileDigest(
+    @AuthEmail() email: string,
+    @Body()
+    body: {
+      cvText?: string;
+      linkedinText?: string;
+      locale?: string;
+    } = {},
+  ) {
+    const { digest, hashes } = await this.generateProfileDigestUc.execute({
+      email,
+      cvText: body.cvText,
+      linkedinText: body.linkedinText,
+      locale: body.locale,
+    });
+    return { digest, hashes };
   }
 
   @UseGuards(SupabaseGuard)

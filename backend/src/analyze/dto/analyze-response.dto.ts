@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { NegotiationAnalysisSchema } from './negotiation-response.dto';
+import { CrossProfileInconsistencySchema } from './profile-digest.dto';
 
 export const FixSchema = z.object({
   summary: z.string(),
@@ -336,6 +337,15 @@ export const AnalyzeResponseSchema = z.object({
   challenge_analysis: ChallengeAnalysisSchema.optional(),
   technical_analysis: TechnicalAnalysisSchema.optional(),
   negotiation_analysis: NegotiationAnalysisSchema.nullable().optional(),
+  /**
+   * Pre-computed cross-profile inconsistencies from the user's ProfileDigest.
+   * Surfaced in the analysis result so the frontend can render a dedicated
+   * "Consistency check" section without re-fetching the digest.
+   * Empty / undefined for anonymous users (no digest).
+   */
+  cross_profile_inconsistencies: z
+    .array(CrossProfileInconsistencySchema)
+    .optional(),
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}
@@ -357,6 +367,18 @@ export function mergeHotAndDeep(
   hot: HotAnalyzeResponse,
   deep: DeepAnalyzeResponse | null | undefined,
 ): AnalyzeResponse {
+  // `cross_profile_inconsistencies` isn't part of HotAnalyzeResponseSchema —
+  // it's appended onto the result by AnalyzeCvUseCase after this merge runs
+  // (sourced from the user's ProfileDigest). When GetAnalysisUseCase re-runs
+  // this merge on a stored row, the field is present on the in-memory object
+  // even though the Zod type doesn't list it. Preserve it through the merge
+  // so reloading an analysis doesn't drop the Consistency tab data.
+  const passthroughInconsistencies = (
+    hot as unknown as { cross_profile_inconsistencies?: unknown }
+  ).cross_profile_inconsistencies as
+    | AnalyzeResponse['cross_profile_inconsistencies']
+    | undefined;
+
   const merged: AnalyzeResponse = {
     score: hot.score,
     verdict: hot.verdict,
@@ -412,5 +434,8 @@ export function mergeHotAndDeep(
     // deep for analyses created before the move (mid-format DB rows).
     technical_analysis: hot.technical_analysis ?? deep?.technical_analysis,
   };
+  if (passthroughInconsistencies && passthroughInconsistencies.length > 0) {
+    merged.cross_profile_inconsistencies = passthroughInconsistencies;
+  }
   return merged;
 }

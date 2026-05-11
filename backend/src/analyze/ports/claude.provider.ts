@@ -4,6 +4,7 @@ import type {
   DeepAnalyzeResponse,
 } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import type { ProfileDigest } from '../dto/profile-digest.dto';
 import type { RewriteResponse } from '../dto/rewrite-response.dto';
 import type { RoadmapItem } from '../domain/roadmap-items';
 import type { ChallengeStatsSummary } from '../domain/challenge-stats.types';
@@ -23,6 +24,15 @@ export type AnalyzeApplicationInput = {
   userExperienceLevel?: string | null;
   userTechStack?: string[];
   userLanguages?: string[];
+  /**
+   * Pre-computed ProfileDigest for registered users with a fresh digest. When
+   * present, the provider emits the digest into the user message instead of
+   * the raw cvText / linkedinText / githubInfo (saves ~5-7k input tokens, cuts
+   * TTFT, and surfaces cross-profile inconsistencies the analyzer can react
+   * to). Anonymous users and analyses run before a digest exists pass null —
+   * the provider falls back to the raw sources transparently.
+   */
+  digest?: ProfileDigest | null;
   /**
    * Optional callback invoked for each partial JSON chunk Claude emits while
    * building the tool_use response. Used by the SSE pipeline to forward
@@ -63,6 +73,26 @@ export type GenerateNegotiationInput = {
   onDelta?: (chunk: string) => void;
 };
 
+export type GenerateProfileDigestInput = {
+  /**
+   * Raw parsed text of the CV, or empty string if not available.
+   * Max ~15k chars after truncation.
+   */
+  cvText: string;
+  /** Raw parsed LinkedIn export text, or empty string. */
+  linkedinText: string;
+  /**
+   * JSON-stringified GitHub snapshot (top repos, bio, contributions), or empty.
+   */
+  githubInfo: string;
+  /** Markdown output from the portfolio scraper, or empty. */
+  portfolioMarkdown: string;
+  /** The user's portfolio URL (for citation in the prompt), or null. */
+  portfolioUrl: string | null;
+  /** Locale for the digest output (mostly affects prose tone). */
+  locale?: string;
+};
+
 export interface ClaudeProvider {
   analyzeApplicationHot(
     input: AnalyzeApplicationInput,
@@ -70,6 +100,9 @@ export interface ClaudeProvider {
   analyzeApplicationDeep(
     input: AnalyzeApplicationDeepInput,
   ): Promise<DeepAnalyzeResponse>;
+  generateProfileDigest(
+    input: GenerateProfileDigestInput,
+  ): Promise<ProfileDigest>;
   rewriteCv(input: RewriteCvInput): Promise<RewriteResponse>;
   generateCoverLetter(input: GenerateCoverLetterInput): Promise<string>;
   generateNegotiation(

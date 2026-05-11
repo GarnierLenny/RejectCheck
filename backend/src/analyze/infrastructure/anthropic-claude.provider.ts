@@ -18,6 +18,10 @@ import {
   NegotiationAnalysisSchema,
 } from '../dto/negotiation-response.dto';
 import {
+  ProfileDigest,
+  ProfileDigestSchema,
+} from '../dto/profile-digest.dto';
+import {
   RewriteResponse,
   RewriteResponseSchema,
 } from '../dto/rewrite-response.dto';
@@ -27,6 +31,7 @@ import type {
   ClaudeProvider,
   GenerateCoverLetterInput,
   GenerateNegotiationInput,
+  GenerateProfileDigestInput,
   RewriteCvInput,
 } from '../ports/claude.provider';
 import {
@@ -34,8 +39,13 @@ import {
   SUBMIT_ANALYSIS_HOT_TOOL,
 } from './schemas/claude-analysis.schema';
 import { SUBMIT_NEGOTIATION_TOOL } from './schemas/claude-negotiation.schema';
+import {
+  PROFILE_DIGEST_SYSTEM_PROMPT,
+  SUBMIT_PROFILE_DIGEST_TOOL,
+} from './schemas/claude-profile-digest.schema';
 
 const MODEL = 'claude-sonnet-4-6';
+const DIGEST_MODEL = 'claude-haiku-4-5-20251001';
 
 type ToolUseBlock = {
   type: 'tool_use';
@@ -134,6 +144,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
         requestStartedAt,
         firstDeltaAt,
         msg.usage,
+        { digest: !!input.digest },
       );
       this.logCacheUsage('analyze_hot', msg.usage);
 
@@ -240,6 +251,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
         requestStartedAt,
         firstDeltaAt,
         msg.usage,
+        { digest: !!input.digest },
       );
       this.logCacheUsage('analyze_deep', msg.usage);
 
@@ -276,6 +288,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
       cache_creation_input_tokens?: number | null;
       cache_read_input_tokens?: number | null;
     },
+    extras: { digest?: boolean } = {},
   ): void {
     const completedAt = Date.now();
     const totalMs = completedAt - requestStartedAt;
@@ -289,11 +302,14 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     const tps =
       genMs && genMs > 0 ? Math.round((outputTokens / genMs) * 1000) : null;
 
+    const extraStr =
+      extras.digest !== undefined ? ` digest=${extras.digest}` : '';
+
     this.logger.log(
       `[ANALYZE_TIMING_AI] op=${op} model=${MODEL} max_tokens_cap=${maxTokensCap} ` +
         `total_ms=${totalMs} ttft_ms=${ttftMs ?? 'n/a'} gen_ms=${genMs ?? 'n/a'} ` +
         `input_tokens=${inputTokens} output_tokens=${outputTokens} ` +
-        `cache_read=${cacheRead} cache_created=${cacheCreated} tps=${tps ?? 'n/a'}`,
+        `cache_read=${cacheRead} cache_created=${cacheCreated} tps=${tps ?? 'n/a'}${extraStr}`,
     );
   }
 
@@ -512,13 +528,7 @@ ${input.jobText}
 
 ---
 
-CANDIDATE EVIDENCE:
-CV / RESUME:
-${input.cvText}
-
-GITHUB PROJECTS: ${input.githubInfo || 'None provided'}
-LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
-MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
+${this.formatCandidateEvidence(input)}MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
 
 DAILY CODE-REVIEW CHALLENGE TRACK RECORD:
 ${formatChallengeStats(input.challengeStats)}
@@ -582,13 +592,7 @@ ${input.jobText}
 
 ---
 
-CANDIDATE EVIDENCE:
-CV / RESUME:
-${input.cvText}
-
-GITHUB PROJECTS: ${input.githubInfo || 'None provided'}
-LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
-MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
+${this.formatCandidateEvidence(input)}MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
 
 DAILY CODE-REVIEW CHALLENGE TRACK RECORD:
 ${formatChallengeStats(input.challengeStats)}
@@ -642,6 +646,87 @@ Formatting rules (same as hot pass):
     }
     if (lines.length === 0) return '';
     return `CANDIDATE PROFILE (self-declared, weight against CV evidence — never override the CV):\n${lines.join('\n')}\n\n---\n\n`;
+  }
+
+  /**
+   * Emit the candidate evidence block. Two modes:
+   *  - **Digest mode** (registered user with a fresh ProfileDigest): a single
+   *    compact synthesis of CV + LinkedIn + GitHub + portfolio. Saves ~5-7k
+   *    input tokens and lets the analyzer react to pre-computed cross-profile
+   *    inconsistencies.
+   *  - **Raw mode** (anonymous user or first analysis before a digest exists):
+   *    falls back to the legacy raw cvText / githubInfo / linkedinText.
+   *
+   * The motivation letter is always emitted by the caller — it's a per-job
+   * artefact and never lives in the digest.
+   */
+  private formatCandidateEvidence(input: AnalyzeApplicationInput): string {
+    if (input.digest) {
+      const d = input.digest;
+      const workHistory = d.work_history
+        .map(
+          (w) =>
+            `  - ${w.title} @ ${w.company} (${w.start} → ${w.end}${w.location ? `, ${w.location}` : ''}) [sources: ${w.sources.join(', ')}]`,
+        )
+        .join('\n');
+      const projects = d.projects
+        .map(
+          (p) =>
+            `  - ${p.name} — ${p.role_claimed}${p.dates ? ` (${p.dates})` : ''}: ${p.description}` +
+            (p.tech.length ? ` [tech: ${p.tech.join(', ')}]` : '') +
+            (p.outcomes.length ? ` [outcomes: ${p.outcomes.join(' · ')}]` : '') +
+            ` [sources: ${p.sources.join(', ')}]`,
+        )
+        .join('\n');
+      const inconsistencies = d.cross_profile_inconsistencies.length
+        ? d.cross_profile_inconsistencies
+            .map(
+              (i) =>
+                `  - [${i.severity}] ${i.field} between ${i.sources.join('/')}: ${i.description} — recruiter: ${i.recruiter_perception}`,
+            )
+            .join('\n')
+        : '  (none detected)';
+      const signals = d.signals.length
+        ? d.signals.map((s) => `  - ${s}`).join('\n')
+        : '  (none)';
+      const availability = Object.entries(d.sources_available)
+        .map(([k, v]) => `${k}=${v ? 'yes' : 'no'}`)
+        .join(', ');
+
+      return `CANDIDATE EVIDENCE (pre-synthesized ProfileDigest — fused across all sources):
+
+POSITIONING: ${d.positioning.headline}
+TONE: ${d.positioning.tone.join(', ')}  ·  POLISH: ${d.positioning.polish_level}
+SOURCES AVAILABLE: ${availability}
+
+WORK HISTORY:
+${workHistory || '  (none)'}
+
+TECH STACK: ${d.tech_stack.join(', ') || '(none)'}
+SPOKEN LANGUAGES: ${d.languages.join(', ') || '(none)'}
+
+PROJECTS:
+${projects || '  (none)'}
+
+OBSERVED SIGNALS:
+${signals}
+
+CROSS-PROFILE INCONSISTENCIES (already detected — weave these into audit/red_flags where relevant):
+${inconsistencies}
+
+---
+
+`;
+    }
+
+    // Raw fallback — anonymous users or first analysis before digest exists.
+    return `CANDIDATE EVIDENCE:
+CV / RESUME:
+${input.cvText}
+
+GITHUB PROJECTS: ${input.githubInfo || 'None provided'}
+LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
+`;
   }
 
   async generateNegotiation(
@@ -726,6 +811,140 @@ Formatting rules (same as hot pass):
       );
       throw new InternalServerErrorException('Negotiation generation failed');
     }
+  }
+
+  async generateProfileDigest(
+    input: GenerateProfileDigestInput,
+  ): Promise<ProfileDigest> {
+    const sourcesAvailable = {
+      cv: !!input.cvText.trim(),
+      linkedin: !!input.linkedinText.trim(),
+      github: !!input.githubInfo.trim(),
+      portfolio: !!input.portfolioMarkdown.trim(),
+    };
+    this.logger.log(
+      `Requesting ProfileDigest from Claude (sources: cv=${sourcesAvailable.cv}, li=${sourcesAvailable.linkedin}, gh=${sourcesAvailable.github}, pf=${sourcesAvailable.portfolio})`,
+    );
+
+    const requestStartedAt = Date.now();
+    const DIGEST_MAX_TOKENS = 4000;
+
+    try {
+      const msg = await this.withSentry('profile_digest', () =>
+        this.anthropic.messages.create({
+          model: DIGEST_MODEL,
+          max_tokens: DIGEST_MAX_TOKENS,
+          temperature: 0.1,
+          system: [
+            {
+              type: 'text',
+              text: PROFILE_DIGEST_SYSTEM_PROMPT,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tools: [
+            {
+              ...SUBMIT_PROFILE_DIGEST_TOOL,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tool_choice: { type: 'tool', name: 'submit_profile_digest' },
+          messages: [
+            {
+              role: 'user',
+              content: this.buildDigestUserMessage(input, sourcesAvailable),
+            },
+          ],
+        }),
+      );
+
+      const totalMs = Date.now() - requestStartedAt;
+      const outputTokens = msg.usage.output_tokens ?? 0;
+      const inputTokens = msg.usage.input_tokens ?? 0;
+      const cacheRead = msg.usage.cache_read_input_tokens ?? 0;
+      const cacheCreated = msg.usage.cache_creation_input_tokens ?? 0;
+      this.logger.log(
+        `[DIGEST_TIMING] model=${DIGEST_MODEL} total_ms=${totalMs} ` +
+          `input_tokens=${inputTokens} output_tokens=${outputTokens} ` +
+          `cache_read=${cacheRead} cache_created=${cacheCreated}`,
+      );
+
+      const toolUse = msg.content.find(
+        (block) => (block as { type?: string }).type === 'tool_use',
+      ) as ToolUseBlock | undefined;
+
+      if (!toolUse) {
+        this.logger.error(
+          `Claude returned no tool_use for profile_digest: ${JSON.stringify(msg.content).slice(0, 300)}`,
+        );
+        throw new InternalServerErrorException(
+          'Profile digest generation failed',
+        );
+      }
+
+      return ProfileDigestSchema.parse(toolUse.input);
+    } catch (err: any) {
+      this.logger.error(
+        `generateProfileDigest failed: ${err?.message || err}`,
+        err?.stack,
+      );
+      throw new InternalServerErrorException(
+        'Profile digest generation failed',
+      );
+    }
+  }
+
+  private buildDigestUserMessage(
+    input: GenerateProfileDigestInput,
+    sourcesAvailable: {
+      cv: boolean;
+      linkedin: boolean;
+      github: boolean;
+      portfolio: boolean;
+    },
+  ): string {
+    const cvText = sourcesAvailable.cv ? input.cvText.slice(0, 15000) : '';
+    const linkedinText = sourcesAvailable.linkedin
+      ? input.linkedinText.slice(0, 8000)
+      : '';
+    const githubInfo = sourcesAvailable.github
+      ? input.githubInfo.slice(0, 6000)
+      : '';
+    const portfolioMarkdown = sourcesAvailable.portfolio
+      ? input.portfolioMarkdown.slice(0, 25000)
+      : '';
+
+    const sourceList = (
+      [
+        sourcesAvailable.cv ? 'CV' : null,
+        sourcesAvailable.linkedin ? 'LinkedIn' : null,
+        sourcesAvailable.github ? 'GitHub' : null,
+        sourcesAvailable.portfolio ? 'Portfolio' : null,
+      ].filter(Boolean) as string[]
+    ).join(', ');
+
+    return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'} for textual fields.
+
+Build a ProfileDigest from the sources below. Available sources: ${sourceList || 'none'}.
+
+Reminders:
+- Fuse cross-source data (e.g. same job appearing in CV + LinkedIn → ONE work_history entry with both sources cited).
+- cross_profile_inconsistencies must be SPECIFIC: cite actual divergent values. Skip if you can't be specific.
+- sources_available must reflect what's actually present below (e.g. cv=true only if non-empty CV text appears).
+
+=== CV ===
+${cvText || '(not provided)'}
+
+=== LINKEDIN ===
+${linkedinText || '(not provided)'}
+
+=== GITHUB SNAPSHOT ===
+${githubInfo || '(not provided)'}
+
+=== PORTFOLIO ${input.portfolioUrl ? `(${input.portfolioUrl})` : ''} ===
+${portfolioMarkdown || '(not provided)'}
+
+Output the digest via the submit_profile_digest tool.`;
   }
 
   private buildNegotiationUserMessage(input: GenerateNegotiationInput): string {

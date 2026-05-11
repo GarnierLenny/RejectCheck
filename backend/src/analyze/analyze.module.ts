@@ -7,23 +7,28 @@ import { ChallengeModule } from '../challenge/challenge.module';
 import {
   ANALYSIS_REPOSITORY,
   CLAUDE_PROVIDER,
+  DIGEST_REPOSITORY,
   GITHUB_PROVIDER,
   PDF_PARSER,
+  PORTFOLIO_SCRAPER,
   PROFILE_REPOSITORY,
   SAVED_CV_REPOSITORY,
 } from './ports/tokens';
 
 import { PrismaAnalysisRepository } from './infrastructure/prisma-analysis.repository';
+import { PrismaDigestRepository } from './infrastructure/prisma-digest.repository';
 import { PrismaProfileRepository } from './infrastructure/prisma-profile.repository';
 import { PrismaSavedCvRepository } from './infrastructure/prisma-saved-cv.repository';
 import { AnthropicClaudeProvider } from './infrastructure/anthropic-claude.provider';
 import { GithubHttpProvider } from './infrastructure/github-http.provider';
+import { JinaPortfolioScraper } from './infrastructure/jina-portfolio.scraper';
 import { PdfParseParser } from './infrastructure/pdf-parse.parser';
 
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
+import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
@@ -47,14 +52,17 @@ import {
     { provide: ANALYSIS_REPOSITORY, useClass: PrismaAnalysisRepository },
     { provide: PROFILE_REPOSITORY, useClass: PrismaProfileRepository },
     { provide: SAVED_CV_REPOSITORY, useClass: PrismaSavedCvRepository },
+    { provide: DIGEST_REPOSITORY, useClass: PrismaDigestRepository },
     { provide: CLAUDE_PROVIDER, useClass: AnthropicClaudeProvider },
     { provide: GITHUB_PROVIDER, useClass: GithubHttpProvider },
+    { provide: PORTFOLIO_SCRAPER, useClass: JinaPortfolioScraper },
     { provide: PDF_PARSER, useClass: PdfParseParser },
 
     AnalyzeCvUseCase,
     RewriteCvUseCase,
     GenerateCoverLetterUseCase,
     GenerateNegotiationUseCase,
+    GenerateProfileDigestUseCase,
     RegenerateDeepUseCase,
     ListHistoryUseCase,
     GetAnalysisUseCase,

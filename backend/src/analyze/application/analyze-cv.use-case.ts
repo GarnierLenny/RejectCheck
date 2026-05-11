@@ -5,10 +5,12 @@ import {
   Logger,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
+import { createHash } from 'crypto';
 import {
   ANALYSIS_REPOSITORY,
   CHALLENGE_STATS_PROVIDER,
   CLAUDE_PROVIDER,
+  DIGEST_REPOSITORY,
   GITHUB_PROVIDER,
   PDF_PARSER,
   PROFILE_REPOSITORY,
@@ -19,10 +21,12 @@ import type {
   ApplicationUpsertInput,
 } from '../ports/analysis.repository';
 import type { ClaudeProvider } from '../ports/claude.provider';
+import type { DigestRepository } from '../ports/digest.repository';
 import type { GithubProvider } from '../ports/github.provider';
 import type { PdfParser } from '../ports/pdf.parser';
 import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
+import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import { decideQuota } from '../domain/quota.policy';
 import type {
@@ -31,6 +35,10 @@ import type {
 } from '../dto/analyze-response.dto';
 import { mergeHotAndDeep } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import type {
+  DigestSourceHashes,
+  ProfileDigest,
+} from '../dto/profile-digest.dto';
 import { extractRoadmapItems } from '../domain/roadmap-items';
 import { QuotaExceededException } from '../../common/exceptions';
 
@@ -98,6 +106,9 @@ export class AnalyzeCvUseCase {
     private readonly challengeStats: ChallengeStatsProvider,
     @Inject(PROFILE_REPOSITORY)
     private readonly profiles: ProfileRepository,
+    @Inject(DIGEST_REPOSITORY)
+    private readonly digests: DigestRepository,
+    private readonly generateDigestUc: GenerateProfileDigestUseCase,
   ) {}
 
   async execute(
@@ -110,6 +121,7 @@ export class AnalyzeCvUseCase {
     const timings = {
       parse_inputs_ms: 0,
       profile_ctx_ms: 0,
+      digest_ms: 0,
       claude_hot_ms: 0,
       claude_deep_ms: 0,
       persist_ms: 0,
@@ -181,6 +193,26 @@ export class AnalyzeCvUseCase {
         : null;
     timings.profile_ctx_ms = Date.now() - profileCtxStart;
 
+    // Resolve a fresh ProfileDigest for registered users. Anonymous users
+    // skip this — they pass raw cvText/linkedinText/githubInfo to the
+    // provider as before. The digest contains a synthesized version of CV +
+    // LinkedIn + GitHub + portfolio and unlocks cross-profile mismatch
+    // detection in the analysis output.
+    const digestStart = Date.now();
+    let digest: ProfileDigest | null = null;
+    if (cmd.email && cmd.isRegistered) {
+      digest = await this.resolveDigest({
+        email: cmd.email,
+        cvBuffer: cmd.cvBuffer!,
+        cvText,
+        linkedinText,
+        githubUsername: cmd.githubUsername ?? profile?.githubUsername ?? null,
+        portfolioUrl: profile?.portfolioUrl ?? null,
+        locale: cmd.locale,
+      });
+    }
+    timings.digest_ms = Date.now() - digestStart;
+
     const claudeInput = {
       jobText,
       cvText,
@@ -194,6 +226,7 @@ export class AnalyzeCvUseCase {
       userExperienceLevel: profile?.experienceLevel ?? null,
       userTechStack: profile?.techStack ?? [],
       userLanguages: profile?.languages ?? [],
+      digest,
     };
 
     emitStep('dual_ai_analysis');
@@ -207,6 +240,15 @@ export class AnalyzeCvUseCase {
     // Merged result — deep fields are undefined until the deep pass completes.
     // The frontend renders skeletons for those sections in the meantime.
     const result = mergeHotAndDeep(hot, null);
+
+    // Surface the digest's pre-computed cross-profile inconsistencies on the
+    // result so the frontend can render the "Consistency check" section as
+    // soon as analysis_done fires. The Claude analyzer also sees these in
+    // the user message and can react in audit/red_flags — this is the
+    // *display* copy of the same data.
+    if (digest && digest.cross_profile_inconsistencies.length > 0) {
+      result.cross_profile_inconsistencies = digest.cross_profile_inconsistencies;
+    }
 
     // Persist before announcing analysis_done so the frontend gets a real
     // analysisId for downstream actions (rewrite, history, negotiation tab).
@@ -279,11 +321,13 @@ export class AnalyzeCvUseCase {
       `[ANALYZE_TIMING_USECASE] total_ms=${totalMs} ` +
         `parse_inputs_ms=${timings.parse_inputs_ms} ` +
         `profile_ctx_ms=${timings.profile_ctx_ms} ` +
+        `digest_ms=${timings.digest_ms} ` +
         `claude_hot_ms=${timings.claude_hot_ms} ` +
         `claude_deep_ms=${timings.claude_deep_ms} ` +
         `persist_ms=${timings.persist_ms} ` +
         `negotiation_ms=${timings.negotiation_ms} ` +
         `tier=${subscriptionState.tier} plan=${subscriptionState.plan} ` +
+        `digest_used=${!!digest} ` +
         `has_github=${!!cmd.githubUsername} ` +
         `has_linkedin=${!!cmd.linkedinBuffer} ` +
         `has_motiv=${!!(cmd.motivationLetterBuffer || cmd.motivationLetterText)}`,
@@ -415,6 +459,120 @@ export class AnalyzeCvUseCase {
 
     return created.id;
   }
+
+  /**
+   * Resolve a fresh ProfileDigest for the user. The flow:
+   *  1. Compute current source hashes (CV PDF buffer + LinkedIn text +
+   *     GitHub username + portfolio URL — see `digest-source-hashes` doc on
+   *     the Profile model).
+   *  2. Fetch the stored digest. If hashes match → return it as-is (cache
+   *     hit, ~5ms).
+   *  3. Otherwise, regenerate via GenerateProfileDigestUseCase. This adds
+   *     10-15s to the FIRST analysis (or any analysis after the user
+   *     updates a source), then subsequent analyses hit cache.
+   *
+   * Returns `null` if regeneration fails — the analysis falls back to raw
+   * sources transparently (no user-facing error).
+   */
+  private async resolveDigest(input: {
+    email: string;
+    cvBuffer: Buffer;
+    cvText: string;
+    linkedinText: string;
+    githubUsername: string | null;
+    portfolioUrl: string | null;
+    locale?: string;
+  }): Promise<ProfileDigest | null> {
+    const currentHashes: DigestSourceHashes = {
+      cv: sha256Hex(input.cvBuffer),
+      linkedin: input.linkedinText
+        ? sha256Hex(Buffer.from(input.linkedinText))
+        : null,
+      githubUsername: input.githubUsername
+        ? input.githubUsername.toLowerCase()
+        : null,
+      portfolioUrl: input.portfolioUrl
+        ? input.portfolioUrl.trim().toLowerCase()
+        : null,
+    };
+
+    const stored = await this.digests
+      .findByEmail(input.email)
+      .catch(() => null);
+
+    if (stored && hashesMatch(stored.hashes, currentHashes)) {
+      const ageMin = Math.round(
+        (Date.now() - stored.updatedAt.getTime()) / 60000,
+      );
+      this.logger.log(
+        `[DIGEST_CACHE] hit=true age_min=${ageMin} ` +
+          `work=${stored.digest.work_history.length} ` +
+          `projects=${stored.digest.projects.length} ` +
+          `inconsistencies=${stored.digest.cross_profile_inconsistencies.length}`,
+      );
+      return stored.digest;
+    }
+
+    const reason = diffReason(stored?.hashes ?? null, currentHashes);
+    this.logger.log(
+      `[DIGEST_CACHE] hit=false reason=${reason} ` +
+        `had_stored=${!!stored} ` +
+        `has_cv=${!!currentHashes.cv} has_li=${!!currentHashes.linkedin} ` +
+        `has_gh=${!!currentHashes.githubUsername} has_pf=${!!currentHashes.portfolioUrl}`,
+    );
+
+    // Stale or missing → regenerate. Best-effort: never fail the analysis
+    // because the digest couldn't be built.
+    try {
+      const { digest } = await this.generateDigestUc.execute({
+        email: input.email,
+        cvBuffer: input.cvBuffer,
+        cvText: input.cvText,
+        linkedinText: input.linkedinText || null,
+        githubUsername: input.githubUsername,
+        portfolioUrl: input.portfolioUrl,
+        locale: input.locale,
+      });
+      return digest;
+    } catch (err: any) {
+      this.logger.warn(
+        `[DIGEST_CACHE] regen_failed err=${err?.message || err}`,
+      );
+      return null;
+    }
+  }
+}
+
+function sha256Hex(buf: Buffer): string {
+  return createHash('sha256').update(buf).digest('hex');
+}
+
+function hashesMatch(a: DigestSourceHashes, b: DigestSourceHashes): boolean {
+  return (
+    a.cv === b.cv &&
+    a.linkedin === b.linkedin &&
+    a.githubUsername === b.githubUsername &&
+    a.portfolioUrl === b.portfolioUrl
+  );
+}
+
+/**
+ * Tag the SPECIFIC source that triggered a cache miss. Powers the
+ * [DIGEST_CACHE] log so we can see whether regenerations are mostly
+ * driven by CV changes, portfolio updates, etc. — useful to tune cache
+ * TTL strategies later.
+ */
+function diffReason(
+  stored: DigestSourceHashes | null,
+  current: DigestSourceHashes,
+): string {
+  if (!stored) return 'missing';
+  if (stored.cv !== current.cv) return 'cv_changed';
+  if (stored.linkedin !== current.linkedin) return 'linkedin_changed';
+  if (stored.githubUsername !== current.githubUsername)
+    return 'github_changed';
+  if (stored.portfolioUrl !== current.portfolioUrl) return 'portfolio_changed';
+  return 'unknown';
 }
 
 function notMentioned(value: string | null | undefined): string | null {

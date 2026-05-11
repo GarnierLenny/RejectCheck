@@ -22,6 +22,7 @@ import { SignalsTab } from "../../components/tabs/SignalsTab";
 import { FlagsTab } from "../../components/tabs/FlagsTab";
 import { RoadmapTab } from "../../components/tabs/RoadmapTab";
 import { BridgeTab } from "../../components/tabs/BridgeTab";
+import { ConsistencyTab } from "../../components/tabs/ConsistencyTab";
 import { TECH_ROLES } from "../../../lib/onboarding-data";
 import { ImproveTab } from "../../components/tabs/ImproveTab";
 import { InterviewTab } from "../../components/tabs/InterviewTab";
@@ -37,7 +38,7 @@ import { useLanguage } from "../../../context/language";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 
-type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
+type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -57,7 +58,7 @@ function AnalyzeContent() {
   const [email, setEmail] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const t = searchParams.get("tab");
-    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","negotiation","roadmap","project","improve","interview","cover-letter"];
+    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","consistency","negotiation","roadmap","project","improve","interview","cover-letter"];
     return validTabs.includes(t as Tab) ? (t as Tab) : "overview";
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
@@ -473,6 +474,18 @@ function AnalyzeContent() {
     { id: "cv-analysis",  label: t.tabs.cvAnalysis,  badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
     { id: "signals",      label: t.tabs.signals,     badge: String((isTechRole ? result.audit.github.issues.length : 0) + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",        label: t.tabs.redFlags,    badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
+    ...(result.cross_profile_inconsistencies && result.cross_profile_inconsistencies.length > 0
+      ? [{
+          id: "consistency" as const,
+          label: t.tabs.consistency,
+          badge: String(result.cross_profile_inconsistencies.length),
+          badgeClass: result.cross_profile_inconsistencies.some((i) => i.severity === "critical")
+            ? "text-rc-red"
+            : result.cross_profile_inconsistencies.some((i) => i.severity === "major")
+              ? "text-rc-amber"
+              : "text-rc-muted",
+        }]
+      : []),
     { id: "negotiation",  label: t.tabs.negotiation, badge: "✦", badgeClass: "text-rc-red" },
     { id: "roadmap",      label: t.tabs.roadmap,     badge: null, badgeClass: "" },
     { id: "project",      label: t.tabs.project,     badge: null, badgeClass: "" },
@@ -574,6 +587,7 @@ function AnalyzeContent() {
             {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
             {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
             {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
+            {activeTab === "consistency"  && <ConsistencyTab inconsistencies={result.cross_profile_inconsistencies ?? []} />}
             {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
             {activeTab === "roadmap"      && <RoadmapTab result={result} />}
             {activeTab === "project"      && <BridgeTab result={result} />}

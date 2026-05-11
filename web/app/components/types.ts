@@ -207,6 +207,23 @@ export type Audit = {
   };
 };
 
+export type CrossProfileInconsistency = {
+  severity: 'critical' | 'major' | 'minor';
+  sources: Array<'cv' | 'linkedin' | 'github' | 'portfolio'>;
+  field:
+    | 'job_title'
+    | 'company'
+    | 'dates'
+    | 'tech_stack'
+    | 'ownership'
+    | 'seniority'
+    | 'project_attribution'
+    | 'location'
+    | 'other';
+  description: string;
+  recruiter_perception: string;
+};
+
 export type AnalysisResult = {
   score: number;
   verdict: 'Low' | 'Medium' | 'High';
@@ -238,6 +255,12 @@ export type AnalysisResult = {
   project_recommendation?: ProjectRecommendation;
   challenge_analysis?: ChallengeAnalysis | null;
   negotiation_analysis?: NegotiationAnalysis | null;
+  /**
+   * Pre-computed cross-profile inconsistencies surfaced from the user's
+   * ProfileDigest. Drives the "Consistency check" banner / section. Empty
+   * or undefined for anonymous users.
+   */
+  cross_profile_inconsistencies?: CrossProfileInconsistency[];
 };
 
 /**
