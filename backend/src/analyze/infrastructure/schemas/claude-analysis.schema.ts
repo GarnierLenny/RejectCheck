@@ -134,15 +134,15 @@ const auditHotSchema = (description: string) => ({
     strengths: {
       type: 'array' as const,
       items: { type: 'string' as const },
-      maxItems: 4,
-      description: 'At most 4 strengths. Pick the most impactful, drop the rest.',
+      maxItems: 3,
+      description: 'At most 3 strengths. Pick the most impactful, drop the rest.',
     },
     issues: {
       type: 'array' as const,
       items: ISSUE_HOT_SCHEMA,
-      maxItems: 4,
+      maxItems: 3,
       description:
-        'At most 4 issues, ordered by severity (critical → minor). Prioritise — drop low-impact items rather than listing them all.',
+        'At most 3 issues, ordered by severity (critical → minor). Prioritise — drop low-impact items rather than listing them all.',
     },
   },
   required: ['score', 'issues', 'strengths'],
@@ -470,8 +470,8 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
       hidden_red_flags: {
         type: 'array' as const,
         description:
-          'At most 3 subtle signals that would concern a senior recruiter. Each entry only has its flag + perception here; the .fix is generated in the deep pass and indexed by position. Pick the most damaging — drop weaker ones rather than diluting.',
-        maxItems: 3,
+          'At most 2 subtle signals that would concern a senior recruiter. Each entry only has its flag + perception here; the .fix is generated in the deep pass and indexed by position. Pick the most damaging — drop weaker ones rather than diluting.',
+        maxItems: 2,
         items: {
           type: 'object' as const,
           properties: {
@@ -642,9 +642,9 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           key_features: {
             type: 'array' as const,
             items: { type: 'string' as const },
-            maxItems: 4,
+            maxItems: 3,
             description:
-              'At most 4 key features. Each ≤ 12 words, action-oriented.',
+              'At most 3 key features. Each ≤ 12 words, action-oriented.',
           },
           architecture: {
             type: 'string' as const,
@@ -660,8 +660,8 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           success_criteria: {
             type: 'array' as const,
             items: { type: 'string' as const },
-            maxItems: 4,
-            description: 'At most 4 criteria. Each ≤ 12 words.',
+            maxItems: 3,
+            description: 'At most 3 criteria. Each ≤ 12 words.',
           },
           difficulty_level: {
             type: 'string' as const,
@@ -675,8 +675,8 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           what_matters: {
             type: 'array' as const,
             items: { type: 'string' as const },
-            maxItems: 4,
-            description: 'At most 4 priority items. Each ≤ 12 words.',
+            maxItems: 3,
+            description: 'At most 3 priority items. Each ≤ 12 words.',
           },
         },
         required: [
@@ -709,28 +709,28 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           audit_cv_issues: {
             type: 'array' as const,
             items: FIX_SCHEMA,
-            maxItems: 4,
+            maxItems: 3,
             description:
               'One fix per issue in audit_cv.issues, same order. Length MUST match the hot audit_cv.issues array.',
           },
           audit_github_issues: {
             type: 'array' as const,
             items: FIX_SCHEMA,
-            maxItems: 4,
+            maxItems: 3,
             description:
               'One fix per issue in audit_github.issues, same order. Length MUST match the hot audit_github.issues array.',
           },
           audit_linkedin_issues: {
             type: 'array' as const,
             items: FIX_SCHEMA,
-            maxItems: 4,
+            maxItems: 3,
             description:
               'One fix per issue in audit_linkedin.issues, same order. Length MUST match the hot audit_linkedin.issues array.',
           },
           hidden_red_flags: {
             type: 'array' as const,
             items: FIX_SCHEMA,
-            maxItems: 3,
+            maxItems: 2,
             description:
               'One fix per entry in hidden_red_flags, same order. Length MUST match the hot hidden_red_flags array.',
           },

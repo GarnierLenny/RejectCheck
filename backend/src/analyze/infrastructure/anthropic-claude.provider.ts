@@ -45,6 +45,12 @@ import {
 } from './schemas/claude-profile-digest.schema';
 
 const MODEL = 'claude-sonnet-4-6';
+// Hot pass = structured extraction (scores, audit issues, red flag titles,
+// technical_analysis skills, job_details). Haiku 4.5 handles structured
+// output reliably at ~1/3 the cost of Sonnet 4.6. Deep pass + negotiation
+// stay on Sonnet because they require nuanced human-facing prose (fix
+// blocks, project_recommendation, market positioning).
+const HOT_MODEL = 'claude-haiku-4-5-20251001';
 const DIGEST_MODEL = 'claude-haiku-4-5-20251001';
 
 type ToolUseBlock = {
@@ -107,7 +113,7 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     try {
       const msg = await this.withSentry('analyze_hot', async () => {
         const stream = this.anthropic.messages.stream({
-          model: MODEL,
+          model: HOT_MODEL,
           max_tokens: HOT_MAX_TOKENS,
           temperature: 0.1,
           system: [
@@ -305,8 +311,10 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     const extraStr =
       extras.digest !== undefined ? ` digest=${extras.digest}` : '';
 
+    const modelLabel = op === 'analyze_hot' ? HOT_MODEL : MODEL;
+
     this.logger.log(
-      `[ANALYZE_TIMING_AI] op=${op} model=${MODEL} max_tokens_cap=${maxTokensCap} ` +
+      `[ANALYZE_TIMING_AI] op=${op} model=${modelLabel} max_tokens_cap=${maxTokensCap} ` +
         `total_ms=${totalMs} ttft_ms=${ttftMs ?? 'n/a'} gen_ms=${genMs ?? 'n/a'} ` +
         `input_tokens=${inputTokens} output_tokens=${outputTokens} ` +
         `cache_read=${cacheRead} cache_created=${cacheCreated} tps=${tps ?? 'n/a'}${extraStr}`,

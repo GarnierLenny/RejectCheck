@@ -489,6 +489,23 @@ export class AnalyzeCvUseCase {
     portfolioUrl: string | null;
     locale?: string;
   }): Promise<ProfileDigest | null> {
+    // Count active non-CV sources. The CV is always present (it's required to
+    // run an analysis at all), so the meaningful question is whether we have
+    // ANYTHING to cross-check it against. With CV alone, cross-profile
+    // mismatch detection is structurally impossible and the timeline view
+    // collapses to a single lane — the digest would cost ~$0.02-0.03 for no
+    // user-visible payoff. Skip it.
+    const extraSourceCount =
+      (input.linkedinText ? 1 : 0) +
+      (input.githubUsername ? 1 : 0) +
+      (input.portfolioUrl ? 1 : 0);
+    if (extraSourceCount === 0) {
+      this.logger.log(
+        '[DIGEST_CACHE] hit=skip reason=single_source (CV-only — no cross-profile value)',
+      );
+      return null;
+    }
+
     const currentHashes: DigestSourceHashes = {
       cv: sha256Hex(input.cvBuffer),
       linkedin: input.linkedinText
