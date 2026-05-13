@@ -94,6 +94,31 @@ export const CrossProfileInconsistencySchema = z.object({
   description: z.string(),
   /** How a recruiter is likely to interpret this — used by the analyze flow to surface it. */
   recruiter_perception: z.string(),
+  /**
+   * Representative date for the divergence (yyyy-mm), used to position a
+   * marker on the chronology timeline in the Consistency tab. Null when the
+   * divergence isn't temporally locatable (e.g. tech_stack mismatch).
+   */
+  anchor_date: z.string().nullable(),
+});
+
+// =============================================================================
+// Per-source timeline entries — used by the Consistency tab to render the
+// chronology with one lane per source. Unlike work_history (deduplicated),
+// timeline_entries preserves each source's verbatim view of each job — so if
+// CV says "Pedagogical Assistant 09/2022 → 03/2023" and LinkedIn says
+// "Pedagogical Assistant 10/2022 → 02/2023", that's TWO entries here. The
+// frontend stacks them on parallel rows to make the divergence visible.
+// =============================================================================
+
+export const TimelineEntrySchema = z.object({
+  title: z.string(),
+  company: z.string(),
+  source: SOURCE_LABEL,
+  /** ISO yyyy-mm. */
+  start: z.string(),
+  /** ISO yyyy-mm or 'present'. */
+  end: z.string(),
 });
 
 // =============================================================================
@@ -115,6 +140,11 @@ export const ProfileDigestSchema = z.object({
   /** Short observed signals — "ships polished work", "writes detailed case studies", "consistent 5+ year stints". */
   signals: z.array(z.string()),
 
+  // Per-source chronology — drives the Consistency tab timeline view.
+  // Optional for backward compat with digests generated before this field
+  // was added; the frontend falls back to the compact list when absent.
+  timeline_entries: z.array(TimelineEntrySchema).max(40).optional(),
+
   // Mismatches
   cross_profile_inconsistencies: z.array(CrossProfileInconsistencySchema),
 
@@ -134,6 +164,7 @@ export type Positioning = z.infer<typeof PositioningSchema>;
 export type CrossProfileInconsistency = z.infer<
   typeof CrossProfileInconsistencySchema
 >;
+export type TimelineEntry = z.infer<typeof TimelineEntrySchema>;
 export type SourceLabel = z.infer<typeof SOURCE_LABEL>;
 
 // =============================================================================

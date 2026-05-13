@@ -176,6 +176,11 @@ const CROSS_PROFILE_INCONSISTENCY = {
       description:
         'How a senior recruiter is likely to read this. ≤ 25 words.',
     },
+    anchor_date: {
+      type: ['string', 'null'] as ['string', 'null'],
+      description:
+        "Representative yyyy-mm date for the divergence (used to position a marker on the chronology timeline). For a title mismatch: midpoint of the job. For a date discrepancy: the divergent month. For an ownership conflict: the project's start. NULL when the divergence isn't temporally locatable (e.g. tech_stack mismatch). Only use dates explicitly present in the sources — never invent.",
+    },
   },
   required: [
     'severity',
@@ -183,7 +188,26 @@ const CROSS_PROFILE_INCONSISTENCY = {
     'field',
     'description',
     'recruiter_perception',
+    'anchor_date',
   ],
+};
+
+const TIMELINE_ENTRY = {
+  type: 'object' as const,
+  properties: {
+    title: { type: 'string' as const, description: 'Job title verbatim from this source.' },
+    company: { type: 'string' as const, description: 'Company name verbatim.' },
+    source: { type: 'string' as const, enum: SOURCE_ENUM },
+    start: {
+      type: 'string' as const,
+      description: 'ISO yyyy-mm. Use month 01 if only year is given.',
+    },
+    end: {
+      type: 'string' as const,
+      description: "ISO yyyy-mm or 'present'. Use month 12 if only year is given.",
+    },
+  },
+  required: ['title', 'company', 'source', 'start', 'end'],
 };
 
 export const SUBMIT_PROFILE_DIGEST_TOOL = {
@@ -234,6 +258,13 @@ export const SUBMIT_PROFILE_DIGEST_TOOL = {
         description:
           'Up to 6 short observed signals about the candidate. ≤ 15 words each. Examples: "ships polished work", "writes detailed case studies", "consistent 5+ year stints", "no design system experience visible".',
       },
+      timeline_entries: {
+        type: 'array' as const,
+        items: TIMELINE_ENTRY,
+        maxItems: 40,
+        description:
+          'Per-source chronology — ONE entry per source-occurrence of a job. If CV lists 5 jobs and LinkedIn lists 5 jobs with 4 overlapping, this array has ~9 entries (not 6). Use the dates EXACTLY as each source states them — do NOT reconcile, do NOT average. This powers the visual timeline that shows divergences as misaligned bars. Include every meaningful work entry from every available source; skip duplicates within the same source.',
+      },
       cross_profile_inconsistencies: {
         type: 'array' as const,
         items: CROSS_PROFILE_INCONSISTENCY,
@@ -262,6 +293,7 @@ export const SUBMIT_PROFILE_DIGEST_TOOL = {
       'projects',
       'positioning',
       'signals',
+      'timeline_entries',
       'cross_profile_inconsistencies',
       'sources_available',
     ],
@@ -271,12 +303,14 @@ export const SUBMIT_PROFILE_DIGEST_TOOL = {
 export const PROFILE_DIGEST_SYSTEM_PROMPT = `You are a profile synthesizer for RejectCheck. Your job is to produce a single structured digest of a candidate's professional identity by fusing whatever sources are provided (CV, LinkedIn, GitHub, portfolio).
 
 Operating principles:
-1. **Verbatim over paraphrase**: in work_history, projects, and tech_stack, use the exact names and titles from the sources. Don't normalize "Sr." to "Senior" or invent acronyms.
-2. **Deduplicate aggressively**: the same job or project across CV and LinkedIn = ONE entry with multiple sources cited. Don't double-count.
-3. **Be specific on inconsistencies**: cite actual divergent values ("CV says 'Senior Designer 2022-2024' but LinkedIn says 'Lead Designer 2023-2024'"). Skip entries you can't make specific — empty array is fine.
-4. **No embellishment in synthesized fields**: positioning.headline and signals describe what's observable, not what would sound impressive.
-5. **Polish_level is harsh by default**: 'high' is reserved for truly polished supports (clean design, no typos, structured story). 'medium' for solid-but-typical. 'low' for visibly rushed or inconsistent.
-6. **Recruiter mindset for cross_profile_inconsistencies**: write each \`recruiter_perception\` as how a senior recruiter would actually read it — practical, not academic.
+1. **Verbatim over paraphrase**: in work_history, projects, tech_stack, and timeline_entries, use the exact names and titles from the sources. Don't normalize "Sr." to "Senior" or invent acronyms.
+2. **work_history is DEDUPLICATED, timeline_entries is NOT**: same job across CV and LinkedIn → ONE work_history entry with both sources cited. BUT the SAME job → TWO separate timeline_entries (one with source='cv' and CV's dates, one with source='linkedin' and LinkedIn's dates). The two fields serve different purposes — don't apply the same logic to both.
+3. **timeline_entries dates are verbatim per source**: never reconcile or average. If CV says "09/2022 → 03/2023" and LinkedIn says "10/2022 → 02/2023", that's two entries with their own dates. The frontend renders parallel bars to make the divergence visible.
+4. **Be specific on inconsistencies**: cite actual divergent values ("CV says 'Senior Designer 2022-2024' but LinkedIn says 'Lead Designer 2023-2024'"). Skip entries you can't make specific — empty array is fine.
+5. **anchor_date is for visual placement**: each inconsistency gets a yyyy-mm date used to drop a marker on the timeline. For a title mismatch → midpoint of the disputed job. For a date discrepancy → the actually divergent month. For ownership conflicts → project start month. NULL only when truly not temporally locatable (e.g. tech_stack divergence with no time anchor). NEVER invent a date — use only dates explicitly stated in the sources.
+6. **No embellishment in synthesized fields**: positioning.headline and signals describe what's observable, not what would sound impressive.
+7. **Polish_level is harsh by default**: 'high' is reserved for truly polished supports (clean design, no typos, structured story). 'medium' for solid-but-typical. 'low' for visibly rushed or inconsistent.
+8. **Recruiter mindset for cross_profile_inconsistencies**: write each \`recruiter_perception\` as how a senior recruiter would actually read it — practical, not academic.
 
 **What is NOT an inconsistency (do NOT flag these):**
 - **Date variances within ±2 months** for the same job between CV and LinkedIn (users round dates on LinkedIn — "Oct 2022" vs "Sept 2022" is normal noise, not a divergence).

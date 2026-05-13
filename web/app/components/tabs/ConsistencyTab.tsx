@@ -1,30 +1,28 @@
 "use client";
 
 import { CheckCircle2, AlertOctagon, Globe, FileText } from "lucide-react";
-import type { CrossProfileInconsistency } from "../types";
+import type { CrossProfileInconsistency, TimelineEntry } from "../types";
 import { GithubIcon, LinkedinIcon } from "../SocialIcons";
 import { SectionHeader } from "../SectionHeader";
+import { SourceTimeline } from "../timeline/SourceTimeline";
 
 const SEVERITY_STYLE: Record<
   CrossProfileInconsistency["severity"],
-  { badge: string; border: string; bg: string; label: string }
+  { badge: string; bar: string; label: string }
 > = {
   critical: {
     badge: "bg-rc-red text-white",
-    border: "border-rc-red/40",
-    bg: "bg-rc-red/5",
+    bar: "bg-rc-red",
     label: "Critical",
   },
   major: {
     badge: "bg-rc-amber text-white",
-    border: "border-rc-amber/40",
-    bg: "bg-rc-amber/5",
+    bar: "bg-rc-amber",
     label: "Major",
   },
   minor: {
     badge: "bg-rc-muted/20 text-rc-muted",
-    border: "border-rc-border",
-    bg: "bg-rc-surface",
+    bar: "bg-rc-border",
     label: "Minor",
   },
 };
@@ -34,27 +32,34 @@ function SourceIcon({
 }: {
   source: CrossProfileInconsistency["sources"][number];
 }) {
-  if (source === "cv") return <FileText size={14} className="text-rc-muted" />;
+  if (source === "cv") return <FileText size={12} className="text-rc-muted" />;
   if (source === "linkedin")
-    return <LinkedinIcon size={14} className="text-rc-muted" />;
+    return <LinkedinIcon size={12} className="text-rc-muted" />;
   if (source === "github")
-    return <GithubIcon size={14} className="text-rc-muted" />;
-  return <Globe size={14} className="text-rc-muted" />;
+    return <GithubIcon size={12} className="text-rc-muted" />;
+  return <Globe size={12} className="text-rc-muted" />;
 }
 
 /**
- * Tab that lists every cross-profile inconsistency detected by the user's
- * ProfileDigest. This is "what a senior recruiter would notice in 30
- * seconds" — concrete divergences between the candidate's CV, LinkedIn,
- * GitHub, and portfolio.
+ * Tab that visualises cross-profile inconsistencies detected by the user's
+ * ProfileDigest.
  *
- * Empty state when no inconsistencies exist — encouraging copy rather than
- * a void tab.
+ * Layout (top to bottom):
+ *  1. SectionHeader with severity counters
+ *  2. SourceTimeline — parallel lanes per source, divergence markers anchored
+ *     to dates (only rendered when `timeline_entries` is present)
+ *  3. Compact 6-col list of each inconsistency with severity, field, source
+ *     values, and a recruiter-perspective note
+ *
+ * Empty state when no inconsistencies → encouraging copy instead of a void
+ * tab.
  */
 export function ConsistencyTab({
   inconsistencies,
+  timelineEntries,
 }: {
   inconsistencies: CrossProfileInconsistency[];
+  timelineEntries: TimelineEntry[];
 }) {
   if (inconsistencies.length === 0) {
     return (
@@ -91,8 +96,19 @@ export function ConsistencyTab({
     minor: sorted.filter((i) => i.severity === "minor").length,
   };
 
+  // Markers for the timeline = inconsistencies with a parseable anchor_date.
+  // We don't filter by severity — even minor mismatches deserve a dot.
+  const markers = sorted
+    .map((inc) => {
+      if (!inc.anchor_date) return null;
+      const date = parseYearMonth(inc.anchor_date);
+      if (!date) return null;
+      return { date, severity: inc.severity };
+    })
+    .filter((m): m is { date: Date; severity: CrossProfileInconsistency["severity"] } => m !== null);
+
   return (
-    <div>
+    <div className="space-y-8">
       <SectionHeader
         label="Consistency"
         title={`${sorted.length} mismatch${sorted.length === 1 ? "" : "es"} across your sources`}
@@ -127,52 +143,93 @@ export function ConsistencyTab({
         }
       />
 
-      <div className="border border-rc-border rounded-xl overflow-hidden divide-y divide-rc-border">
-        {sorted.map((inc, i) => {
-          const style = SEVERITY_STYLE[inc.severity];
-          return (
-            <div key={i} className={`px-5 py-4 ${style.bg}`}>
-              <div className="flex items-center gap-3 mb-2.5 flex-wrap">
-                <span
-                  className={`font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 font-bold ${style.badge}`}
-                >
-                  {style.label}
-                </span>
-                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-rc-hint">
-                  {inc.field.replace(/_/g, " ")}
-                </span>
-                <span className="text-rc-border">·</span>
-                <div className="flex items-center gap-1.5">
-                  {inc.sources.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1 text-[11px] text-rc-muted font-mono uppercase"
-                    >
-                      <SourceIcon source={s} />
-                      {s}
-                      {idx < inc.sources.length - 1 && (
-                        <span className="ml-0.5 text-rc-border">↔</span>
-                      )}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="text-[15px] text-rc-text leading-relaxed mb-2.5">
-                {inc.description}
-              </div>
-              <div className="flex items-start gap-2 text-[13px] text-rc-muted italic leading-snug border-l-2 border-rc-border pl-3">
-                <AlertOctagon size={13} className="text-rc-muted mt-0.5 shrink-0" />
-                <span>
-                  <span className="font-semibold not-italic text-rc-hint font-mono text-[11px] uppercase tracking-wider mr-2">
-                    Recruiter:
-                  </span>
-                  {inc.recruiter_perception}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+      {timelineEntries.length > 0 && (
+        <SourceTimeline entries={timelineEntries} markers={markers} />
+      )}
+
+      <div>
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-rc-hint mb-3">
+          Divergences — detail
+        </div>
+        <div className="border border-rc-border rounded-lg overflow-hidden bg-rc-surface">
+          {sorted.map((inc, i) => (
+            <CompactRow
+              key={i}
+              inc={inc}
+              last={i === sorted.length - 1}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
+}
+
+function CompactRow({
+  inc,
+  last,
+}: {
+  inc: CrossProfileInconsistency;
+  last: boolean;
+}) {
+  const style = SEVERITY_STYLE[inc.severity];
+  return (
+    <div
+      className={`grid items-center min-h-[52px] ${
+        last ? "" : "border-b border-rc-border/60"
+      }`}
+      style={{
+        gridTemplateColumns: "4px 92px minmax(0, 1fr) 96px minmax(0, 1.4fr) minmax(0, 1.6fr)",
+      }}
+    >
+      <div className={`self-stretch ${style.bar}`} />
+      <div className="px-3.5 py-2.5">
+        <span
+          className={`font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 font-bold ${style.badge} inline-block`}
+        >
+          {style.label}
+        </span>
+      </div>
+      <div className="px-3.5 py-2.5 text-[13.5px] font-semibold text-rc-text leading-snug">
+        {extractSubject(inc.description)}
+      </div>
+      <div className="px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-rc-hint">
+        {inc.field.replace(/_/g, " ")}
+      </div>
+      <div className="px-3.5 py-2.5 flex flex-wrap items-center gap-2">
+        {inc.sources.map((s, i) => (
+          <span key={i} className="inline-flex items-center gap-1.5">
+            {i > 0 && (
+              <span className="text-rc-border font-mono text-[12px]">↔</span>
+            )}
+            <span className="inline-flex items-center gap-1 text-[11px] text-rc-muted font-mono uppercase tracking-wider">
+              <SourceIcon source={s} />
+              {s}
+            </span>
+          </span>
+        ))}
+      </div>
+      <div className="px-4 py-2.5 border-l border-rc-border/60 font-serif italic text-[12.5px] text-rc-muted leading-snug">
+        « {inc.recruiter_perception} »
+      </div>
+    </div>
+  );
+}
+
+/** Pull the first phrase before a colon / em-dash / first "but" — a quick subject for the row. */
+function extractSubject(description: string): string {
+  const match = description.match(/^([^:.—]+?)(?:\s+(?:but|alors que|but the)\s|[:—]|\.|$)/i);
+  if (match && match[1]) return match[1].trim();
+  return description.slice(0, 50);
+}
+
+function parseYearMonth(s: string): Date | null {
+  const m = s.match(/^(\d{4})-(\d{1,2})$/);
+  if (!m) return null;
+  const year = parseInt(m[1], 10);
+  const month = parseInt(m[2], 10);
+  if (Number.isNaN(year) || Number.isNaN(month) || month < 1 || month > 12) {
+    return null;
+  }
+  return new Date(year, month - 1, 15);
 }

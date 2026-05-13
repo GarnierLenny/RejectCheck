@@ -222,6 +222,18 @@ export type CrossProfileInconsistency = {
     | 'other';
   description: string;
   recruiter_perception: string;
+  /** ISO yyyy-mm date used to position a marker on the timeline. Null when the divergence isn't temporally locatable. */
+  anchor_date: string | null;
+};
+
+export type TimelineEntry = {
+  title: string;
+  company: string;
+  source: 'cv' | 'linkedin' | 'github' | 'portfolio';
+  /** ISO yyyy-mm */
+  start: string;
+  /** ISO yyyy-mm or 'present' */
+  end: string;
 };
 
 export type AnalysisResult = {
@@ -261,6 +273,13 @@ export type AnalysisResult = {
    * or undefined for anonymous users.
    */
   cross_profile_inconsistencies?: CrossProfileInconsistency[];
+  /**
+   * Per-source job chronology from the ProfileDigest. Powers the timeline
+   * visualization in the Consistency tab — one entry per source-occurrence
+   * of each job, so the same role on CV and LinkedIn becomes two entries
+   * with their own dates (which the UI renders as parallel bars).
+   */
+  timeline_entries?: TimelineEntry[];
 };
 
 /**

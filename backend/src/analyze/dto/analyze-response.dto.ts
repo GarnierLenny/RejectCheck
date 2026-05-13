@@ -1,7 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { NegotiationAnalysisSchema } from './negotiation-response.dto';
-import { CrossProfileInconsistencySchema } from './profile-digest.dto';
+import {
+  CrossProfileInconsistencySchema,
+  TimelineEntrySchema,
+} from './profile-digest.dto';
 
 export const FixSchema = z.object({
   summary: z.string(),
@@ -346,6 +349,13 @@ export const AnalyzeResponseSchema = z.object({
   cross_profile_inconsistencies: z
     .array(CrossProfileInconsistencySchema)
     .optional(),
+  /**
+   * Per-source chronology used by the Consistency tab timeline visualization.
+   * Each entry is one job from one source — same job across multiple sources
+   * appears multiple times (one per source) so the frontend can render parallel
+   * bars and surface date divergences spatially.
+   */
+  timeline_entries: z.array(TimelineEntrySchema).optional(),
 });
 
 export class AnalyzeResponseDto extends createZodDto(AnalyzeResponseSchema) {}
@@ -367,17 +377,21 @@ export function mergeHotAndDeep(
   hot: HotAnalyzeResponse,
   deep: DeepAnalyzeResponse | null | undefined,
 ): AnalyzeResponse {
-  // `cross_profile_inconsistencies` isn't part of HotAnalyzeResponseSchema —
-  // it's appended onto the result by AnalyzeCvUseCase after this merge runs
-  // (sourced from the user's ProfileDigest). When GetAnalysisUseCase re-runs
-  // this merge on a stored row, the field is present on the in-memory object
-  // even though the Zod type doesn't list it. Preserve it through the merge
-  // so reloading an analysis doesn't drop the Consistency tab data.
+  // `cross_profile_inconsistencies` and `timeline_entries` aren't part of
+  // HotAnalyzeResponseSchema — they're appended onto the result by
+  // AnalyzeCvUseCase after this merge runs (sourced from the user's
+  // ProfileDigest). When GetAnalysisUseCase re-runs this merge on a stored
+  // row, the fields are present on the in-memory object even though the Zod
+  // type doesn't list them. Preserve them through the merge so reloading an
+  // analysis doesn't drop the Consistency tab data.
   const passthroughInconsistencies = (
     hot as unknown as { cross_profile_inconsistencies?: unknown }
   ).cross_profile_inconsistencies as
     | AnalyzeResponse['cross_profile_inconsistencies']
     | undefined;
+  const passthroughTimeline = (
+    hot as unknown as { timeline_entries?: unknown }
+  ).timeline_entries as AnalyzeResponse['timeline_entries'] | undefined;
 
   const merged: AnalyzeResponse = {
     score: hot.score,
@@ -436,6 +450,9 @@ export function mergeHotAndDeep(
   };
   if (passthroughInconsistencies && passthroughInconsistencies.length > 0) {
     merged.cross_profile_inconsistencies = passthroughInconsistencies;
+  }
+  if (passthroughTimeline && passthroughTimeline.length > 0) {
+    merged.timeline_entries = passthroughTimeline;
   }
   return merged;
 }

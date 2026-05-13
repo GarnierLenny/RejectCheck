@@ -587,7 +587,7 @@ function AnalyzeContent() {
             {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
             {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
             {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
-            {activeTab === "consistency"  && <ConsistencyTab inconsistencies={result.cross_profile_inconsistencies ?? []} />}
+            {activeTab === "consistency"  && <ConsistencyTab inconsistencies={result.cross_profile_inconsistencies ?? []} timelineEntries={result.timeline_entries ?? []} />}
             {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
             {activeTab === "roadmap"      && <RoadmapTab result={result} />}
             {activeTab === "project"      && <BridgeTab result={result} />}

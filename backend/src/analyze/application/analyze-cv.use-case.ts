@@ -249,6 +249,12 @@ export class AnalyzeCvUseCase {
     if (digest && digest.cross_profile_inconsistencies.length > 0) {
       result.cross_profile_inconsistencies = digest.cross_profile_inconsistencies;
     }
+    // Same passthrough for the per-source timeline_entries — drives the
+    // Consistency tab chronology visualization. Optional on the digest
+    // (older digests generated before this field was added won't have it).
+    if (digest && digest.timeline_entries && digest.timeline_entries.length > 0) {
+      result.timeline_entries = digest.timeline_entries;
+    }
 
     // Persist before announcing analysis_done so the frontend gets a real
     // analysisId for downstream actions (rewrite, history, negotiation tab).
