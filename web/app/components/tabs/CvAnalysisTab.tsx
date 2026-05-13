@@ -134,8 +134,9 @@ export function CvAnalysisTab({ result }: Props) {
             )}
           </div>
 
-          {/* Correlation callout */}
-          {correlation.detected && (
+          {/* Correlation callout — legacy field, only present on analyses
+              created before correlation was cut from the schema. */}
+          {correlation?.detected && (
             <div className="flex gap-4 p-5 bg-rc-amber/5 border border-rc-amber/20">
               <div className="shrink-0 mt-0.5">
                 <Link size={14} className="text-rc-amber" />
@@ -183,7 +184,7 @@ export function CvAnalysisTab({ result }: Props) {
               );
             })}
           </div>
-          {cv.strengths.length > 0 && (
+          {cv.strengths && cv.strengths.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {cv.strengths.map((s, i) => (
                 <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-green/5 text-rc-green border border-rc-green/20">

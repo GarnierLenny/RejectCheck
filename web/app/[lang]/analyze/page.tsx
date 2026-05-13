@@ -37,6 +37,7 @@ import { consumeSSE } from "../../../lib/sse";
 import { useLanguage } from "../../../context/language";
 import { toast } from "sonner";
 import { Check, X } from "lucide-react";
+import posthog from "posthog-js";
 
 type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
 
@@ -102,6 +103,7 @@ function AnalyzeContent() {
 
   function handleRegenerateDeep() {
     if (!analysisId) return;
+    posthog.capture("deep_analysis_regenerated", { analysis_id: analysisId });
     regenerateDeep.mutate(analysisId, {
       onSuccess: ({ deep }) => {
         setResult((prev) => (prev ? mergeDeepIntoResult(prev, deep) : prev));
@@ -207,6 +209,14 @@ function AnalyzeContent() {
     formData.append("isRegistered", String(!!user));
     formData.append("locale", locale);
 
+    posthog.capture("cv_analysis_submitted", {
+      has_github: !!githubUsername,
+      has_linkedin: !!liFile,
+      has_motivation_letter: !!mlFile || !!mlText,
+      is_registered: !!user,
+      locale,
+    });
+
     setLoading(true);
     setError(null);
     setCurrentStep(null);
@@ -220,6 +230,7 @@ function AnalyzeContent() {
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
 
       if (res.status === 402) {
+        posthog.capture("paywall_shown", { reason: "global_limit" });
         setPaywallReason('global');
         setLoading(false);
         return;
@@ -264,6 +275,14 @@ function AnalyzeContent() {
           if (payload.result) {
             latestResult = payload.result;
             setResult(payload.result);
+            posthog.capture("cv_analysis_completed", {
+              score: payload.result.score,
+              verdict: payload.result.verdict,
+              ats_pass: payload.result.ats_simulation?.would_pass,
+              cv_issues: payload.result.audit?.cv?.issues?.length,
+              red_flags: payload.result.hidden_red_flags?.length,
+              analysis_id: payload.analysisId ?? null,
+            });
           }
           if (payload.analysisId) {
             latestAnalysisId = payload.analysisId;
@@ -338,10 +357,13 @@ function AnalyzeContent() {
         }
       });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
+      const message = err instanceof Error ? err.message : "Analysis failed";
+      setError(message);
       setLoading(false);
       setCurrentStep(null);
       if (!deepArrived) setDeepStatus('failed');
+      posthog.capture("cv_analysis_failed", { error: message, analysis_id: analysisId });
+      posthog.captureException(err);
     } finally {
       streamingRef.current = false;
     }
@@ -376,6 +398,7 @@ function AnalyzeContent() {
     const emailVal = activeSubscription?.email || user?.email;
     if (!analysisId || !emailVal || !session?.access_token) return;
 
+    posthog.capture("cv_rewrite_requested", { analysis_id: analysisId });
     setIsRewriting(true);
 
     try {
@@ -438,6 +461,7 @@ function AnalyzeContent() {
     const md = generateMarkdown(result);
     const names = getExportFilenames(result);
     triggerDownload(md, names.md, "text/markdown");
+    posthog.capture("analysis_exported", { format: "markdown", analysis_id: analysisId });
     toast.success("Markdown report downloaded");
   };
 
@@ -447,6 +471,7 @@ function AnalyzeContent() {
     const names = getExportFilenames(result);
     try {
       await generatePdf(result, names.pdf);
+      posthog.capture("analysis_exported", { format: "pdf", analysis_id: analysisId });
       toast.success("PDF report generated");
     } catch (err) {
       console.error("PDF Export failed:", err);
@@ -569,7 +594,7 @@ function AnalyzeContent() {
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as Tab)}
+                    onClick={() => { setActiveTab(tab.id as Tab); posthog.capture("analysis_tab_changed", { tab: tab.id, analysis_id: analysisId }); }}
                     className={`shrink-0 flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
                       activeTab === tab.id ? "border-rc-red text-rc-red font-bold" : "border-transparent text-rc-muted hover:text-rc-text"
                     }`}

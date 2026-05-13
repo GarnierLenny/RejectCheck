@@ -5,6 +5,7 @@ import { Share2, Check, Link as LinkIcon } from "lucide-react";
 import { XIcon, LinkedinIcon } from "./SocialIcons";
 import { Caption } from "./typography";
 import { useLanguage } from "../../context/language";
+import posthog from "posthog-js";
 
 type Props = {
   /** URL that will be shared (the destination unfurled by X/LinkedIn). */
@@ -39,18 +40,21 @@ export function ShareMenu({ url, text, size = "md" }: Props) {
   }, [open]);
 
   function openX() {
+    posthog.capture("content_shared", { platform: "x", url });
     const intent = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     window.open(intent, "_blank", "noopener,noreferrer");
     setOpen(false);
   }
 
   function openLinkedIn() {
+    posthog.capture("content_shared", { platform: "linkedin", url });
     const intent = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
     window.open(intent, "_blank", "noopener,noreferrer");
     setOpen(false);
   }
 
   async function copyLink() {
+    posthog.capture("content_shared", { platform: "copy_link", url });
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => {

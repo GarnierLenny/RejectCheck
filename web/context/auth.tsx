@@ -2,11 +2,20 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import * as Sentry from "@sentry/nextjs";
+import posthog from "posthog-js";
 import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase";
 
 function syncSentryUser(user: User | null | undefined): void {
   Sentry.setUser(user ? { id: user.id, email: user.email } : null);
+}
+
+function syncPosthogUser(user: User | null | undefined): void {
+  if (user) {
+    posthog.identify(user.id, { email: user.email });
+  } else {
+    posthog.reset();
+  }
 }
 
 type AuthContextType = {
@@ -35,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(data.session);
         setUser(data.session?.user ?? null);
         syncSentryUser(data.session?.user);
+        syncPosthogUser(data.session?.user);
       })
       .catch(() => {
         // Supabase unavailable; leave user/session as null
@@ -47,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       syncSentryUser(session?.user);
+      syncPosthogUser(session?.user);
     });
 
     return () => listener.subscription.unsubscribe();
@@ -55,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signOut() {
     await supabase.auth.signOut();
     syncSentryUser(null);
+    syncPosthogUser(null);
   }
 
   return (

@@ -862,8 +862,8 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
         {(() => {
           const gh = result.audit.github;
           const li = result.audit.linkedin;
-          const ghHasData = gh.score !== null || gh.issues.length > 0 || gh.strengths.length > 0;
-          const liHasData = li.score !== null || li.issues.length > 0 || li.strengths.length > 0;
+          const ghHasData = gh.score !== null || gh.issues.length > 0 || (gh.strengths?.length ?? 0) > 0;
+          const liHasData = li.score !== null || li.issues.length > 0 || (li.strengths?.length ?? 0) > 0;
           const renderSignal = (title: string, data: typeof gh, hasData: boolean, emptyMsg: string) => (
             <View style={styles.signalCard} wrap={false}>
               <View style={styles.signalHeader}>
@@ -876,7 +876,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                 <Text style={{ fontSize: 11, color: "#94a3b8", fontStyle: "italic", padding: 16 }}>{emptyMsg}</Text>
               ) : (
                 <View>
-                  {data.strengths.length > 0 && (
+                  {data.strengths && data.strengths.length > 0 && (
                     <View style={styles.strengthBadgeContainer}>
                       {(data.strengths as string[]).map((s, i) => (
                         <View key={i} style={styles.strengthBadge}>

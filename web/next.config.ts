@@ -30,6 +30,18 @@ const nextConfig: NextConfig = {
         source: "/analyse",
         destination: "/analyze",
       },
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/array/:path*",
+        destination: "https://us-assets.i.posthog.com/array/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
     ];
     if (process.env.NODE_ENV === "production") return { beforeFiles: baseRewrites };
     return {
@@ -42,6 +54,7 @@ const nextConfig: NextConfig = {
       ],
     };
   },
+  skipTrailingSlashRedirect: true,
 };
 
 export default withSentryConfig(nextConfig, {

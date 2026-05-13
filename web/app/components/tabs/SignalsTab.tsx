@@ -78,7 +78,7 @@ function SignalSection({
                   </span>
                 )}
               </div>
-              {strengths.length > 0 && (
+              {strengths && strengths.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {strengths.map((s, i) => (
                     <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-green/5 text-rc-green border border-rc-green/20">

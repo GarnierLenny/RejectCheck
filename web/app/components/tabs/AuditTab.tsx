@@ -52,7 +52,7 @@ export function AuditTab({ cv }: Props) {
             })}
           </div>
 
-          {cv.strengths.length > 0 && (
+          {cv.strengths && cv.strengths.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {cv.strengths.map((s, i) => (
                 <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase px-2.5 py-1 rounded bg-rc-green/5 text-rc-green border border-rc-green/20">

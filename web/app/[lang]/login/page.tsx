@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "../../../lib/supabase";
 import { useLanguage } from "../../../context/language";
+import posthog from "posthog-js";
 
 type Mode = "signin" | "signup";
 
@@ -43,6 +44,7 @@ function LoginContent() {
     setError(null);
     setInfo(null);
     setLoading(true);
+    posthog.capture("oauth_login_initiated", { provider });
     const callbackUrl = new URL('/auth/callback', window.location.origin);
     callbackUrl.searchParams.set('next', redirect);
     callbackUrl.searchParams.set('lang', locale);
@@ -64,10 +66,14 @@ function LoginContent() {
     setLoading(true);
 
     if (mode === "signin") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setError(error.message);
       } else {
+        if (signInData.user) {
+          posthog.identify(signInData.user.id, { email: signInData.user.email });
+        }
+        posthog.capture("user_signed_in", { method: "email" });
         router.push(redirect);
       }
     } else {
@@ -83,6 +89,7 @@ function LoginContent() {
       if (error) {
         setError(error.message);
       } else {
+        posthog.capture("user_signed_up", { method: "email" });
         setInfo(t.login.confirmEmail);
         setMode("signin");
       }

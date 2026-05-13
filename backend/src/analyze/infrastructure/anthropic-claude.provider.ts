@@ -45,12 +45,14 @@ import {
 } from './schemas/claude-profile-digest.schema';
 
 const MODEL = 'claude-sonnet-4-6';
-// Hot pass = structured extraction (scores, audit issues, red flag titles,
-// technical_analysis skills, job_details). Haiku 4.5 handles structured
-// output reliably at ~1/3 the cost of Sonnet 4.6. Deep pass + negotiation
-// stay on Sonnet because they require nuanced human-facing prose (fix
-// blocks, project_recommendation, market positioning).
-const HOT_MODEL = 'claude-haiku-4-5-20251001';
+// We previously tried Haiku 4.5 on the hot pass for cost savings (~$0.035
+// per analysis) but observed structural failures: Haiku occasionally
+// dropped required fields like `overall` or flattened nested objects when
+// asked to produce the full hot schema (16 required fields with nested
+// arrays/objects). Sonnet 4.6 is reliable for this shape. If you want to
+// retry Haiku, expect needing prompt-level reinforcement + a parse-error
+// retry path; for now the reliability premium is worth $0.035.
+const HOT_MODEL = MODEL;
 const DIGEST_MODEL = 'claude-haiku-4-5-20251001';
 
 type ToolUseBlock = {
@@ -190,7 +192,6 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
           jd_match: i.audit_jd_match,
         },
         hidden_red_flags: i.hidden_red_flags,
-        correlation: i.correlation,
         job_details: i.job_details,
         technical_analysis: i.technical_analysis,
         challenge_analysis: i.challenge_analysis,
@@ -516,6 +517,30 @@ Language: ${langName}`;
     }
   }
 
+  /**
+   * For non-engineering roles, GitHub is rarely the primary signal — generating
+   * a detailed audit_github wastes ~900 output tokens. Tell Claude to keep that
+   * field minimal (score=null, empty issues array) unless the role is one
+   * where GitHub matters.
+   *
+   * Empty string for engineering roles → no special instruction injected.
+   */
+  private formatGithubRelevanceInstruction(
+    roleType?: string | null,
+  ): string {
+    const TECH_ROLES = new Set([
+      'software',
+      'data',
+      'devops',
+      'ml',
+      'security',
+      'mobile',
+      'embedded',
+    ]);
+    if (!roleType || TECH_ROLES.has(roleType)) return '';
+    return `GITHUB IS NOT A PRIMARY SIGNAL FOR THIS ROLE TYPE (\`${roleType}\`). Keep \`audit_github\` minimal — set \`audit_github.score\` to null and \`audit_github.issues\` to an empty array. Don't waste output tokens analyzing commit patterns or repo quality unless an issue is genuinely recruiter-relevant for this non-engineering role.\n\n`;
+  }
+
   private resolveTechnicalPrompt(roleType?: string | null): string {
     const fallback = this.config.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
     if (!roleType || roleType === 'software') return fallback;
@@ -527,11 +552,14 @@ Language: ${langName}`;
   }
 
   private buildAnalyzeUserMessage(input: AnalyzeApplicationInput): string {
+    const githubInstructions = this.formatGithubRelevanceInstruction(
+      input.userRoleType,
+    );
     return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
 
 Perform a complete application analysis.
 
-${this.formatCandidateContext(input)}JOB DESCRIPTION:
+${this.formatCandidateContext(input)}${githubInstructions}JOB DESCRIPTION:
 ${input.jobText}
 
 ---
@@ -554,7 +582,7 @@ Daily-challenge usage rules:
 - For status='analyzed': \`summary\` celebrates 2-3 *specific* observed strengths (cite avg score, count, focus tags they nail); \`strengths\` is 2-4 short bullet strings; \`bridge_to_project\` explains how the \`project_recommendation\` below covers blind spots the challenges don't (system design, persistence, integrations, end-to-end ownership). If the user's track record is on a closely related language (e.g. Python attempts for a Go backend role), explicitly frame it as transferable rigor rather than a 1:1 stack signal.
 
 Formatting rules:
-- Use **markdown** in all text fields (reasoning, recommendation, market_context, skill evidence, seniority_signals, challenge_analysis text fields): bold key terms, italics for nuance, short bullet lists where helpful.
+- Use **markdown** in all text fields (reasoning, recommendation, skill evidence, seniority_signals, challenge_analysis text fields): bold key terms, italics for nuance, short bullet lists where helpful.
 - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`;
   }
 
@@ -588,12 +616,11 @@ Formatting rules:
 
     return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
 
-Generate the DEEP analysis pass for the application below. The HOT pass has already produced scores, audits, and red flag titles. Your job now is to:
+Generate the DEEP analysis pass for the application below. The HOT pass has already produced scores, audits, red flag titles, and technical_analysis. Your job now is to:
 
-1. Produce \`technical_analysis\` (reasoning, 5 ranked skills, recommendation, market_context, seniority_signals).
-2. Produce a single \`project_recommendation\` (the Bridge-the-Gap project — keep it strong and specific, this is the main user-facing artefact).
-3. List the ATS \`critical_missing_keywords\` ordered by score_impact desc.
-4. Generate ONE \`fix\` per issue / red flag / seniority gap / tone diagnostic identified in the hot pass. Each fix array MUST have the SAME LENGTH as its hot counterpart, in the SAME ORDER.
+1. Produce a single \`project_recommendation\` (the Bridge-the-Gap project — keep it strong and specific, this is the main user-facing artefact).
+2. List the ATS \`critical_missing_keywords\` ordered by score_impact desc.
+3. Generate ONE \`fix\` per issue / red flag / seniority gap identified in the hot pass. Each fix array MUST have the SAME LENGTH as its hot counterpart, in the SAME ORDER. The cv_tone diagnostic does NOT need a fix — set fixes.cv_tone to a minimal placeholder if the schema requires it (or it'll be optional).
 
 ${this.formatCandidateContext(input)}JOB DESCRIPTION:
 ${input.jobText}
@@ -624,10 +651,9 @@ ${issueLine(hot.audit.linkedin.issues as any, 'audit_linkedin issues')}
 hidden_red_flags (${hot.hidden_red_flags.length} item${hot.hidden_red_flags.length === 1 ? '' : 's'}, generate one fix per index in order):
 ${redFlagsSummary}
 
-Formatting rules (same as hot pass):
-- Use markdown in all text fields (reasoning, recommendation, market_context, evidence, seniority_signals, fix.summary, fix.steps).
-- skill_priority: list the exact 5 skill names from most to least critical for this specific job.
-- Each \`fix\` MUST include all required sub-fields (summary, steps, example, project_idea, time_required). Use null for example or project_idea only when truly not applicable.`;
+Formatting rules:
+- Use markdown in all text fields (fix.summary, fix.steps, project_recommendation prose).
+- Each \`fix\` MUST include all required sub-fields. Use null for example or project_idea when truly not applicable.`;
   }
 
   private formatCandidateContext(

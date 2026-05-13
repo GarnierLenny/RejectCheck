@@ -11,6 +11,7 @@ import { useCreateCheckout } from "../../../lib/mutations";
 import { useLanguage } from "../../../context/language";
 import { Check, ShieldCheck, Zap, Star, Trophy, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 function PricingContent() {
   const router = useRouter();
@@ -78,6 +79,7 @@ function PricingContent() {
 
     if (activePlan === plan) return;
 
+    posthog.capture("checkout_started", { plan });
     setLoadingPlan(plan);
     try {
       const data = await createCheckout.mutateAsync({ plan, email: user.email });

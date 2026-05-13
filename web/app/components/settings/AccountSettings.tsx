@@ -24,6 +24,7 @@ import {
   useDeleteSavedCv,
 } from "../../../lib/mutations";
 import type { Subscription, SavedCv } from "../../../lib/queries";
+import posthog from "posthog-js";
 
 export function AccountSettings({
   subscription,
@@ -66,6 +67,7 @@ export function AccountSettings({
         .from("user-profiles")
         .getPublicUrl(path);
       await addSavedCv.mutateAsync({ name: file.name, url: publicUrl });
+      posthog.capture("cv_saved", { saved_cv_count: savedCvs.length + 1 });
     } finally {
       setCvUploading(false);
       if (cvRef.current) cvRef.current.value = "";
@@ -73,7 +75,9 @@ export function AccountSettings({
   }
 
   async function handleDeleteAccount() {
+    posthog.capture("account_deleted", { plan: subscription?.plan ?? "free" });
     await deleteAccount.mutateAsync();
+    posthog.reset();
     await supabase.auth.signOut();
     window.location.href = `/${lang}`;
   }
@@ -140,7 +144,7 @@ export function AccountSettings({
             <Button
               variant="default"
               block
-              onClick={() => portalSession.mutate()}
+              onClick={() => { posthog.capture("billing_portal_opened", { plan: subscription?.plan }); portalSession.mutate(); }}
               loading={portalSession.isPending}
             >
               {portalSession.isPending ? t.settingsTab.account.redirecting : t.settingsTab.account.manageBilling}

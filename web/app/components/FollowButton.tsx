@@ -5,6 +5,7 @@ import { UserPlus, UserCheck, UserMinus } from "lucide-react";
 import { useFollow, useUnfollow } from "../../lib/mutations";
 import { useAuth } from "../../context/auth";
 import { useLanguage } from "../../context/language";
+import posthog from "posthog-js";
 
 type Props = {
   username: string;
@@ -30,7 +31,7 @@ export function FollowButton({ username, isFollowing, size = "md" }: Props) {
     return (
       <button
         type="button"
-        onClick={() => follow.mutate(username)}
+        onClick={() => { posthog.capture("user_followed", { target_username: username, action: "follow" }); follow.mutate(username); }}
         disabled={pending}
         className={`inline-flex items-center gap-1.5 ${padding} bg-rc-red text-white font-mono ${fontSize} uppercase tracking-[0.12em] rounded-md hover:bg-[#b83332] transition-colors disabled:opacity-50`}
       >
@@ -43,7 +44,7 @@ export function FollowButton({ username, isFollowing, size = "md" }: Props) {
   return (
     <button
       type="button"
-      onClick={() => unfollow.mutate(username)}
+      onClick={() => { posthog.capture("user_followed", { target_username: username, action: "unfollow" }); unfollow.mutate(username); }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       disabled={pending}

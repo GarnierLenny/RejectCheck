@@ -60,11 +60,13 @@ export const ProjectRecommendationSchema = z.object({
   technologies: strOrArr,
   key_features: strOrArr,
   architecture: z.string(),
-  advanced_concepts: strOrArr,
+  // Optional for backward compat with analyses stored before these fields
+  // were removed from the tool schema. New analyses won't have them.
+  advanced_concepts: strOrArr.optional(),
   success_criteria: strOrArr,
   difficulty_level: z.enum(['Intermediate', 'Advanced', 'Expert']),
   why_it_matters: z.string(),
-  what_matters: strOrArr,
+  what_matters: strOrArr.optional(),
 });
 
 export const ChallengeAnalysisSchema = z.object({
@@ -97,7 +99,9 @@ export const TechnicalAnalysisSchema = z.object({
   skill_priority: z.array(z.string()).default([]),
   skills: z.array(TechnicalSkillSchema).length(5),
   recommendation: z.string(),
-  market_context: z.string(),
+  // Optional for backward compat with analyses stored before this field
+  // was removed from the tool schema.
+  market_context: z.string().optional(),
   seniority_signals: z.array(z.string()),
 });
 
@@ -202,17 +206,18 @@ export const HotAnalyzeResponseSchema = z.object({
     cv: z.object({
       score: z.number().min(0).max(100),
       issues: z.array(IssueHotSchema),
-      strengths: z.array(z.string()).min(1).max(5),
+      // Backward compat — older analyses had strengths, new ones don't.
+      strengths: z.array(z.string()).optional(),
     }),
     github: z.object({
       score: z.number().min(0).max(100).nullable(),
       issues: z.array(IssueHotSchema),
-      strengths: z.array(z.string()),
+      strengths: z.array(z.string()).optional(),
     }),
     linkedin: z.object({
       score: z.number().min(0).max(100).nullable(),
       issues: z.array(IssueHotSchema),
-      strengths: z.array(z.string()),
+      strengths: z.array(z.string()).optional(),
     }),
     jd_match: AuditJdMatchSchema,
   }),
@@ -222,10 +227,13 @@ export const HotAnalyzeResponseSchema = z.object({
       perception: z.string(),
     }),
   ),
-  correlation: z.object({
-    detected: z.boolean(),
-    explanation: z.string(),
-  }),
+  // Backward compat — older analyses had correlation, new ones don't.
+  correlation: z
+    .object({
+      detected: z.boolean(),
+      explanation: z.string(),
+    })
+    .optional(),
   job_details: JobDetailsSchema,
   /**
    * Required for NEW analyses (Claude's hot tool schema marks it required),
@@ -254,7 +262,9 @@ export const DeepAnalyzeResponseSchema = z.object({
   ats_critical_missing_keywords: z.array(AtsCriticalMissingKeywordSchema),
   fixes: z.object({
     seniority_analysis: FixSchema,
-    cv_tone: FixSchema,
+    // Optional — the tone diagnostic doesn't always need an actionable fix,
+    // and we save ~300 tokens of output when Claude skips it.
+    cv_tone: FixSchema.optional(),
     audit_cv_issues: z.array(FixSchema),
     audit_github_issues: z.array(FixSchema),
     audit_linkedin_issues: z.array(FixSchema),
@@ -306,21 +316,21 @@ export const AnalyzeResponseSchema = z.object({
       issues: z.array(
         IssueHotSchema.extend({ fix: FixSchema.optional() }),
       ),
-      strengths: z.array(z.string()).min(1).max(5),
+      strengths: z.array(z.string()).optional(),
     }),
     github: z.object({
       score: z.number().min(0).max(100).nullable(),
       issues: z.array(
         IssueHotSchema.extend({ fix: FixSchema.optional() }),
       ),
-      strengths: z.array(z.string()),
+      strengths: z.array(z.string()).optional(),
     }),
     linkedin: z.object({
       score: z.number().min(0).max(100).nullable(),
       issues: z.array(
         IssueHotSchema.extend({ fix: FixSchema.optional() }),
       ),
-      strengths: z.array(z.string()),
+      strengths: z.array(z.string()).optional(),
     }),
     jd_match: AuditJdMatchSchema,
   }),
@@ -331,10 +341,12 @@ export const AnalyzeResponseSchema = z.object({
       fix: FixSchema.optional(),
     }),
   ),
-  correlation: z.object({
-    detected: z.boolean(),
-    explanation: z.string(),
-  }),
+  correlation: z
+    .object({
+      detected: z.boolean(),
+      explanation: z.string(),
+    })
+    .optional(),
   job_details: JobDetailsSchema,
   project_recommendation: ProjectRecommendationSchema.optional(),
   challenge_analysis: ChallengeAnalysisSchema.optional(),
@@ -440,6 +452,7 @@ export function mergeHotAndDeep(
       ...flag,
       fix: deep?.fixes.hidden_red_flags?.[i],
     })),
+    // correlation is optional now — only present on legacy analyses.
     correlation: hot.correlation,
     job_details: hot.job_details,
     challenge_analysis: hot.challenge_analysis,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Zap, Star, ShieldCheck, Trophy } from "lucide-react";
 import { useLanguage } from "../../context/language";
+import posthog from "posthog-js";
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'conflict' | 'error';
 
@@ -23,8 +24,10 @@ export function PaywallScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      if (res.status === 201) setState('success');
-      else if (res.status === 409) setState('conflict');
+      if (res.status === 201) {
+        posthog.capture("waitlist_joined");
+        setState('success');
+      } else if (res.status === 409) setState('conflict');
       else setState('error');
     } catch {
       setState('error');

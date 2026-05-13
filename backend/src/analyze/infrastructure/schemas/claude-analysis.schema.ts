@@ -131,12 +131,6 @@ const auditHotSchema = (description: string) => ({
       minimum: 0,
       maximum: 100,
     },
-    strengths: {
-      type: 'array' as const,
-      items: { type: 'string' as const },
-      maxItems: 3,
-      description: 'At most 3 strengths. Pick the most impactful, drop the rest.',
-    },
     issues: {
       type: 'array' as const,
       items: ISSUE_HOT_SCHEMA,
@@ -145,7 +139,7 @@ const auditHotSchema = (description: string) => ({
         'At most 3 issues, ordered by severity (critical → minor). Prioritise — drop low-impact items rather than listing them all.',
     },
   },
-  required: ['score', 'issues', 'strengths'],
+  required: ['score', 'issues'],
 });
 
 const TECHNICAL_ANALYSIS_SCHEMA = {
@@ -190,17 +184,12 @@ const TECHNICAL_ANALYSIS_SCHEMA = {
       description:
         'Actionable strategic advice for the candidate. ≤ 50 words.',
     },
-    market_context: {
-      type: 'string' as const,
-      description:
-        'Market positioning insight (demand, salary signal, hiring difficulty). ≤ 50 words.',
-    },
     seniority_signals: {
       type: 'array' as const,
       items: { type: 'string' as const },
-      maxItems: 4,
+      maxItems: 2,
       description:
-        'At most 4 short signals (each ≤ 15 words) — observable proofs of seniority.',
+        'At most 2 short signals (each ≤ 15 words) — observable proofs of seniority. Pick the two strongest.',
     },
   },
   required: [
@@ -208,7 +197,6 @@ const TECHNICAL_ANALYSIS_SCHEMA = {
     'skill_priority',
     'skills',
     'recommendation',
-    'market_context',
     'seniority_signals',
   ],
 };
@@ -488,18 +476,6 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
           required: ['flag', 'perception'],
         },
       },
-      correlation: {
-        type: 'object' as const,
-        properties: {
-          detected: { type: 'boolean' as const },
-          explanation: {
-            type: 'string' as const,
-            description:
-              'One sentence on the tone × seniority interaction. ≤ 30 words.',
-          },
-        },
-        required: ['detected', 'explanation'],
-      },
       technical_analysis: TECHNICAL_ANALYSIS_SCHEMA,
       job_details: {
         type: 'object' as const,
@@ -608,7 +584,6 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
       'audit_linkedin',
       'audit_jd_match',
       'hidden_red_flags',
-      'correlation',
       'technical_analysis',
       'job_details',
     ],
@@ -651,12 +626,6 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
             description:
               'Short technical sketch of how the system is laid out. ≤ 50 words.',
           },
-          advanced_concepts: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-            maxItems: 3,
-            description: 'At most 3 concepts. Each ≤ 10 words.',
-          },
           success_criteria: {
             type: 'array' as const,
             items: { type: 'string' as const },
@@ -672,12 +641,6 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
             description:
               'Why building this matters for THIS specific JD. ≤ 50 words.',
           },
-          what_matters: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-            maxItems: 3,
-            description: 'At most 3 priority items. Each ≤ 12 words.',
-          },
         },
         required: [
           'name',
@@ -685,11 +648,9 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           'technologies',
           'key_features',
           'architecture',
-          'advanced_concepts',
           'success_criteria',
           'difficulty_level',
           'why_it_matters',
-          'what_matters',
         ],
       },
       ats_critical_missing_keywords: {
@@ -702,7 +663,7 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
       fixes: {
         type: 'object' as const,
         description:
-          'All fix blocks indexed by their owner in the hot result. Array lengths MUST match the hot pass exactly (one fix per issue/red flag, in order). Generate the fix object FIRST in each array; do not skip indices.',
+          'All fix blocks indexed by their owner in the hot result. Array lengths MUST match the hot pass exactly (one fix per issue/red flag, in order). Generate the fix object FIRST in each array; do not skip indices. IMPORTANT — only populate `project_idea` (the nested mini-project) on `audit_cv_issues` and `hidden_red_flags` fixes (the most actionable). For `seniority_analysis`, `cv_tone`, `audit_github_issues`, and `audit_linkedin_issues` fixes, set `project_idea` to null — the summary + steps + example are enough there. `cv_tone` fix is OPTIONAL (skip if the tone diagnostic doesn\'t warrant an actionable fix).',
         properties: {
           seniority_analysis: FIX_SCHEMA,
           cv_tone: FIX_SCHEMA,
@@ -737,7 +698,6 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
         },
         required: [
           'seniority_analysis',
-          'cv_tone',
           'audit_cv_issues',
           'audit_github_issues',
           'audit_linkedin_issues',

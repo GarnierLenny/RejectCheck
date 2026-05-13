@@ -50,6 +50,7 @@ export function proxy(request: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
+    pathname.startsWith('/ingest') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/debug-sentry') ||
     pathname.includes('.') // static files (favicon.ico, images, etc.)

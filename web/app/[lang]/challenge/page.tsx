@@ -27,6 +27,7 @@ import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
 import { ReviewComposer, type ReviewComposerHandle } from "./components/ReviewComposer";
 import { LevelUpModal } from "../../components/LevelUpModal";
 import { useUserXp } from "../../../lib/queries";
+import posthog from "posthog-js";
 
 type Stage = "idle" | "challenged" | "completed";
 
@@ -157,6 +158,11 @@ function ChallengeContent() {
         challengeId: challengeQuery.data.id,
         firstAnswer: firstAnswer.trim(),
       });
+      posthog.capture("challenge_submitted", {
+        challenge_id: challengeQuery.data.id,
+        difficulty: challengeQuery.data.difficulty,
+        language: challengeQuery.data.language,
+      });
       setAiChallenge(res.aiChallenge);
       setStage("challenged");
     } catch (err) {
@@ -215,6 +221,13 @@ function ChallengeContent() {
       const res = await submitFinal.mutateAsync({
         challengeId: challengeQuery.data.id,
         secondAnswer: secondAnswer.trim(),
+      });
+      posthog.capture("challenge_completed", {
+        challenge_id: challengeQuery.data.id,
+        score: res.score,
+        xp_gained: res.xp?.gained ?? 0,
+        difficulty: challengeQuery.data.difficulty,
+        language: challengeQuery.data.language,
       });
       setFinalResult(res);
       setStage("completed");

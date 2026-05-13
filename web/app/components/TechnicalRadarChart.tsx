@@ -183,16 +183,18 @@ export function TechnicalRadarChart({ data }: Props) {
             })}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div className="bg-rc-surface border border-rc-border rounded p-6">
-              <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-amber mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
-                {tr.marketContext}
-              </h4>
-              <div className="text-[16px] text-rc-text leading-[1.7] [&_strong]:font-semibold [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
-                <ReactMarkdown>{data.market_context}</ReactMarkdown>
+          <div className={`grid grid-cols-1 gap-4 mt-4 ${data.market_context ? "md:grid-cols-2" : ""}`}>
+            {data.market_context && (
+              <div className="bg-rc-surface border border-rc-border rounded p-6">
+                <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-amber mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
+                  {tr.marketContext}
+                </h4>
+                <div className="text-[16px] text-rc-text leading-[1.7] [&_strong]:font-semibold [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc">
+                  <ReactMarkdown>{data.market_context}</ReactMarkdown>
+                </div>
               </div>
-            </div>
+            )}
             <div className="bg-rc-surface border border-rc-border rounded p-6">
               <h4 className="font-mono text-[12px] uppercase tracking-widest text-rc-red mb-3 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />

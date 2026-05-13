@@ -93,7 +93,9 @@ export function ProfileDigestStatus({ profile }: { profile: Profile | null }) {
             <FieldLabel className="!mb-0.5">
               {missing
                 ? "Never synced"
-                : `Last synced ${formatAge(ageDays!)} ago`}
+                : ageDays === 0
+                  ? "Synced today"
+                  : `Last synced ${formatAge(ageDays!)} ago`}
             </FieldLabel>
             {(missing || stale) && (
               <Caption tone="amber">

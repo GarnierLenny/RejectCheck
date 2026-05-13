@@ -197,8 +197,8 @@ ${(result.audit.cv.strengths as string[]).map(s => `- ${s}`).join('\n')}`);
   }
 
   // 7.5 External Signals (GitHub + LinkedIn)
-  const githubHasData = result.audit.github.score !== null || result.audit.github.issues.length > 0 || result.audit.github.strengths.length > 0;
-  const linkedinHasData = result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0 || result.audit.linkedin.strengths.length > 0;
+  const githubHasData = result.audit.github.score !== null || result.audit.github.issues.length > 0 || (result.audit.github.strengths?.length ?? 0) > 0;
+  const linkedinHasData = result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0 || (result.audit.linkedin.strengths?.length ?? 0) > 0;
 
   b.push(`## 📡 External Signals`);
 
@@ -209,7 +209,7 @@ ${(result.audit.cv.strengths as string[]).map(s => `- ${s}`).join('\n')}`);
       lines.push(`*${emptyMsg}*`);
       return lines.join('\n');
     }
-    if (data.strengths.length > 0) {
+    if (data.strengths && data.strengths.length > 0) {
       lines.push(`**Strengths:** ${(data.strengths as string[]).join(' · ')}`);
     }
     if (data.issues.length > 0) {
@@ -272,8 +272,10 @@ ${project.advanced_concepts.map((c: string) => `- \`${c}\``).join('\n')}`);
 ${project.success_criteria.map((c: string) => `- [ ] ${c}`).join('\n')}`);
     }
 
-    b.push(`### 🚀 Actionable Steps
+    if (project.what_matters && project.what_matters.length > 0) {
+      b.push(`### 🚀 Actionable Steps
 ${project.what_matters.map((s: string) => `- ${s}`).join('\n')}`);
+    }
   }
 
   // 10. Your Action Plan

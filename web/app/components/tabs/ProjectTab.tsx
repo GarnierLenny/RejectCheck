@@ -111,18 +111,20 @@ export function ProjectTab({ project }: Props) {
             ))}
           </div>
         </div>
-        <div className="bg-rc-surface border border-rc-border p-6">
-          <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-hint font-bold flex items-center gap-1.5 mb-3">
-            <ShieldCheck className="w-3.5 h-3.5" /> Advanced Concepts
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {project.advanced_concepts.map((concept) => (
-              <span key={concept} className="px-2.5 py-1 bg-rc-amber/5 border border-rc-amber/20 font-mono text-[12px] text-rc-amber">
-                {stripMd(concept)}
-              </span>
-            ))}
+        {project.advanced_concepts && project.advanced_concepts.length > 0 && (
+          <div className="bg-rc-surface border border-rc-border p-6">
+            <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-hint font-bold flex items-center gap-1.5 mb-3">
+              <ShieldCheck className="w-3.5 h-3.5" /> Advanced Concepts
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {project.advanced_concepts.map((concept) => (
+                <span key={concept} className="px-2.5 py-1 bg-rc-amber/5 border border-rc-amber/20 font-mono text-[12px] text-rc-amber">
+                  {stripMd(concept)}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Success Criteria */}
@@ -144,22 +146,25 @@ export function ProjectTab({ project }: Props) {
         </div>
       </div>
 
-      {/* Actionable Steps */}
-      <div className="bg-rc-surface border border-rc-border p-6">
-        <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5 mb-4">
-          <ArrowRight className="w-3.5 h-3.5" /> Actionable Steps
-        </h4>
-        <div className="space-y-3">
-          {project.what_matters.map((item, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="mt-2 w-1.5 h-1.5 rounded-full bg-rc-red shrink-0" />
-              <div className={`text-[15px] text-rc-text ${mdClass} [&_p]:m-0`}>
-                <ReactMarkdown>{item}</ReactMarkdown>
+      {/* Actionable Steps — legacy field, only present on analyses created
+          before what_matters was cut from the schema. */}
+      {project.what_matters && project.what_matters.length > 0 && (
+        <div className="bg-rc-surface border border-rc-border p-6">
+          <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5 mb-4">
+            <ArrowRight className="w-3.5 h-3.5" /> Actionable Steps
+          </h4>
+          <div className="space-y-3">
+            {project.what_matters.map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="mt-2 w-1.5 h-1.5 rounded-full bg-rc-red shrink-0" />
+                <div className={`text-[15px] text-rc-text ${mdClass} [&_p]:m-0`}>
+                  <ReactMarkdown>{item}</ReactMarkdown>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tip */}
       <div className="flex items-start gap-3 p-5 bg-rc-surface border border-rc-border">

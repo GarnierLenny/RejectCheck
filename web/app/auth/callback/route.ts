@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase-server';
+import { getPostHogClient } from '@/lib/posthog-server';
 
 const SUPPORTED_LANGS = ['en', 'fr'] as const;
 type Lang = (typeof SUPPORTED_LANGS)[number];
@@ -39,10 +40,20 @@ export async function GET(request: Request) {
   }
 
   const user = data.session.user;
-  if (!user.user_metadata?.username && user.email) {
+  const isNewUser = !user.user_metadata?.username;
+  if (isNewUser && user.email) {
     const generated = `${sanitizeUsernameBase(user.email)}_${randomSuffix()}`;
     await supabase.auth.updateUser({ data: { username: generated } });
   }
+
+  const posthog = getPostHogClient();
+  const provider = user.app_metadata?.provider ?? 'unknown';
+  posthog.identify({ distinctId: user.id, properties: { email: user.email } });
+  posthog.capture({
+    distinctId: user.id,
+    event: 'oauth_login_completed',
+    properties: { provider, is_new_user: isNewUser },
+  });
 
   const redirectPath = next.startsWith('/') ? next : `/${next}`;
   return NextResponse.redirect(`${origin}/${lang}${redirectPath}`);
