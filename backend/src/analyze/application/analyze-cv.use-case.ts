@@ -39,8 +39,8 @@ import type {
   DigestSourceHashes,
   ProfileDigest,
 } from '../dto/profile-digest.dto';
-import { extractRoadmapItems } from '../domain/roadmap-items';
 import { QuotaExceededException } from '../../common/exceptions';
+import { LlmJobsService } from '../../queue/llm-jobs.service';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -109,6 +109,7 @@ export class AnalyzeCvUseCase {
     @Inject(DIGEST_REPOSITORY)
     private readonly digests: DigestRepository,
     private readonly generateDigestUc: GenerateProfileDigestUseCase,
+    private readonly llmJobs: LlmJobsService,
   ) {}
 
   async execute(
@@ -177,11 +178,11 @@ export class AnalyzeCvUseCase {
     const challengeSummary =
       cmd.email && cmd.isRegistered
         ? await this.challengeStats.getSummary(cmd.email).catch((err) => {
-              this.logger.warn(
-                `Challenge stats fetch failed (analysis continues): ${err?.message || err}`,
-              );
-              return null;
-            })
+            this.logger.warn(
+              `Challenge stats fetch failed (analysis continues): ${err?.message || err}`,
+            );
+            return null;
+          })
         : null;
 
     // Profile context drives prompt selection (roleType) and enriches the user
@@ -203,7 +204,7 @@ export class AnalyzeCvUseCase {
     if (cmd.email && cmd.isRegistered) {
       digest = await this.resolveDigest({
         email: cmd.email,
-        cvBuffer: cmd.cvBuffer!,
+        cvBuffer: cmd.cvBuffer,
         cvText,
         linkedinText,
         githubUsername: cmd.githubUsername ?? profile?.githubUsername ?? null,
@@ -247,12 +248,17 @@ export class AnalyzeCvUseCase {
     // the user message and can react in audit/red_flags — this is the
     // *display* copy of the same data.
     if (digest && digest.cross_profile_inconsistencies.length > 0) {
-      result.cross_profile_inconsistencies = digest.cross_profile_inconsistencies;
+      result.cross_profile_inconsistencies =
+        digest.cross_profile_inconsistencies;
     }
     // Same passthrough for the per-source timeline_entries — drives the
     // Consistency tab chronology visualization. Optional on the digest
     // (older digests generated before this field was added won't have it).
-    if (digest && digest.timeline_entries && digest.timeline_entries.length > 0) {
+    if (
+      digest &&
+      digest.timeline_entries &&
+      digest.timeline_entries.length > 0
+    ) {
       result.timeline_entries = digest.timeline_entries;
     }
 
@@ -271,55 +277,42 @@ export class AnalyzeCvUseCase {
 
     emit({ type: 'analysis_done', result, analysisId });
 
-    // Deep pass — silent fail: if it errors, the frontend will detect a
-    // missing deep_done and show "Regenerate" buttons.
-    emitStep('deep_analysis');
-    const deepStart = Date.now();
-    try {
-      const deep = await this.claude.analyzeApplicationDeep({
-        ...claudeInput,
-        hot,
-        onDelta: (delta) => emit({ type: 'deep_delta', delta }),
-      });
-      Object.assign(result, mergeHotAndDeep(hot, deep));
-      if (analysisId !== null && cmd.email) {
-        await this.analyses.attachDeepAnalysis(analysisId, cmd.email, deep);
-      }
-      emit({ type: 'deep_done', deep });
-    } catch (err: any) {
-      this.logger.warn(
-        `Deep pass failed (analysis still succeeds, frontend will show regenerate UI): ${err?.message || err}`,
-      );
-    }
-    timings.claude_deep_ms = Date.now() - deepStart;
-
-    if (cmd.email && subscriptionState.plan === 'hired') {
-      emitStep('negotiation_coaching');
-      const negStart = Date.now();
-      try {
-        const negotiation = await this.claude.generateNegotiation({
-          jobText,
-          result,
-          roadmapItems: extractRoadmapItems(result),
+    // From this point on, the SSE response is allowed to close. Registered
+    // users get deep + negotiation passes off the HTTP request thread (via
+    // BullMQ when REDIS_URL is set, or setImmediate fallback otherwise); the
+    // frontend polls GET /api/analyze/:id to pick up the persisted results.
+    //
+    // Anonymous users have no row to update, so we keep the deep pass inline
+    // — they still receive deep_done over the SSE stream before the response
+    // ends. Negotiation is hired-only and therefore registered-only.
+    if (cmd.email && cmd.isRegistered && analysisId !== null) {
+      await this.llmJobs.enqueueDeep({ analysisId, email: cmd.email });
+      if (subscriptionState.plan === 'hired') {
+        await this.llmJobs.enqueueNegotiation({
+          analysisId,
+          email: cmd.email,
           locale: cmd.locale ?? 'en',
-          onDelta: (delta) => emit({ type: 'negotiation_delta', delta }),
         });
-        result.negotiation_analysis = negotiation;
-        if (analysisId !== null) {
-          await this.analyses.attachNegotiation(
-            analysisId,
-            cmd.email,
-            negotiation,
-          );
-        }
-        emit({ type: 'negotiation_done', negotiation });
+      }
+    } else {
+      // Anonymous fallback: keep deep inline so the SSE stream still emits
+      // deep_delta / deep_done before closing.
+      emitStep('deep_analysis');
+      const deepStart = Date.now();
+      try {
+        const deep = await this.claude.analyzeApplicationDeep({
+          ...claudeInput,
+          hot,
+          onDelta: (delta) => emit({ type: 'deep_delta', delta }),
+        });
+        Object.assign(result, mergeHotAndDeep(hot, deep));
+        emit({ type: 'deep_done', deep });
       } catch (err: any) {
-        // Negotiation is best-effort: never fail the whole analysis if it errors.
         this.logger.warn(
-          `Negotiation generation failed (analysis still succeeds): ${err?.message || err}`,
+          `Inline deep pass failed (anonymous user, no retry path): ${err?.message || err}`,
         );
       }
-      timings.negotiation_ms = Date.now() - negStart;
+      timings.claude_deep_ms = Date.now() - deepStart;
     }
 
     const totalMs = Date.now() - executeStartedAt;
@@ -592,8 +585,7 @@ function diffReason(
   if (!stored) return 'missing';
   if (stored.cv !== current.cv) return 'cv_changed';
   if (stored.linkedin !== current.linkedin) return 'linkedin_changed';
-  if (stored.githubUsername !== current.githubUsername)
-    return 'github_changed';
+  if (stored.githubUsername !== current.githubUsername) return 'github_changed';
   if (stored.portfolioUrl !== current.portfolioUrl) return 'portfolio_changed';
   return 'unknown';
 }

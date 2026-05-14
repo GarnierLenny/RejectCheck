@@ -13,6 +13,12 @@ export const envSchema = z.object({
 
   DATABASE_URL: nonEmpty,
 
+  // Optional. If set, deep/negotiation LLM passes are enqueued to BullMQ
+  // (concurrency-limited, retryable, persistent). If unset, they run via
+  // setImmediate in the same Node process — fine for local dev, not ideal
+  // for Railway Hobby production.
+  REDIS_URL: z.string().optional(),
+
   SUPABASE_URL: nonEmpty.refine((v) => v.startsWith('https://'), {
     message: 'SUPABASE_URL must start with https://',
   }),

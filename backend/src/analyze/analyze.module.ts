@@ -1,8 +1,21 @@
-import { Module } from '@nestjs/common';
+import { Module, Provider } from '@nestjs/common';
 import { AnalyzeController } from './analyze.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { SocialModule } from '../social/social.module';
 import { ChallengeModule } from '../challenge/challenge.module';
+import { QueueModule } from '../queue/queue.module';
+import { LlmJobsService } from '../queue/llm-jobs.service';
+import { QUEUE_ENABLED } from '../queue/queue.constants';
+import { DeepAnalysisProcessor } from './infrastructure/queue/deep-analysis.processor';
+import { NegotiationProcessor } from './infrastructure/queue/negotiation.processor';
+
+// BullMQ processors create live Worker instances on module init — they only
+// boot safely when the BullModule (and therefore Redis) is wired. Skip
+// registration when REDIS_URL is unset; the LlmJobsService falls back to
+// in-process execution via setImmediate.
+const queueProviders: Provider[] = QUEUE_ENABLED
+  ? [DeepAnalysisProcessor, NegotiationProcessor]
+  : [];
 
 import {
   ANALYSIS_REPOSITORY,
@@ -46,9 +59,16 @@ import {
 // SUBSCRIPTION_GATE is provided by StripeModule (exported) and consumed via
 // @Inject(SUBSCRIPTION_GATE) wherever needed in this module.
 @Module({
-  imports: [StripeModule, SocialModule, ChallengeModule],
+  imports: [
+    StripeModule,
+    SocialModule,
+    ChallengeModule,
+    QueueModule.register(),
+  ],
   controllers: [AnalyzeController],
   providers: [
+    LlmJobsService,
+    ...queueProviders,
     { provide: ANALYSIS_REPOSITORY, useClass: PrismaAnalysisRepository },
     { provide: PROFILE_REPOSITORY, useClass: PrismaProfileRepository },
     { provide: SAVED_CV_REPOSITORY, useClass: PrismaSavedCvRepository },

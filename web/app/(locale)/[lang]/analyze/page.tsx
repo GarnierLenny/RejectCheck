@@ -98,7 +98,20 @@ function AnalyzeContent() {
   const { data: subscriptionData } = useSubscription();
   const { data: profile } = useProfile();
   const { data: savedCvs } = useSavedCvs();
-  const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(urlId);
+
+  // Poll the analysis endpoint while we're waiting for background jobs
+  // (deep/negotiation passes that the backend offloaded to BullMQ or
+  // setImmediate). Stop polling once the expected fields have landed.
+  const isHiredTier = subscriptionData?.plan === 'hired';
+  const needsDeep = deepStatus === 'pending';
+  const needsNegotiation =
+    isHiredTier && !!result && !result.negotiation_analysis;
+  const shouldPoll = needsDeep || needsNegotiation;
+
+  const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(
+    urlId,
+    { pollIntervalMs: shouldPoll ? 5000 : undefined },
+  );
   const regenerateDeep = useRegenerateDeep();
 
   function handleRegenerateDeep() {
@@ -160,12 +173,17 @@ function AnalyzeContent() {
     if (savedAnalysis.rewrite) {
       setReconstructedCv(savedAnalysis.rewrite.reconstructed_cv ?? null);
     }
-    // Loaded analyses come pre-merged from the backend. If the deep fields
-    // are still missing, the original deep pass must have failed — surface
-    // the regenerate UI.
-    setDeepStatus(
-      savedAnalysis.result?.project_recommendation ? 'ready' : 'failed',
-    );
+    // Loaded analyses come pre-merged from the backend. Three cases:
+    //  - deep present → 'ready'
+    //  - deep absent + we're actively polling for a background job ('pending')
+    //    → stay 'pending' until the timeout or the next poll resolves it
+    //  - deep absent + not polling (stale row opened via URL nav) → 'failed'
+    const hasDeep = !!savedAnalysis.result?.project_recommendation;
+    setDeepStatus((prev) => {
+      if (hasDeep) return 'ready';
+      if (prev === 'pending') return 'pending';
+      return 'failed';
+    });
     setVisualLoadingDone(true);
     setLoading(false);
   }, [savedAnalysis]);
@@ -192,6 +210,15 @@ function AnalyzeContent() {
     setError(msg);
     setLoading(false);
   }, [isAnalysisError, analysisError]);
+
+  // Safety net: if the background deep pass never lands (worker crash, Redis
+  // outage), flip 'pending' → 'failed' after 5 minutes so the user sees the
+  // inline regenerate UI instead of an indefinite skeleton.
+  useEffect(() => {
+    if (deepStatus !== 'pending') return;
+    const timer = setTimeout(() => setDeepStatus('failed'), 5 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [deepStatus]);
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -346,10 +373,17 @@ function AnalyzeContent() {
             );
           }
           setLoading(false);
-          // The backend swallows deep-pass errors silently — if we never saw
-          // a deep_done event, mark deep as failed so the UI surfaces the
-          // inline regenerate buttons.
-          if (!deepArrived) setDeepStatus('failed');
+          // Registered users get deep + negotiation off-thread (BullMQ or
+          // setImmediate). Keep deepStatus 'pending' so the polling effect
+          // picks up the result; a useEffect timeout below flips to 'failed'
+          // if nothing has landed after 5 minutes.
+          //
+          // Anonymous users still get deep inline over this SSE — if no
+          // deep_done arrived, the pass actually failed (legacy behavior).
+          if (!deepArrived) {
+            const isRegistered = !!user && !!latestAnalysisId;
+            setDeepStatus(isRegistered ? 'pending' : 'failed');
+          }
         } else if (payload.step === "error") {
           throw new Error(payload.message || "Analysis failed");
         } else {

@@ -652,7 +652,10 @@ export function usePublicActivity(username: string | undefined) {
   });
 }
 
-export function useAnalysis(id: number | null) {
+export function useAnalysis(
+  id: number | null,
+  opts?: { pollIntervalMs?: number },
+) {
   const { session } = useAuth();
   const token = session?.access_token;
   const userId = session?.user?.id;
@@ -666,5 +669,10 @@ export function useAnalysis(id: number | null) {
       ),
     enabled: !!id && !!token && !!userId,
     staleTime: Infinity,
+    // When the deep/negotiation passes run in the background (registered
+    // users), the analyze page sets a poll interval and stops it once the
+    // expected fields have landed.
+    refetchInterval: opts?.pollIntervalMs ?? false,
+    refetchIntervalInBackground: true,
   });
 }
