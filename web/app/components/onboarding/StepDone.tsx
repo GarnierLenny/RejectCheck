@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import type { Dictionary } from "../../[lang]/dictionaries";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
 import { StepHeader } from "./StepHeader";
 
 export function StepDone({ t }: { t: Dictionary }) {

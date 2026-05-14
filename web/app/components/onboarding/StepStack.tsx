@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { STACKS_PRIMARY } from "../../../lib/onboarding-data";
-import type { Dictionary } from "../../[lang]/dictionaries";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
 import { StepHeader } from "./StepHeader";
 import { StackPickerModal } from "./StackPickerModal";
 

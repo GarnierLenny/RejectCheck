@@ -11,7 +11,7 @@ import {
   type BannerTone,
 } from "../../../lib/onboarding-data";
 import type { RoleType } from "../../../lib/queries";
-import type { Dictionary } from "../../[lang]/dictionaries";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
 import { StepHeader } from "./StepHeader";
 
 const TONE: Record<

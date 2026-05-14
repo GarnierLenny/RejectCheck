@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getDictionary, type Locale } from '../[lang]/dictionaries'
+import { getDictionary, type Locale } from '../(locale)/[lang]/dictionaries'
 
 export async function SeoFooter({ lang }: { lang: Locale }) {
   const dict = await getDictionary(lang)

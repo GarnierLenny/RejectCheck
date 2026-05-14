@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ROLES } from "../../../lib/onboarding-data";
 import type { RoleType } from "../../../lib/queries";
-import type { Dictionary } from "../../[lang]/dictionaries";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
 import { StepHeader } from "./StepHeader";
 import { OptionCard } from "./OptionCard";
 

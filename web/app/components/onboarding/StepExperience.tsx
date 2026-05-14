@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { EXPERIENCE_LEVELS } from "../../../lib/onboarding-data";
 import type { ExperienceLevel } from "../../../lib/queries";
-import type { Dictionary } from "../../[lang]/dictionaries";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
 import { StepHeader } from "./StepHeader";
 import { OptionCard } from "./OptionCard";
 

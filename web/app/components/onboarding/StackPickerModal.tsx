@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { STACKS_EXTENDED } from "../../../lib/onboarding-data";
-import type { Dictionary } from "../../[lang]/dictionaries";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
 
 const MAX_STACKS = 3;
 

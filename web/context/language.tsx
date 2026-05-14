@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useCallback } from "react";
-import type { Dictionary, Locale } from "../app/[lang]/dictionaries";
+import type { Dictionary, Locale } from "../app/(locale)/[lang]/dictionaries";
 
 type LanguageContextValue = {
   t: Dictionary;

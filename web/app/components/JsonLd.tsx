@@ -14,6 +14,29 @@ export function JsonLd({ data, id }: { data: JsonLdSchema | JsonLdSchema[]; id?:
 
 export const SITE_URL = 'https://www.rejectcheck.com'
 
+export const OG_IMAGE_URL = `${SITE_URL}/RejectCheck_white.png`
+
+/**
+ * Returns OG/Twitter image and siteName fields that must be re-declared in every
+ * child generateMetadata that overrides `openGraph` (Next.js 15 doesn't merge
+ * the auto-detected opengraph-image.tsx into custom openGraph objects).
+ */
+export function ogDefaults(opts: { locale?: 'en' | 'fr'; alt?: string } = {}) {
+  const alt = opts.alt ?? 'RejectCheck'
+  return {
+    siteName: 'RejectCheck',
+    images: [
+      {
+        url: `${SITE_URL}/${opts.locale ?? 'en'}/opengraph-image/main`,
+        width: 1200,
+        height: 630,
+        alt,
+      },
+    ],
+    twitterImages: [`${SITE_URL}/${opts.locale ?? 'en'}/opengraph-image/main`],
+  }
+}
+
 export const organizationSchema: JsonLdSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -230,6 +253,7 @@ export function articleSchema({
     '@type': 'Article',
     headline,
     description,
+    image: [`${SITE_URL}/${locale}/opengraph-image/main`],
     author: {
       '@type': author.type,
       name: author.name,
@@ -255,6 +279,7 @@ export function howToPassAtsSchema(url: string): JsonLdSchema {
     name: 'How to Pass ATS Filters in 2026',
     description:
       'Step-by-step guide to passing Applicant Tracking System filters: format your CV for plain-text parsing, mirror job-description keywords, and avoid the structural traps that trigger auto-rejection.',
+    image: [`${SITE_URL}/en/opengraph-image/main`],
     totalTime: 'PT15M',
     inLanguage: 'en',
     step: [
@@ -300,6 +325,7 @@ export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
       name: 'Comment analyser ton CV avec RejectCheck',
       description:
         "Diagnostic complet de ton CV face à une offre d'emploi en moins de 60 secondes : simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection de red flags.",
+      image: [`${SITE_URL}/fr/opengraph-image/main`],
       totalTime: 'PT1M',
       inLanguage: 'fr',
       tool: [{ '@type': 'HowToTool', name: 'RejectCheck' }],
@@ -346,6 +372,7 @@ export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
     name: 'How to analyze your CV with RejectCheck',
     description:
       'Get a full CV diagnosis against a specific job in under 60 seconds: ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, and red-flag detection.',
+    image: [`${SITE_URL}/en/opengraph-image/main`],
     totalTime: 'PT1M',
     inLanguage: 'en',
     tool: [{ '@type': 'HowToTool', name: 'RejectCheck' }],
