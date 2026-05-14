@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import {
   ApiBody,
   ApiConsumes,
@@ -86,6 +87,12 @@ export class AnalyzeController {
   ) {}
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
+  // Tight IP-based rate limit on top of the per-email/per-IP quota policy: at
+  // ~$0.036 per analyze (hot + deep + negotiation Claude calls combined), an
+  // unthrottled retry loop could burn cash quickly. 10 reqs / 5 min leaves
+  // headroom for legitimate iteration (re-uploading after CV edits) while
+  // capping worst-case spend at ~$5/hour/IP.
+  @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
   @Post()
   @ApiOperation({ summary: 'Analyze a CV against a job description' })
   @ApiConsumes('multipart/form-data')
