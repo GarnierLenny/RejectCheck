@@ -11,7 +11,17 @@ export const envSchema = z.object({
   CORS_ORIGIN: nonEmpty,
   FRONTEND_URL: nonEmpty,
 
+  // Runtime connection — should point at Supabase's transaction-mode
+  // pooler (port 6543) in production with `?pgbouncer=true&connection_limit=N`
+  // so backend Postgres connections are short-lived and shared.
   DATABASE_URL: nonEmpty,
+
+  // Connection used by Prisma for migrations and introspection (these need
+  // session-level state and break on the transaction-mode pooler). Point it
+  // at the direct connection or the session-mode pooler (port 5432). Falls
+  // back to DATABASE_URL when unset — fine for local dev that doesn't use
+  // the transaction pooler.
+  DIRECT_URL: z.string().optional(),
 
   // Optional. If set, deep/negotiation LLM passes are enqueued to BullMQ
   // (concurrency-limited, retryable, persistent). If unset, they run via

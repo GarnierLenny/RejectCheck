@@ -3,8 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Runtime queries go through Supabase's transaction-mode pooler
+  // (Supavisor, port 6543) with `pgbouncer=true&connection_limit=N` so 1
+  // backend Postgres connection is shared across many short-lived queries.
+  url       = env("DATABASE_URL")
+  // Migrations and introspection use a direct (or session-mode) connection
+  // because transaction-pool mode doesn't support the session-level state
+  // Prisma needs for those operations. Falls back to DATABASE_URL when unset.
+  directUrl = env("DIRECT_URL")
 }
 
 enum SubscriptionPlan {
