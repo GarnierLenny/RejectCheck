@@ -2,9 +2,11 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth";
-import { useSubscription, useAnalysisHistory, useInterviewHistory, useApplications, useInterviewsByAnalysis, useProfile } from "../../../../lib/queries";
+import { useSubscription, useAnalysisHistory, useInterviewHistory, useApplications, useInterviewsByAnalysis, useProfile, useQuota } from "../../../../lib/queries";
+import { BuyCreditsModal } from "../../../components/BuyCreditsModal";
 import { useDeleteAnalysis, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../../lib/mutations";
 import { ApplicationsTab } from "../../../components/tabs/ApplicationsTab";
 import { useLanguage } from "../../../../context/language";
@@ -182,6 +184,7 @@ function AnalysisRowWithInterviews({
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { t, localePath } = useLanguage();
 
   const { user, session, loading: authLoading } = useAuth();
@@ -198,6 +201,7 @@ function DashboardContent() {
   ];
 
   const { data: subscription } = useSubscription();
+  const { data: quota } = useQuota();
   const { data: analysisData, isLoading: loadingHistory } = useAnalysisHistory(analysisPage);
   const { data: interviewSummary } = useInterviewHistory(1);
   const { data: summaryData } = useAnalysisHistory(1);
@@ -215,6 +219,7 @@ function DashboardContent() {
   const [exportItem, setExportItem] = useState<HistoryItem | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
     const tab = searchParams.get("tab");
@@ -255,7 +260,13 @@ function DashboardContent() {
     if (searchParams.get("success") === "true") {
       setShowSuccessModal(true);
     }
-  }, [searchParams]);
+    // Stripe credit purchase round-trip → bounce back here and refresh the
+    // quota card so the new balance is visible immediately. The webhook may
+    // still be in flight; React Query will keep polling at 30s staleTime.
+    if (searchParams.get("credit_success") === "true") {
+      queryClient.invalidateQueries({ queryKey: ['quota'] });
+    }
+  }, [searchParams, queryClient]);
 
   useEffect(() => {
     if (!subscription || !user?.email) return;
@@ -380,7 +391,54 @@ function DashboardContent() {
                   day: "numeric", month: "long", year: "numeric",
                 })
               : null;
+            const monthlyProgress = quota
+              ? Math.min(100, Math.round((quota.monthlyUsed / quota.monthlyCap) * 100))
+              : 0;
             return (
+              <>
+                {quota && (
+                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5 mb-4">
+                    <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
+                      <div>
+                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint mb-1">
+                          {t.quota.monthlyAnalyses}
+                        </p>
+                        <p className="text-2xl font-black leading-none text-rc-text">
+                          {quota.monthlyUsed}
+                          <span className="text-rc-hint">/{quota.monthlyCap}</span>
+                        </p>
+                        <p className="text-[12px] text-rc-hint mt-1.5">
+                          {quota.creditsBalance > 0
+                            ? `+ ${quota.creditsBalance} ${quota.creditsBalance > 1 ? t.quota.permanentCredits : t.quota.permanentCredit}`
+                            : t.quota.resetsOnFirst}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {quota.plan === 'free' && (
+                          <Link
+                            href={localePath('/pricing')}
+                            className="inline-flex items-center px-4 py-2 bg-rc-red text-white text-[11px] font-mono uppercase tracking-widest rounded-lg hover:opacity-90 transition-opacity no-underline font-bold"
+                          >
+                            {t.quota.upgradeCta}
+                          </Link>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setIsCreditsModalOpen(true)}
+                          className="inline-flex items-center px-4 py-2 border border-rc-border text-rc-text text-[11px] font-mono uppercase tracking-widest rounded-lg hover:bg-rc-bg transition-colors font-bold"
+                        >
+                          {t.quota.buyCreditsCta}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-rc-bg rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 ${monthlyProgress >= 100 ? 'bg-rc-red' : monthlyProgress >= 80 ? 'bg-rc-amber' : 'bg-rc-green'}`}
+                        style={{ width: `${monthlyProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                 {/* Score moyen */}
                 <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
@@ -437,6 +495,7 @@ function DashboardContent() {
                   )}
                 </div>
               </div>
+              </>
             );
           })()}
           {activeTab === "home" && (
@@ -892,6 +951,7 @@ function DashboardContent() {
 
       {showSuccessModal && <SuccessModal onClose={() => setShowSuccessModal(false)} />}
       <ExportModal isOpen={!!exportItem} onClose={() => setExportItem(null)} result={exportItem?.result || null} />
+      <BuyCreditsModal isOpen={isCreditsModalOpen} onClose={() => setIsCreditsModalOpen(false)} />
     </div>
   );
 }

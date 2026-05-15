@@ -310,6 +310,40 @@ export function useSubscription() {
   });
 }
 
+export type Quota = {
+  plan: 'free' | 'shortlisted' | 'hired';
+  status: string;
+  currentPeriodEnd: string | null;
+  monthlyCap: number;
+  monthlyUsed: number;
+  creditsBalance: number;
+};
+
+/**
+ * Authenticated user's current monthly quota usage and one-time credit
+ * balance. Backed by `GET /api/analyze/quota`. Always returns a value for
+ * authenticated users (free plan gets a sensible default payload).
+ *
+ * staleTime kept short (30s) because the value changes after every analyze
+ * and credit purchase; callers also `queryClient.invalidateQueries(['quota'])`
+ * after writes for instant feedback.
+ */
+export function useQuota() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+
+  return useQuery({
+    queryKey: ['quota', userId],
+    queryFn: () =>
+      apiFetch<Quota>('/api/analyze/quota', {
+        headers: authHeaders(token!),
+      }),
+    enabled: !!token && !!userId,
+    staleTime: 30 * 1000,
+  });
+}
+
 export function useProfile() {
   const { session } = useAuth();
   const token = session?.access_token;

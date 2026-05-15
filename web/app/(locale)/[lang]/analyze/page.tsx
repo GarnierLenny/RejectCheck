@@ -14,7 +14,7 @@ import { mergeDeepIntoResult } from "../../../components/types";
 import { UploadForm } from "../../../components/UploadForm";
 import { Navbar } from "../../../components/Navbar";
 import { LoadingScreen } from "../../../components/LoadingScreen";
-import { PaywallScreen } from "../../../components/PaywallScreen";
+import { PaywallScreen, type PaywallMode } from "../../../components/PaywallScreen";
 import { ScoreSidebar } from "../../../components/ScoreSidebar";
 import { AtsTab } from "../../../components/tabs/AtsTab";
 import { CvAnalysisTab } from "../../../components/tabs/CvAnalysisTab";
@@ -31,7 +31,7 @@ import { NegotiationTab } from "../../../components/tabs/NegotiationTab";
 import { TechnicalRadarChart } from "../../../components/TechnicalRadarChart";
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../../utils/export";
 import { useAuth } from "../../../../context/auth";
-import { useSubscription, useAnalysis, useProfile, useSavedCvs } from "../../../../lib/queries";
+import { useSubscription, useAnalysis, useProfile, useSavedCvs, useQuota } from "../../../../lib/queries";
 import { useRegenerateDeep } from "../../../../lib/mutations";
 import { consumeSSE } from "../../../../lib/sse";
 import { useLanguage } from "../../../../context/language";
@@ -69,7 +69,11 @@ function AnalyzeContent() {
   const [streamText, setStreamText] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [paywallReason, setPaywallReason] = useState<'local' | 'global' | null>(null);
+  // Paywall state — `null` when the form/result is visible, otherwise the
+  // mode (drives PaywallScreen variant) + optional cap rendered into the copy.
+  const [paywallState, setPaywallState] = useState<
+    { mode: PaywallMode; monthlyCap?: number } | null
+  >(null);
   const [activeSubscription, setActiveSubscription] = useState<StoredSubscription | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [visualLoadingDone, setVisualLoadingDone] = useState(false);
@@ -96,6 +100,7 @@ function AnalyzeContent() {
   const urlId = searchParams.get('id') ? parseInt(searchParams.get('id')!) : null;
 
   const { data: subscriptionData } = useSubscription();
+  const { data: quota } = useQuota();
   const { data: profile } = useProfile();
   const { data: savedCvs } = useSavedCvs();
 
@@ -156,7 +161,7 @@ function AnalyzeContent() {
       };
       localStorage.setItem('rc_subscription', JSON.stringify(sub));
       setActiveSubscription(sub);
-      setPaywallReason(null);
+      setPaywallState(null);
     }
   }, [subscriptionData, user]);
 
@@ -257,8 +262,11 @@ function AnalyzeContent() {
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
 
       if (res.status === 402) {
+        // Legacy path — quota errors now flow through the SSE error event
+        // below (see step === 'error' with code === 'QUOTA_EXCEEDED'). Kept
+        // here in case some upstream proxy still surfaces a 402.
         posthog.capture("paywall_shown", { reason: "global_limit" });
-        setPaywallReason('global');
+        setPaywallState({ mode: user ? 'free_cap' : 'guest_limit' });
         setLoading(false);
         return;
       }
@@ -278,6 +286,8 @@ function AnalyzeContent() {
         deep?: DeepAnalysisPayload;
         negotiation?: AnalysisResult["negotiation_analysis"];
         message?: string;
+        code?: string;
+        details?: { plan?: 'free' | 'shortlisted' | 'hired'; monthlyCap?: number };
       };
 
       // Tracks the latest known result during the stream so we can keep the
@@ -302,6 +312,9 @@ function AnalyzeContent() {
           if (payload.result) {
             latestResult = payload.result;
             setResult(payload.result);
+            // Quota was just consumed server-side — refetch so the indicator
+            // and the dashboard card reflect the new monthlyUsed / balance.
+            queryClient.invalidateQueries({ queryKey: ['quota'] });
             posthog.capture("cv_analysis_completed", {
               score: payload.result.score,
               verdict: payload.result.verdict,
@@ -385,6 +398,27 @@ function AnalyzeContent() {
             setDeepStatus(isRegistered ? 'pending' : 'failed');
           }
         } else if (payload.step === "error") {
+          // Quota errors render the right paywall variant instead of bubbling
+          // up as a generic "Analysis failed" toast. We pick the mode based
+          // on the auth state — anonymous users get the signup-flavored
+          // guest_limit paywall, free users see upgrade + buy-credits, and
+          // subscribers (free_cap shouldn't fire for them, so anything else
+          // = subscriber) get the credits-focused variant.
+          if (payload.code === "QUOTA_EXCEEDED") {
+            const mode: PaywallMode = !user
+              ? "guest_limit"
+              : payload.details?.plan === "free"
+                ? "free_cap"
+                : "subscriber_cap";
+            posthog.capture("paywall_shown", { reason: mode });
+            setPaywallState({
+              mode,
+              monthlyCap: payload.details?.monthlyCap,
+            });
+            setLoading(false);
+            streamingRef.current = false;
+            return;
+          }
           throw new Error(payload.message || "Analysis failed");
         } else {
           setCurrentStep(payload.step);
@@ -553,15 +587,15 @@ function AnalyzeContent() {
     { id: "cover-letter", label: t.tabs.coverLetter, badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 
-  const isFormView = !paywallReason && !result && !loading;
+  const isFormView = !paywallState && !result && !loading;
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
       <Navbar activePage="analyze" />
 
       <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
-        {paywallReason ? (
-          <PaywallScreen />
+        {paywallState ? (
+          <PaywallScreen mode={paywallState.mode} monthlyCap={paywallState.monthlyCap} />
         ) : (!result || !visualLoadingDone) ? (
           (loading || (result && !visualLoadingDone)) ? (
             <LoadingScreen
@@ -575,6 +609,16 @@ function AnalyzeContent() {
             />
           ) : (
             <div className="flex-1 flex flex-col">
+              {quota && user ? (
+                <div className="max-w-[860px] mx-auto w-full px-5 md:px-0 pt-6 -mb-2 text-[12px] text-rc-hint flex items-center gap-2 font-mono uppercase tracking-wider">
+                  <span>
+                    {quota.monthlyUsed}/{quota.monthlyCap} analyses this month
+                  </span>
+                  {quota.creditsBalance > 0 && (
+                    <span>· {quota.creditsBalance} credit{quota.creditsBalance > 1 ? 's' : ''}</span>
+                  )}
+                </div>
+              ) : null}
               <UploadForm
                 cvFile={cvFile} setCvFile={setCvFile}
                 liFile={liFile} setLiFile={setLiFile}

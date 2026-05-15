@@ -28,7 +28,6 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
-import { decideQuota } from '../domain/quota.policy';
 import type {
   AnalyzeResponse,
   DeepAnalyzeResponse,
@@ -41,8 +40,21 @@ import type {
 } from '../dto/profile-digest.dto';
 import { QuotaExceededException } from '../../common/exceptions';
 import { LlmJobsService } from '../../queue/llm-jobs.service';
+import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
+import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
+import type { Plan, QuotaDecision } from '../domain/quota.policy';
+import { decideQuota, startOfMonthUTC } from '../domain/quota.policy';
 
 const MAX_TEXT_CHARS = 12000;
+
+/**
+ * Maps the use-case's legacy 3-value plan ('rejected' = no active sub,
+ * 'shortlisted', 'hired') into the new quota policy's `Plan` type, where
+ * 'rejected' becomes 'free'.
+ */
+function toQuotaPlan(legacyPlan: 'rejected' | 'shortlisted' | 'hired'): Plan {
+  return legacyPlan === 'rejected' ? 'free' : legacyPlan;
+}
 
 export type AnalyzeCvCommand = {
   cvBuffer?: Buffer;
@@ -108,6 +120,8 @@ export class AnalyzeCvUseCase {
     private readonly profiles: ProfileRepository,
     @Inject(DIGEST_REPOSITORY)
     private readonly digests: DigestRepository,
+    @Inject(CREDIT_LEDGER_REPOSITORY)
+    private readonly creditLedger: CreditLedgerRepository,
     private readonly generateDigestUc: GenerateProfileDigestUseCase,
     private readonly llmJobs: LlmJobsService,
   ) {}
@@ -136,11 +150,8 @@ export class AnalyzeCvUseCase {
     Sentry.setTag('tier', subscriptionState.tier);
     Sentry.setTag('plan', subscriptionState.plan);
 
-    await this.assertQuota(
-      cmd.email,
-      cmd.ip,
-      subscriptionState.hasActiveSubscription,
-    );
+    const plan = toQuotaPlan(subscriptionState.plan);
+    const quotaIntent = await this.reserveQuotaIntent(cmd.email, cmd.ip, plan);
 
     // Emit step labels eagerly so the SSE timeline still reflects the work
     // about to start; the operations themselves run in parallel below.
@@ -275,6 +286,15 @@ export class AnalyzeCvUseCase {
     });
     timings.persist_ms = Date.now() - persistStart;
 
+    // Debit one-time credits only if the user actually overflowed their
+    // monthly cap. Idempotent on analysisId so a retry can't double-debit.
+    // A crash between persist() and consume() leaves the row counted as
+    // monthly use rather than a credit consume — a benign under-debit we
+    // accept to keep the flow non-transactional.
+    if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
+      await this.creditLedger.consume({ email: cmd.email, analysisId });
+    }
+
     emit({ type: 'analysis_done', result, analysisId });
 
     // From this point on, the SSE response is allowed to close. Registered
@@ -335,29 +355,53 @@ export class AnalyzeCvUseCase {
     return { result, analysisId };
   }
 
-  private async assertQuota(
+  /**
+   * Decides whether the user is allowed to start a new analysis and which
+   * bucket (monthly allowance vs one-time credit) the cost will come from.
+   * Throws QuotaExceededException with `details: { plan, monthlyCap }` so
+   * the frontend can render the right paywall.
+   *
+   * Race condition note: two simultaneous calls from the same user at
+   * `monthlyUsed = cap - 1` can both pass through. We accept the rare
+   * 1-overshoot rather than pay the cost of a pessimistic lock. The ledger
+   * `consume` calls are still idempotent per analysisId.
+   */
+  private async reserveQuotaIntent(
     email: string | undefined,
     ip: string | undefined,
-    hasActiveSubscription: boolean,
-  ): Promise<void> {
-    const [countByEmail, countByIp] = await Promise.all([
-      email ? this.analyses.countByEmail(email) : Promise.resolve(0),
-      ip ? this.analyses.countByIp(ip) : Promise.resolve(0),
+    plan: Plan,
+  ): Promise<Extract<QuotaDecision, { allowed: true }>> {
+    const monthStart = startOfMonthUTC();
+    const [monthlyUsed, countByIpLifetime, creditsBalance] = await Promise.all([
+      email
+        ? this.analyses.countByEmailSince(email, monthStart)
+        : Promise.resolve(0),
+      ip && !email ? this.analyses.countByIp(ip) : Promise.resolve(0),
+      email ? this.creditLedger.getBalance(email) : Promise.resolve(0),
     ]);
 
     const decision = decideQuota({
       email,
       ip,
-      hasActiveSubscription,
-      countByEmail,
-      countByIp,
+      plan,
+      monthlyUsed,
+      countByIpLifetime,
+      creditsBalance,
     });
 
     if (!decision.allowed) {
+      this.logger.log(
+        `Quota refused: plan=${decision.plan} cap=${decision.monthlyCap} ` +
+          `used=${monthlyUsed} balance=${creditsBalance} ` +
+          `anon=${!email}`,
+      );
       throw new QuotaExceededException(
-        'Analysis limit reached. Upgrade to continue.',
+        'Analysis limit reached. Upgrade or buy credits to continue.',
+        { plan: decision.plan, monthlyCap: decision.monthlyCap },
       );
     }
+
+    return decision;
   }
 
   private async resolveSubscriptionState(email: string | undefined): Promise<{

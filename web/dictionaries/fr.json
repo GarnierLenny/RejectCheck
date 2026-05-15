@@ -502,7 +502,21 @@
       "placeholder": "nom@email.com",
       "join": "Rejoindre",
       "success": "Vous êtes sur la liste prioritaire."
-    }
+    },
+    "freeCapTitle": "Vous avez utilisé vos analyses gratuites ce mois-ci",
+    "freeCapSubtitle": "Passez à 15 ou 30 analyses par mois, ou achetez des crédits à l'unité qui n'expirent jamais.",
+    "subscriberCapTitle": "Plafond mensuel atteint",
+    "subscriberCapSubtitle": "Achetez des crédits à l'unité pour continuer — ils n'expirent jamais et votre quota mensuel se réinitialise le 1er.",
+    "buyCredits": "Acheter des crédits",
+    "creditsExpiryNote": "Les crédits sont permanents et utilisés une fois votre quota mensuel atteint."
+  },
+  "quota": {
+    "monthlyAnalyses": "Analyses ce mois",
+    "permanentCredit": "crédit permanent",
+    "permanentCredits": "crédits permanents",
+    "resetsOnFirst": "Réinitialisation le 1er du mois (UTC)",
+    "buyCreditsCta": "Acheter des crédits",
+    "upgradeCta": "Upgrade"
   },
   "scoreSidebar": {
     "overallRisk": "Score de risque global",

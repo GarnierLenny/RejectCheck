@@ -47,6 +47,13 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     return this.prisma.analysis.count({ where: { ip } });
   }
 
+  countByEmailSince(email: string, since: Date): Promise<number> {
+    // Index `[email, createdAt DESC]` covers this query — no full table scan.
+    return this.prisma.analysis.count({
+      where: { email, createdAt: { gte: since } },
+    });
+  }
+
   async saveRegistered(input: SaveAnalysisInput): Promise<{ id: number }> {
     const created = await this.prisma.analysis.create({
       data: {

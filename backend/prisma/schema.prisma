@@ -38,6 +38,18 @@ enum ApplicationStatus {
   rejected
 }
 
+enum CreditLedgerType {
+  grant
+  consume
+}
+
+enum CreditLedgerSource {
+  purchase // Stripe one-time payment
+  admin_grant // manual grant by admin (support, marketing)
+  analysis // consumption tied to an analysis row
+  refund // future: revoke credits on refund
+}
+
 model Waitlist {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -45,38 +57,38 @@ model Waitlist {
 }
 
 model Subscription {
-  id               Int      @id @default(autoincrement())
-  email            String   @unique
+  id               Int                @id @default(autoincrement())
+  email            String             @unique
   stripeCustomerId String
   plan             SubscriptionPlan
   status           SubscriptionStatus
   currentPeriodEnd DateTime
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([stripeCustomerId])
 }
 
 model Analysis {
-  id               Int          @id @default(autoincrement())
-  email            String?      // Registered users only
-  ip               String?      // Anonymous tracking
-  jobDescription   String?      // Registered users only
-  jobLabel         String?      // User-defined label for easy identification
-  company          String?      // AI-extracted company name
-  jdLanguage       String?      // ISO 639-1 language code of job description
-  cvText           String?      // Registered users only
-  linkedinText     String?      // Registered users only
-  githubInfo       String?      // Registered users only
-  motivationLetter String?      // Registered users only
-  coverLetter      String?      // Saved after HIRED-plan generation
-  result           Json?        // Registered users only — hot pass fields (scores, audits without fixes, red flag titles, etc.)
-  deepAnalysis     Json?        // Cold path generated post-analysis_done (fixes, project_recommendation, technical_analysis, ats critical_missing_keywords). Null for legacy analyses where `result` already contains everything.
-  negotiationAnalysis Json?     // HIRED-only negotiation playbook (market positioning, leverage, counter-offer, talking points, roadmap salary impact)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  application       Application?
-  interviewAttempts InterviewAttempt[]
+  id                  Int                @id @default(autoincrement())
+  email               String? // Registered users only
+  ip                  String? // Anonymous tracking
+  jobDescription      String? // Registered users only
+  jobLabel            String? // User-defined label for easy identification
+  company             String? // AI-extracted company name
+  jdLanguage          String? // ISO 639-1 language code of job description
+  cvText              String? // Registered users only
+  linkedinText        String? // Registered users only
+  githubInfo          String? // Registered users only
+  motivationLetter    String? // Registered users only
+  coverLetter         String? // Saved after HIRED-plan generation
+  result              Json? // Registered users only — hot pass fields (scores, audits without fixes, red flag titles, etc.)
+  deepAnalysis        Json? // Cold path generated post-analysis_done (fixes, project_recommendation, technical_analysis, ats critical_missing_keywords). Null for legacy analyses where `result` already contains everything.
+  negotiationAnalysis Json? // HIRED-only negotiation playbook (market positioning, leverage, counter-offer, talking points, roadmap salary impact)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  application         Application?
+  interviewAttempts   InterviewAttempt[]
 
   @@index([email])
   @@index([ip])
@@ -85,25 +97,25 @@ model Analysis {
 }
 
 model Application {
-  id                  Int       @id @default(autoincrement())
-  email               String
-  jobTitle            String
-  company             String
-  status              ApplicationStatus @default(applied)
-  appliedAt           DateTime  @default(now())
-  notes               String?
-  analysisId          Int?      @unique
-  analysis            Analysis? @relation(fields: [analysisId], references: [id])
-  seniority           String?
-  pay                 String?
-  officeLocation      String?
-  workSetting         String?
-  contractType        String?
-  languagesRequired   String?
-  yearsOfExperience   String?
-  companyStage        String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                Int               @id @default(autoincrement())
+  email             String
+  jobTitle          String
+  company           String
+  status            ApplicationStatus @default(applied)
+  appliedAt         DateTime          @default(now())
+  notes             String?
+  analysisId        Int?              @unique
+  analysis          Analysis?         @relation(fields: [analysisId], references: [id])
+  seniority         String?
+  pay               String?
+  officeLocation    String?
+  workSetting       String?
+  contractType      String?
+  languagesRequired String?
+  yearsOfExperience String?
+  companyStage      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@unique([email, jobTitle, company])
   @@index([email])
@@ -152,13 +164,13 @@ model Profile {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
+  followers     Follow[] @relation("FollowFollowing")
+  following     Follow[] @relation("FollowFollower")
+  blocksMade    Block[]  @relation("BlockBlocker")
+  blocksAgainst Block[]  @relation("BlockBlocked")
+
   @@index([totalChallengeScore(sort: Desc)])
   @@index([totalXp(sort: Desc)])
-
-  followers Follow[] @relation("FollowFollowing")
-  following Follow[] @relation("FollowFollower")
-  blocksMade    Block[] @relation("BlockBlocker")
-  blocksAgainst Block[] @relation("BlockBlocked")
 }
 
 model Follow {
@@ -200,13 +212,13 @@ model SavedCv {
 }
 
 model InterviewAttempt {
-  id              Int      @id @default(autoincrement())
-  email           String
-  analysisId      Int
-  analysisRecord  Analysis @relation(fields: [analysisId], references: [id])
-  transcript      Json     // [{ role: 'ai'|'user', content: string, questionIndex: number }]
-  analysis        Json?    // null until /complete is called
-  createdAt       DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  email          String
+  analysisId     Int
+  analysisRecord Analysis @relation(fields: [analysisId], references: [id])
+  transcript     Json // [{ role: 'ai'|'user', content: string, questionIndex: number }]
+  analysis       Json? // null until /complete is called
+  createdAt      DateTime @default(now())
 
   @@index([email])
   @@index([analysisId])
@@ -216,17 +228,17 @@ model InterviewAttempt {
 
 model DailyChallenge {
   id            Int      @id @default(autoincrement())
-  date          DateTime                   // UTC start-of-day for the day this challenge is active
+  date          DateTime // UTC start-of-day for the day this challenge is active
   language      String   @default("typescript") // "typescript" | "python" | "java" (V1 only generates TS)
   title         String
-  focusTag      String                     // see focus-tags.ts FOCUS_TAGS
-  difficulty    String                     // "easy" | "medium" | "hard"
-  snippet       String                     // the code to review
-  question      String                     // markdown (paragraphs, inline `code`, **bold**)
-  issues        Json                       // [{ title, description, severity }] — server-only
-  whatToLookFor Json     @default("[]")    // string[] — public watchpoints (3 items expected on new gen)
-  hints         Json     @default("[]")    // string[] — Socratic guiding questions (3 items expected on new gen)
-  estimatedTime Int                        // in minutes
+  focusTag      String // see focus-tags.ts FOCUS_TAGS
+  difficulty    String // "easy" | "medium" | "hard"
+  snippet       String // the code to review
+  question      String // markdown (paragraphs, inline `code`, **bold**)
+  issues        Json // [{ title, description, severity }] — server-only
+  whatToLookFor Json     @default("[]") // string[] — public watchpoints (3 items expected on new gen)
+  hints         Json     @default("[]") // string[] — Socratic guiding questions (3 items expected on new gen)
+  estimatedTime Int // in minutes
   createdAt     DateTime @default(now())
 
   attempts ChallengeAttempt[]
@@ -270,9 +282,9 @@ model ChallengeStreak {
 model XpLedger {
   id          Int      @id @default(autoincrement())
   email       String
-  amount      Int                              // positive XP grant (negative reserved for future spend)
-  reason      String                           // "challenge_completion" | "first_perfect_focus_tag" | "backfill_legacy"
-  breakdown   Json?                            // optional multiplier breakdown for transparency
+  amount      Int // positive XP grant (negative reserved for future spend)
+  reason      String // "challenge_completion" | "first_perfect_focus_tag" | "backfill_legacy"
+  breakdown   Json? // optional multiplier breakdown for transparency
   attemptId   Int?
   challengeId Int?
   createdAt   DateTime @default(now())
@@ -284,14 +296,36 @@ model XpLedger {
 model UnlockedReward {
   id                  Int       @id @default(autoincrement())
   email               String
-  rewardKey           String                          // RewardKey from tier-config
+  rewardKey           String // RewardKey from tier-config
   unlockedAt          DateTime  @default(now())
   unlockedAtLevel     Int
   redeemed            Boolean   @default(false)
   redeemedAt          DateTime?
-  stripeCouponId      String?                         // null for cosmetic rewards
-  stripePromotionCode String?                         // human-readable code shown to user
+  stripeCouponId      String? // null for cosmetic rewards
+  stripePromotionCode String? // human-readable code shown to user
 
   @@unique([email, rewardKey])
   @@index([email])
+}
+
+// Append-only ledger for one-time analysis credits.
+// Balance = sum(amount WHERE type='grant') - sum(amount WHERE type='consume').
+// Grants come from Stripe purchases or admin actions; consumes come from
+// analyses that overflowed the monthly cap. Credits never expire.
+//
+// Idempotency: `(type, referenceId)` is unique so a replayed Stripe webhook
+// or a retried analysis consume cannot double-write.
+model CreditLedger {
+  id          Int                @id @default(autoincrement())
+  email       String
+  type        CreditLedgerType
+  amount      Int // always positive; sign carried by `type`
+  source      CreditLedgerSource
+  // Grant: stripePaymentIntentId or admin tag.
+  // Consume: analysisId stringified.
+  referenceId String
+  createdAt   DateTime           @default(now())
+
+  @@unique([type, referenceId])
+  @@index([email, createdAt(sort: Desc)])
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { StripeController } from './stripe.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { CreditsModule } from '../credits/credits.module';
 
 import { SUBSCRIPTION_GATE } from '../common/ports/tokens';
 import {
@@ -15,16 +16,18 @@ import { StripeSdkWebhookParser } from './infrastructure/stripe-webhook.parser';
 import { StripeSubscriptionGate } from './infrastructure/stripe-subscription.gate';
 
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
+import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { CheckSubscriptionUseCase } from './application/check-subscription.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
 import { HandleCheckoutCompletedUseCase } from './application/handle-checkout-completed.use-case';
+import { HandleCreditPurchaseUseCase } from './application/handle-credit-purchase.use-case';
 import { HandleSubscriptionDeletedUseCase } from './application/handle-subscription-deleted.use-case';
 import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 
 import { PremiumGuard } from './guards/premium.guard';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CreditsModule],
   controllers: [StripeController],
   providers: [
     // Adapters bound to ports
@@ -38,9 +41,11 @@ import { PremiumGuard } from './guards/premium.guard';
 
     // Use cases
     CreateCheckoutSessionUseCase,
+    CreateCreditsCheckoutSessionUseCase,
     CheckSubscriptionUseCase,
     GetSubscriptionUseCase,
     HandleCheckoutCompletedUseCase,
+    HandleCreditPurchaseUseCase,
     HandleSubscriptionDeletedUseCase,
     HandleWebhookUseCase,
 
@@ -54,6 +59,9 @@ import { PremiumGuard } from './guards/premium.guard';
     // Re-export the use case so other modules can resolve it directly when
     // they need server-side checks outside an HTTP request lifecycle.
     CheckSubscriptionUseCase,
+    // Exposed so AnalyzeModule (GetQuotaSummaryUseCase) can read the
+    // current subscription summary without depending on the repository.
+    GetSubscriptionUseCase,
   ],
 })
 export class StripeModule {}

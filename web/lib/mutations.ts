@@ -303,6 +303,31 @@ export function useCreateCheckout() {
   });
 }
 
+/**
+ * Buys N analysis credits via one-time Stripe Checkout. Email is taken from
+ * the Supabase JWT server-side; we just pass `quantity`. The hook redirects
+ * to Stripe on success — callers don't have to.
+ */
+export function useBuyCredits() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+
+  return useMutation({
+    mutationFn: ({ quantity }: { quantity: number }) =>
+      apiFetch<{ url: string | null }>('/api/stripe/credits/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders(token!),
+        },
+        body: JSON.stringify({ quantity }),
+      }),
+    onSuccess: ({ url }) => {
+      if (url) window.location.href = url;
+    },
+  });
+}
+
 export function useAddSavedCv() {
   const { session } = useAuth();
   const token = session?.access_token;

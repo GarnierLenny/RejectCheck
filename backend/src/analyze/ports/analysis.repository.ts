@@ -48,6 +48,11 @@ export type HistoryPage = {
 export interface AnalysisRepository {
   countByEmail(email: string): Promise<number>;
   countByIp(ip: string): Promise<number>;
+  /**
+   * Count of analyses created at or after the given date for this email.
+   * Used to compute monthly quota usage (caller passes startOfMonthUTC()).
+   */
+  countByEmailSince(email: string, since: Date): Promise<number>;
 
   /** Persists a registered-user analysis with full payload. */
   saveRegistered(input: SaveAnalysisInput): Promise<{ id: number }>;

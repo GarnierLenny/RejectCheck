@@ -14,6 +14,7 @@ import type { Request } from 'express';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
+import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
 import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 
@@ -21,6 +22,7 @@ import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 export class StripeController {
   constructor(
     private readonly createCheckout: CreateCheckoutSessionUseCase,
+    private readonly createCreditsCheckout: CreateCreditsCheckoutSessionUseCase,
     private readonly getSubscription: GetSubscriptionUseCase,
     private readonly handleWebhookUc: HandleWebhookUseCase,
   ) {}
@@ -41,6 +43,23 @@ export class StripeController {
   @Get('subscription')
   async subscription(@AuthEmail() email: string) {
     return this.getSubscription.execute(email);
+  }
+
+  /**
+   * Protected — kicks off a one-time payment Checkout for analysis credits.
+   * The email is taken from the Supabase JWT, never from the request body,
+   * so balance grants on the webhook can trust `customer_details.email`.
+   */
+  @UseGuards(SupabaseGuard)
+  @Post('credits/checkout')
+  async createCreditsCheckoutSession(
+    @AuthEmail() email: string,
+    @Body() body: { quantity: number },
+  ) {
+    return this.createCreditsCheckout.execute({
+      email,
+      quantity: body?.quantity,
+    });
   }
 
   /** Stripe-signed webhook — verified by stripe-signature header, not by Supabase JWT.

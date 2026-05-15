@@ -6,6 +6,7 @@ import { ChallengeModule } from '../challenge/challenge.module';
 import { QueueModule } from '../queue/queue.module';
 import { LlmJobsService } from '../queue/llm-jobs.service';
 import { QUEUE_ENABLED } from '../queue/queue.constants';
+import { CreditsModule } from '../credits/credits.module';
 import { DeepAnalysisProcessor } from './infrastructure/queue/deep-analysis.processor';
 import { NegotiationProcessor } from './infrastructure/queue/negotiation.processor';
 
@@ -38,6 +39,7 @@ import { JinaPortfolioScraper } from './infrastructure/jina-portfolio.scraper';
 import { PdfParseParser } from './infrastructure/pdf-parse.parser';
 
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
+import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
@@ -63,6 +65,7 @@ import {
     StripeModule,
     SocialModule,
     ChallengeModule,
+    CreditsModule,
     QueueModule.register(),
   ],
   controllers: [AnalyzeController],
@@ -79,6 +82,7 @@ import {
     { provide: PDF_PARSER, useClass: PdfParseParser },
 
     AnalyzeCvUseCase,
+    GetQuotaSummaryUseCase,
     RewriteCvUseCase,
     GenerateCoverLetterUseCase,
     GenerateNegotiationUseCase,

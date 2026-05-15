@@ -37,6 +37,7 @@ import { RequiresPremium } from '../stripe/decorators/requires-premium.decorator
 import { validateJobDescription } from './analyze.utils';
 
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
+import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
@@ -71,6 +72,7 @@ type SseResponse = {
 export class AnalyzeController {
   constructor(
     private readonly analyzeCv: AnalyzeCvUseCase,
+    private readonly getQuotaSummary: GetQuotaSummaryUseCase,
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
     private readonly generateNegotiationUc: GenerateNegotiationUseCase,
@@ -189,10 +191,23 @@ export class AnalyzeController {
         step: 'error',
         message: err?.message || 'Analysis failed',
         code: err?.code || err?.response?.code,
+        // QuotaExceededException ships { plan, monthlyCap } here so the
+        // frontend can render the right paywall variant.
+        details: err?.details ?? err?.response?.details,
       });
     } finally {
       if (!res.writableEnded) res.end();
     }
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Get('quota')
+  @ApiOperation({
+    summary:
+      'Get the authenticated user current monthly quota usage and one-time credit balance',
+  })
+  async getQuota(@AuthEmail() email: string) {
+    return this.getQuotaSummary.execute(email);
   }
 
   @UseGuards(SupabaseGuard)

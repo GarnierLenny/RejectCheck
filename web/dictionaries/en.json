@@ -502,7 +502,21 @@
       "placeholder": "name@email.com",
       "join": "Join",
       "success": "You're on the priority list."
-    }
+    },
+    "freeCapTitle": "You've used your free analyses this month",
+    "freeCapSubtitle": "Upgrade for 15 or 30 analyses per month, or buy one-time credits that never expire.",
+    "subscriberCapTitle": "Monthly cap reached",
+    "subscriberCapSubtitle": "Buy one-time credits to keep going — they never expire and your monthly allowance resets on the 1st.",
+    "buyCredits": "Buy credits",
+    "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached."
+  },
+  "quota": {
+    "monthlyAnalyses": "Monthly analyses",
+    "permanentCredit": "permanent credit",
+    "permanentCredits": "permanent credits",
+    "resetsOnFirst": "Resets on the 1st of each month (UTC)",
+    "buyCreditsCta": "Buy credits",
+    "upgradeCta": "Upgrade"
   },
   "scoreSidebar": {
     "overallRisk": "Overall Risk Score",

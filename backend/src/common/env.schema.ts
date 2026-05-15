@@ -44,6 +44,10 @@ export const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: nonEmpty,
   STRIPE_SHORTLISTED_PRICE_ID: nonEmpty,
   STRIPE_HIRED_PRICE_ID: nonEmpty,
+  // One-time price (mode=payment) for analysis credits. 2 EUR per credit at
+  // ship; quantity is chosen by the user in our Tailwind modal and passed
+  // through Stripe Checkout as line_items[0].quantity.
+  STRIPE_CREDIT_PRICE_ID: nonEmpty,
 
   // Default prompt — used when user has no roleType (legacy accounts) or roleType=software.
   SYSTEM_TECHNICAL_PROMPT: z.string().optional(),
