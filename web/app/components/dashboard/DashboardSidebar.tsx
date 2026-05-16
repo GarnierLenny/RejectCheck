@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useQuota, useUserXp, useSubscription } from "../../../lib/queries";
 import { useLanguage } from "../../../context/language";
-import { LangSwitcher } from "../LangSwitcher";
 
 type DashboardTab = "home" | "analyses" | "applications";
 
@@ -108,10 +107,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
           <LinkItem label="Plan & billing" href={localePath("/settings")} />
           <LinkItem label="Settings"       href={localePath("/settings")} />
         </NavSection>
-      </div>
 
-      {/* Footer */}
-      <div className="flex flex-col gap-3 p-3" style={{ borderTop: "1px solid var(--rc-border)" }}>
         {/* Credits */}
         {quota && (
           <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-3">
@@ -147,8 +143,6 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
             </button>
           </div>
         )}
-
-        <LangSwitcher />
       </div>
     </aside>
   );

@@ -23,12 +23,13 @@ import { ExportModal } from "../../../components/ExportModal";
 import { SuccessModal } from "../../../components/SuccessModal";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Cell,
 } from "recharts";
 import { DashboardShell } from "../../../components/dashboard/DashboardShell";
 
@@ -107,6 +108,23 @@ function ScoreCircle({ score }: { score: number }) {
   );
 }
 
+function SegmentedBar({ x = 0, y = 0, width = 0, height = 0, fill }: {
+  x?: number; y?: number; width?: number; height?: number; fill?: string;
+}) {
+  if (height <= 0 || width <= 0) return null;
+  const sliceH = 5;
+  const gap = 2;
+  const step = sliceH + gap;
+  const count = Math.max(1, Math.floor(height / step));
+  return (
+    <g>
+      {Array.from({ length: count }, (_, i) => (
+        <rect key={i} x={x} y={y + height - (i + 1) * step} width={width} height={sliceH} fill={fill} rx={1} />
+      ))}
+    </g>
+  );
+}
+
 // ── Dashboard ───────────────────────────────────────────────────────────────
 
 function DashboardContent() {
@@ -121,6 +139,7 @@ function DashboardContent() {
   const [analysisPage, setAnalysisPage] = useState(1);
   const [analysisSearch, setAnalysisSearch] = useState("");
   const [evolutionPeriod, setEvolutionPeriod] = useState<"7d" | "30d" | "all">("30d");
+  const [homePeriod, setHomePeriod] = useState<"7d" | "14d" | "30d">("30d");
 
   const { data: subscription } = useSubscription();
   const { data: quota } = useQuota();
@@ -272,10 +291,31 @@ function DashboardContent() {
   const skillAnalysisCount = summaryPage1.filter(i => i.result?.technical_analysis?.skills?.length > 0).length;
 
   // Home chart
-  const homeChartData = [...summaryPage1].reverse().map(item => ({
-    dateLabel: new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-    score: item.result?.score ?? 0,
-  }));
+  // green #16a34a → amber #d97706 → red #C93A39
+  const scoreBarColor = (score: number) => {
+    const t = Math.max(0, Math.min(1, score / 100));
+    let r: number, g: number, b: number;
+    if (t < 0.5) {
+      const u = t / 0.5;
+      r = Math.round(0x16 + (0xd9 - 0x16) * u);
+      g = Math.round(0xa3 + (0x77 - 0xa3) * u);
+      b = Math.round(0x4a + (0x06 - 0x4a) * u);
+    } else {
+      const u = (t - 0.5) / 0.5;
+      r = Math.round(0xd9 + (0xc9 - 0xd9) * u);
+      g = Math.round(0x77 + (0x3a - 0x77) * u);
+      b = Math.round(0x06 + (0x39 - 0x06) * u);
+    }
+    return `rgb(${r},${g},${b})`;
+  };
+  const homeCutoff = new Date(Date.now() - (homePeriod === "7d" ? 7 : homePeriod === "14d" ? 14 : 30) * 86400000);
+  const homeChartData = [...summaryPage1]
+    .filter(item => new Date(item.createdAt) >= homeCutoff)
+    .reverse()
+    .map(item => ({
+      dateLabel: new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      score: item.result?.score ?? 0,
+    }));
 
   // Evo chart (analyses tab)
   const evoCutoff = evolutionPeriod === "all"
@@ -407,6 +447,21 @@ function DashboardContent() {
                   <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">
                     {t.account.home.recentAnalyses} · score trend
                   </p>
+                  <div className="flex gap-1.5">
+                    {(["7d", "14d", "30d"] as const).map(p => (
+                      <button
+                        key={p}
+                        onClick={() => setHomePeriod(p)}
+                        className={`font-mono text-[10px] font-bold tracking-[0.1em] px-2.5 py-1 rounded-lg border transition-colors ${
+                          homePeriod === p
+                            ? "border-rc-red text-rc-red bg-rc-red/5"
+                            : "border-rc-border text-rc-hint hover:text-rc-text"
+                        }`}
+                      >
+                        {p === "7d" ? "7D" : p === "14d" ? "14D" : "30D"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="h-[180px] px-2 pb-2">
                   {homeChartData.length < 2 ? (
@@ -417,31 +472,31 @@ function DashboardContent() {
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={homeChartData} margin={{ top: 4, right: 12, left: 0, bottom: 4 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                      <BarChart data={homeChartData} margin={{ top: 4, right: 12, left: 0, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
                         <XAxis
                           dataKey="dateLabel"
                           tick={{ fill: "#9a9790", fontSize: 9, fontFamily: "monospace" }}
                           axisLine={false} tickLine={false}
                         />
                         <YAxis
-                          domain={[0, 100]} reversed
+                          domain={[0, 100]}
                           tick={{ fill: "#9a9790", fontSize: 9, fontFamily: "monospace" }}
                           axisLine={false} tickLine={false} width={28}
                         />
                         <Tooltip
+                          cursor={false}
                           contentStyle={{
                             fontFamily: "monospace", fontSize: 11,
                             border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12,
                           }}
                         />
-                        <Line
-                          type="monotone" dataKey="score"
-                          stroke="var(--rc-red)" strokeWidth={2}
-                          dot={{ r: 3, fill: "var(--rc-red)", strokeWidth: 0 }}
-                          activeDot={{ r: 4 }}
-                        />
-                      </LineChart>
+                        <Bar dataKey="score" shape={<SegmentedBar />}>
+                          {homeChartData.map((entry, i) => (
+                            <Cell key={i} fill={scoreBarColor(entry.score)} />
+                          ))}
+                        </Bar>
+                      </BarChart>
                     </ResponsiveContainer>
                   )}
                 </div>

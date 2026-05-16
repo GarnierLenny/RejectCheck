@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AuthNavLink } from "../AuthNavLink";
+import { LangSwitcher } from "../LangSwitcher";
 import { useLanguage } from "../../../context/language";
 
 type DashboardTab = "home" | "analyses" | "applications";
@@ -38,8 +39,11 @@ export function DashboardTopbar({ activeTab, totalAnalyses, totalApps }: Props) 
         )}
       </div>
 
-      {/* Right: profile avatar */}
-      <AuthNavLink />
+      {/* Right: lang switcher + profile avatar */}
+      <div className="flex items-center gap-3">
+        <LangSwitcher />
+        <AuthNavLink />
+      </div>
     </div>
   );
 }
