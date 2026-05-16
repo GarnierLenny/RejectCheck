@@ -4,7 +4,6 @@ import type { PublicProfile, PublicActivityEntry } from "../../../../../lib/quer
 import { Navbar } from "../../../../components/Navbar";
 import { PublicHeatmap } from "../../../../components/PublicHeatmap";
 import { PublicProfileHeader } from "../../../../components/PublicProfileHeader";
-import { PublicRecentChallenges } from "../../../../components/PublicRecentChallenges";
 import { AchievementsList } from "../../../../components/AchievementsList";
 import { getDictionary, hasLocale, type Locale } from "../../dictionaries";
 
@@ -107,12 +106,6 @@ export default async function PublicProfilePage({
           />
           <AchievementsList
             achievements={profile.achievements}
-            dateLocale={dateLocale}
-          />
-          <PublicRecentChallenges
-            challenges={profile.recentChallenges}
-            title={dict.publicProfilePage.recent.title}
-            emptyLabel={dict.publicProfilePage.recent.empty}
             dateLocale={dateLocale}
           />
         </div>

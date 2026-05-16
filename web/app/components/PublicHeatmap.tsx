@@ -1,21 +1,29 @@
-import { Heading, Caption } from "./typography";
 import {
-  CELL,
   GAP,
   WEEKS,
   DAY_LABEL_W,
   DAY_LABELS,
   buildHeatmap,
-  cellClass,
-  formatDate,
   type ActivityEntry,
+  formatDate,
 } from "./heatmap-utils";
+
+const CELL = 14;
 
 type Props = {
   activity: ActivityEntry[];
   title: string;
   lastYearLabel: string;
 };
+
+function cellClass(score: number | null): string {
+  if (score === null) return "bg-transparent";
+  if (score === 0) return "bg-rc-border/60";
+  if (score < 40) return "bg-rc-red/15";
+  if (score < 70) return "bg-rc-red/35";
+  if (score < 90) return "bg-rc-red/65";
+  return "bg-rc-red";
+}
 
 export function PublicHeatmap({ activity, title, lastYearLabel }: Props) {
   const { grid, monthLabels, total } = buildHeatmap(activity);
@@ -24,18 +32,20 @@ export function PublicHeatmap({ activity, title, lastYearLabel }: Props) {
   const gridHeight = 7 * CELL + 6 * GAP;
 
   return (
-    <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        <Heading as="h3">{title}</Heading>
-        <Caption className="whitespace-nowrap">
+    <div className="py-8 border-b border-rc-border">
+      <div className="mb-6">
+        <h2 className="font-serif text-[32px] font-normal leading-none mb-1" style={{ letterSpacing: -0.5 }}>
+          {title}
+        </h2>
+        <p className="font-mono text-[12px] text-rc-hint">
           <strong className="font-semibold text-rc-text">{total}</strong> {lastYearLabel}
-        </Caption>
+        </p>
       </div>
 
-      <div className="overflow-x-auto -mx-1 px-1">
+      <div className="flex justify-center overflow-x-auto">
         <div style={{ width: DAY_LABEL_W + gridWidth }}>
           <div
-            className="relative h-3 mb-1 font-mono text-[9px] text-rc-hint"
+            className="relative h-3 mb-2 font-mono text-[9px] text-rc-hint"
             style={{ marginLeft: DAY_LABEL_W, width: gridWidth }}
           >
             {monthLabels.map(({ col, label }) => (
@@ -87,36 +97,13 @@ export function PublicHeatmap({ activity, title, lastYearLabel }: Props) {
                           ? `No challenge on ${formatDate(cell.date)}`
                           : `Score ${cell.score}/100 on ${formatDate(cell.date)}`
                     }
-                    className={`rounded-[2px] border ${cellClass(cell.score)}`}
+                    className={`rounded-[3px] ${cellClass(cell.score)}`}
                     style={{ width: CELL, height: CELL }}
                   />
                 )),
               )}
             </div>
           </div>
-
-          <Caption className="flex items-center justify-end gap-3 mt-3">
-            <span className="flex items-center gap-1.5">
-              <span className="rounded-[2px] border bg-rc-bg border-rc-border" style={{ width: CELL, height: CELL }} />
-              0
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="rounded-[2px] border bg-rc-red/15 border-rc-red/20" style={{ width: CELL, height: CELL }} />
-              {"<"} 40
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="rounded-[2px] border bg-rc-red/35 border-rc-red/30" style={{ width: CELL, height: CELL }} />
-              {"<"} 70
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="rounded-[2px] border bg-rc-red/65 border-rc-red/40" style={{ width: CELL, height: CELL }} />
-              {"<"} 90
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="rounded-[2px] border bg-rc-red border-rc-red" style={{ width: CELL, height: CELL }} />
-              ≥ 90
-            </span>
-          </Caption>
         </div>
       </div>
     </div>

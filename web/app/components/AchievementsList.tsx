@@ -1,7 +1,7 @@
 "use client";
 
-import { Trophy, Check, Lock } from "lucide-react";
-import { Heading, Caption, Text } from "./typography";
+import { Star, Crown, Zap, Target, Globe, X, Diamond, CircleDot, Focus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useLanguage } from "../../context/language";
 import type { AchievementsBundle } from "../../lib/queries";
 
@@ -10,194 +10,144 @@ type Props = {
   dateLocale?: string;
 };
 
-type AchievementDef = {
-  slug: string;
-  /** For locked items, returns "X / Y" or null if no numeric progress to show. */
-  progress?: (p: AchievementsBundle["progress"]) => string | null;
+const SLUG_ICONS: Record<string, LucideIcon> = {
+  first_steps:   CircleDot,
+  perfect_score: Star,
+  triple_crown:  Crown,
+  week_warrior:  Zap,
+  month_warrior: Target,
+  polyglot:      Globe,
+  centurion:     X,
+  connected:     Diamond,
+  focus_master:  Focus,
 };
 
-const STATIC_DEFS: AchievementDef[] = [
-  { slug: "first_steps", progress: () => null },
-  {
-    slug: "perfect_score",
-    progress: (p) => (p.perfectCount > 0 ? null : "0 / 1"),
-  },
-  {
-    slug: "triple_crown",
-    progress: (p) => `${Math.min(p.perfectCount, 5)} / 5`,
-  },
-  {
-    slug: "week_warrior",
-    progress: (p) => `${Math.min(p.longestStreak, 7)} / 7`,
-  },
-  {
-    slug: "month_warrior",
-    progress: (p) => `${Math.min(p.longestStreak, 30)} / 30`,
-  },
-  {
-    slug: "polyglot",
-    progress: (p) => `${Math.min(p.languagesCount, 3)} / 3`,
-  },
-  {
-    slug: "centurion",
-    progress: (p) => `${Math.min(p.totalCount, 100)} / 100`,
-  },
-  {
-    slug: "connected",
-    progress: (p) => `${Math.min(p.followersCount, 10)} / 10`,
-  },
+const STATIC_DEFS: { slug: string; progress: (p: AchievementsBundle["progress"]) => string | null }[] = [
+  { slug: "first_steps",   progress: () => "1 / 1" },
+  { slug: "perfect_score", progress: (p) => `${Math.min(p.perfectCount, 1)} / 1` },
+  { slug: "triple_crown",  progress: (p) => `${Math.min(p.perfectCount, 5)} / 5` },
+  { slug: "week_warrior",  progress: (p) => `${Math.min(p.longestStreak, 7)} / 7` },
+  { slug: "month_warrior", progress: (p) => `${Math.min(p.longestStreak, 30)} / 30` },
+  { slug: "polyglot",      progress: (p) => `${Math.min(p.languagesCount, 3)} / 3` },
+  { slug: "centurion",     progress: (p) => `${Math.min(p.totalCount, 100)} / 100` },
+  { slug: "connected",     progress: (p) => `${Math.min(p.followersCount, 10)} / 10` },
 ];
 
-function formatDate(iso: string, locale = "en-GB"): string {
-  return new Date(iso).toLocaleDateString(locale, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+function parsePct(text: string | null): number {
+  if (!text) return 0;
+  const m = text.match(/(\d+)\s*\/\s*(\d+)/);
+  if (!m) return 0;
+  const max = parseInt(m[2]);
+  return max === 0 ? 0 : Math.min(100, (parseInt(m[1]) / max) * 100);
 }
 
-export function AchievementsList({ achievements, dateLocale = "en-GB" }: Props) {
-  const { t } = useLanguage();
-  const earnedMap = new Map(
-    achievements.earned.map((e) => [e.slug, e.earnedAt]),
-  );
-  const items: { slug: string; earned: boolean; earnedAt: string | null; progress: string | null; isFocusMaster?: boolean; tag?: string }[] = [];
-
-  // Static catalog
-  for (const def of STATIC_DEFS) {
-    const earnedAt = earnedMap.get(def.slug);
-    const isEarned = earnedAt !== undefined;
-    items.push({
-      slug: def.slug,
-      earned: isEarned,
-      earnedAt: earnedAt ?? null,
-      progress: isEarned ? null : (def.progress?.(achievements.progress) ?? null),
-    });
-  }
-
-  // Focus master: one row per earned tag (variable count)
-  const focusMasterEarned = achievements.earned.filter((e) =>
-    e.slug.startsWith("focus_master:"),
-  );
-  for (const fm of focusMasterEarned) {
-    const tag = fm.slug.split(":")[1];
-    items.push({
-      slug: fm.slug,
-      earned: true,
-      earnedAt: fm.earnedAt,
-      progress: null,
-      isFocusMaster: true,
-      tag,
-    });
-  }
-  // Show locked focus_master template only if no tag is earned yet, with the
-  // closest tag's progress (e.g. "3 / 5 on react_rerenders").
-  if (focusMasterEarned.length === 0) {
-    const counts = achievements.progress.focusMasterCounts;
-    const tags = Object.keys(counts);
-    let closestTag: string | null = null;
-    let closestCount = 0;
-    for (const tag of tags) {
-      if (counts[tag] > closestCount) {
-        closestCount = counts[tag];
-        closestTag = tag;
-      }
-    }
-    items.push({
-      slug: "focus_master",
-      earned: false,
-      earnedAt: null,
-      progress: closestTag
-        ? `${Math.min(closestCount, 5)} / 5${
-            closestTag !== null ? ` (${closestTag})` : ""
-          }`
-        : "0 / 5",
-      isFocusMaster: true,
-    });
-  }
-
-  // Sort: earned first, locked after
-  items.sort((a, b) => Number(b.earned) - Number(a.earned));
+function AchRow({ earned, progressText, label, description, slug }: {
+  earned: boolean;
+  progressText: string | null;
+  label: string;
+  description: string;
+  slug: string;
+}) {
+  const Icon = SLUG_ICONS[slug.startsWith("focus_master") ? "focus_master" : slug] ?? CircleDot;
+  const pct = earned ? 100 : parsePct(progressText);
+  const isGreen = earned;
 
   return (
-    <div className="bg-rc-surface border border-rc-border rounded-lg p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Trophy size={14} className="text-rc-amber" />
-        <Heading as="h3">{t.publicProfilePage.achievements.title}</Heading>
+    <div className="flex items-center gap-3 py-3 border-b border-rc-border last:border-b-0">
+      {/* Icon */}
+      <div className="w-8 h-8 rounded-lg bg-rc-red/10 flex items-center justify-center flex-shrink-0">
+        <Icon size={15} className={earned ? "text-rc-red" : "text-rc-red/40"} />
       </div>
-      <ul className="flex flex-col gap-2.5">
-        {items.map((item) => {
-          const labels = getLabels(t, item.slug, item.tag);
-          return (
-            <li
-              key={item.slug}
-              className={`flex items-start gap-3 p-2.5 rounded-md ${
-                item.earned
-                  ? "bg-rc-bg/50"
-                  : "opacity-60"
-              }`}
-            >
-              <span
-                className={`shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 ${
-                  item.earned
-                    ? "bg-rc-green/20 text-rc-green"
-                    : "bg-rc-bg border border-rc-border text-rc-hint"
-                }`}
-                aria-hidden="true"
-              >
-                {item.earned ? <Check size={11} /> : <Lock size={10} />}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                  <Text weight="medium" className="text-[13px]">
-                    {labels.label}
-                  </Text>
-                  {item.earned && item.earnedAt && (
-                    <Caption className="font-mono text-[10px] shrink-0">
-                      {t.publicProfilePage.achievements.earnedOn}{" "}
-                      {formatDate(item.earnedAt, dateLocale)}
-                    </Caption>
-                  )}
-                  {!item.earned && item.progress && (
-                    <Caption className="font-mono text-[10px] shrink-0 tabular-nums">
-                      {item.progress}
-                    </Caption>
-                  )}
-                </div>
-                <Caption as="p" className="block mt-0.5">
-                  {labels.description}
-                </Caption>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+
+      {/* Text */}
+      <div className="min-w-0 w-28 flex-shrink-0">
+        <p className={`text-[13px] font-semibold leading-tight ${earned ? "text-rc-text" : "text-rc-hint"}`}>
+          {label}
+        </p>
+        <p className="font-mono text-[10px] text-rc-hint/80 mt-0.5 truncate">{description}</p>
+      </div>
+
+      {/* Bar */}
+      <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-rc-border/40">
+        <div
+          className={`h-full rounded-full transition-all ${isGreen ? "bg-rc-green" : "bg-rc-border"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+
+      {/* Count */}
+      <span className="font-mono text-[10px] text-rc-hint tabular-nums flex-shrink-0 w-12 text-right">
+        {progressText}
+      </span>
     </div>
   );
 }
 
-function getLabels(
-  t: ReturnType<typeof useLanguage>["t"],
-  slug: string,
-  tag?: string,
-): { label: string; description: string } {
+export function AchievementsList({ achievements }: Props) {
+  const { t } = useLanguage();
   const dict = t.publicProfilePage.achievements.items;
-  if (slug.startsWith("focus_master")) {
-    if (tag) {
-      return {
-        label: dict.focus_master.labelWithTag.replace("{tag}", tag),
-        description: dict.focus_master.description,
-      };
-    }
-    return {
-      label: dict.focus_master.label,
-      description: dict.focus_master.description,
-    };
+  const earnedMap = new Map(achievements.earned.map((e) => [e.slug, e.earnedAt]));
+
+  const items: { slug: string; earned: boolean; progressText: string | null; label: string; description: string }[] = [];
+
+  for (const def of STATIC_DEFS) {
+    const isEarned = earnedMap.has(def.slug);
+    const raw = def.progress(achievements.progress);
+    items.push({
+      slug: def.slug,
+      earned: isEarned,
+      progressText: raw,
+      label: (dict[def.slug as keyof typeof dict] as { label: string })?.label ?? def.slug,
+      description: (dict[def.slug as keyof typeof dict] as { description: string })?.description ?? "",
+    });
   }
-  const key = slug as keyof typeof dict;
-  const item = dict[key];
-  if (item && typeof item === "object" && "label" in item) {
-    return { label: item.label as string, description: item.description as string };
+
+  // Focus master
+  const focusMasterEarned = achievements.earned.filter((e) => e.slug.startsWith("focus_master:"));
+  for (const fm of focusMasterEarned) {
+    const tag = fm.slug.split(":")[1];
+    const fmDict = dict.focus_master as { label: string; labelWithTag: string; description: string };
+    items.push({
+      slug: fm.slug,
+      earned: true,
+      progressText: "1 / 1",
+      label: fmDict.labelWithTag?.replace("{tag}", tag) ?? fmDict.label,
+      description: fmDict.description,
+    });
   }
-  return { label: slug, description: "" };
+  if (focusMasterEarned.length === 0) {
+    const counts = achievements.progress.focusMasterCounts;
+    const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const fmDict = dict.focus_master as { label: string; description: string };
+    items.push({
+      slug: "focus_master",
+      earned: false,
+      progressText: best ? `${Math.min(best[1], 5)} / 5` : "0 / 5",
+      label: fmDict.label,
+      description: fmDict.description,
+    });
+  }
+
+  items.sort((a, b) => Number(b.earned) - Number(a.earned));
+
+  const earnedCount = items.filter((i) => i.earned).length;
+  const half = Math.ceil(items.length / 2);
+  const left = items.slice(0, half);
+  const right = items.slice(half);
+
+  return (
+    <div className="py-8">
+      <div className="flex items-baseline gap-3 mb-6">
+        <h2 className="font-serif text-[32px] font-normal leading-none" style={{ letterSpacing: -0.5 }}>
+          {t.publicProfilePage.achievements.title}
+        </h2>
+        <span className="font-mono text-[13px] text-rc-hint">{earnedCount} / {items.length}</span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-12">
+        <div>{left.map((item) => <AchRow key={item.slug} {...item} />)}</div>
+        <div>{right.map((item) => <AchRow key={item.slug} {...item} />)}</div>
+      </div>
+    </div>
+  );
 }
