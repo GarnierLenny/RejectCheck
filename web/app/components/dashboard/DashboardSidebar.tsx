@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useQuota, useUserXp, useSubscription } from "../../../lib/queries";
+import { useQuota, useUserXp, useSubscription, useProfile } from "../../../lib/queries";
 import { useLanguage } from "../../../context/language";
 
 type DashboardTab = "home" | "analyses" | "applications";
@@ -57,6 +57,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
   const { data: quota } = useQuota();
   const { data: xp } = useUserXp();
   const { data: sub } = useSubscription();
+  const { data: profile } = useProfile();
   const { localePath } = useLanguage();
 
   const monthlyRemaining = quota ? quota.monthlyCap - quota.monthlyUsed : null;
@@ -103,6 +104,9 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
         </NavSection>
 
         <NavSection label="Account">
+          {profile?.username && (
+            <LinkItem label="Profile" href={localePath(`/u/${profile.username}`)} />
+          )}
           <LinkItem label="Rank & rewards" href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
           <LinkItem label="Plan & billing" href={localePath("/settings")} />
           <LinkItem label="Settings"       href={localePath("/settings")} />

@@ -97,28 +97,24 @@ export default async function PublicProfilePage({
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen">
       <Navbar />
-      <div className="max-w-[1200px] mx-auto px-5 md:px-[40px] py-12 md:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-          <div className="flex flex-col gap-4">
-            <PublicProfileHeader profile={profile} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <PublicHeatmap
-              activity={activity}
-              title={dict.publicProfilePage.heatmap.title}
-              lastYearLabel={dict.publicProfilePage.heatmap.lastYear}
-            />
-            <AchievementsList
-              achievements={profile.achievements}
-              dateLocale={dateLocale}
-            />
-            <PublicRecentChallenges
-              challenges={profile.recentChallenges}
-              title={dict.publicProfilePage.recent.title}
-              emptyLabel={dict.publicProfilePage.recent.empty}
-              dateLocale={dateLocale}
-            />
-          </div>
+      <div className="max-w-[1420px] mx-auto px-8 md:px-16 py-12">
+        <PublicProfileHeader profile={profile} />
+        <div className="mt-10 flex flex-col gap-6">
+          <PublicHeatmap
+            activity={activity}
+            title={dict.publicProfilePage.heatmap.title}
+            lastYearLabel={dict.publicProfilePage.heatmap.lastYear}
+          />
+          <AchievementsList
+            achievements={profile.achievements}
+            dateLocale={dateLocale}
+          />
+          <PublicRecentChallenges
+            challenges={profile.recentChallenges}
+            title={dict.publicProfilePage.recent.title}
+            emptyLabel={dict.publicProfilePage.recent.empty}
+            dateLocale={dateLocale}
+          />
         </div>
       </div>
     </div>
