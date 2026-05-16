@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useLanguage } from "../../context/language";
+import { useAuth } from "../../context/auth";
 import { useJdValidation, JD_MIN_CHARS, JD_MAX_CHARS } from "../hooks/useJdValidation";
 import type { JdWarningKey } from "../hooks/useJdValidation";
 import { PdfPreviewModal } from "./PdfPreviewModal";
@@ -122,14 +124,33 @@ function LeftPanel({ stepTag, title, description, hint }: {
 }
 
 function LeftStep1() {
-  const { t } = useLanguage();
+  const { t, localePath } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   return (
-    <LeftPanel
-      stepTag={t.uploadForm.steps.step1}
-      title={<>{t.uploadForm.leftStep1.title}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-      description={t.uploadForm.leftStep1.description}
-      hint={{ title: t.uploadForm.leftStep1.hintTitle, body: t.uploadForm.leftStep1.hintBody }}
-    />
+    <div>
+      <LeftPanel
+        stepTag={t.uploadForm.steps.step1}
+        title={<>{t.uploadForm.leftStep1.title}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
+        description={t.uploadForm.leftStep1.description}
+        hint={{ title: t.uploadForm.leftStep1.hintTitle, body: t.uploadForm.leftStep1.hintBody }}
+      />
+      {!authLoading && !user && (
+        <div className="mt-5 px-3 py-3 border border-rc-red/30 rounded bg-rc-red/[0.06]">
+          <div className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-red font-bold flex items-center gap-1.5 mb-2">
+            <span className="text-[7px]">●</span> 1 essai gratuit
+          </div>
+          <p className="text-[12px] text-white/75 leading-[1.6]">
+            Cette analyse consomme ton seul crédit invité. Crée un compte pour en avoir <strong className="text-white font-bold">5 par mois</strong>, gratuit.
+          </p>
+          <Link
+            href={localePath("/login")}
+            className="mt-3 inline-block font-mono text-[10px] tracking-[0.1em] text-rc-red underline underline-offset-2 hover:opacity-70 transition-opacity"
+          >
+            Créer un compte gratuit →
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -836,7 +857,7 @@ export function UploadForm({
     <div className="bg-rc-surface border border-rc-border overflow-hidden flex-1 flex flex-col">
 
       {/* ── Body ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-[28%_1fr] flex-1">
+      <div className="grid grid-cols-[28%_1fr] grid-rows-[1fr] flex-1">
 
         {/* LEFT DARK PANEL */}
         <div className="bg-[#1a1917] px-6 py-7 flex flex-col justify-between">

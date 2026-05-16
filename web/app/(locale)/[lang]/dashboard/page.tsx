@@ -5,29 +5,23 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth";
-import { useSubscription, useAnalysisHistory, useInterviewHistory, useApplications, useInterviewsByAnalysis, useProfile, useQuota } from "../../../../lib/queries";
+import {
+  useSubscription,
+  useAnalysisHistory,
+  useInterviewHistory,
+  useApplications,
+  useProfile,
+  useQuota,
+  useUserXp,
+} from "../../../../lib/queries";
 import { BuyCreditsModal } from "../../../components/BuyCreditsModal";
 import { useDeleteAnalysis, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../../lib/mutations";
 import { ApplicationsTab } from "../../../components/tabs/ApplicationsTab";
 import { useLanguage } from "../../../../context/language";
-import {
-  FileText,
-  ChevronRight,
-  LayoutGrid,
-  Trash2,
-  ArrowRight,
-  Download,
-  Mic,
-  Plus,
-} from "lucide-react";
+import { FileText, ArrowRight } from "lucide-react";
 import { ExportModal } from "../../../components/ExportModal";
 import { SuccessModal } from "../../../components/SuccessModal";
 import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -36,9 +30,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { Navbar } from "../../../components/Navbar";
-import { XpPanel } from "./components/XpPanel";
-import { RewardsList } from "./components/RewardsList";
+import { DashboardShell } from "../../../components/dashboard/DashboardShell";
 
 type HistoryItem = {
   id: number;
@@ -56,8 +48,7 @@ const VALID_DASHBOARD_TABS: DashboardTab[] = ["home", "analyses", "applications"
 const EVO_PALETTE = ["#D94040", "#4a7c1f", "#b86800", "#185FA5", "#888780"] as const;
 
 function EvolutionTooltip({
-  active, payload,
-  evoGroups, evoLabels,
+  active, payload, evoGroups, evoLabels,
 }: {
   active?: boolean;
   payload?: any[];
@@ -84,7 +75,7 @@ function EvolutionTooltip({
             <p className="font-mono text-[10px] text-rc-hint">{entry.payload.dateLabel}</p>
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-mono text-[11px] text-rc-text">
-                Rejection risk: <span style={{ color: entry.color }} className="font-bold">{entry.value}%</span>
+                Risk: <span style={{ color: entry.color }} className="font-bold">{entry.value}%</span>
               </span>
               {delta !== null && (
                 <span className={`font-mono text-[10px] font-bold ${delta < 0 ? "text-rc-green" : "text-rc-red"}`}>
@@ -99,87 +90,24 @@ function EvolutionTooltip({
   );
 }
 
-function AnalysisRowWithInterviews({
-  item,
-  onDelete,
-  onExport,
-  isDeleting,
-  getScoreColor,
-  localePath,
-}: {
-  item: HistoryItem;
-  onDelete: (e: React.MouseEvent, id: number) => void;
-  onExport: (e: React.MouseEvent, item: HistoryItem) => void;
-  isDeleting: number | null;
-  getScoreColor: (score: number) => string;
-  localePath: (p: string) => string;
-}) {
-  const router = useRouter();
-  const { data: interviewsData } = useInterviewsByAnalysis(item.id);
+// ── Shared helpers ──────────────────────────────────────────────────────────
 
-  const label = item.jobLabel || item.result?.job_details?.title || "Developer";
-  const company = item.company ?? item.result?.job_details?.company ?? null;
-  const score = item.result?.score ?? 0;
-  const scoreClass = getScoreColor(score);
+function scoreColors(score: number) {
+  if (score < 40) return { color: "var(--rc-green)", bg: "var(--rc-green-bg)", cls: "border-rc-green/30 text-rc-green bg-rc-green/5" };
+  if (score < 70) return { color: "var(--rc-amber)", bg: "var(--rc-amber-bg)", cls: "border-rc-amber/40 text-rc-amber bg-rc-amber/5" };
+  return { color: "var(--rc-red)", bg: "var(--rc-red-bg)", cls: "border-rc-red/30 text-rc-red bg-rc-red/5" };
+}
 
+function ScoreCircle({ score }: { score: number }) {
+  const c = scoreColors(score);
   return (
-    <Link
-      href={localePath(`/analyze?id=${item.id}`)}
-      className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden transition-colors hover:border-rc-red/20 no-underline block"
-    >
-      <div className="flex items-center gap-3 px-4 py-3 hover:bg-[#faf9f7] transition-colors">
-        <div className={`w-9 h-9 shrink-0 rounded-lg border flex items-center justify-center font-black text-[11px] ${scoreClass}`}>
-          {score}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold text-[12px] text-rc-text truncate">{label}</p>
-          {company && <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>}
-        </div>
-
-        {interviewsData !== undefined && interviewsData.total > 0 ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-50 border border-violet-200 font-mono text-[10px] text-violet-600 shrink-0">
-            <Mic className="w-2.5 h-2.5" />
-            {interviewsData.total}
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              router.push(localePath(`/analyze?id=${item.id}&tab=interview`));
-            }}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rc-red/5 border border-rc-red/20 font-mono text-[10px] text-rc-red hover:bg-rc-red/10 transition-colors shrink-0 cursor-pointer"
-          >
-            <Plus className="w-2.5 h-2.5" /> Interview
-          </button>
-        )}
-
-        <p className="font-mono text-[9px] text-rc-hint shrink-0">
-          {new Date(item.createdAt).toLocaleDateString()}
-        </p>
-
-        <ChevronRight className="w-3.5 h-3.5 text-rc-hint shrink-0" />
-
-        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={(e) => onExport(e, item)}
-            className="p-1 rounded hover:bg-[#f0ede9] transition-colors"
-          >
-            <Download className="w-3 h-3 text-rc-hint" />
-          </button>
-          <button
-            onClick={(e) => onDelete(e, item.id)}
-            disabled={isDeleting === item.id}
-            className="p-1 rounded hover:bg-red-50 transition-colors"
-          >
-            <Trash2 className="w-3 h-3 text-rc-hint hover:text-rc-red" />
-          </button>
-        </div>
-      </div>
-    </Link>
+    <div className={`w-9 h-9 shrink-0 rounded-lg border flex items-center justify-center font-black text-[11px] ${c.cls}`}>
+      {score}
+    </div>
   );
 }
+
+// ── Dashboard ───────────────────────────────────────────────────────────────
 
 function DashboardContent() {
   const router = useRouter();
@@ -187,18 +115,12 @@ function DashboardContent() {
   const queryClient = useQueryClient();
   const { t, localePath } = useLanguage();
 
-  const { user, session, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { data: profile } = useProfile();
 
   const [analysisPage, setAnalysisPage] = useState(1);
   const [analysisSearch, setAnalysisSearch] = useState("");
   const [evolutionPeriod, setEvolutionPeriod] = useState<"7d" | "30d" | "all">("30d");
-
-  const DASHBOARD_TABS: { id: DashboardTab; label: string }[] = [
-    { id: "home",         label: t.account.tabs.home },
-    { id: "analyses",     label: t.account.tabs.analyses },
-    { id: "applications", label: t.account.tabs.applications },
-  ];
 
   const { data: subscription } = useSubscription();
   const { data: quota } = useQuota();
@@ -206,10 +128,12 @@ function DashboardContent() {
   const { data: interviewSummary } = useInterviewHistory(1);
   const { data: summaryData } = useAnalysisHistory(1);
   const { data: applicationsData, isLoading: applicationsLoading } = useApplications();
+  const { data: xpData } = useUserXp();
 
   const history = analysisData?.data ?? [];
   const totalInterviews = interviewSummary?.total ?? 0;
   const applications = applicationsData ?? [];
+  const summaryPage1 = summaryData?.data ?? [];
 
   const deleteAnalysis = useDeleteAnalysis();
   const createApplication = useCreateApplication();
@@ -223,12 +147,9 @@ function DashboardContent() {
 
   const [activeTab, setActiveTab] = useState<DashboardTab>(() => {
     const tab = searchParams.get("tab");
-    // Backward compat: old URLs with overview/interviews redirect to home/analyses
     if (tab === "overview") return "home";
     if (tab === "interviews") return "analyses";
-    return VALID_DASHBOARD_TABS.includes(tab as DashboardTab)
-      ? (tab as DashboardTab)
-      : "home";
+    return VALID_DASHBOARD_TABS.includes(tab as DashboardTab) ? (tab as DashboardTab) : "home";
   });
 
   function handleTabChange(tab: DashboardTab) {
@@ -239,32 +160,20 @@ function DashboardContent() {
   }
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace(localePath("/login"));
-    }
+    if (!authLoading && !user) router.replace(localePath("/login"));
   }, [authLoading, user, router]);
 
-  // Redirect to onboarding if the profile has neither been completed nor
-  // explicitly skipped. Legacy accounts get `onboardingSkipped=true` set via
-  // the SQL migration so they are not forced through the flow.
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) return;
-    if (!profile) return;
+    if (authLoading || !user || !profile) return;
     if (profile.onboardedAt == null && profile.onboardingSkipped !== true) {
       router.replace(localePath("/onboarding"));
     }
   }, [authLoading, user, profile, router, localePath]);
 
   useEffect(() => {
-    if (searchParams.get("success") === "true") {
-      setShowSuccessModal(true);
-    }
-    // Stripe credit purchase round-trip → bounce back here and refresh the
-    // quota card so the new balance is visible immediately. The webhook may
-    // still be in flight; React Query will keep polling at 30s staleTime.
+    if (searchParams.get("success") === "true") setShowSuccessModal(true);
     if (searchParams.get("credit_success") === "true") {
-      queryClient.invalidateQueries({ queryKey: ['quota'] });
+      queryClient.invalidateQueries({ queryKey: ["quota"] });
     }
   }, [searchParams, queryClient]);
 
@@ -285,7 +194,6 @@ function DashboardContent() {
     e.preventDefault();
     e.stopPropagation();
     if (!confirm(t.account.deleteConfirm)) return;
-
     setIsDeleting(id);
     try {
       await deleteAnalysis.mutateAsync(id);
@@ -313,646 +221,671 @@ function DashboardContent() {
 
   if (!user) return null;
 
-  const isActive = subscription?.status === "active";
+  // ── Computed values ───────────────────────────────────────────────────────
 
   const totalAnalyses = analysisData?.total ?? 0;
   const totalAnalysisPages = Math.ceil(totalAnalyses / 10);
 
-  const summaryPage1 = summaryData?.data ?? [];
   const overviewAvgRisk = summaryPage1.length > 0
     ? Math.round(summaryPage1.reduce((acc, curr) => acc + (curr.result?.score || 0), 0) / summaryPage1.length)
     : null;
 
-  const getScoreColor = (score: number) => {
-    if (score < 40) return "border-rc-green/30 text-rc-green bg-rc-green/5";
-    if (score < 70) return "border-rc-amber/40 text-rc-amber bg-rc-amber/5";
-    return "border-rc-red/30 text-rc-red bg-rc-red/5";
-  };
+  const activeApplications = applications.filter(a => a.status === "applied" || a.status === "interviewing");
+  const interviewingApps = applications.filter(a => a.status === "interviewing");
 
-  // Home tab - stats
-  const activeApplications = applications.filter(
-    (a) => a.status === "applied" || a.status === "interviewing"
-  );
-
-  // Compute avg interview score from page 1 of interview history
-  const interviewPage1 = interviewSummary?.data ?? [];
-  const scoredItems = interviewPage1.filter((i) => i.globalScore !== null);
-  const avgInterviewScore = scoredItems.length > 0
-    ? Math.round(scoredItems.reduce((acc, i) => acc + (i.globalScore ?? 0), 0) / scoredItems.length)
-    : null;
-
-  // "À traiter" items
   const now = Date.now();
   const STALE_DAYS = 14;
-  const staleApplications = applications.filter((a) => {
+  const staleApplications = applications.filter(a => {
     if (a.status !== "applied") return false;
-    const appliedMs = new Date(a.appliedAt).getTime();
-    return now - appliedMs > STALE_DAYS * 86400000;
-  });
-  const interviewingApps = applications.filter((a) => a.status === "interviewing");
-  const newUnviewedAnalyses = summaryPage1.filter((item) => {
-    const createdMs = new Date(item.createdAt).getTime();
-    return now - createdMs < 24 * 3600000;
+    return now - new Date(a.appliedAt).getTime() > STALE_DAYS * 86400000;
   });
 
-  // Recent analyses (up to 4 most recent from page 1)
   const recentAnalyses = summaryPage1.slice(0, 4);
 
+  const repliedApps = applications.filter(a => a.status !== "applied" && a.status !== "interested");
+  const responseRate = applications.length > 0
+    ? Math.round((repliedApps.length / applications.length) * 100)
+    : 0;
+
+  // Skills
+  const splitSkillName = (name: string) =>
+    name.split(/\s*[\/&+]\s*|\s+and\s+/i).map(s => s.trim().toLowerCase()).filter(s => s.length > 1);
+  const skillMap = new Map<string, { totalCurrent: number; count: number }>();
+  for (const item of summaryPage1) {
+    const skills: { name: string; current: number }[] = item.result?.technical_analysis?.skills ?? [];
+    for (const s of skills) {
+      if (!s.name) continue;
+      for (const key of splitSkillName(s.name)) {
+        const ex = skillMap.get(key);
+        if (ex) { ex.totalCurrent += s.current; ex.count += 1; }
+        else skillMap.set(key, { totalCurrent: s.current, count: 1 });
+      }
+    }
+  }
+  const topSkills = Array.from(skillMap.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 6)
+    .map(([key, { totalCurrent, count }]) => ({
+      subject: key.charAt(0).toUpperCase() + key.slice(1),
+      strength: Math.round((totalCurrent / count / 10) * 100),
+    }));
+  const skillAnalysisCount = summaryPage1.filter(i => i.result?.technical_analysis?.skills?.length > 0).length;
+
+  // Home chart
+  const homeChartData = [...summaryPage1].reverse().map(item => ({
+    dateLabel: new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    score: item.result?.score ?? 0,
+  }));
+
+  // Evo chart (analyses tab)
+  const evoCutoff = evolutionPeriod === "all"
+    ? new Date(0)
+    : new Date(Date.now() - (evolutionPeriod === "7d" ? 7 : 30) * 86400000);
+  const evoHistory = evolutionPeriod === "all" ? history : history.filter(i => new Date(i.createdAt) >= evoCutoff);
+  const evoGroups = new Map<string, Array<{ date: Date; score: number }>>();
+  const evoLabels = new Map<string, { title: string; company: string }>();
+  for (const item of evoHistory) {
+    const title = item.result?.job_details?.title || "Unknown";
+    const company = item.company || item.result?.job_details?.company || "";
+    const key = item.jobLabel ? item.jobLabel.toLowerCase().trim() : `${title}||${company}`;
+    if (!evoGroups.has(key)) {
+      evoLabels.set(key, { title: item.jobLabel || title, company: item.company || (item.jobLabel ? "" : company) });
+      evoGroups.set(key, []);
+    }
+    evoGroups.get(key)!.push({ date: new Date(item.createdAt), score: item.result?.score ?? 0 });
+  }
+  for (const pts of evoGroups.values()) pts.sort((a, b) => a.date.getTime() - b.date.getTime());
+  const evoKeys = Array.from(evoGroups.keys());
+  const evoDateStrings = Array.from(
+    new Set(Array.from(evoGroups.values()).flat().map(p => p.date.toDateString()))
+  ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+  const evoChartData = evoDateStrings.map(ds => {
+    const row: Record<string, any> = {
+      dateLabel: new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      dateRaw: new Date(ds).getTime(),
+    };
+    for (const key of evoKeys) {
+      const pt = evoGroups.get(key)!.find(p => p.date.toDateString() === ds);
+      if (pt) row[key] = pt.score;
+    }
+    return row;
+  });
+  const evoHasData = evoHistory.length >= 2;
+
+  // Best / worst
+  const bestRun = summaryPage1.length > 0
+    ? summaryPage1.reduce((b, i) => (i.result?.score ?? 100) < (b.result?.score ?? 100) ? i : b)
+    : null;
+  const worstRun = summaryPage1.length > 0
+    ? summaryPage1.reduce((w, i) => (i.result?.score ?? 0) > (w.result?.score ?? 0) ? i : w)
+    : null;
+
+  // Pilot insights
+  const topRiskItem = summaryPage1.length > 0
+    ? summaryPage1.reduce((w, i) => (i.result?.score ?? 0) > (w.result?.score ?? 0) ? i : w)
+    : null;
+  const pilotLines: { tone: "warn" | "nudge" | "info"; body: string }[] = [
+    topRiskItem && (topRiskItem.result?.score ?? 0) > 60
+      ? { tone: "warn", body: `Tailor your CV for ${topRiskItem.company || topRiskItem.result?.job_details?.company || "your top-risk role"} — biggest gain available.` }
+      : { tone: "info", body: "Your average risk score is under control. Keep diversifying your applications." },
+    staleApplications[0]
+      ? { tone: "nudge", body: `Follow up with ${staleApplications[0].company} — ${Math.floor((now - new Date(staleApplications[0].appliedAt).getTime()) / 86400000)} days with no reply.` }
+      : { tone: "info", body: "No stale applications. Good momentum." },
+    topSkills.length > 0
+      ? { tone: "info", body: `${topSkills[topSkills.length - 1]?.subject || "A key skill"} appears thin across your recent analyses.` }
+      : { tone: "info", body: "Run more analyses to unlock personalized tips." },
+  ];
+
+  // Filtered history
+  const filteredHistory = analysisSearch.trim()
+    ? history.filter(item => {
+        const q = analysisSearch.toLowerCase();
+        return (item.result?.job_details?.title || "").toLowerCase().includes(q) ||
+               (item.result?.job_details?.company || "").toLowerCase().includes(q);
+      })
+    : history;
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
-    <div className="min-h-screen bg-rc-bg text-rc-text font-sans flex flex-col items-center">
-      <Navbar activePage="dashboard" />
+    <>
+      <DashboardShell
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        totalAnalyses={totalAnalyses}
+        totalApps={activeApplications.length}
+        onBuyCredits={() => setIsCreditsModalOpen(true)}
+      >
+        {/* ── HOME ─────────────────────────────────────────────────────── */}
+        {activeTab === "home" && (
+          <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 320px" }}>
 
-      <div className="max-w-[1200px] w-full px-5 pt-0 pb-12">
+            {/* LEFT */}
+            <div className="flex flex-col gap-4">
 
-        {/* Tab navigation bar */}
-        <div className="border-b border-rc-border mb-8">
-          <div className="flex overflow-x-auto tabs-scrollbar">
-            {DASHBOARD_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={`shrink-0 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
-                  activeTab === tab.id
-                    ? "border-rc-red text-rc-red font-bold"
-                    : "border-transparent text-rc-muted hover:text-rc-text"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
+              {/* KPI strip */}
+              <div className="grid grid-cols-4 gap-3">
+                {[
+                  {
+                    label: t.account.home.avgScore,
+                    value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—",
+                    sub: overviewAvgRisk !== null
+                      ? overviewAvgRisk < 40 ? "Low risk" : overviewAvgRisk < 70 ? "Moderate" : "High risk"
+                      : "No data yet",
+                    subColor: overviewAvgRisk !== null && overviewAvgRisk < 40 ? "text-rc-green" : overviewAvgRisk !== null && overviewAvgRisk >= 70 ? "text-rc-red" : "text-rc-hint",
+                  },
+                  {
+                    label: t.account.home.activeApplications,
+                    value: String(activeApplications.length),
+                    sub: interviewingApps.length > 0 ? `${interviewingApps.length} interviewing` : undefined,
+                    subColor: "text-rc-amber",
+                  },
+                  {
+                    label: "Response rate",
+                    value: `${responseRate}%`,
+                    sub: `${repliedApps.length} of ${applications.length} replied`,
+                    subColor: "text-rc-hint",
+                  },
+                  {
+                    label: t.account.home.aiInterviews,
+                    value: String(totalInterviews),
+                    sub: totalInterviews === 0 ? "None yet" : undefined,
+                    subColor: "text-rc-hint",
+                  },
+                ].map(({ label, value, sub, subColor }) => (
+                  <div key={label} className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
+                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">{label}</p>
+                    <p className="text-3xl font-black leading-none text-rc-text">{value}</p>
+                    {sub && <p className={`font-mono text-[10px] ${subColor}`}>{sub}</p>}
+                  </div>
+                ))}
+              </div>
 
-        <div className="text-rc-hint font-mono text-sm">
-          {activeTab === "home" && (() => {
-            const planLabel = (subscription?.plan || "Rejected").toUpperCase();
-            const periodEnd = subscription?.currentPeriodEnd
-              ? new Date(subscription.currentPeriodEnd).toLocaleDateString("en-GB", {
-                  day: "numeric", month: "long", year: "numeric",
-                })
-              : null;
-            const monthlyProgress = quota
-              ? Math.min(100, Math.round((quota.monthlyUsed / quota.monthlyCap) * 100))
-              : 0;
-            return (
-              <>
-                {quota && (
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5 mb-4">
-                    <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
-                      <div>
-                        <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint mb-1">
-                          {t.quota.monthlyAnalyses}
-                        </p>
-                        <p className="text-2xl font-black leading-none text-rc-text">
-                          {quota.monthlyUsed}
-                          <span className="text-rc-hint">/{quota.monthlyCap}</span>
-                        </p>
-                        <p className="text-[12px] text-rc-hint mt-1.5">
-                          {quota.creditsBalance > 0
-                            ? `+ ${quota.creditsBalance} ${quota.creditsBalance > 1 ? t.quota.permanentCredits : t.quota.permanentCredit}`
-                            : t.quota.resetsOnFirst}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        {quota.plan === 'free' && (
-                          <Link
-                            href={localePath('/pricing')}
-                            className="inline-flex items-center px-4 py-2 bg-rc-red text-white text-[11px] font-mono uppercase tracking-widest rounded-lg hover:opacity-90 transition-opacity no-underline font-bold"
-                          >
-                            {t.quota.upgradeCta}
-                          </Link>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setIsCreditsModalOpen(true)}
-                          className="inline-flex items-center px-4 py-2 border border-rc-border text-rc-text text-[11px] font-mono uppercase tracking-widest rounded-lg hover:bg-rc-bg transition-colors font-bold"
+              {/* Score chart */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">
+                    {t.account.home.recentAnalyses} · score trend
+                  </p>
+                </div>
+                <div className="h-[180px] px-2 pb-2">
+                  {homeChartData.length < 2 ? (
+                    <div className="h-full flex items-center justify-center">
+                      <p className="font-mono text-[11px] text-rc-hint text-center">
+                        Run 2+ analyses to see your score trend.
+                      </p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={homeChartData} margin={{ top: 4, right: 12, left: 0, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                        <XAxis
+                          dataKey="dateLabel"
+                          tick={{ fill: "#9a9790", fontSize: 9, fontFamily: "monospace" }}
+                          axisLine={false} tickLine={false}
+                        />
+                        <YAxis
+                          domain={[0, 100]} reversed
+                          tick={{ fill: "#9a9790", fontSize: 9, fontFamily: "monospace" }}
+                          axisLine={false} tickLine={false} width={28}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            fontFamily: "monospace", fontSize: 11,
+                            border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12,
+                          }}
+                        />
+                        <Line
+                          type="monotone" dataKey="score"
+                          stroke="var(--rc-red)" strokeWidth={2}
+                          dot={{ r: 3, fill: "var(--rc-red)", strokeWidth: 0 }}
+                          activeDot={{ r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+
+              {/* Recent analyses */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">
+                    {t.account.home.recentAnalyses}
+                  </p>
+                  <button
+                    onClick={() => handleTabChange("analyses")}
+                    className="font-mono text-[10px] text-rc-red tracking-[0.1em] hover:opacity-70 transition-opacity"
+                  >
+                    {totalAnalyses} total · See all →
+                  </button>
+                </div>
+                {recentAnalyses.length === 0 ? (
+                  <div className="px-5 pb-5">
+                    <p className="font-mono text-[11px] text-rc-hint text-center py-6">
+                      {t.account.overview.firstAnalysisCta}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[rgba(0,0,0,0.05)]">
+                    {recentAnalyses.map(item => {
+                      const label = item.jobLabel || item.result?.job_details?.title || "Developer";
+                      const company = item.company ?? item.result?.job_details?.company ?? null;
+                      const score = item.result?.score ?? 0;
+                      const appStatus = applications.find(a =>
+                        a.company?.toLowerCase() === company?.toLowerCase()
+                      )?.status;
+                      return (
+                        <Link
+                          key={item.id}
+                          href={localePath(`/analyze?id=${item.id}`)}
+                          className="flex items-center gap-3 px-5 py-3 no-underline hover:bg-[#faf9f7] transition-colors group"
                         >
-                          {t.quota.buyCreditsCta}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="h-2 w-full bg-rc-bg rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all duration-300 ${monthlyProgress >= 100 ? 'bg-rc-red' : monthlyProgress >= 80 ? 'bg-rc-amber' : 'bg-rc-green'}`}
-                        style={{ width: `${monthlyProgress}%` }}
-                      />
-                    </div>
+                          <ScoreCircle score={score} />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-[13px] text-rc-text truncate group-hover:text-rc-red transition-colors">{label}</p>
+                            {company && <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>}
+                          </div>
+                          {appStatus && (
+                            <span className={`font-mono text-[9px] font-bold tracking-[0.1em] ${appStatus === "interviewing" ? "text-rc-amber" : "text-rc-hint"}`}>
+                              {appStatus.toUpperCase()}
+                            </span>
+                          )}
+                          <span className="font-mono text-[10px] text-rc-hint shrink-0">
+                            {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                          </span>
+                        </Link>
+                      );
+                    })}
                   </div>
                 )}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                {/* Score moyen */}
-                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                    {t.account.home.avgScore}
-                  </p>
-                  <p className={`text-3xl font-black leading-none ${overviewAvgRisk !== null ? getScoreColor(overviewAvgRisk).split(" ")[0] : "text-rc-hint"}`}>
-                    {overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "-"}
-                  </p>
-                </div>
-
-                {/* Candidatures actives */}
-                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                    {t.account.home.activeApplications}
-                  </p>
-                  <p className="text-3xl font-black leading-none text-rc-text">
-                    {activeApplications.length}
-                  </p>
-                  {interviewingApps.length > 0 && (
-                    <p className="font-mono text-[10px] text-rc-amber">
-                      {interviewingApps.length} en entretien
-                    </p>
-                  )}
-                </div>
-
-                {/* Interviews IA */}
-                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                    {t.account.home.aiInterviews}
-                  </p>
-                  <p className="text-3xl font-black leading-none text-rc-text">{totalInterviews}</p>
-                  {avgInterviewScore !== null && (
-                    <p className="font-mono text-[10px] text-rc-green">↑ {avgInterviewScore}/10 avg</p>
-                  )}
-                </div>
-
-                {/* Plan actif */}
-                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
-                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
-                    {t.account.home.activePlan}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? "bg-rc-green animate-pulse" : "bg-rc-hint"}`} />
-                    <p className="text-lg font-black leading-none text-rc-text">{planLabel}</p>
-                  </div>
-                  {periodEnd && (
-                    <p className="font-mono text-[10px] text-rc-hint">
-                      {t.account.home.renewsOn} {periodEnd} ·{" "}
-                      <Link href={localePath("/settings")} className="text-rc-red no-underline hover:underline">
-                        {t.account.home.managePlan}
-                      </Link>
-                    </p>
-                  )}
-                </div>
               </div>
-              </>
-            );
-          })()}
-          {activeTab === "home" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-              <XpPanel />
-              <RewardsList />
             </div>
-          )}
-          {activeTab === "home" && (() => {
-            // ── Radar data ──────────────────────────────────────────────────────
-            const splitSkillName = (name: string): string[] =>
-              name.split(/\s*[\/&+]\s*|\s+and\s+/i)
-                .map((s) => s.trim().toLowerCase())
-                .filter((s) => s.length > 1);
 
-            const skillMap = new Map<string, { totalCurrent: number; count: number }>();
-            for (const item of summaryPage1) {
-              const skills: { name: string; current: number; expected: number }[] =
-                item.result?.technical_analysis?.skills ?? [];
-              for (const s of skills) {
-                if (!s.name) continue;
-                for (const key of splitSkillName(s.name)) {
-                  const existing = skillMap.get(key);
-                  if (existing) {
-                    existing.totalCurrent += s.current;
-                    existing.count += 1;
-                  } else {
-                    skillMap.set(key, { totalCurrent: s.current, count: 1 });
-                  }
-                }
-              }
-            }
-            const topSkills = Array.from(skillMap.entries())
-              .sort((a, b) => b[1].count - a[1].count)
-              .slice(0, 6)
-              .map(([key, { totalCurrent, count }]) => ({
-                subject: key.charAt(0).toUpperCase() + key.slice(1),
-                strength: Math.round((totalCurrent / count / 10) * 100),
-              }));
-            const radarPlotData = topSkills.length >= 3
-              ? topSkills
-              : (() => {
-                  const FALLBACK = [
-                    { key: "keyword_match",    label: "Keywords" },
-                    { key: "tech_stack_fit",   label: "Tech Stack" },
-                    { key: "experience_level", label: "Experience" },
-                  ] as const;
-                  return FALLBACK.map(({ key, label }) => {
-                    const vals = summaryPage1
-                      .map((i) => i.result?.breakdown?.[key])
-                      .filter((v): v is number => v !== null && v !== undefined);
-                    const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
-                    return { subject: label, strength: avg !== null ? Math.round(100 - avg) : 0 };
-                  });
-                })();
-            const radarAnalysisCount = summaryPage1.filter(
-              (i) => i.result?.technical_analysis?.skills?.length > 0
-            ).length;
+            {/* RIGHT */}
+            <div className="flex flex-col gap-4">
 
-            return (
-              <div className="flex flex-col gap-6">
-
-                {/* ── 3-col bottom grid ─────────────────────────────────── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                  {/* Col 1: Radar */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-4">
-                      {t.account.home.skillProfile}
-                    </p>
-                    {radarAnalysisCount === 0 ? (
-                      <div className="h-48 flex items-center justify-center">
-                        <p className="font-mono text-[11px] text-rc-hint text-center">
-                          {t.account.overview.firstAnalysisCta}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="h-52">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RadarChart cx="50%" cy="50%" outerRadius="58%" data={radarPlotData}>
-                            <PolarGrid stroke="rgba(0,0,0,0.08)" strokeDasharray="3 3" />
-                            <PolarAngleAxis
-                              dataKey="subject"
-                              tick={{ fill: "#6b6860", fontSize: 10, fontFamily: "monospace" }}
-                            />
-                            <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                            <Radar
-                              dataKey="strength"
-                              stroke="#D94040"
-                              strokeWidth={2}
-                              fill="rgba(217,64,64,0.15)"
-                              animationDuration={1200}
-                              animationEasing="ease-out"
-                            />
-                          </RadarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Col 2: Dernières analyses */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-4">
-                      {t.account.home.recentAnalyses}
-                    </p>
-                    {recentAnalyses.length === 0 ? (
-                      <div className="h-48 flex items-center justify-center">
-                        <p className="font-mono text-[11px] text-rc-hint text-center">
-                          {t.account.overview.firstAnalysisCta}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col divide-y divide-[rgba(0,0,0,0.05)]">
-                        {recentAnalyses.map((item) => {
-                          const label = item.jobLabel || item.result?.job_details?.title || "Developer";
-                          const company = item.company ?? item.result?.job_details?.company ?? null;
-                          const score = item.result?.score ?? 0;
-                          return (
-                            <Link
-                              key={item.id}
-                              href={localePath(`/analyze?id=${item.id}`)}
-                              className="flex items-center gap-3 py-2.5 no-underline group"
-                            >
-                              <div className={`w-9 h-9 shrink-0 rounded-lg border flex items-center justify-center font-black text-[11px] ${getScoreColor(score)}`}>
-                                {score}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-semibold text-[12px] text-rc-text truncate group-hover:text-rc-red transition-colors">{label}</p>
-                                {company && <p className="font-mono text-[9px] text-rc-hint truncate">{company}</p>}
-                              </div>
-                              <ChevronRight className="w-3.5 h-3.5 text-rc-hint/30 group-hover:text-rc-red shrink-0 transition-colors" />
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Col 3: À traiter + Quick actions */}
-                  <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5 flex flex-col gap-4">
-                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">
-                      {t.account.home.actionNeeded}
-                    </p>
-
-                    <div className="flex flex-col gap-2 flex-1">
-                      {staleApplications.slice(0, 2).map((app) => {
-                        const days = Math.floor((now - new Date(app.appliedAt).getTime()) / 86400000);
-                        return (
-                          <button
-                            key={app.id}
-                            onClick={() => setActiveTab("applications")}
-                            className="text-left border-l-2 border-rc-amber bg-rc-amber/5 rounded-r-lg px-3 py-2"
-                          >
-                            <p className="font-semibold text-[12px] text-rc-text truncate">
-                              {app.company} - {app.jobTitle}
-                            </p>
-                            <p className="font-mono text-[10px] text-rc-amber">
-                              {t.account.home.staleApplication.replace("{days}", String(days))}
-                            </p>
-                          </button>
-                        );
-                      })}
-
-                      {interviewingApps.slice(0, 2).map((app) => (
-                        <button
-                          key={app.id}
-                          onClick={() => setActiveTab("applications")}
-                          className="text-left border-l-2 border-rc-red bg-rc-red/5 rounded-r-lg px-3 py-2"
-                        >
-                          <p className="font-semibold text-[12px] text-rc-text truncate">
-                            {app.company} - {app.jobTitle}
-                          </p>
-                          <p className="font-mono text-[10px] text-rc-red">{t.account.home.activeInterview}</p>
-                        </button>
-                      ))}
-
-                      {newUnviewedAnalyses.slice(0, 2).map((item) => {
-                        const score = item.result?.score ?? 0;
-                        const label = item.jobLabel || item.result?.job_details?.title || "Analysis";
-                        return (
-                          <Link
-                            key={item.id}
-                            href={localePath(`/analyze?id=${item.id}`)}
-                            className="border-l-2 border-blue-400 bg-blue-50 rounded-r-lg px-3 py-2 no-underline"
-                          >
-                            <p className="font-semibold text-[12px] text-rc-text truncate">{label}</p>
-                            <p className="font-mono text-[10px] text-blue-500">
-                              {t.account.home.newUnviewedAnalysis.replace("{score}", String(score))}
-                            </p>
-                          </Link>
-                        );
-                      })}
-
-                      {staleApplications.length === 0 &&
-                        interviewingApps.length === 0 &&
-                        newUnviewedAnalyses.length === 0 && (
-                          <p className="font-mono text-[11px] text-rc-hint text-center py-4">
-                            {t.account.home.noActionItems}
-                          </p>
-                        )}
-                    </div>
-
-                    <div className="border-t border-[rgba(0,0,0,0.06)] pt-3 flex flex-col gap-2">
-                      <Link
-                        href={localePath("/analyze")}
-                        className="flex items-center justify-center gap-2 py-2.5 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
-                      >
-                        {t.account.home.newAnalysis} <ArrowRight className="w-3 h-3" />
-                      </Link>
-                      <button
-                        onClick={() => setActiveTab("applications")}
-                        className="flex items-center justify-center gap-2 py-2.5 border border-[rgba(0,0,0,0.08)] rounded-xl font-mono text-[10px] tracking-widest uppercase text-rc-muted hover:text-rc-text transition-colors"
-                      >
-                        <Plus className="w-3 h-3" /> {t.account.home.addApplication}
-                      </button>
-                    </div>
-
-                  </div>
+              {/* Pilot insights */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-5 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Today's insights</p>
+                  <span className="flex items-center gap-1 font-mono text-[9px] text-rc-green font-bold tracking-[0.1em]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rc-green animate-pulse" />
+                    Live
+                  </span>
                 </div>
-              </div>
-            );
-          })()}
-
-          {activeTab === "analyses" && (() => {
-            const filteredHistory = analysisSearch.trim()
-              ? history.filter(item => {
-                  const q = analysisSearch.toLowerCase();
-                  const title = (item.result?.job_details?.title || "").toLowerCase();
-                  const company = (item.result?.job_details?.company || "").toLowerCase();
-                  return title.includes(q) || company.includes(q);
-                })
-              : history;
-
-            const evoCutoff = evolutionPeriod === "all"
-              ? new Date(0)
-              : new Date(Date.now() - (evolutionPeriod === "7d" ? 7 : 30) * 86400000);
-            const evoHistory = evolutionPeriod === "all"
-              ? history
-              : history.filter(i => new Date(i.createdAt) >= evoCutoff);
-
-            const evoGroups = new Map<string, Array<{ date: Date; score: number }>>();
-            const evoLabels = new Map<string, { title: string; company: string }>();
-            for (const item of evoHistory) {
-              const title = item.result?.job_details?.title || "Unknown";
-              const company = item.company || item.result?.job_details?.company || "";
-              const key = item.jobLabel
-                ? item.jobLabel.toLowerCase().trim()
-                : `${title}||${company}`;
-              const displayLabel = item.jobLabel || title;
-              const displayCompany = item.company || (item.jobLabel ? "" : company);
-              if (!evoGroups.has(key)) { evoGroups.set(key, []); evoLabels.set(key, { title: displayLabel, company: displayCompany }); }
-              evoGroups.get(key)!.push({ date: new Date(item.createdAt), score: item.result?.score ?? 0 });
-            }
-            for (const pts of evoGroups.values()) pts.sort((a, b) => a.date.getTime() - b.date.getTime());
-            const evoKeys = Array.from(evoGroups.keys());
-            const evoDateStrings = Array.from(
-              new Set(Array.from(evoGroups.values()).flat().map(p => p.date.toDateString()))
-            ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-            const evoChartData = evoDateStrings.map(ds => {
-              const row: Record<string, any> = {
-                dateLabel: new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-                dateRaw: new Date(ds).getTime(),
-              };
-              for (const key of evoKeys) {
-                const pt = evoGroups.get(key)!.find(p => p.date.toDateString() === ds);
-                if (pt) row[key] = pt.score;
-              }
-              return row;
-            });
-            const evoHasData = evoHistory.length >= 2;
-            const evoHasLines = evoKeys.some(k => (evoGroups.get(k)?.length ?? 0) > 1);
-
-            return (
-              <div className="space-y-6">
-                <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Score Evolution</p>
-                      <p className="font-mono text-[10px] text-rc-hint mt-0.5">Track your rejection risk over time</p>
-                    </div>
-                    <select
-                      value={evolutionPeriod}
-                      onChange={e => setEvolutionPeriod(e.target.value as "7d" | "30d" | "all")}
-                      className="font-mono text-[10px] text-rc-hint border border-rc-border rounded-lg px-2.5 py-1.5 bg-white outline-none focus:border-rc-red/40 cursor-pointer"
-                    >
-                      <option value="7d">Last 7 days</option>
-                      <option value="30d">Last 30 days</option>
-                      <option value="all">All time</option>
-                    </select>
-                  </div>
-
-                  {!evoHasData ? (
-                    <div className="h-[220px] flex flex-col items-center justify-center gap-3">
-                      <p className="font-mono text-[11px] text-rc-hint">No evolution to show yet.</p>
-                      <p className="font-mono text-[10px] text-rc-hint/60 text-center max-w-[260px]">Run at least two analyses to track your progress.</p>
-                      <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-4 py-2 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90 transition-opacity">
-                        {t.account.overview.newAnalysis} <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="h-[220px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={evoChartData} margin={{ top: 8, right: 16, left: 0, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                            <XAxis
-                              dataKey="dateLabel"
-                              tick={{ fill: "#9a9790", fontSize: 10, fontFamily: "monospace" }}
-                              axisLine={{ stroke: "rgba(0,0,0,0.08)" }}
-                              tickLine={false}
-                            />
-                            <YAxis
-                              domain={[0, 100]}
-                              reversed
-                              tick={{ fill: "#9a9790", fontSize: 10, fontFamily: "monospace" }}
-                              axisLine={false}
-                              tickLine={false}
-                              width={36}
-                              label={{ value: "Risk %", angle: -90, position: "insideLeft", fill: "#9a9790", fontSize: 9, fontFamily: "monospace", dy: 25 }}
-                            />
-                            <Tooltip content={(props: any) => (
-                              <EvolutionTooltip {...props} evoGroups={evoGroups} evoLabels={evoLabels} />
-                            )} />
-                            {evoKeys.map((key, i) => (
-                              <Line
-                                key={key}
-                                type="monotone"
-                                dataKey={key}
-                                stroke={EVO_PALETTE[i % EVO_PALETTE.length]}
-                                strokeWidth={2}
-                                dot={{ r: 4, fill: EVO_PALETTE[i % EVO_PALETTE.length], strokeWidth: 0 }}
-                                activeDot={{ r: 5 }}
-                                connectNulls={false}
-                              />
-                            ))}
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                      {!evoHasLines && (
-                        <p className="font-mono text-[10px] text-rc-hint/60 text-center mt-3">Add more analyses for the same job to track your progress.</p>
+                <div className="p-5 space-y-1.5">
+                  {overviewAvgRisk !== null ? (
+                    <p className="font-sans text-[14px] leading-snug text-rc-text mb-4">
+                      Average risk at{" "}
+                      <span
+                        className="font-serif italic font-medium"
+                        style={{ color: overviewAvgRisk < 40 ? "var(--rc-green)" : overviewAvgRisk < 70 ? "var(--rc-amber)" : "var(--rc-red)" }}
+                      >
+                        {overviewAvgRisk}%
+                      </span>
+                      {topRiskItem && (
+                        <>. Watch <span className="font-serif italic text-rc-red font-medium">{topRiskItem.company || topRiskItem.result?.job_details?.company} ({topRiskItem.result?.score})</span>.</>
                       )}
-                      <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4">
-                        {evoKeys.map((key, i) => {
-                          const meta = evoLabels.get(key)!;
-                          return (
-                            <div key={key} className="flex items-center gap-2">
-                              <div className="shrink-0 rounded-full" style={{ width: 16, height: 2, backgroundColor: EVO_PALETTE[i % EVO_PALETTE.length] }} />
-                              <span className="font-mono text-[10px] text-rc-muted">{meta.title}{meta.company && ` · ${meta.company}`}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-xl font-bold tracking-tight text-rc-text flex items-center gap-3">
-                    <LayoutGrid className="w-5 h-5 text-rc-red" /> {t.account.analysisHistory}
-                  </h2>
-                  <div className="h-px flex-1 bg-rc-border" />
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">{totalAnalyses} {t.account.results}</p>
-                </div>
-
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={analysisSearch}
-                    onChange={e => setAnalysisSearch(e.target.value)}
-                    placeholder={t.account.search.analysesPlaceholder}
-                    className="w-full bg-white border border-rc-border rounded-xl px-4 py-2.5 pl-9 font-mono text-[12px] text-rc-text placeholder:text-rc-hint outline-none focus:border-rc-red/40 transition-colors"
-                  />
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rc-hint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                  {analysisSearch && (
-                    <button onClick={() => setAnalysisSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-rc-hint hover:text-rc-text transition-colors font-mono text-[10px]">✕</button>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  {loadingHistory ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map(i => <div key={i} className="h-24 bg-rc-surface rounded-[24px] animate-pulse" />)}
-                    </div>
-                  ) : totalAnalyses === 0 ? (
-                    <div className="p-16 text-center bg-white border border-rc-border rounded-[24px] border-dashed space-y-4">
-                      <FileText className="w-12 h-12 text-rc-hint/20 mx-auto" />
-                      <p className="text-rc-muted font-medium">{t.account.noResults}</p>
-                      <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-6 py-3 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90">{t.account.startNewAnalysis} <ArrowRight className="w-3 h-3" /></Link>
-                    </div>
-                  ) : filteredHistory.length === 0 ? (
-                    <div className="p-12 text-center bg-white border border-rc-border rounded-[24px] border-dashed">
-                      <p className="text-rc-muted font-mono text-[12px]">{t.account.search.noResults} "{analysisSearch}"</p>
-                    </div>
+                    </p>
                   ) : (
-                    <div className="flex flex-col gap-2">
-                      {filteredHistory.map((item) => (
-                        <AnalysisRowWithInterviews
-                          key={item.id}
-                          item={item}
-                          onDelete={handleDelete}
-                          onExport={handleOpenExport}
-                          isDeleting={isDeleting}
-                          getScoreColor={getScoreColor}
-                          localePath={localePath}
-                        />
-                      ))}
-                    </div>
+                    <p className="font-sans text-[14px] text-rc-hint mb-4">Run your first analysis to get personalized insights.</p>
                   )}
-
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                      Page {analysisPage} / {Math.max(1, totalAnalysisPages)}
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        disabled={analysisPage === 1}
-                        onClick={() => setAnalysisPage(p => p - 1)}
-                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        ← Prev
-                      </button>
-                      <button
-                        disabled={analysisPage >= Math.max(1, totalAnalysisPages)}
-                        onClick={() => setAnalysisPage(p => p + 1)}
-                        className="px-4 py-2 rounded-xl border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        Next →
-                      </button>
-                    </div>
+                  <div className="space-y-3">
+                    {pilotLines.map((line, i) => {
+                      const dotColor = line.tone === "warn" ? "bg-rc-red" : line.tone === "nudge" ? "bg-rc-amber" : "bg-rc-green";
+                      return (
+                        <div key={i} className="flex items-start gap-2.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${dotColor} mt-1.5 shrink-0`} />
+                          <p className="text-[12px] text-rc-muted leading-snug">{line.body}</p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
-            );
-          })()}
 
-          {activeTab === "applications" && (
-            <ApplicationsTab
-              applications={applications}
-              applicationsLoading={applicationsLoading}
-              history={history}
-              onCreateApplication={d => createApplication.mutateAsync(d as any)}
-              onUpdateApplication={d => updateApplication.mutateAsync(d as any)}
-              onDeleteApplication={id => deleteApplication.mutateAsync(id)}
-            />
-          )}
-        </div>
+              {/* Rank */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">
+                <div className="flex items-baseline justify-between mb-3">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Your rank</p>
+                  <span className="font-black text-[18px] text-rc-red leading-none">
+                    {xpData?.totalXp.toLocaleString() ?? 0}
+                    <span className="font-mono text-[10px] text-rc-hint ml-1">XP</span>
+                  </span>
+                </div>
+                {xpData ? (
+                  <>
+                    <p className="font-sans font-semibold text-[18px] leading-none mb-2" style={{ letterSpacing: -0.2 }}>
+                      {xpData.tierLabel.split(" ").slice(0, -1).join(" ")}{" "}
+                      <span className="font-serif italic text-rc-red" style={{ fontWeight: 500 }}>
+                        {xpData.tierLabel.split(" ").slice(-1)[0]}
+                      </span>
+                    </p>
+                    <p className="font-mono text-[10px] text-rc-hint mb-2">
+                      → {xpData.next?.tierLabel ?? "Max level"} · {xpData.xpInLevel}/{xpData.xpForNextLevel} XP
+                    </p>
+                    <div className="h-1.5 bg-rc-surface-hero rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-rc-red transition-all"
+                        style={{ width: `${xpData.percentToNextLevel}%` }}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <p className="font-mono text-[11px] text-rc-hint">—</p>
+                )}
+              </div>
 
-        <div className="pt-12 pb-24 text-center space-y-2 opacity-30">
-          <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint">RejectCheck · SECURE SESSION</p>
-          <p className="text-[10px] text-rc-muted">ID: {user.id} · UTC: {new Date().toISOString()}</p>
-        </div>
-      </div>
+              {/* Skills */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">
+                <div className="flex items-baseline justify-between mb-4">
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">{t.account.home.skillProfile}</p>
+                  {skillAnalysisCount > 0 && (
+                    <span className="font-mono text-[10px] text-rc-hint">{skillAnalysisCount} runs</span>
+                  )}
+                </div>
+                {topSkills.length === 0 ? (
+                  <p className="font-mono text-[11px] text-rc-hint text-center py-4">
+                    Run analyses to build your skill profile.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {topSkills.map(skill => (
+                      <div key={skill.subject} className="grid items-center gap-2" style={{ gridTemplateColumns: "80px 1fr 28px" }}>
+                        <span className="text-[12px] text-rc-text truncate">{skill.subject}</span>
+                        <div className="h-1.5 bg-rc-surface-hero rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${skill.strength}%`,
+                              background: skill.strength > 60 ? "var(--rc-green)" : skill.strength > 30 ? "var(--rc-amber)" : "var(--rc-red)",
+                            }}
+                          />
+                        </div>
+                        <span className="font-mono text-[10px] text-rc-hint text-right">{skill.strength}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ANALYSES ─────────────────────────────────────────────────── */}
+        {activeTab === "analyses" && (
+          <div className="space-y-4">
+
+            {/* Top row */}
+            <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 240px", height: 260 }}>
+
+              {/* Evo chart */}
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between px-5 pt-4 pb-3">
+                  <div>
+                    <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Score evolution</p>
+                    <p className="font-mono text-[10px] text-rc-hint mt-0.5">Rejection risk · % · ↓ better</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {(["7d", "30d", "all"] as const).map(p => (
+                      <button
+                        key={p}
+                        onClick={() => setEvolutionPeriod(p)}
+                        className={`font-mono text-[10px] font-bold tracking-[0.1em] px-2.5 py-1 rounded-lg border transition-colors ${
+                          evolutionPeriod === p
+                            ? "border-rc-red text-rc-red bg-rc-red/5"
+                            : "border-rc-border text-rc-hint hover:text-rc-text"
+                        }`}
+                      >
+                        {p === "7d" ? "7D" : p === "30d" ? "30D" : "All"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1 px-2 pb-2">
+                  {!evoHasData ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-2">
+                      <p className="font-mono text-[11px] text-rc-hint">No evolution to show yet.</p>
+                      <p className="font-mono text-[10px] text-rc-hint/60 text-center max-w-[220px]">Run at least 2 analyses to track progress.</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={evoChartData} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                        <XAxis
+                          dataKey="dateLabel"
+                          tick={{ fill: "#9a9790", fontSize: 9, fontFamily: "monospace" }}
+                          axisLine={{ stroke: "rgba(0,0,0,0.08)" }} tickLine={false}
+                        />
+                        <YAxis
+                          domain={[0, 100]} reversed
+                          tick={{ fill: "#9a9790", fontSize: 9, fontFamily: "monospace" }}
+                          axisLine={false} tickLine={false} width={28}
+                        />
+                        <Tooltip content={(props: any) => (
+                          <EvolutionTooltip {...props} evoGroups={evoGroups} evoLabels={evoLabels} />
+                        )} />
+                        {evoKeys.map((key, i) => (
+                          <Line
+                            key={key} type="monotone" dataKey={key}
+                            stroke={EVO_PALETTE[i % EVO_PALETTE.length]}
+                            strokeWidth={2}
+                            dot={{ r: 3, fill: EVO_PALETTE[i % EVO_PALETTE.length], strokeWidth: 0 }}
+                            activeDot={{ r: 4 }} connectNulls={false}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+
+              {/* Mini stats */}
+              <div className="grid gap-2.5" style={{ gridTemplateRows: "1fr 1fr 1fr" }}>
+                {[
+                  {
+                    label: "Avg score",
+                    value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—",
+                    sub: overviewAvgRisk !== null && overviewAvgRisk < 40 ? "Low risk" : undefined,
+                    good: overviewAvgRisk !== null && overviewAvgRisk < 40,
+                  },
+                  {
+                    label: "Best run",
+                    value: bestRun ? String(bestRun.result?.score ?? "—") : "—",
+                    sub: bestRun
+                      ? `${new Date(bestRun.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${bestRun.jobLabel || bestRun.result?.job_details?.title || ""}`
+                      : undefined,
+                    good: true,
+                  },
+                  {
+                    label: "Worst run",
+                    value: worstRun ? String(worstRun.result?.score ?? "—") : "—",
+                    sub: worstRun
+                      ? `${new Date(worstRun.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${worstRun.jobLabel || worstRun.result?.job_details?.title || ""}`
+                      : undefined,
+                    good: false,
+                  },
+                ].map(({ label, value, sub, good }) => (
+                  <div key={label} className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-3.5">
+                    <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint mb-1">{label}</p>
+                    <p className={`font-black text-[22px] leading-none ${good ? "text-rc-green" : "text-rc-text"}`}>{value}</p>
+                    {sub && <p className="font-mono text-[9px] text-rc-hint mt-0.5 truncate">{sub}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* History */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-semibold text-[15px] text-rc-text tracking-tight">
+                  {t.account.analysisHistory}
+                </h2>
+                <p className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                  {totalAnalyses} {t.account.results}
+                </p>
+              </div>
+
+              <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
+                {/* Search */}
+                <div className="flex items-center border-b border-[rgba(0,0,0,0.06)]">
+                  <div className="flex-1 relative">
+                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rc-hint" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input
+                      type="text"
+                      value={analysisSearch}
+                      onChange={e => setAnalysisSearch(e.target.value)}
+                      placeholder={t.account.search.analysesPlaceholder}
+                      className="w-full bg-transparent pl-9 pr-4 py-3 font-mono text-[12px] text-rc-text placeholder:text-rc-hint outline-none"
+                    />
+                  </div>
+                  {analysisSearch && (
+                    <button
+                      onClick={() => setAnalysisSearch("")}
+                      className="px-4 py-3 font-mono text-[10px] text-rc-hint hover:text-rc-text transition-colors border-l border-[rgba(0,0,0,0.06)]"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <Link
+                    href={localePath("/analyze")}
+                    className="px-4 py-3 font-mono text-[10px] font-bold tracking-[0.1em] text-rc-red no-underline hover:opacity-70 transition-opacity border-l border-[rgba(0,0,0,0.06)]"
+                  >
+                    + New analysis
+                  </Link>
+                </div>
+
+                {/* Header */}
+                <div
+                  className="grid font-mono text-[9px] text-rc-hint font-bold tracking-[0.12em] uppercase px-4 py-2.5 bg-rc-surface-hero"
+                  style={{ gridTemplateColumns: "40px 1.6fr 1fr 110px 100px 110px 70px" }}
+                >
+                  <div>Score</div><div>Position</div><div>Company</div>
+                  <div>Date</div><div>Status</div><div>Note</div><div />
+                </div>
+
+                {/* Rows */}
+                {loadingHistory ? (
+                  <div className="p-8 text-center">
+                    <span className="font-mono text-[11px] text-rc-hint animate-pulse">Loading…</span>
+                  </div>
+                ) : totalAnalyses === 0 ? (
+                  <div className="p-16 flex flex-col items-center gap-4">
+                    <FileText className="w-10 h-10 text-rc-hint/20" />
+                    <p className="text-rc-muted font-medium">{t.account.noResults}</p>
+                    <Link href={localePath("/analyze")} className="inline-flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase no-underline hover:opacity-90">
+                      {t.account.startNewAnalysis} <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                ) : filteredHistory.length === 0 ? (
+                  <div className="p-10 text-center">
+                    <p className="font-mono text-[11px] text-rc-hint">{t.account.search.noResults} "{analysisSearch}"</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[rgba(0,0,0,0.05)]">
+                    {filteredHistory.map(item => {
+                      const label = item.jobLabel || item.result?.job_details?.title || "Developer";
+                      const company = item.company ?? item.result?.job_details?.company ?? null;
+                      const score = item.result?.score ?? 0;
+                      const appStatus = applications.find(a => a.company?.toLowerCase() === company?.toLowerCase())?.status;
+                      const aiNote = score > 60
+                        ? { text: "Tailor CV", color: "text-rc-red" }
+                        : { text: "Strong match", color: "text-rc-green" };
+                      return (
+                        <div
+                          key={item.id}
+                          className="grid items-center px-4 py-3 hover:bg-[#faf9f7] transition-colors text-[12px]"
+                          style={{ gridTemplateColumns: "40px 1.6fr 1fr 110px 100px 110px 70px" }}
+                        >
+                          <ScoreCircle score={score} />
+                          <Link href={localePath(`/analyze?id=${item.id}`)} className="font-semibold text-rc-text no-underline hover:text-rc-red transition-colors truncate pr-2">
+                            {label}
+                          </Link>
+                          <span className="text-rc-muted truncate pr-2">{company || "—"}</span>
+                          <span className="font-mono text-[10px] text-rc-hint">
+                            {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                          </span>
+                          <span className={`font-mono text-[10px] font-bold ${appStatus === "interviewing" ? "text-rc-amber" : "text-rc-hint"}`}>
+                            {appStatus ? appStatus.charAt(0).toUpperCase() + appStatus.slice(1) : "—"}
+                          </span>
+                          <span className={`font-mono text-[10px] ${aiNote.color}`}>{aiNote.text}</span>
+                          <div className="flex items-center gap-3 justify-end">
+                            <Link href={localePath(`/analyze?id=${item.id}`)} className="text-rc-hint hover:text-rc-red transition-colors no-underline text-[14px]">→</Link>
+                            <button onClick={e => handleOpenExport(e, item)} className="text-rc-hint hover:text-rc-text transition-colors text-[14px]">↓</button>
+                            <button
+                              onClick={e => handleDelete(e, item.id)}
+                              disabled={isDeleting === item.id}
+                              className="text-rc-hint hover:text-rc-red transition-colors disabled:opacity-30 text-[12px]"
+                            >✕</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between px-4 py-3 border-t border-[rgba(0,0,0,0.05)]">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
+                    Page {analysisPage} / {Math.max(1, totalAnalysisPages)}
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={analysisPage === 1}
+                      onClick={() => setAnalysisPage(p => p - 1)}
+                      className="px-3.5 py-1.5 rounded-lg border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      ← Prev
+                    </button>
+                    <button
+                      disabled={analysisPage >= Math.max(1, totalAnalysisPages)}
+                      onClick={() => setAnalysisPage(p => p + 1)}
+                      className="px-3.5 py-1.5 rounded-lg border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart legend */}
+              {evoHasData && evoKeys.length > 1 && (
+                <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
+                  {evoKeys.map((key, i) => {
+                    const meta = evoLabels.get(key)!;
+                    return (
+                      <div key={key} className="flex items-center gap-2">
+                        <div className="shrink-0 rounded-full" style={{ width: 16, height: 2, backgroundColor: EVO_PALETTE[i % EVO_PALETTE.length] }} />
+                        <span className="font-mono text-[10px] text-rc-muted">{meta.title}{meta.company && ` · ${meta.company}`}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── APPLICATIONS ─────────────────────────────────────────────── */}
+        {activeTab === "applications" && (
+          <ApplicationsTab
+            applications={applications}
+            applicationsLoading={applicationsLoading}
+            history={history}
+            onCreateApplication={d => createApplication.mutateAsync(d as any)}
+            onUpdateApplication={d => updateApplication.mutateAsync(d as any)}
+            onDeleteApplication={id => deleteApplication.mutateAsync(id)}
+          />
+        )}
+      </DashboardShell>
 
       {showSuccessModal && <SuccessModal onClose={() => setShowSuccessModal(false)} />}
       <ExportModal isOpen={!!exportItem} onClose={() => setExportItem(null)} result={exportItem?.result || null} />
       <BuyCreditsModal isOpen={isCreditsModalOpen} onClose={() => setIsCreditsModalOpen(false)} />
-    </div>
+    </>
   );
 }
 

@@ -1,173 +1,158 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Coins } from "lucide-react";
+import Link from "next/link";
 import { useBuyCredits } from "../../lib/mutations";
+import { useQuota, useSubscription } from "../../lib/queries";
+import { useLanguage } from "../../context/language";
 
 interface BuyCreditsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const PRESET_QUANTITIES = [1, 5, 10] as const;
-const PRICE_PER_CREDIT_EUR = 2;
-const MAX_CUSTOM = 100;
+const PACKS = [
+  { quantity: 5,  price: "4,99 €",  sub: "1,00 € / analyse",                    popular: false },
+  { quantity: 10, price: "8,99 €",  sub: "0,90 € / analyse · -10%",             popular: true  },
+  { quantity: 20, price: "15,99 €", sub: "0,80 € / analyse · -20%",             popular: false },
+] as const;
 
 export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
-  const [selected, setSelected] = useState<number | "custom">(5);
-  const [customValue, setCustomValue] = useState<string>("");
   const [isVisible, setIsVisible] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loadingQty, setLoadingQty] = useState<number | null>(null);
 
   const buyCredits = useBuyCredits();
+  const { data: quota } = useQuota();
+  const { data: sub } = useSubscription();
+  const { localePath } = useLanguage();
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
-      setSelected(5);
-      setCustomValue("");
-      setError(null);
     } else {
-      setTimeout(() => setIsVisible(false), 300);
+      const t = setTimeout(() => setIsVisible(false), 250);
+      return () => clearTimeout(t);
     }
   }, [isOpen]);
 
   if (!isOpen && !isVisible) return null;
 
-  const quantity =
-    selected === "custom"
-      ? Number.parseInt(customValue, 10) || 0
-      : selected;
-  const isValid = Number.isInteger(quantity) && quantity >= 1 && quantity <= MAX_CUSTOM;
-  const totalEur = quantity * PRICE_PER_CREDIT_EUR;
+  const resetDays = sub?.currentPeriodEnd
+    ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / 86400000))
+    : null;
 
-  const handleContinue = () => {
-    if (!isValid) {
-      setError(`Enter a quantity between 1 and ${MAX_CUSTOM}`);
-      return;
-    }
-    setError(null);
+  const usedCredits = quota?.monthlyCap ?? 5;
+  const isHired = sub?.plan === "hired";
+
+  const handleBuy = (quantity: number) => {
+    setLoadingQty(quantity);
     buyCredits.mutate(
       { quantity },
-      {
-        onError: (err) => {
-          setError(err instanceof Error ? err.message : "Checkout failed");
-        },
-      },
+      { onSettled: () => setLoadingQty(null) },
     );
   };
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-opacity duration-[250ms] ${
         isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      <div
-        className="absolute inset-0 bg-rc-text/40 backdrop-blur-md"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div
-        className={`relative bg-white border border-rc-border rounded-3xl p-8 w-full max-w-[440px] shadow-[0_40px_100px_rgba(0,0,0,0.15)] transition-all duration-300 transform ${
-          isOpen ? "translate-y-0 scale-100" : "translate-y-4 scale-95"
+        className={`relative bg-white border border-rc-border rounded-2xl w-full max-w-[460px] shadow-[0_32px_80px_rgba(0,0,0,0.18)] transition-all duration-[250ms] overflow-hidden ${
+          isOpen ? "translate-y-0 scale-100" : "translate-y-3 scale-[0.98]"
         }`}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-rc-hint hover:text-rc-red transition-colors"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="mb-6">
-          <div className="w-12 h-12 bg-rc-red/5 rounded-2xl flex items-center justify-center mb-5 border border-rc-red/10">
-            <Coins className="w-6 h-6 text-rc-red" />
+        {/* Header */}
+        <div className="px-7 pt-7 pb-6">
+          <div className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-red font-bold flex items-center gap-1.5 mb-3">
+            <span className="text-[7px]">●</span> Crédits épuisés
           </div>
-          <h2 className="text-2xl font-bold text-rc-text mb-2">Buy credits</h2>
-          <p className="text-rc-hint text-sm">
-            One-time credits never expire. €{PRICE_PER_CREDIT_EUR} per analysis,
-            used after your monthly cap is reached.
+          <h2 className="text-[26px] font-bold text-rc-text leading-[1.15] tracking-[-0.02em] mb-3">
+            Tu as utilisé tes {usedCredits} crédits<span className="text-rc-red" style={{ fontFamily: "Georgia, serif" }}>.</span>
+          </h2>
+          <p className="text-[13px] text-rc-muted leading-[1.6]">
+            {resetDays !== null
+              ? <>Le reset arrive dans <strong className="text-rc-text font-semibold">{resetDays} jour{resetDays > 1 ? "s" : ""}</strong>. Ta candidature et tes signaux sont sauvegardés — relance dès que tu recharges.</>
+              : <>Ta candidature et tes signaux sont sauvegardés — recharge pour continuer.</>
+            }
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          {PRESET_QUANTITIES.map((qty) => (
-            <button
-              key={qty}
-              type="button"
-              onClick={() => setSelected(qty)}
-              className={`px-4 py-4 rounded-2xl border-2 text-left transition-all ${
-                selected === qty
-                  ? "border-rc-red bg-rc-red/5"
-                  : "border-rc-border hover:border-rc-red/30"
-              }`}
+        <div className="border-t border-rc-border" />
+
+        {/* Credit packs */}
+        <div className="px-7 py-5">
+          <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint mb-3">Acheter des crédits</p>
+
+          <div className="flex flex-col gap-2">
+            {PACKS.map((pack) => (
+              <button
+                key={pack.quantity}
+                type="button"
+                onClick={() => handleBuy(pack.quantity)}
+                disabled={loadingQty !== null}
+                className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border text-left transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
+                  pack.popular
+                    ? "border-rc-red bg-rc-red/[0.04] hover:bg-rc-red/[0.07]"
+                    : "border-rc-border hover:border-rc-red/40 hover:bg-rc-bg"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] font-bold text-rc-text">
+                      {pack.quantity} crédit{pack.quantity > 1 ? "s" : ""}
+                    </span>
+                    {pack.popular && (
+                      <span className="font-mono text-[8px] tracking-[0.1em] uppercase text-rc-red border border-rc-red/40 px-1.5 py-0.5 rounded">
+                        Populaire
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-mono text-[11px] text-rc-hint mt-0.5">{pack.sub}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-4">
+                  <span className={`text-[15px] font-bold ${pack.popular ? "text-rc-red" : "text-rc-text"}`}>
+                    {loadingQty === pack.quantity ? "…" : pack.price}
+                  </span>
+                  <span className={`text-[14px] ${pack.popular ? "text-rc-red" : "text-rc-hint"}`}>→</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Upgrade CTA — only if not on hired plan */}
+          {!isHired && (
+            <Link
+              href={localePath("/settings")}
+              onClick={onClose}
+              className="mt-4 flex items-center justify-between w-full px-4 py-3 rounded-xl bg-rc-bg border border-rc-border hover:border-rc-red/40 transition-all no-underline group"
             >
-              <div className="text-lg font-bold text-rc-text">
-                {qty} credit{qty > 1 ? "s" : ""}
+              <div>
+                <p className="text-[12px] font-semibold text-rc-text">Passer au plan Pro ou Hired</p>
+                <p className="font-mono text-[10px] text-rc-hint mt-0.5">Analyses illimitées · plus de crédits à acheter</p>
               </div>
-              <div className="text-rc-hint text-sm">
-                €{qty * PRICE_PER_CREDIT_EUR}
-              </div>
-            </button>
-          ))}
+              <span className="font-mono text-[11px] text-rc-red group-hover:opacity-70 transition-opacity shrink-0 ml-3">
+                Voir les plans →
+              </span>
+            </Link>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-7 py-4 border-t border-rc-border flex items-center justify-between">
+          <span className="font-mono text-[10px] text-rc-hint tracking-[0.06em]">
+            Paiement unique · Stripe
+          </span>
           <button
-            type="button"
-            onClick={() => setSelected("custom")}
-            className={`px-4 py-4 rounded-2xl border-2 text-left transition-all ${
-              selected === "custom"
-                ? "border-rc-red bg-rc-red/5"
-                : "border-rc-border hover:border-rc-red/30"
-            }`}
+            onClick={onClose}
+            className="font-mono text-[10px] tracking-[0.12em] uppercase text-rc-hint hover:text-rc-text transition-colors"
           >
-            <div className="text-lg font-bold text-rc-text">Custom</div>
-            <div className="text-rc-hint text-sm">Pick a number</div>
+            Fermer
           </button>
         </div>
-
-        {selected === "custom" && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-rc-text mb-2">
-              Quantity
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={MAX_CUSTOM}
-              value={customValue}
-              onChange={(e) => setCustomValue(e.target.value)}
-              placeholder="e.g. 25"
-              className="w-full px-4 py-3 rounded-xl border border-rc-border focus:border-rc-red focus:outline-none text-rc-text"
-            />
-          </div>
-        )}
-
-        <div className="flex items-baseline justify-between mb-6 pt-4 border-t border-rc-border">
-          <span className="text-rc-hint">Total</span>
-          <span className="text-2xl font-bold text-rc-text">€{totalEur}</span>
-        </div>
-
-        {error && (
-          <p className="mb-4 text-sm text-rc-red" role="alert">
-            {error}
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={handleContinue}
-          disabled={!isValid || buyCredits.isPending}
-          className="w-full py-3 px-6 rounded-xl bg-rc-red text-white font-semibold hover:bg-rc-red/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {buyCredits.isPending
-            ? "Redirecting…"
-            : `Continue to checkout • €${totalEur}`}
-        </button>
-
-        <p className="mt-3 text-center text-xs text-rc-hint">
-          Secure payment via Stripe
-        </p>
       </div>
     </div>
   );

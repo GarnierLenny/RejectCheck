@@ -608,17 +608,7 @@ function AnalyzeContent() {
               onFinished={() => setVisualLoadingDone(true)}
             />
           ) : (
-            <div className="flex-1 flex flex-col">
-              {quota && user ? (
-                <div className="max-w-[860px] mx-auto w-full px-5 md:px-0 pt-6 -mb-2 text-[12px] text-rc-hint flex items-center gap-2 font-mono uppercase tracking-wider">
-                  <span>
-                    {quota.monthlyUsed}/{quota.monthlyCap} analyses this month
-                  </span>
-                  {quota.creditsBalance > 0 && (
-                    <span>· {quota.creditsBalance} credit{quota.creditsBalance > 1 ? 's' : ''}</span>
-                  )}
-                </div>
-              ) : null}
+            <div className="flex-1 flex flex-col min-h-0">
               <UploadForm
                 cvFile={cvFile} setCvFile={setCvFile}
                 liFile={liFile} setLiFile={setLiFile}
