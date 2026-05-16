@@ -270,7 +270,7 @@ export function PublicProfileHeader({ profile }: Props) {
                       {resetDays !== null ? `Reset dans ${resetDays}j` : "—"}
                     </span>
                     <Link
-                      href={localePath("/settings")}
+                      href={localePath("/credits")}
                       className="font-mono text-[10px] font-bold tracking-[0.12em] uppercase text-rc-hint hover:text-rc-text no-underline transition-colors"
                     >
                       Gérer →
