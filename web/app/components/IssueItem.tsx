@@ -9,7 +9,7 @@ const severityBorder: Record<string, string> = {
   minor:    "border-l-[3px] border-l-rc-border",
 };
 
-export function IssueItem({ issue }: { issue: Issue }) {
+export function IssueItem({ issue, fixesReady = true }: { issue: Issue; fixesReady?: boolean }) {
   return (
     <div className={`p-6 border-b border-rc-border last:border-0 hover:bg-rc-surface-raised transition-colors ${severityBorder[issue.severity] ?? ''}`}>
       {/* Meta: severity + category - above title */}
@@ -34,7 +34,7 @@ export function IssueItem({ issue }: { issue: Issue }) {
         <ReactMarkdown>{issue.why}</ReactMarkdown>
       </div>
 
-      {issue.fix ? <FixBlock fix={issue.fix} /> : <FixBlockSkeleton />}
+      {issue.fix ? <FixBlock fix={issue.fix} /> : fixesReady ? <FixBlockSkeleton /> : null}
     </div>
   );
 }

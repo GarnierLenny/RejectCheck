@@ -55,9 +55,9 @@ function getAccuracy(cvFile: File | null, jd: string, github: string, liFile: Fi
 
   const score = (hasCV ? 1 : 0) + (hasJD ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
 
-  if (score <= 1) return { segments: 1, color: "bg-rc-red" };
-  if (score === 2) return { segments: 2, color: "bg-rc-red" };
-  if (score === 3) return { segments: 3, color: "bg-rc-amber" };
+  if (score <= 1) return { segments: 2, color: "bg-rc-red" };
+  if (score === 2) return { segments: 3, color: "bg-rc-amber" };
+  if (score === 3) return { segments: 4, color: "bg-rc-amber" };
   return { segments: 5, color: "bg-rc-green" };
 }
 
@@ -250,7 +250,7 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
           </p>
         </div>
       )}
-    <div className="grid grid-cols-2 gap-6 flex-1">
+    <div className="grid gap-6 flex-1 grid-cols-2">
 
       {/* CV Upload - left column */}
       <div className="flex flex-col">
@@ -358,11 +358,11 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
       </div>
 
-      {/* Job listing - right column */}
+      {/* Job listing - right column (optional — unlocks targeted analysis) */}
       <div className="flex flex-col">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.jobListing.label}</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">{t.common.required}</span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-hint border border-rc-border px-1.5 py-0.5 rounded">{t.common.optional}</span>
         </div>
         <textarea
           value={jobDescription}
@@ -373,10 +373,14 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
         <div className="flex items-center justify-between gap-2 mt-1.5">
           {warningText ? (
             <p className="font-mono text-[9px] text-rc-amber">{warningText}</p>
+          ) : jobDescription.trim().length === 0 ? (
+            <p className="font-mono text-[9px] text-rc-hint/80 leading-relaxed">
+              Remplis pour débloquer ATS sim · gap radar · script de négo · projet pour combler les manques
+            </p>
           ) : (
             <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.jobListing.hint}</p>
           )}
-          {(() => {
+          {jobDescription.trim().length > 0 && (() => {
             const len = jobDescription.trim().length;
             const outOfRange = len < JD_MIN_CHARS || len > JD_MAX_CHARS;
             return (
@@ -390,8 +394,6 @@ function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescript
             );
           })()}
         </div>
-
-
       </div>
 
     </div>
@@ -510,6 +512,7 @@ function RightStep2({
   mlFile, setMlFile, mlRef,
   mlText, setMlText,
   mlMode, setMlMode,
+  hasJd,
   savedLinkedinUrl,
   roleType,
 }: {
@@ -523,6 +526,7 @@ function RightStep2({
   mlText: string; setMlText: (v: string) => void;
   mlMode: "file" | "text"; setMlMode: (m: "file" | "text") => void;
   roleType?: RoleType | null;
+  hasJd: boolean;
 }) {
   const { t } = useLanguage();
   const [loadingLi, setLoadingLi] = useState(false);
@@ -657,8 +661,8 @@ function RightStep2({
       {/* Adaptive URL fields per role */}
       {preset.fields.map((f) => renderField(f))}
 
-      {/* Motivation Letter */}
-      <div className="border border-rc-border rounded overflow-hidden">
+      {/* Motivation Letter — only meaningful if a JD is provided */}
+      {hasJd && <div className="border border-rc-border rounded overflow-hidden">
         <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
@@ -707,7 +711,7 @@ function RightStep2({
             />
           )}
         </div>
-      </div>
+      </div>}
 
     </div>
     </>
@@ -849,7 +853,11 @@ export function UploadForm({
   }, [savedPortfolioUrl, portfolioUrl, setPortfolioUrl]);
 
   const jdLen = jobDescription.trim().length;
-  const hasRequired = !!cvFile && jdLen >= JD_MIN_CHARS && jdLen <= JD_MAX_CHARS;
+  // CV is the only hard requirement. If a JD is provided, it must be within
+  // bounds — otherwise the targeted analysis is skipped and we fall back to
+  // a general CV audit.
+  const jdValid = jdLen === 0 || (jdLen >= JD_MIN_CHARS && jdLen <= JD_MAX_CHARS);
+  const hasRequired = !!cvFile && jdValid;
   const hasStep1 = hasRequired;
   const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
 
@@ -926,6 +934,7 @@ export function UploadForm({
               mlMode={mlMode} setMlMode={setMlMode}
               savedLinkedinUrl={savedLinkedinUrl}
               roleType={roleType}
+              hasJd={jdLen > 0}
             />
           )}
           {step === 3 && (

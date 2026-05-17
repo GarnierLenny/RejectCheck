@@ -520,7 +520,9 @@
   },
   "scoreSidebar": {
     "overallRisk": "Overall Risk Score",
+    "cvQuality": "CV Quality Score",
     "tooltipText": "Aggregate rejection probability based on profile weaknesses, ATS flags, and seniority gaps.",
+    "cvQualityTooltip": "Weighted average across 6 dimensions: clarity, impact, hard skills, soft skills, consistency, and ATS format.",
     "risk": "Risk",
     "modelConfidence": "Model confidence",
     "newProfile": "New Profile",
@@ -573,7 +575,8 @@
     "project": "Project",
     "improveCv": "Improve CV",
     "aiInterview": "AI Interview",
-    "coverLetter": "Cover Letter"
+    "coverLetter": "Cover Letter",
+    "cvReview": "CV Audit"
   },
   "negotiationTab": {
     "title": "Negotiation playbook",
@@ -1804,5 +1807,38 @@
       "recommended": "Recommended",
       "optional": "Optional"
     }
+  },
+  "cvReviewTab": {
+    "cvAudit": "CV Audit",
+    "qualityScores": "Quality Scores",
+    "qualitySubtitle": "Six dimensions scored from 0–100. Overall is a weighted average.",
+    "overall": "Overall",
+    "clarity": "Clarity",
+    "impact": "Impact",
+    "hardSkills": "Hard Skills",
+    "softSkills": "Soft Skills",
+    "consistency": "Consistency",
+    "atsFormat": "ATS Format",
+    "projectedProfile": "Projected Profile",
+    "profileSubtitle": "How a recruiter reading your CV blind would classify your profile.",
+    "seniority": "Seniority",
+    "profileType": "Profile type",
+    "targetRoles": "Target roles",
+    "domains": "Domains",
+    "specialist": "Specialist",
+    "generalist": "Generalist",
+    "transitioning": "Transitioning",
+    "atsAudit": "ATS Structural Audit",
+    "atsSubtitle": "Format and structure issues that may cause ATS rejection before a human reads your CV.",
+    "atsScore": "ATS Score",
+    "noIssues": "No structural issues detected.",
+    "fix": "Fix",
+    "toneAnalysis": "Writing Tone",
+    "toneSubtitle": "Passive writing weakens the recruiter's perception of your impact. Rewrite these with action verbs.",
+    "passiveExamples": "Passive phrases found in your CV — rewrite each with a strong action verb",
+    "seniorityGap": "Seniority Signal",
+    "claimed": "Claimed",
+    "projected": "Projected",
+    "strongestSignal": "Strongest signal"
   }
 }

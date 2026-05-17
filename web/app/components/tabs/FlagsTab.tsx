@@ -4,15 +4,17 @@ import type { AnalysisResult } from "../types";
 import { FixBlock } from "../FixBlock";
 import { FixBlockSkeleton } from "../skeletons/FixBlockSkeleton";
 import { SectionHeader } from "../SectionHeader";
+import { Md } from "../Md";
 import { useLanguage } from "../../../context/language";
 
 type Props = {
   flags: AnalysisResult["hidden_red_flags"];
-  jdMatch: AnalysisResult["audit"]["jd_match"];
+  jdMatch?: AnalysisResult["audit"]["jd_match"];
   score: AnalysisResult["score"];
-  verdict: AnalysisResult["verdict"];
-  confidence: AnalysisResult["confidence"];
-  breakdown: AnalysisResult["breakdown"];
+  verdict?: AnalysisResult["verdict"];
+  confidence?: AnalysisResult["confidence"];
+  breakdown?: AnalysisResult["breakdown"];
+  fixesReady?: boolean;
 };
 
 const VERDICT_CONFIG_KEYS = {
@@ -21,7 +23,7 @@ const VERDICT_CONFIG_KEYS = {
   Low:    { color: "text-rc-red",   bg: "bg-rc-red/5",     border: "border-rc-red/20" },
 };
 
-export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown }: Props) {
+export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown, fixesReady = true }: Props) {
   const { t } = useLanguage();
 
   const VERDICT_CONFIG = {
@@ -39,20 +41,23 @@ export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown
     linkedin_signal:  bl.linkedin_signal,
   };
 
-  const sortedSkills = [...jdMatch.required_skills].sort((a, b) =>
+  const sortedSkills = jdMatch ? [...jdMatch.required_skills].sort((a, b) =>
     a.found === b.found ? 0 : a.found ? 1 : -1
-  );
+  ) : [];
 
   const foundCount = sortedSkills.filter(s => s.found).length;
   const totalCount = sortedSkills.length;
 
-  const verdictCfg = VERDICT_CONFIG[verdict] ?? VERDICT_CONFIG.Low;
-  const breakdownEntries = Object.entries(breakdown).filter(([, v]) => v !== null) as [string, number][];
+  const verdictCfg = verdict ? (VERDICT_CONFIG[verdict] ?? VERDICT_CONFIG.Low) : null;
+  const breakdownEntries = breakdown
+    ? (Object.entries(breakdown).filter(([, v]) => v !== null) as [string, number][])
+    : [];
 
   return (
     <div className="space-y-12">
 
-      {/* ── SECTION 1: Recruiter View ─────────────────────── */}
+      {/* ── SECTION 1: Recruiter View — only for vs-job analyses ── */}
+      {verdictCfg && confidence && (
       <div>
         <SectionHeader
           label={t.flagsTab.recruiterAssessment}
@@ -94,6 +99,7 @@ export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown
           </div>
         </div>
       </div>
+      )}
 
       {/* ── SECTION 2: Recruiter Intuition ───────────────── */}
       <div>
@@ -110,21 +116,22 @@ export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown
               {/* Meta */}
               <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-red block mb-2">{t.flagsTab.redFlag}</span>
               {/* Title */}
-              <h4 className="text-[19px] font-semibold text-rc-text mb-3 leading-snug">{flag.flag}</h4>
+              <h4 className="text-[19px] font-semibold text-rc-text mb-3 leading-snug"><Md>{flag.flag}</Md></h4>
               {/* Divider */}
               <div className="h-px bg-rc-border/40 mb-4" />
               {/* Body */}
               <div className="text-[17px] text-rc-muted leading-[1.7] mb-5">
                 <span className="font-mono text-[11px] uppercase text-rc-amber font-bold mr-2">{t.flagsTab.recruiterPerception}</span>
-                {flag.perception}
+                <Md>{flag.perception}</Md>
               </div>
-              {flag.fix ? <FixBlock fix={flag.fix} /> : <FixBlockSkeleton />}
+              {flag.fix ? <FixBlock fix={flag.fix} /> : fixesReady ? <FixBlockSkeleton /> : null}
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── SECTION 3: Technical Requirements ────────────── */}
+      {/* ── SECTION 3: Technical Requirements — only for vs-job analyses ── */}
+      {jdMatch && (
       <div>
         <SectionHeader
           label={t.flagsTab.skillsChecklist}
@@ -162,11 +169,12 @@ export function FlagsTab({ flags, jdMatch, score, verdict, confidence, breakdown
           {jdMatch.experience_gap && (
             <div className="p-4 bg-rc-red/5 border-l-4 border-rc-red">
               <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-red block mb-1.5 font-bold">{t.flagsTab.crucialExperienceGap}</span>
-              <p className="text-[17px] text-rc-muted italic leading-[1.7]">{jdMatch.experience_gap}</p>
+              <p className="text-[17px] text-rc-muted italic leading-[1.7]"><Md>{jdMatch.experience_gap}</Md></p>
             </div>
           )}
         </div>
       </div>
+      )}
 
     </div>
   );

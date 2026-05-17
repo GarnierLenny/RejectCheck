@@ -39,6 +39,7 @@ import { JinaPortfolioScraper } from './infrastructure/jina-portfolio.scraper';
 import { PdfParseParser } from './infrastructure/pdf-parse.parser';
 
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
+import { ReviewCvUseCase } from './application/review-cv.use-case';
 import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
@@ -82,6 +83,7 @@ import {
     { provide: PDF_PARSER, useClass: PdfParseParser },
 
     AnalyzeCvUseCase,
+    ReviewCvUseCase,
     GetQuotaSummaryUseCase,
     RewriteCvUseCase,
     GenerateCoverLetterUseCase,

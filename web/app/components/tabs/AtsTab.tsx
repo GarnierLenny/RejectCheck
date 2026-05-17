@@ -5,12 +5,12 @@ import { SectionHeader } from "../SectionHeader";
 import { AtsKeywordsSkeleton } from "../skeletons/AtsKeywordsSkeleton";
 import { useLanguage } from "../../../context/language";
 
-type Keyword = NonNullable<
-  AnalysisResult["ats_simulation"]["critical_missing_keywords"]
->[number];
+import type { AtsSimulation } from "../types";
+
+type Keyword = NonNullable<AtsSimulation["critical_missing_keywords"]>[number];
 
 type Props = {
-  ats: AnalysisResult["ats_simulation"];
+  ats: AtsSimulation;
   checkedKeywords: Set<string>;
   onToggle: (kw: string) => void;
   onReset: () => void;

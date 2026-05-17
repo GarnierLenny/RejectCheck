@@ -18,6 +18,7 @@ import { PaywallScreen, type PaywallMode } from "../../../components/PaywallScre
 import { ScoreSidebar } from "../../../components/ScoreSidebar";
 import { AtsTab } from "../../../components/tabs/AtsTab";
 import { CvAnalysisTab } from "../../../components/tabs/CvAnalysisTab";
+import { CvReviewTab } from "../../../components/tabs/CvReviewTab";
 import { SignalsTab } from "../../../components/tabs/SignalsTab";
 import { FlagsTab } from "../../../components/tabs/FlagsTab";
 import { RoadmapTab } from "../../../components/tabs/RoadmapTab";
@@ -39,7 +40,7 @@ import { toast } from "sonner";
 import { Check, X } from "lucide-react";
 import posthog from "posthog-js";
 
-type Tab = "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
+type Tab = "cv-review" | "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
@@ -57,9 +58,13 @@ function AnalyzeContent() {
   const [githubUsername, setGithubUsername] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [email, setEmail] = useState("");
+  // Drives the result rendering. Auto-derived at submit time from JD presence,
+  // and overridden when loading a saved analysis whose result shape implies
+  // cv-review (see effect below).
+  const [analyzeMode, setAnalyzeMode] = useState<'vs-job' | 'cv-review'>('vs-job');
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const t = searchParams.get("tab");
-    const validTabs: Tab[] = ["overview","ats","cv-analysis","signals","flags","consistency","negotiation","roadmap","project","improve","interview","cover-letter"];
+    const validTabs: Tab[] = ["cv-review","overview","ats","cv-analysis","signals","flags","consistency","negotiation","roadmap","project","improve","interview","cover-letter"];
     return validTabs.includes(t as Tab) ? (t as Tab) : "overview";
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
@@ -179,11 +184,13 @@ function AnalyzeContent() {
       setReconstructedCv(savedAnalysis.rewrite.reconstructed_cv ?? null);
     }
     // Loaded analyses come pre-merged from the backend. Three cases:
-    //  - deep present → 'ready'
+    //  - deep present OR cv-review (no deep pass) → 'ready'
     //  - deep absent + we're actively polling for a background job ('pending')
     //    → stay 'pending' until the timeout or the next poll resolves it
     //  - deep absent + not polling (stale row opened via URL nav) → 'failed'
-    const hasDeep = !!savedAnalysis.result?.project_recommendation;
+    const isCvReviewResult = !!savedAnalysis.result?.cv_quality;
+    if (isCvReviewResult) setAnalyzeMode('cv-review');
+    const hasDeep = isCvReviewResult || !!savedAnalysis.result?.project_recommendation;
     setDeepStatus((prev) => {
       if (hasDeep) return 'ready';
       if (prev === 'pending') return 'pending';
@@ -224,6 +231,140 @@ function AnalyzeContent() {
     const timer = setTimeout(() => setDeepStatus('failed'), 5 * 60 * 1000);
     return () => clearTimeout(timer);
   }, [deepStatus]);
+
+  async function handleCvReviewSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    if (!cvFile) return;
+
+    const formData = new FormData();
+    formData.append("cv", cvFile);
+    if (liFile) formData.append("linkedin", liFile);
+    if (githubUsername) formData.append("githubUsername", githubUsername);
+    const emailToSend = activeSubscription?.email || user?.email || email;
+    if (emailToSend) formData.append("email", emailToSend);
+    formData.append("isRegistered", String(!!user));
+    formData.append("locale", locale);
+
+    posthog.capture("cv_review_submitted", {
+      has_github: !!githubUsername,
+      has_linkedin: !!liFile,
+      is_registered: !!user,
+      locale,
+    });
+
+    setLoading(true);
+    setError(null);
+    setCurrentStep(null);
+    setStreamText("");
+    // cv-review has no deep pass — skip 'pending' entirely
+    setDeepStatus('ready');
+    streamingRef.current = true;
+
+    try {
+      const res = await fetch(`${apiUrl}/api/analyze/cv-review`, { method: "POST", body: formData });
+
+      if (res.status === 402) {
+        posthog.capture("paywall_shown", { reason: "global_limit" });
+        setPaywallState({ mode: user ? 'free_cap' : 'guest_limit' });
+        setLoading(false);
+        return;
+      }
+
+      type CvReviewPayload = {
+        step: string;
+        delta?: string;
+        result?: AnalysisResult;
+        analysisId?: number | null;
+        message?: string;
+        code?: string;
+        details?: { plan?: 'free' | 'shortlisted' | 'hired'; monthlyCap?: number };
+      };
+
+      let latestResult: AnalysisResult | null = null;
+      let latestAnalysisId: number | null = null;
+
+      const primeQueryCache = () => {
+        if (latestAnalysisId && latestResult && user?.id) {
+          queryClient.setQueryData(
+            ['analysis', latestAnalysisId, user.id],
+            { result: latestResult, jobDescription: '' },
+          );
+        }
+      };
+
+      await consumeSSE<CvReviewPayload>(res, (payload) => {
+        if (payload.step === "analysis_delta") {
+          setStreamText((prev) => prev + (payload.delta ?? ""));
+        } else if (payload.step === "analysis_done") {
+          if (payload.result) {
+            latestResult = payload.result;
+            setResult(payload.result);
+            queryClient.invalidateQueries({ queryKey: ['quota'] });
+            posthog.capture("cv_review_completed", {
+              score: payload.result.score,
+              analysis_id: payload.analysisId ?? null,
+            });
+          }
+          if (payload.analysisId) {
+            latestAnalysisId = payload.analysisId;
+            setAnalysisId(payload.analysisId);
+            primeQueryCache();
+            router.replace(
+              `${localePath('/analyze')}?id=${payload.analysisId}`,
+              { scroll: false },
+            );
+          }
+          setVisualLoadingDone(true);
+          setActiveTab('cv-review');
+        } else if (payload.step === "done") {
+          if (payload.result && !latestResult) {
+            latestResult = payload.result;
+            setResult(payload.result);
+          }
+          if (payload.analysisId && !latestAnalysisId) {
+            latestAnalysisId = payload.analysisId;
+            setAnalysisId(payload.analysisId);
+            router.replace(
+              `${localePath('/analyze')}?id=${payload.analysisId}`,
+              { scroll: false },
+            );
+          }
+          if (payload.result && latestAnalysisId && user?.id) {
+            queryClient.setQueryData(
+              ['analysis', latestAnalysisId, user.id],
+              { result: payload.result, jobDescription: '' },
+            );
+          }
+          setLoading(false);
+        } else if (payload.step === "error") {
+          if (payload.code === "QUOTA_EXCEEDED") {
+            const mode: PaywallMode = !user
+              ? "guest_limit"
+              : payload.details?.plan === "free"
+                ? "free_cap"
+                : "subscriber_cap";
+            posthog.capture("paywall_shown", { reason: mode });
+            setPaywallState({ mode, monthlyCap: payload.details?.monthlyCap });
+            setLoading(false);
+            streamingRef.current = false;
+            return;
+          }
+          throw new Error(payload.message || "CV review failed");
+        } else {
+          setCurrentStep(payload.step);
+        }
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "CV review failed";
+      setError(message);
+      setLoading(false);
+      setCurrentStep(null);
+      posthog.capture("cv_review_failed", { error: message });
+      posthog.captureException(err);
+    } finally {
+      streamingRef.current = false;
+    }
+  }
 
   async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -561,24 +702,28 @@ function AnalyzeContent() {
   const hasLinkedinVal = liFile !== null || result?.audit.linkedin.score !== null;
   const hasMLVal = mlFile !== null || mlText.trim().length > 0 || (result as any)?.motivationLetter !== undefined;
 
-  const tabs = result ? ([
+  const isCvReview = !!result?.cv_quality;
+
+  const consistencyTab = result?.cross_profile_inconsistencies && result.cross_profile_inconsistencies.length > 0
+    ? [{
+        id: "consistency" as const,
+        label: t.tabs.consistency,
+        badge: String(result.cross_profile_inconsistencies.length),
+        badgeClass: result.cross_profile_inconsistencies.some((i) => i.severity === "critical")
+          ? "text-rc-red"
+          : result.cross_profile_inconsistencies.some((i) => i.severity === "major")
+            ? "text-rc-amber"
+            : "text-rc-muted",
+      }]
+    : [];
+
+  const vsJobTabs = result ? ([
     { id: "overview",     label: t.tabs.skillGap },
-    { id: "ats",          label: t.tabs.atsFilter,   badge: result.ats_simulation.would_pass ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />, badgeClass: result.ats_simulation.would_pass ? "text-rc-green" : "text-rc-red" },
+    { id: "ats",          label: t.tabs.atsFilter,   badge: result.ats_simulation?.would_pass ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />, badgeClass: result.ats_simulation?.would_pass ? "text-rc-green" : "text-rc-red" },
     { id: "cv-analysis",  label: t.tabs.cvAnalysis,  badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
     { id: "signals",      label: t.tabs.signals,     badge: String((isTechRole ? result.audit.github.issues.length : 0) + result.audit.linkedin.issues.length), badgeClass: "text-rc-amber" },
     { id: "flags",        label: t.tabs.redFlags,    badge: String(result.hidden_red_flags.length), badgeClass: "text-rc-red" },
-    ...(result.cross_profile_inconsistencies && result.cross_profile_inconsistencies.length > 0
-      ? [{
-          id: "consistency" as const,
-          label: t.tabs.consistency,
-          badge: String(result.cross_profile_inconsistencies.length),
-          badgeClass: result.cross_profile_inconsistencies.some((i) => i.severity === "critical")
-            ? "text-rc-red"
-            : result.cross_profile_inconsistencies.some((i) => i.severity === "major")
-              ? "text-rc-amber"
-              : "text-rc-muted",
-        }]
-      : []),
+    ...consistencyTab,
     { id: "negotiation",  label: t.tabs.negotiation, badge: "✦", badgeClass: "text-rc-red" },
     { id: "roadmap",      label: t.tabs.roadmap,     badge: null, badgeClass: "" },
     { id: "project",      label: t.tabs.project,     badge: null, badgeClass: "" },
@@ -586,6 +731,8 @@ function AnalyzeContent() {
     { id: "interview",    label: t.tabs.aiInterview, badge: "✦", badgeClass: "text-rc-red" },
     { id: "cover-letter", label: t.tabs.coverLetter, badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
+
+  const tabs = vsJobTabs;
 
   const isFormView = !paywallState && !result && !loading;
 
@@ -617,7 +764,12 @@ function AnalyzeContent() {
                 jobDescription={jobDescription} setJobDescription={setJobDescription}
                 githubUsername={githubUsername} setGithubUsername={setGithubUsername}
                 portfolioUrl={portfolioUrl} setPortfolioUrl={setPortfolioUrl}
-                onSubmit={handleSubmit} loading={false} error={error}
+                onSubmit={(e) => {
+                  const useReviewMode = jobDescription.trim().length === 0;
+                  setAnalyzeMode(useReviewMode ? 'cv-review' : 'vs-job');
+                  return useReviewMode ? handleCvReviewSubmit(e) : handleSubmit(e);
+                }}
+                loading={false} error={error}
                 step={formStep} onStepChange={setFormStep}
                 savedCvFiles={savedCvs}
                 savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
@@ -629,13 +781,15 @@ function AnalyzeContent() {
           )
         ) : (
           <div>
-            <ScoreSidebar
-              result={result}
-              onReset={handleReset}
-              onExportMd={exportToMd}
-              onExportPdf={exportToPdf}
-              isExportingPdf={isExportingPdf}
-            />
+            {!isCvReview && (
+              <ScoreSidebar
+                result={result}
+                onReset={handleReset}
+                onExportMd={exportToMd}
+                onExportPdf={exportToPdf}
+                isExportingPdf={isExportingPdf}
+              />
+            )}
 
             {deepStatus === 'failed' && (
               <div className="mb-6 p-4 bg-rc-amber/10 border border-rc-amber/30 flex items-center justify-between gap-4">
@@ -656,60 +810,66 @@ function AnalyzeContent() {
               </div>
             )}
 
-            {/* Tab nav */}
-            <div className="mb-8 border-b border-rc-border">
-              <div className="tabs-scrollbar flex overflow-x-auto">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => { setActiveTab(tab.id as Tab); posthog.capture("analysis_tab_changed", { tab: tab.id, analysis_id: analysisId }); }}
-                    className={`shrink-0 flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
-                      activeTab === tab.id ? "border-rc-red text-rc-red font-bold" : "border-transparent text-rc-muted hover:text-rc-text"
-                    }`}
-                  >
-                    {tab.label}
-                    {'badge' in tab && tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {isCvReview ? (
+              <CvReviewTab result={result} />
+            ) : (
+              <>
+                {/* Tab nav */}
+                <div className="mb-8 border-b border-rc-border">
+                  <div className="tabs-scrollbar flex overflow-x-auto">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => { setActiveTab(tab.id as Tab); posthog.capture("analysis_tab_changed", { tab: tab.id, analysis_id: analysisId }); }}
+                        className={`shrink-0 flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
+                          activeTab === tab.id ? "border-rc-red text-rc-red font-bold" : "border-transparent text-rc-muted hover:text-rc-text"
+                        }`}
+                      >
+                        {tab.label}
+                        {'badge' in tab && tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Tab content */}
-            {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
-            {activeTab === "ats"          && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
-            {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} />}
-            {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
-            {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} />}
-            {activeTab === "consistency"  && <ConsistencyTab inconsistencies={result.cross_profile_inconsistencies ?? []} timelineEntries={result.timeline_entries ?? []} />}
-            {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
-            {activeTab === "roadmap"      && <RoadmapTab result={result} />}
-            {activeTab === "project"      && <BridgeTab result={result} />}
-            {activeTab === "improve" && (
-              <ImproveTab
-                reconstructedCv={reconstructedCv}
-                isLoading={isRewriting}
-                isPremium={!!activeSubscription}
-                hasAnalysisId={!!analysisId}
-                onRewrite={handleRewrite}
-              />
-            )}
-            {activeTab === "interview" && (
-              <InterviewTab
-                isPremium={!!activeSubscription}
-                analysisId={analysisId}
-                email={activeSubscription?.email || user?.email || null}
-                accessToken={session?.access_token ?? null}
-                defaultInterviewId={searchParams.get("interviewId") ? Number(searchParams.get("interviewId")) : null}
-              />
-            )}
-            {activeTab === "cover-letter" && (
-              <CoverLetterTab
-                analysisId={analysisId}
-                isPremium={activeSubscription?.plan === 'hired'}
-                company={(result as any)?.job_details?.company ?? null}
-                candidateName={profile?.coverLetterName ?? profile?.displayName ?? null}
-                savedCoverLetter={savedAnalysis?.coverLetter ?? null}
-              />
+                {/* Tab content */}
+                {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
+                {activeTab === "ats"          && result.ats_simulation && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
+                {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} fixesReady={true} />}
+                {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
+                {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} fixesReady={true} />}
+                {activeTab === "consistency"  && <ConsistencyTab inconsistencies={result.cross_profile_inconsistencies ?? []} timelineEntries={result.timeline_entries ?? []} />}
+                {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
+                {activeTab === "roadmap"      && <RoadmapTab result={result} />}
+                {activeTab === "project"      && <BridgeTab result={result} />}
+                {activeTab === "improve" && (
+                  <ImproveTab
+                    reconstructedCv={reconstructedCv}
+                    isLoading={isRewriting}
+                    isPremium={!!activeSubscription}
+                    hasAnalysisId={!!analysisId}
+                    onRewrite={handleRewrite}
+                  />
+                )}
+                {activeTab === "interview" && (
+                  <InterviewTab
+                    isPremium={!!activeSubscription}
+                    analysisId={analysisId}
+                    email={activeSubscription?.email || user?.email || null}
+                    accessToken={session?.access_token ?? null}
+                    defaultInterviewId={searchParams.get("interviewId") ? Number(searchParams.get("interviewId")) : null}
+                  />
+                )}
+                {activeTab === "cover-letter" && (
+                  <CoverLetterTab
+                    analysisId={analysisId}
+                    isPremium={activeSubscription?.plan === 'hired'}
+                    company={(result as any)?.job_details?.company ?? null}
+                    candidateName={profile?.coverLetterName ?? profile?.displayName ?? null}
+                    savedCoverLetter={savedAnalysis?.coverLetter ?? null}
+                  />
+                )}
+              </>
             )}
 
             {/* Anonymous CTA */}

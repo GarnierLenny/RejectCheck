@@ -5,11 +5,14 @@ import { IssueItem } from "../IssueItem";
 import { FixBlock } from "../FixBlock";
 import { FixBlockSkeleton } from "../skeletons/FixBlockSkeleton";
 import { SectionHeader } from "../SectionHeader";
+import { Md } from "../Md";
 import { ArrowRight, CheckCircle2, XCircle, Link } from "lucide-react";
 import { useLanguage } from "../../../context/language";
 
 type Props = {
   result: AnalysisResult;
+  /** When false, suppress FixBlockSkeleton placeholders (use in cv-review mode where no deep pass fires). */
+  fixesReady?: boolean;
 };
 
 const TONE_BADGE: Record<string, string> = {
@@ -32,7 +35,7 @@ function getPhraseQuality(phrase: string): "good" | "weak" {
   return "weak";
 }
 
-export function CvAnalysisTab({ result }: Props) {
+export function CvAnalysisTab({ result, fixesReady = true }: Props) {
   const { t, locale } = useLanguage();
   const { seniority_analysis, cv_tone, correlation, audit } = result;
   const cv = audit.cv;
@@ -86,12 +89,12 @@ export function CvAnalysisTab({ result }: Props) {
               </div>
             )}
 
-            <p className="text-[17px] text-rc-muted leading-[1.7] italic mb-5">{seniority_analysis.gap}</p>
+            <p className="text-[17px] text-rc-muted leading-[1.7] italic mb-5"><Md>{seniority_analysis.gap}</Md></p>
             {seniority_analysis.fix ? (
               <FixBlock fix={seniority_analysis.fix} />
-            ) : (
+            ) : fixesReady ? (
               <FixBlockSkeleton />
-            )}
+            ) : null}
           </div>
 
           {/* Tone Audit card */}
@@ -129,9 +132,9 @@ export function CvAnalysisTab({ result }: Props) {
 
             {cv_tone.fix ? (
               <FixBlock fix={cv_tone.fix} />
-            ) : (
+            ) : fixesReady ? (
               <FixBlockSkeleton />
-            )}
+            ) : null}
           </div>
 
           {/* Correlation callout — legacy field, only present on analyses
@@ -145,7 +148,7 @@ export function CvAnalysisTab({ result }: Props) {
                 <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-amber block mb-1.5 font-bold">
                   {t.cvAnalysisTab.patternDetected}
                 </span>
-                <p className="text-[17px] text-rc-muted leading-[1.7]">{correlation.explanation}</p>
+                <p className="text-[17px] text-rc-muted leading-[1.7]"><Md>{correlation.explanation}</Md></p>
               </div>
             </div>
           )}
@@ -199,7 +202,7 @@ export function CvAnalysisTab({ result }: Props) {
         {/* Issues list */}
         <div className="bg-rc-surface border border-rc-border divide-y divide-rc-border/20">
           {cv.issues.map((issue, idx) => (
-            <IssueItem key={idx} issue={issue} />
+            <IssueItem key={idx} issue={issue} fixesReady={fixesReady} />
           ))}
         </div>
       </div>

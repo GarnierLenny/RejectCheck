@@ -28,6 +28,16 @@ import {
   AnalyzeRequestDto,
   AnalyzeRequestSchema,
 } from './dto/analyze-request.dto';
+import { z } from 'zod';
+
+const CvReviewRequestSchema = z.object({
+  githubUsername: z.string().max(39).optional(),
+  email: z.string().email().optional(),
+  isRegistered: z
+    .preprocess((val) => val === 'true' || val === true, z.boolean())
+    .optional(),
+  locale: z.enum(['en', 'fr']).optional().default('en'),
+});
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
 import { ProfileUpdateSchema } from './dto/profile-update.dto';
@@ -37,6 +47,7 @@ import { RequiresPremium } from '../stripe/decorators/requires-premium.decorator
 import { validateJobDescription } from './analyze.utils';
 
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
+import { ReviewCvUseCase } from './application/review-cv.use-case';
 import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
@@ -72,6 +83,7 @@ type SseResponse = {
 export class AnalyzeController {
   constructor(
     private readonly analyzeCv: AnalyzeCvUseCase,
+    private readonly reviewCvUc: ReviewCvUseCase,
     private readonly getQuotaSummary: GetQuotaSummaryUseCase,
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
@@ -193,6 +205,85 @@ export class AnalyzeController {
         code: err?.code || err?.response?.code,
         // QuotaExceededException ships { plan, monthlyCap } here so the
         // frontend can render the right paywall variant.
+        details: err?.details ?? err?.response?.details,
+      });
+    } finally {
+      if (!res.writableEnded) res.end();
+    }
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
+  @Post('cv-review')
+  @ApiOperation({ summary: 'Audit a CV standalone (no job description)' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'cv', maxCount: 1 },
+      { name: 'linkedin', maxCount: 1 },
+    ]),
+  )
+  async reviewCv(
+    @UploadedFiles()
+    files: {
+      cv?: Express.Multer.File[];
+      linkedin?: Express.Multer.File[];
+    },
+    @Body() body: unknown,
+    @Res() res: SseResponse,
+    @Req() req: Request,
+  ) {
+    const parsed = CvReviewRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: parsed.error.issues[0].message });
+    }
+    const { githubUsername, email, isRegistered, locale } = parsed.data;
+
+    if (!files.cv?.[0]) {
+      return res.status(400).json({ message: 'CV is required' });
+    }
+
+    const ip =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const write = (data: object) =>
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      const { result, analysisId } = await this.reviewCvUc.execute(
+        {
+          cvBuffer: files.cv[0].buffer,
+          linkedinBuffer: files.linkedin?.[0]?.buffer,
+          githubUsername,
+          email,
+          ip,
+          isRegistered: !!isRegistered,
+          locale,
+        },
+        (e) => {
+          if (e.type === 'step') write({ step: e.step });
+          else if (e.type === 'analysis_delta')
+            write({ step: 'analysis_delta', delta: e.delta });
+          else if (e.type === 'analysis_done')
+            write({
+              step: 'analysis_done',
+              result: e.result,
+              analysisId: e.analysisId,
+            });
+        },
+      );
+
+      write({ step: 'done', result, analysisId });
+    } catch (err: any) {
+      if (res.writableEnded) return;
+      write({
+        step: 'error',
+        message: err?.message || 'CV review failed',
+        code: err?.code || err?.response?.code,
         details: err?.details ?? err?.response?.details,
       });
     } finally {

@@ -3,6 +3,7 @@ import type {
   HotAnalyzeResponse,
   DeepAnalyzeResponse,
 } from '../dto/analyze-response.dto';
+import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type { ProfileDigest } from '../dto/profile-digest.dto';
 import type { RewriteResponse } from '../dto/rewrite-response.dto';
@@ -73,6 +74,18 @@ export type GenerateNegotiationInput = {
   onDelta?: (chunk: string) => void;
 };
 
+export type ReviewCvInput = {
+  cvText: string;
+  githubInfo: string;
+  linkedinText: string;
+  portfolioMarkdown?: string;
+  portfolioUrl?: string | null;
+  locale?: string;
+  userRoleType?: string | null;
+  digest?: ProfileDigest | null;
+  onDelta?: (chunk: string) => void;
+};
+
 export type GenerateProfileDigestInput = {
   /**
    * Raw parsed text of the CV, or empty string if not available.
@@ -94,6 +107,7 @@ export type GenerateProfileDigestInput = {
 };
 
 export interface ClaudeProvider {
+  reviewCv(input: ReviewCvInput): Promise<CvReviewResponse>;
   analyzeApplicationHot(
     input: AnalyzeApplicationInput,
   ): Promise<HotAnalyzeResponse>;

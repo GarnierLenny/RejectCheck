@@ -137,7 +137,7 @@ const POSITIONING = {
   required: ['headline', 'tone', 'polish_level'],
 };
 
-const CROSS_PROFILE_INCONSISTENCY = {
+export const CROSS_PROFILE_INCONSISTENCY = {
   type: 'object' as const,
   properties: {
     severity: {
@@ -192,7 +192,7 @@ const CROSS_PROFILE_INCONSISTENCY = {
   ],
 };
 
-const TIMELINE_ENTRY = {
+export const TIMELINE_ENTRY = {
   type: 'object' as const,
   properties: {
     title: { type: 'string' as const, description: 'Job title verbatim from this source.' },

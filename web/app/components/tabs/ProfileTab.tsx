@@ -112,7 +112,7 @@ export function ProfileTab({ result }: Props) {
       </div>
 
       {/* ── Correlation block (conditional) ───────────────────── */}
-      {correlation.detected && (
+      {correlation?.detected && (
         <div className="flex gap-4 p-5 bg-rc-amber/5 border border-rc-amber/20 rounded-xl">
           <div className="shrink-0 mt-0.5">
             <Link size={13} className="text-rc-amber" />
@@ -121,7 +121,7 @@ export function ProfileTab({ result }: Props) {
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-rc-amber block mb-2 font-bold">
               Pattern detected - Tone × Seniority
             </span>
-            <p className="text-[13px] text-rc-muted leading-relaxed">{correlation.explanation}</p>
+            <p className="text-[13px] text-rc-muted leading-relaxed">{correlation?.explanation}</p>
           </div>
         </div>
       )}

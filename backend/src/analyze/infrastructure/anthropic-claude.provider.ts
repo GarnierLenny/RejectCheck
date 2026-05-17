@@ -14,6 +14,10 @@ import {
   HotAnalyzeResponseSchema,
 } from '../dto/analyze-response.dto';
 import {
+  CvReviewResponse,
+  CvReviewResponseSchema,
+} from '../dto/cv-review-response.dto';
+import {
   NegotiationAnalysis,
   NegotiationAnalysisSchema,
 } from '../dto/negotiation-response.dto';
@@ -32,12 +36,14 @@ import type {
   GenerateCoverLetterInput,
   GenerateNegotiationInput,
   GenerateProfileDigestInput,
+  ReviewCvInput,
   RewriteCvInput,
 } from '../ports/claude.provider';
 import {
   SUBMIT_ANALYSIS_DEEP_TOOL,
   SUBMIT_ANALYSIS_HOT_TOOL,
 } from './schemas/claude-analysis.schema';
+import { SUBMIT_CV_REVIEW_TOOL } from './schemas/cv-review.schema';
 import { SUBMIT_NEGOTIATION_TOOL } from './schemas/claude-negotiation.schema';
 import {
   PROFILE_DIGEST_SYSTEM_PROMPT,
@@ -98,6 +104,188 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
         `Claude ${operation} cache: read=${read} created=${created} input=${usage.input_tokens ?? 0}`,
       );
     }
+  }
+
+  async reviewCv(input: ReviewCvInput): Promise<CvReviewResponse> {
+    this.logger.log('Requesting CV review from Claude');
+
+    const requestStartedAt = Date.now();
+    let firstDeltaAt: number | null = null;
+    const MAX_TOKENS = 6000;
+
+    const systemPrompt = `You are an expert career consultant and CV reviewer with 15 years of recruiting experience. You evaluate CVs as a senior recruiter would — without any specific job offer — assessing quality, positioning, and red flags.
+
+Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
+
+Scoring guidelines (0-100):
+- 80-100: Exceptional CV — strong impact language, clear narrative, ATS-compliant, well-quantified achievements
+- 60-79: Good CV with minor gaps — readable but some passive language or missing quantification
+- 40-59: Average CV — significant passive voice, vague bullets, or structural issues
+- 20-39: Weak CV — poor structure, no quantification, hard to parse
+- 0-19: Major problems — unreadable, missing key sections, format failures
+
+Be honest, not encouraging. The score should reflect what a recruiter actually thinks, not what would make the candidate feel good.
+
+For seniority in projected_profile: base it strictly on scope of impact described, team sizes, autonomy signals, and depth of decisions — not claimed titles. A "Senior Engineer" title with no scope signals gets projected as "mid".
+
+Use markdown in text fields (narrative, descriptions, issue text).`;
+
+    const userMessage = this.buildCvReviewUserMessage(input);
+
+    try {
+      const msg = await this.withSentry('review_cv', async () => {
+        const stream = this.anthropic.messages.stream({
+          model: HOT_MODEL,
+          max_tokens: MAX_TOKENS,
+          temperature: 0.1,
+          system: systemPrompt,
+          tools: [
+            {
+              ...SUBMIT_CV_REVIEW_TOOL,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tool_choice: { type: 'tool', name: 'submit_cv_review' },
+          messages: [{ role: 'user', content: userMessage }],
+        });
+        stream.on('inputJson', (partialJson) => {
+          if (firstDeltaAt === null) firstDeltaAt = Date.now();
+          input.onDelta?.(partialJson);
+        });
+        return stream.finalMessage();
+      });
+
+      this.logTimingLine('review_cv', MAX_TOKENS, requestStartedAt, firstDeltaAt, msg.usage, {
+        digest: !!input.digest,
+      });
+      this.logCacheUsage('review_cv', msg.usage);
+
+      const toolUse = msg.content.find(
+        (block) => (block as { type?: string }).type === 'tool_use',
+      ) as ToolUseBlock | undefined;
+
+      if (!toolUse) {
+        this.logger.error(
+          `Claude returned no tool_use block (review_cv): ${JSON.stringify(msg.content).slice(0, 300)}`,
+        );
+        throw new InternalServerErrorException('CV review failed');
+      }
+
+      const i = toolUse.input as Record<string, any>;
+      const scoreRaw = i.cv_quality?.overall ?? 50;
+      const verdict =
+        scoreRaw >= 70 ? 'High' : scoreRaw >= 40 ? 'Medium' : 'Low';
+
+      const raw: CvReviewResponse = {
+        score: scoreRaw,
+        cv_quality: i.cv_quality,
+        cv_quality_notes: i.cv_quality_notes,
+        skill_radar: i.skill_radar,
+        projected_profile: i.projected_profile,
+        positioning_gaps: i.positioning_gaps,
+        ats_audit: i.ats_audit,
+        seniority_analysis: i.seniority_analysis,
+        cv_tone: i.cv_tone,
+        audit: {
+          cv: i.audit_cv,
+          github: i.audit_github,
+          linkedin: i.audit_linkedin,
+        },
+        hidden_red_flags: i.hidden_red_flags ?? [],
+        cross_profile_inconsistencies: i.cross_profile_inconsistencies ?? [],
+        timeline_entries: i.timeline_entries ?? [],
+        // Store derived verdict so the frontend ScoreSidebar renders correctly
+        // when this analysis is loaded from history.
+        ...(({ verdict } as any)),
+      };
+
+      return CvReviewResponseSchema.parse(raw);
+    } catch (apiErr: any) {
+      this.logger.error(
+        `Claude reviewCv failed: ${apiErr?.message || apiErr}`,
+        apiErr?.stack,
+      );
+      throw new InternalServerErrorException('CV review failed');
+    }
+  }
+
+  private buildCvReviewUserMessage(input: ReviewCvInput): string {
+    const githubInstruction = this.formatGithubRelevanceInstruction(
+      input.userRoleType,
+    );
+
+    let profileCtx = '';
+    if (input.userRoleType) {
+      profileCtx = `CANDIDATE PROFILE (self-declared):\n- Role family: ${input.userRoleType}\n\n---\n\n`;
+    }
+
+    let evidenceBlock: string;
+    if (input.digest) {
+      const d = input.digest;
+      const workHistory = d.work_history
+        .map(
+          (w) =>
+            `  - ${w.title} @ ${w.company} (${w.start} → ${w.end}) [sources: ${w.sources.join(', ')}]`,
+        )
+        .join('\n');
+      const projects = d.projects
+        .map(
+          (p) =>
+            `  - ${p.name} — ${p.role_claimed}: ${p.description}` +
+            (p.tech.length ? ` [tech: ${p.tech.join(', ')}]` : '') +
+            ` [sources: ${p.sources.join(', ')}]`,
+        )
+        .join('\n');
+      const inconsistencies = d.cross_profile_inconsistencies.length
+        ? d.cross_profile_inconsistencies
+            .map(
+              (i) =>
+                `  - [${i.severity}] ${i.field} between ${i.sources.join('/')}: ${i.description}`,
+            )
+            .join('\n')
+        : '  (none detected)';
+      const availability = Object.entries(d.sources_available)
+        .map(([k, v]) => `${k}=${v ? 'yes' : 'no'}`)
+        .join(', ');
+
+      evidenceBlock = `CANDIDATE EVIDENCE (pre-synthesized ProfileDigest):
+
+POSITIONING: ${d.positioning.headline}
+SOURCES AVAILABLE: ${availability}
+
+WORK HISTORY:
+${workHistory || '  (none)'}
+
+TECH STACK: ${d.tech_stack.join(', ') || '(none)'}
+
+PROJECTS:
+${projects || '  (none)'}
+
+CROSS-PROFILE INCONSISTENCIES (weave into audit/red_flags where relevant):
+${inconsistencies}
+
+---
+
+`;
+    } else {
+      evidenceBlock = `CANDIDATE EVIDENCE:
+CV / RESUME:
+${input.cvText}
+
+GITHUB PROJECTS: ${input.githubInfo || 'None provided'}
+LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
+PORTFOLIO${input.portfolioUrl ? ` (${input.portfolioUrl})` : ''}: ${input.portfolioMarkdown?.trim() || 'None provided'}
+`;
+    }
+
+    return `Audit this CV without any job description context. Evaluate quality and positioning as a recruiter reading it cold.
+
+${profileCtx}${githubInstruction}${evidenceBlock}
+
+Formatting rules:
+- Use **markdown** in all text fields (narrative, issue descriptions, seniority strength).
+- Be specific: reference actual content from the CV (company names, technologies, dates) rather than generic observations.
+- For audit_github and audit_linkedin: set score=null and issues=[] when those sources were not provided.`;
   }
 
   async analyzeApplicationHot(

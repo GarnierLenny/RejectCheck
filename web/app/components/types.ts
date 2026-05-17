@@ -159,6 +159,7 @@ export type SeniorityAnalysis = {
 export type CvTone = {
   detected: 'passive' | 'active' | 'mixed';
   examples: string[];
+  rewrites?: string[];
   fix?: Fix;
 };
 
@@ -197,7 +198,8 @@ export type Audit = {
     strengths: string[];
     issues: Issue[];
   };
-  jd_match: {
+  /** Absent on CV-review analyses (no job description to match against). */
+  jd_match?: {
     required_skills: Array<{
       skill: string;
       found: boolean;
@@ -236,24 +238,95 @@ export type TimelineEntry = {
   end: string;
 };
 
+export type CvQuality = {
+  overall: number;
+  clarity: number;
+  impact: number;
+  hard_skills: number;
+  soft_skills: number;
+  consistency: number;
+  ats_format: number;
+};
+
+export type CvQualityNotes = {
+  clarity?: string;
+  impact?: string;
+  hard_skills?: string;
+  soft_skills?: string;
+  consistency?: string;
+  ats_format?: string;
+};
+
+export type PositioningGaps = {
+  target_role: string;
+  gaps: { what: string; fix: string }[];
+};
+
+export type SkillRadarAxis = {
+  label: string;
+  score: number;
+  evidence: string;
+};
+
+export type SkillRadar = {
+  axes: SkillRadarAxis[];
+};
+
+export type ProjectedProfile = {
+  seniority: string;
+  target_roles: string[];
+  domains: string[];
+  narrative: string;
+  profile_type: 'specialist' | 'generalist' | 'transitioning';
+};
+
+export type CvReviewAtsIssue = {
+  what: string;
+  why: string;
+  fix?: string;
+};
+
+export type CvReviewAts = {
+  score: number;
+  issues: CvReviewAtsIssue[];
+};
+
 export type AnalysisResult = {
   score: number;
-  verdict: 'Low' | 'Medium' | 'High';
-  confidence: { score: number; reason: string };
-  breakdown: {
+  /** Absent on CV-review analyses (no job description to match against). */
+  verdict?: 'Low' | 'Medium' | 'High';
+  /** Absent on CV-review analyses. */
+  confidence?: { score: number; reason: string };
+  /** Absent on CV-review analyses. */
+  breakdown?: {
     keyword_match: number;
     tech_stack_fit: number;
     experience_level: number;
     github_signal: number | null;
     linkedin_signal: number | null;
   };
-  ats_simulation: AtsSimulation;
+  /** Absent on CV-review analyses. */
+  ats_simulation?: AtsSimulation;
   seniority_analysis: SeniorityAnalysis;
   cv_tone: CvTone;
   audit: Audit;
   hidden_red_flags: HiddenRedFlag[];
-  correlation: { detected: boolean; explanation: string };
-  job_details: JobDetails;
+  /** Absent on CV-review analyses. */
+  correlation?: { detected: boolean; explanation: string };
+  /** Absent on CV-review analyses. */
+  job_details?: JobDetails;
+  /** CV-review quality scores. Present only on CV-review analyses. */
+  cv_quality?: CvQuality;
+  /** CV-review skill radar. Present only on CV-review analyses. */
+  skill_radar?: SkillRadar;
+  /** Per-dimension explanation for scores below 70. Present only on CV-review analyses. */
+  cv_quality_notes?: CvQualityNotes;
+  /** Gaps to close to project the most aspirational role. Present only on CV-review analyses. */
+  positioning_gaps?: PositioningGaps;
+  /** CV-review projected profile. Present only on CV-review analyses. */
+  projected_profile?: ProjectedProfile;
+  /** CV-review ATS structural audit. Present only on CV-review analyses. */
+  ats_audit?: CvReviewAts;
   /** Filled by the deep pass. May be undefined until `deep_done` arrives. */
   technical_analysis?: {
     skills: TechnicalSkill[];
@@ -335,10 +408,10 @@ export function mergeDeepIntoResult(
 ): AnalysisResult {
   return {
     ...result,
-    ats_simulation: {
+    ats_simulation: result.ats_simulation ? {
       ...result.ats_simulation,
       critical_missing_keywords: deep.ats_critical_missing_keywords,
-    },
+    } : undefined,
     seniority_analysis: {
       ...result.seniority_analysis,
       fix: deep.fixes.seniority_analysis,

@@ -140,6 +140,7 @@ function DashboardContent() {
 
   const [analysisPage, setAnalysisPage] = useState(1);
   const [analysisSearch, setAnalysisSearch] = useState("");
+  const [analysisTypeFilter, setAnalysisTypeFilter] = useState<"vs-job" | "cv-review">("vs-job");
   const [evolutionPeriod, setEvolutionPeriod] = useState<"7d" | "30d" | "all">("30d");
   const [homePeriod, setHomePeriod] = useState<"7d" | "14d" | "30d">("30d");
 
@@ -210,6 +211,7 @@ function DashboardContent() {
   }, [subscription, user]);
 
   useEffect(() => { setAnalysisPage(1); }, [analysisSearch]);
+  useEffect(() => { setAnalysisPage(1); }, [analysisTypeFilter]);
 
   async function handleDelete(e: React.MouseEvent, id: number) {
     e.preventDefault();
@@ -323,7 +325,8 @@ function DashboardContent() {
   const evoCutoff = evolutionPeriod === "all"
     ? new Date(0)
     : new Date(Date.now() - (evolutionPeriod === "7d" ? 7 : 30) * 86400000);
-  const evoHistory = evolutionPeriod === "all" ? history : history.filter(i => new Date(i.createdAt) >= evoCutoff);
+  const evoHistory = (evolutionPeriod === "all" ? history : history.filter(i => new Date(i.createdAt) >= evoCutoff))
+    .filter(i => !i.result?.cv_quality);
   const evoGroups = new Map<string, Array<{ date: Date; score: number }>>();
   const evoLabels = new Map<string, { title: string; company: string }>();
   for (const item of evoHistory) {
@@ -379,13 +382,17 @@ function DashboardContent() {
   ];
 
   // Filtered history
+  const typeHistory = history.filter(item =>
+    analysisTypeFilter === "cv-review" ? !!item.result?.cv_quality : !item.result?.cv_quality
+  );
   const filteredHistory = analysisSearch.trim()
-    ? history.filter(item => {
+    ? typeHistory.filter(item => {
         const q = analysisSearch.toLowerCase();
         return (item.result?.job_details?.title || "").toLowerCase().includes(q) ||
-               (item.result?.job_details?.company || "").toLowerCase().includes(q);
+               (item.result?.job_details?.company || "").toLowerCase().includes(q) ||
+               (item.jobLabel || "").toLowerCase().includes(q);
       })
-    : history;
+    : typeHistory;
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -785,6 +792,19 @@ function DashboardContent() {
               </div>
 
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
+                {/* Type toggle */}
+                <div className="flex border-b border-[rgba(0,0,0,0.06)]">
+                  {(["vs-job", "cv-review"] as const).map(type => (
+                    <button
+                      key={type}
+                      onClick={() => setAnalysisTypeFilter(type)}
+                      className={`relative px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${analysisTypeFilter === type ? "text-rc-red" : "text-rc-hint hover:text-rc-text"}`}
+                    >
+                      {type === "vs-job" ? "Analyses vs. JD" : "Audits CV"}
+                      {analysisTypeFilter === type && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red" />}
+                    </button>
+                  ))}
+                </div>
                 {/* Search */}
                 <div className="flex items-center border-b border-[rgba(0,0,0,0.06)]">
                   <div className="flex-1 relative">
@@ -820,7 +840,9 @@ function DashboardContent() {
                   className="grid font-mono text-[9px] text-rc-hint font-bold tracking-[0.12em] uppercase px-4 py-2.5 bg-rc-surface-hero"
                   style={{ gridTemplateColumns: "40px 1.6fr 1fr 110px 100px 110px 70px" }}
                 >
-                  <div>Score</div><div>Position</div><div>Company</div>
+                  <div>{analysisTypeFilter === "cv-review" ? "Quality" : "Score"}</div>
+                  <div>{analysisTypeFilter === "cv-review" ? "Profile" : "Position"}</div>
+                  <div>{analysisTypeFilter === "cv-review" ? "—" : "Company"}</div>
                   <div>Date</div><div>Status</div><div>Note</div><div />
                 </div>
 
@@ -844,13 +866,16 @@ function DashboardContent() {
                 ) : (
                   <div className="divide-y divide-[rgba(0,0,0,0.05)]">
                     {filteredHistory.map(item => {
-                      const label = item.jobLabel || item.result?.job_details?.title || "Developer";
-                      const company = item.company ?? item.result?.job_details?.company ?? null;
-                      const score = item.result?.score ?? 0;
-                      const appStatus = applications.find(a => a.company?.toLowerCase() === company?.toLowerCase())?.status;
-                      const aiNote = score > 60
-                        ? { text: "Tailor CV", color: "text-rc-red" }
-                        : { text: "Strong match", color: "text-rc-green" };
+                      const isCvReview = !!item.result?.cv_quality;
+                      const label = isCvReview
+                        ? [item.result?.projected_profile?.seniority, item.result?.projected_profile?.target_roles?.[0]].filter(Boolean).join(' · ') || 'CV Audit'
+                        : (item.jobLabel || item.result?.job_details?.title || "Developer");
+                      const company = isCvReview ? null : (item.company ?? item.result?.job_details?.company ?? null);
+                      const score = isCvReview ? (item.result?.cv_quality?.overall ?? 0) : (item.result?.score ?? 0);
+                      const appStatus = isCvReview ? undefined : applications.find(a => a.company?.toLowerCase() === company?.toLowerCase())?.status;
+                      const aiNote = isCvReview
+                        ? { text: item.result?.projected_profile?.profile_type ?? "Audit", color: "text-rc-muted" }
+                        : (score > 60 ? { text: "Tailor CV", color: "text-rc-red" } : { text: "Strong match", color: "text-rc-green" });
                       return (
                         <div
                           key={item.id}

@@ -30,16 +30,18 @@ export const FixSchema = z.object({
 // Issue without fix — used in the hot pass; fix is filled in from deep pass
 // at merge time.
 export const IssueHotSchema = z.object({
-  severity: z.enum(['critical', 'major', 'minor']),
-  category: z.enum([
-    'keywords',
-    'impact',
-    'seniority',
-    'stack',
-    'format',
-    'tone',
-    'consistency',
-  ]),
+  severity: z.enum(['critical', 'major', 'minor']).catch('minor'),
+  category: z
+    .enum([
+      'keywords',
+      'impact',
+      'seniority',
+      'stack',
+      'format',
+      'tone',
+      'consistency',
+    ])
+    .catch('format'),
   what: z.string(),
   why: z.string(),
 });

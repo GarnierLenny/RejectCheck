@@ -71,6 +71,7 @@ confidence: ${result.confidence?.score ?? 'N/A'}
 > - **Rejection Risk:** ${result.score}% - **${result.verdict}**${result.confidence ? `\n> - **Confidence:** ${result.confidence.score}% - ${result.confidence.reason}` : ''}`);
 
   // 3. Score Breakdown (Table)
+  if (result.breakdown) {
   b.push(`## 📊 Score Breakdown`);
   const tableLines = [
     `| Dimension | Quality |`,
@@ -86,14 +87,17 @@ confidence: ${result.confidence?.score ?? 'N/A'}
     tableLines.push(`| **LinkedIn Signal** | ${getScoreLabel(result.breakdown.linkedin_signal)} |`);
   }
   b.push(tableLines.join('\n'));
+  }
 
   // 4. ATS Simulation
+  if (result.ats_simulation) {
   b.push(`## 🤖 ATS Simulation`);
   b.push(`> [!${result.ats_simulation.would_pass ? 'success' : 'error'}] **Result: ${result.ats_simulation.would_pass ? "PASSED" : "FAILED"}**
 > **Simulated Score:** ${result.ats_simulation.score}/100 (threshold: ${result.ats_simulation.threshold})
 > ${result.ats_simulation.reason}`);
+  }
 
-  const missingKeywords = result.ats_simulation.critical_missing_keywords ?? [];
+  const missingKeywords = result.ats_simulation?.critical_missing_keywords ?? [];
   if (missingKeywords.length > 0) {
     b.push(`### 🔑 Missing Critical Keywords
 | Keyword | Frequency | Required | Score Impact | Missing From |
@@ -104,15 +108,15 @@ ${missingKeywords.map((kw: any) =>
   }
 
   // 4.2 JD Required Skills Matrix
-  if (result.audit.jd_match?.required_skills?.length > 0) {
+  if ((result.audit.jd_match?.required_skills?.length ?? 0) > 0) {
     b.push(`### 📋 JD Required Skills
 | Skill | Found | Evidence |
 | :--- | :--- | :--- |
-${result.audit.jd_match.required_skills.map((s: any) =>
+${result.audit.jd_match!.required_skills.map((s: any) =>
   `| **${s.skill}** | ${s.found ? '✅' : '❌'} | ${s.evidence || '-'} |`
 ).join('\n')}`);
-    if (result.audit.jd_match.experience_gap) {
-      b.push(`> [!warning] **Experience Gap**\n> ${result.audit.jd_match.experience_gap}`);
+    if (result.audit.jd_match!.experience_gap) {
+      b.push(`> [!warning] **Experience Gap**\n> ${result.audit.jd_match!.experience_gap}`);
     }
   }
 

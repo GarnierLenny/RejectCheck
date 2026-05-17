@@ -520,7 +520,9 @@
   },
   "scoreSidebar": {
     "overallRisk": "Score de risque global",
+    "cvQuality": "Score Qualité CV",
     "tooltipText": "Probabilité de rejet agrégée basée sur les faiblesses du profil, les signaux ATS et les écarts de séniorité.",
+    "cvQualityTooltip": "Moyenne pondérée sur 6 dimensions : clarté, impact, hard skills, soft skills, cohérence et format ATS.",
     "risk": "Risque",
     "modelConfidence": "Confiance du modèle",
     "newProfile": "Nouveau Profil",
@@ -573,7 +575,8 @@
     "project": "Projet",
     "improveCv": "Améliorer le CV",
     "aiInterview": "Entretien IA",
-    "coverLetter": "Lettre de motivation"
+    "coverLetter": "Lettre de motivation",
+    "cvReview": "Audit CV"
   },
   "negotiationTab": {
     "title": "Playbook de négociation",
@@ -1805,5 +1808,38 @@
       "recommended": "Recommandé",
       "optional": "Optionnel"
     }
+  },
+  "cvReviewTab": {
+    "cvAudit": "Audit CV",
+    "qualityScores": "Scores Qualité",
+    "qualitySubtitle": "Six dimensions notées de 0 à 100. Le score global est une moyenne pondérée.",
+    "overall": "Global",
+    "clarity": "Clarté",
+    "impact": "Impact",
+    "hardSkills": "Hard Skills",
+    "softSkills": "Soft Skills",
+    "consistency": "Cohérence",
+    "atsFormat": "Format ATS",
+    "projectedProfile": "Profil Projeté",
+    "profileSubtitle": "Comment un recruteur lisant votre CV à froid classerait votre profil.",
+    "seniority": "Séniorité",
+    "profileType": "Type de profil",
+    "targetRoles": "Rôles cibles",
+    "domains": "Domaines",
+    "specialist": "Spécialiste",
+    "generalist": "Généraliste",
+    "transitioning": "En reconversion",
+    "atsAudit": "Audit Structurel ATS",
+    "atsSubtitle": "Problèmes de format et de structure pouvant entraîner un rejet ATS avant toute lecture.",
+    "atsScore": "Score ATS",
+    "noIssues": "Aucun problème structurel détecté.",
+    "fix": "Correction",
+    "toneAnalysis": "Ton d'écriture",
+    "toneSubtitle": "Un ton passif affaiblit la perception de votre impact. Réécrivez ces phrases avec des verbes d'action.",
+    "passiveExamples": "Phrases passives trouvées dans votre CV — réécrivez chacune avec un verbe fort",
+    "seniorityGap": "Signal de séniorité",
+    "claimed": "Revendiqué",
+    "projected": "Projeté",
+    "strongestSignal": "Signal le plus fort"
   }
 }

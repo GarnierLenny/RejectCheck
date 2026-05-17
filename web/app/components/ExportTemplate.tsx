@@ -603,7 +603,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           <Text style={styles.label}>Job Position</Text>
           <Text style={{ ...styles.h2, marginBottom: 12 }}>{jobDisplay}</Text>
           <View style={styles.breakdownGrid}>
-            {(Object.entries(result.breakdown) as [string, number | null][]).map(([key, val]) => (
+            {(Object.entries(result.breakdown ?? {}) as [string, number | null][]).map(([key, val]) => (
               <View key={key} style={styles.breakdownItem}>
                 <Text style={{ ...styles.label, fontSize: 8, textAlign: 'center' }}>{key.replace(/_/g, " ")}</Text>
                 <View style={getBadgeStyle(val)}>
@@ -622,11 +622,13 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           <Text style={{ ...styles.riskScore, color: riskColor }}>
             {result.score}<Text style={styles.riskPercent}>%</Text>
           </Text>
+          {result.verdict && (
           <View style={{ ...styles.verdictBadge, backgroundColor: riskColor }}>
             <Text style={styles.verdictBadgeText}>
               {result.verdict}
             </Text>
           </View>
+          )}
           {result.confidence && (
             <Text style={{ fontSize: 10, color: "#888", marginTop: 4 }}>
               Confidence: {result.confidence.score}% - {stripMd(result.confidence.reason)}
@@ -635,6 +637,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
         </View>
 
         {/* 4. ATS Simulation */}
+        {result.ats_simulation && (
         <View style={styles.section}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 12 }}>
             <Text style={{ ...styles.h3, marginBottom: 0 }}>ATS Simulation</Text>
@@ -663,13 +666,14 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
             </View>
           )}
         </View>
+        )}
 
         {/* 4.2 JD Required Skills */}
-        {result.audit.jd_match?.required_skills?.length > 0 && (
+        {(result.audit.jd_match?.required_skills?.length ?? 0) > 0 && (
           <View style={styles.section}>
             <Text style={{ ...styles.h3, fontSize: 14 }}>JD Required Skills</Text>
             <View style={{ borderWidth: 1, borderColor: "#e2e8f0", borderRadius: 8, overflow: "hidden" }}>
-              {(result.audit.jd_match.required_skills as any[]).map((skill: any, i: number) => (
+              {(result.audit.jd_match!.required_skills as any[]).map((skill: any, i: number) => (
                 <View key={i} style={{ ...styles.jdSkillRow, backgroundColor: i % 2 === 0 ? "#fafafa" : "white", paddingHorizontal: 12 }}>
                   <Text style={{ fontSize: 11, fontWeight: 600, flex: 1, color: "#1a1917" }}>{skill.skill}</Text>
                   <Text style={{ fontSize: 11, width: 24, textAlign: "center", color: skill.found ? "#166534" : redColor }}>{skill.found ? "✓" : "✗"}</Text>
@@ -677,10 +681,10 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                 </View>
               ))}
             </View>
-            {result.audit.jd_match.experience_gap && (
+            {result.audit.jd_match!.experience_gap && (
               <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", backgroundColor: "#fffbeb", marginTop: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>Experience Gap:</Text>
-                <Text style={{ fontSize: 11, color: "#78350f" }}>{stripMd(result.audit.jd_match.experience_gap)}</Text>
+                <Text style={{ fontSize: 11, color: "#78350f" }}>{stripMd(result.audit.jd_match!.experience_gap)}</Text>
               </View>
             )}
           </View>

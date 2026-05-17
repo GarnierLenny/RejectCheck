@@ -9,27 +9,30 @@ type Props = {
   onExportPdf: () => void;
   onExportMd: () => void;
   isExportingPdf?: boolean;
+  isCvReview?: boolean;
 };
 
-export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExportingPdf }: Props) {
+export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExportingPdf, isCvReview = false }: Props) {
   const { t } = useLanguage();
-  const scoreTextClass =
-    result.score >= 70 ? "text-rc-red"
-    : result.score >= 40 ? "text-rc-amber"
-    : "text-rc-green";
+  const score = isCvReview ? (result.cv_quality?.overall ?? result.score) : result.score;
 
-  const scoreBgClass =
-    result.score >= 70 ? "bg-rc-red"
-    : result.score >= 40 ? "bg-rc-amber"
-    : "bg-rc-green";
+  const scoreTextClass = isCvReview
+    ? (score >= 70 ? "text-rc-green" : score >= 40 ? "text-rc-amber" : "text-rc-red")
+    : (score >= 70 ? "text-rc-red"   : score >= 40 ? "text-rc-amber" : "text-rc-green");
+
+  const scoreBgClass = isCvReview
+    ? (score >= 70 ? "bg-rc-green" : score >= 40 ? "bg-rc-amber" : "bg-rc-red")
+    : (score >= 70 ? "bg-rc-red"   : score >= 40 ? "bg-rc-amber" : "bg-rc-green");
 
   return (
     <div className="bg-rc-surface border border-rc-border overflow-hidden mb-8">
       {/* Top bar: label + export actions */}
       <div className="px-8 py-4 border-b border-rc-border bg-rc-surface-hero flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[12px] tracking-[0.15em] uppercase text-rc-hint">{t.scoreSidebar.overallRisk}</span>
-          <Tooltip text={t.scoreSidebar.tooltipText}>
+          <span className="font-mono text-[12px] tracking-[0.15em] uppercase text-rc-hint">
+            {isCvReview ? t.scoreSidebar.cvQuality : t.scoreSidebar.overallRisk}
+          </span>
+          <Tooltip text={isCvReview ? t.scoreSidebar.cvQualityTooltip : t.scoreSidebar.tooltipText}>
             <div className="cursor-help opacity-40 hover:opacity-100 transition-opacity">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                 <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
@@ -62,22 +65,24 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
         {/* Left: large score + verdict + bar */}
         <div className="px-8 py-8 lg:w-[300px] shrink-0 border-b lg:border-b-0 lg:border-r border-rc-border flex flex-col justify-center">
           <div className={`font-mono font-medium leading-none tracking-tight ${scoreTextClass}`} style={{ fontSize: '88px', lineHeight: 1 }}>
-            {result.score}<span style={{ fontSize: '28px' }} className="opacity-40">%</span>
+            {score}<span style={{ fontSize: '28px' }} className="opacity-40">%</span>
           </div>
+          {result.verdict && (
           <div className="mt-5 mb-6">
             <span className={`font-mono text-[13px] px-4 py-1.5 border uppercase tracking-widest ${scoreTextClass} border-current`}>
               {t.scoreSidebar.verdicts[result.verdict] ?? result.verdict} {t.scoreSidebar.risk}
             </span>
           </div>
+          )}
           <div className="h-[4px] bg-rc-text/10 w-full overflow-hidden">
-            <div className={`h-full ${scoreBgClass} transition-all duration-1000`} style={{ width: `${result.score}%` }} />
+            <div className={`h-full ${scoreBgClass} transition-all duration-1000`} style={{ width: `${score}%` }} />
           </div>
         </div>
 
         {/* Right: breakdown metric rows */}
         <div className="flex-1 px-8 py-8">
           <div className="space-y-5">
-            {Object.entries(result.breakdown).map(([key, val]) => {
+            {Object.entries(result.breakdown ?? {}).map(([key, val]) => {
               const bl = t.scoreSidebar.breakdownLabels;
               const label = bl[key as keyof typeof bl] ?? key.replace(/_/g, ' ');
               let badge: React.ReactNode;
@@ -124,11 +129,13 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
 
       {/* Footer: confidence + reset */}
       <div className="px-8 py-5 border-t border-rc-border bg-rc-surface-hero flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        {result.confidence ? (
         <p className="text-[14px] text-rc-muted leading-snug max-w-[680px]">
           <span className="font-semibold text-rc-text">{t.scoreSidebar.modelConfidence} {result.confidence.score}%</span>
           {" - "}
           {result.confidence.reason}
         </p>
+        ) : <div />}
         <button
           type="button"
           onClick={onReset}
