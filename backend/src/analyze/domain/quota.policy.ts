@@ -29,6 +29,11 @@ export const MONTHLY_CAPS: Record<Plan, number> = {
   hired: 30,
 };
 
+export const CREDIT_COSTS = {
+  analyze: 100,
+  review: 50,
+} as const;
+
 export const ANONYMOUS_LIFETIME_CAP = 1;
 
 export type QuotaContext = {
@@ -47,6 +52,8 @@ export type QuotaContext = {
   countByIpLifetime: number;
   /** sum(grants) - sum(consumes). Treat as 0 for anonymous users. */
   creditsBalance: number;
+  /** Credits required to run this action. See CREDIT_COSTS. */
+  actionCost: number;
 };
 
 export type QuotaDecision =
@@ -86,7 +93,7 @@ export function decideQuota(ctx: QuotaContext): QuotaDecision {
     return { allowed: true, consume: 'monthly' };
   }
 
-  if (ctx.creditsBalance > 0) {
+  if (ctx.creditsBalance >= ctx.actionCost) {
     return { allowed: true, consume: 'credit' };
   }
 

@@ -43,7 +43,7 @@ import { LlmJobsService } from '../../queue/llm-jobs.service';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
 import type { Plan, QuotaDecision } from '../domain/quota.policy';
-import { decideQuota, startOfMonthUTC } from '../domain/quota.policy';
+import { CREDIT_COSTS, decideQuota, startOfMonthUTC } from '../domain/quota.policy';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -151,7 +151,7 @@ export class AnalyzeCvUseCase {
     Sentry.setTag('plan', subscriptionState.plan);
 
     const plan = toQuotaPlan(subscriptionState.plan);
-    const quotaIntent = await this.reserveQuotaIntent(cmd.email, cmd.ip, plan);
+    const quotaIntent = await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.analyze);
 
     // Emit step labels eagerly so the SSE timeline still reflects the work
     // about to start; the operations themselves run in parallel below.
@@ -292,7 +292,7 @@ export class AnalyzeCvUseCase {
     // monthly use rather than a credit consume — a benign under-debit we
     // accept to keep the flow non-transactional.
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
-      await this.creditLedger.consume({ email: cmd.email, analysisId });
+      await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.analyze });
     }
 
     emit({ type: 'analysis_done', result, analysisId });
@@ -370,6 +370,7 @@ export class AnalyzeCvUseCase {
     email: string | undefined,
     ip: string | undefined,
     plan: Plan,
+    actionCost: number,
   ): Promise<Extract<QuotaDecision, { allowed: true }>> {
     const monthStart = startOfMonthUTC();
     const [monthlyUsed, countByIpLifetime, creditsBalance] = await Promise.all([
@@ -387,6 +388,7 @@ export class AnalyzeCvUseCase {
       monthlyUsed,
       countByIpLifetime,
       creditsBalance,
+      actionCost,
     });
 
     if (!decision.allowed) {

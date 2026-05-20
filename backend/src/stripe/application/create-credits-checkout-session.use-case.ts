@@ -6,7 +6,7 @@ import type { StripeClient } from '../ports/stripe-client';
 export type CreateCreditsCheckoutSessionCommand = {
   /** Authenticated user email — required, not user-controllable client side. */
   email: string;
-  /** Must be one of the allowed pack sizes: 1, 5, or 10. */
+  /** Must be one of the allowed pack sizes: 500, 1000, or 2000. */
   quantity: number;
 };
 
@@ -19,14 +19,16 @@ export type CreateCreditsCheckoutSessionResult = {
  * discount over buying individual credits — the unit price decreases as the
  * pack size increases.
  *
- * 5 crédits  → 4,99 € (1,00 €/crédit)
- * 10 crédits → 8,99 € (0,90 €/crédit, -10 %)
- * 20 crédits → 15,99 € (0,80 €/crédit, -20 %)
+ * Credits are granular: analyse vs JD = 100 crédits, audit CV = 50 crédits.
+ *
+ * 500 crédits  → 4,99 € (= 5× analyse JD ou 10× audit CV)
+ * 1000 crédits → 8,99 € (-10 %)
+ * 2000 crédits → 15,99 € (-20 %)
  */
 export const CREDIT_PACKS: Record<number, { amountCents: number; label: string }> = {
-  5:  { amountCents: 499,  label: '5 crédits d\'analyse' },
-  10: { amountCents: 899,  label: '10 crédits d\'analyse' },
-  20: { amountCents: 1599, label: '20 crédits d\'analyse' },
+  500:  { amountCents: 499,  label: '500 crédits d\'analyse' },
+  1000: { amountCents: 899,  label: '1000 crédits d\'analyse' },
+  2000: { amountCents: 1599, label: '2000 crédits d\'analyse' },
 };
 
 /**

@@ -60,7 +60,7 @@ export class PrismaCreditLedgerRepository implements CreditLedgerRepository {
         {
           email: input.email,
           type: 'consume',
-          amount: 1,
+          amount: input.amount,
           source: 'analysis',
           referenceId: String(input.analysisId),
         },

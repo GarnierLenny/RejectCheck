@@ -12,9 +12,9 @@ interface BuyCreditsModalProps {
 }
 
 const PACKS = [
-  { quantity: 5,  price: "4,99 €",  sub: "1,00 € / analyse",                    popular: false },
-  { quantity: 10, price: "8,99 €",  sub: "0,90 € / analyse · -10%",             popular: true  },
-  { quantity: 20, price: "15,99 €", sub: "0,80 € / analyse · -20%",             popular: false },
+  { quantity: 500,  price: "4,99 €",  sub: "= 5× analyse JD · 10× audit CV",         popular: false },
+  { quantity: 1000, price: "8,99 €",  sub: "= 10× analyse JD · 20× audit CV · -10%", popular: true  },
+  { quantity: 2000, price: "15,99 €", sub: "= 20× analyse JD · 40× audit CV · -20%", popular: false },
 ] as const;
 
 export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {

@@ -43,15 +43,21 @@ function labelOffset(i: number, n: number): [number, number] {
   return [cos > 0 ? 4 : -4, 0];
 }
 
-export function RadarChart({ axes }: { axes: SkillRadarAxis[] }) {
+export function RadarChart({ axes, size = 280, fluid = false }: { axes: SkillRadarAxis[]; size?: number; fluid?: boolean }) {
   const n = axes.length;
   const rings = [25, 50, 75, 100];
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 items-start">
+    <div className="flex flex-col md:flex-row gap-10 items-start">
       {/* SVG */}
-      <div className="shrink-0 mx-auto md:mx-0">
-        <svg viewBox="0 0 300 300" width="280" height="280" aria-hidden="true">
+      <div className={fluid ? "flex-[4] min-w-0 p-6" : "shrink-0 mx-auto md:mx-0"}>
+        <svg
+          viewBox="-50 -25 400 350"
+          width={fluid ? "100%" : size}
+          height={fluid ? undefined : size}
+          style={undefined}
+          aria-hidden="true"
+        >
           {/* Background rings */}
           {rings.map((pct) => (
             <polygon
@@ -161,7 +167,7 @@ export function RadarChart({ axes }: { axes: SkillRadarAxis[] }) {
       </div>
 
       {/* Evidence list */}
-      <div className="flex-1 space-y-3 pt-1">
+      <div className={fluid ? "flex-[6] min-w-0 space-y-3 pt-1" : "flex-1 space-y-3 pt-1"}>
         {axes.map((ax, i) => (
           <div key={i} className="space-y-0.5">
             <div className="flex items-center justify-between">

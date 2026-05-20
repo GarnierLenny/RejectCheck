@@ -17,6 +17,8 @@ export type ConsumeCreditInput = {
    * cannot double-debit.
    */
   analysisId: number;
+  /** Credits to debit. See CREDIT_COSTS in quota.policy.ts. */
+  amount: number;
 };
 
 /**

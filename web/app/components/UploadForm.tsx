@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { Tooltip } from "./Tooltip";
 import Link from "next/link";
 import { useLanguage } from "../../context/language";
 import { useAuth } from "../../context/auth";
@@ -53,8 +55,16 @@ function getAccuracy(cvFile: File | null, jd: string, github: string, liFile: Fi
   const hasGH = github.trim().length > 0;
   const hasLI = !!liFile;
 
-  const score = (hasCV ? 1 : 0) + (hasJD ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
+  // Audit mode (no JD): max 3 signals, scale to 5
+  if (!hasJD) {
+    const score = (hasCV ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
+    if (score <= 1) return { segments: 2, color: "bg-rc-red" };
+    if (score === 2) return { segments: 3, color: "bg-rc-amber" };
+    return { segments: 5, color: "bg-rc-green" };
+  }
 
+  // Vs-job mode: 4 signals
+  const score = (hasCV ? 1 : 0) + 1 + (hasGH ? 1 : 0) + (hasLI ? 1 : 0); // JD already confirmed
   if (score <= 1) return { segments: 2, color: "bg-rc-red" };
   if (score === 2) return { segments: 3, color: "bg-rc-amber" };
   if (score === 3) return { segments: 4, color: "bg-rc-amber" };
@@ -464,6 +474,8 @@ function GithubCard({
   );
 }
 
+type PingStatus = 'idle' | 'checking' | 'ok' | 'error';
+
 function PortfolioCard({
   portfolioUrl,
   setPortfolioUrl,
@@ -474,6 +486,26 @@ function PortfolioCard({
   recommended: boolean;
 }) {
   const { t } = useLanguage();
+  const [pingStatus, setPingStatus] = useState<PingStatus>('idle');
+
+  // Reset indicator when URL changes
+  const handleChange = (v: string) => {
+    setPortfolioUrl(v);
+    setPingStatus('idle');
+  };
+
+  async function handleCheck() {
+    const url = portfolioUrl.trim();
+    if (!url) return;
+    setPingStatus('checking');
+    try {
+      await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: AbortSignal.timeout(5000) });
+      setPingStatus('ok');
+    } catch {
+      setPingStatus('error');
+    }
+  }
+
   return (
     <div className="border border-rc-border rounded overflow-hidden">
       <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
@@ -492,14 +524,32 @@ function PortfolioCard({
           recommended={recommended}
         />
       </div>
-      <div className="px-3 py-2.5">
+      <div className="px-3 py-2.5 flex items-center gap-2">
         <input
           type="url"
           placeholder={t.uploadForm.portfolio.placeholder}
           value={portfolioUrl}
-          onChange={(e) => setPortfolioUrl(e.target.value)}
-          className="w-full bg-rc-bg border border-rc-border rounded py-2 px-3 text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
+          onChange={(e) => handleChange(e.target.value)}
+          className="flex-1 bg-rc-bg border border-rc-border rounded py-2 px-3 text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
         />
+        {pingStatus === 'ok' && (
+          <Tooltip text="URL accessible — le site répond correctement.">
+            <CheckCircle2 size={15} className="text-rc-green shrink-0 cursor-help" />
+          </Tooltip>
+        )}
+        {pingStatus === 'error' && (
+          <Tooltip text="URL inaccessible — vérifiez l'adresse ou si le site est en ligne.">
+            <XCircle size={15} className="text-rc-red shrink-0 cursor-help" />
+          </Tooltip>
+        )}
+        <button
+          type="button"
+          onClick={handleCheck}
+          disabled={!portfolioUrl.trim() || pingStatus === 'checking'}
+          className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1.5 border border-rc-border text-rc-hint hover:text-rc-text hover:border-rc-text/30 transition-colors disabled:opacity-40 shrink-0"
+        >
+          {pingStatus === 'checking' ? '…' : 'Check'}
+        </button>
       </div>
     </div>
   );
