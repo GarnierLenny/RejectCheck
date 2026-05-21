@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   Radar,
@@ -527,6 +528,67 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ TESTIMONIALS ════════════════════════════════════════════════ */}
+      <section className="border-t border-rc-border bg-rc-surface py-16">
+        <div className="rc-wrap">
+          {/* Founder story */}
+          <div className="flex items-center gap-6 border border-rc-border bg-rc-bg p-7 mb-4">
+            <Image
+              src="/testimonials/lenny.jpeg"
+              alt="Lenny Garnier"
+              width={52}
+              height={52}
+              className="rounded-full object-cover shrink-0 border border-rc-border"
+              style={{ width: 52, height: 52 }}
+            />
+            <div className="flex flex-col gap-2">
+              <div className="font-mono text-[9px] tracking-[0.20em] uppercase text-rc-red">Founder</div>
+              <p className="font-serif italic text-[18px] leading-[1.45] text-rc-text">
+                "During my job search I built the tool I wish existed, this same tool got me a job in 2 months"
+              </p>
+              <div className="font-mono text-[11px] text-rc-hint tracking-[0.04em]">
+                <span className="text-rc-muted font-semibold">Lenny Garnier</span> · Fullstack Engineer @ Witik
+              </div>
+            </div>
+          </div>
+
+          {/* 4-card strip */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {([
+              { quote: "Best job search tool I've ever used", name: "Raphael", role: "Fullstack Engineer", img: "/testimonials/raphael.png" },
+              { quote: "Actual game changer for job-seekers", name: "Arshiyaa", role: "Product Manager", img: "/testimonials/arshiyaa.jpeg" },
+              { quote: "The advice is really good", name: "Sheryll", role: "Software Eng. Student", initials: "S" },
+              { quote: "I think this is a really great tool!", name: "Yasbira", role: "ISE Student", initials: "Y" },
+            ] as const).map((t) => (
+              <div key={t.name} className="flex flex-col gap-3 border border-rc-border bg-rc-surface p-5">
+                <span className="font-serif text-[28px] leading-none text-rc-red opacity-60">"</span>
+                <p className="font-sans text-[14px] leading-[1.55] text-rc-text flex-1">{t.quote}</p>
+                <div className="flex items-center gap-2.5 mt-1">
+                  {"img" in t ? (
+                    <Image
+                      src={t.img}
+                      alt={t.name}
+                      width={36}
+                      height={36}
+                      className="rounded-full object-cover shrink-0 border border-rc-border"
+                      style={{ width: 36, height: 36 }}
+                    />
+                  ) : (
+                    <div className="shrink-0 w-9 h-9 rounded-full bg-rc-bg border border-rc-border flex items-center justify-center font-mono text-[12px] font-bold text-rc-muted">
+                      {t.initials}
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-mono text-[11px] font-bold text-rc-text tracking-[0.04em]">{t.name}</span>
+                    <span className="font-mono text-[10px] text-rc-hint tracking-[0.06em] uppercase">{t.role}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ DIAGNOSIS — radar + flags ════════════════════════════════════ */}
       <section className="sec sec--paper">
         <div className="rc-wrap">
@@ -994,7 +1056,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {t.landing.trust.items.map((item, i) => (
               <FadeInSection key={i} delay={i * 40}>
-                <article className="h-full rounded-2xl border border-rc-border bg-rc-surface p-7">
+                <article className="h-full border border-rc-border bg-rc-surface p-7">
                   <div className="flex items-center gap-3 mb-3">
                     <span className="font-mono text-[11px] text-rc-red tracking-[0.16em]">0{i + 1}</span>
                     <div className="h-px flex-1 bg-rc-border" />
@@ -1051,7 +1113,7 @@ export default function Home() {
           <div className="space-y-3">
             {t.faq.items.map((item, i) => (
               <FadeInSection key={i} delay={i * 40}>
-                <details className="group rounded-xl border border-rc-border bg-rc-surface open:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow">
+                <details className="group border border-rc-border bg-rc-surface open:shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow">
                   <summary className="cursor-pointer list-none flex items-start justify-between gap-4 px-5 py-4 md:px-6 md:py-5">
                     <h3 className="text-[16px] md:text-[17px] font-semibold text-rc-text leading-[1.35] tracking-[-0.01em]">
                       {item.question}
