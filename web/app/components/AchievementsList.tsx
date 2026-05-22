@@ -138,10 +138,10 @@ export function AchievementsList({ achievements }: Props) {
   return (
     <div className="py-8">
       <div className="flex items-baseline gap-3 mb-6">
-        <h2 className="font-serif text-[32px] font-normal leading-none" style={{ letterSpacing: -0.5 }}>
+        <h2 className="text-[32px] font-semibold leading-none" style={{ letterSpacing: -0.5 }}>
           {t.publicProfilePage.achievements.title}
         </h2>
-        <span className="font-mono text-[13px] text-rc-hint">{earnedCount} / {items.length}</span>
+        <span className="font-sans text-[13px] text-rc-hint">{earnedCount} / {items.length}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-x-12">

@@ -54,7 +54,7 @@ export function AuthNavLink() {
     return (
       <Link
         href={localePath("/login")}
-        className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-muted hover:text-rc-text px-4 py-2 transition-colors duration-200 no-underline"
+        className="font-sans text-[11px] tracking-[0.04em] uppercase text-rc-muted hover:text-rc-text px-4 py-2 transition-colors duration-200 no-underline"
       >
         {LOGIN_LABELS[locale] ?? LOGIN_LABELS.en}
       </Link>
@@ -123,7 +123,7 @@ export function AuthNavLink() {
                 {displayName}
               </div>
               {username && (
-                <div className="font-mono text-[11px] text-rc-hint truncate">
+                <div className="font-sans text-[11px] text-rc-hint truncate">
                   @{username}
                 </div>
               )}
@@ -170,7 +170,7 @@ export function AuthNavLink() {
               <Users size={14} className="text-rc-muted" />
               <span className="flex-1">{t.publicProfilePage.lists.myFollowers}</span>
               {(profile?.unreadFollowersCount ?? 0) > 0 && (
-                <span className="font-mono text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rc-red text-white">
+                <span className="font-sans text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rc-red text-white">
                   {profile?.unreadFollowersCount}
                 </span>
               )}

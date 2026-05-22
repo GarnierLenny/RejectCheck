@@ -20,7 +20,7 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
   const { t, localePath } = useLanguage();
 
   const linkClass = (page: NavPage) =>
-    `font-mono text-[11px] tracking-[0.14em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
+    `font-sans text-[11px] tracking-[0.04em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
       activePage === page
         ? "text-rc-red font-bold"
         : "text-rc-muted hover:text-rc-text"
@@ -52,7 +52,7 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
             </Link>
             <Link
               href={localePath("/pricing")}
-              className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
+              className="font-sans text-[11px] tracking-[0.04em] uppercase text-rc-text/50 hover:text-rc-text px-4 py-2 transition-all duration-200 no-underline"
             >
               {t.navbar.pricing}
             </Link>
@@ -86,7 +86,7 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
         {!user && !loading && (
           <Link
             href={localePath("/analyze")}
-            className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"
+            className="font-sans text-[11px] tracking-[0.04em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"
           >
             {t.navbar.tryFree}
           </Link>

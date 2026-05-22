@@ -214,7 +214,7 @@ function renderTab(id: string, mc: Mc) {
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={RADAR_DATA} outerRadius="78%">
                   <PolarGrid stroke="#d4cfc9" strokeWidth={0.75} />
-                  <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fill: "#6b6860", fontFamily: "var(--font-mono)" }} />
+                  <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fill: "#6b6860", fontFamily: "var(--font-sans)" }} />
                   <Radar
                     name="Target"
                     dataKey="target"
@@ -542,11 +542,11 @@ export default function Home() {
               style={{ width: 52, height: 52 }}
             />
             <div className="flex flex-col gap-2">
-              <div className="font-mono text-[9px] tracking-[0.20em] uppercase text-rc-red">Founder</div>
-              <p className="font-serif italic text-[18px] leading-[1.45] text-rc-text">
+              <div className="font-sans text-[9px] tracking-[0.08em] text-rc-red">Founder · Built it for himself</div>
+              <p className="italic text-[18px] leading-[1.45] text-rc-text">
                 "During my job search I built the tool I wish existed, this same tool got me a job in 2 months"
               </p>
-              <div className="font-mono text-[11px] text-rc-hint tracking-[0.04em]">
+              <div className="font-sans text-[11px] text-rc-hint tracking-[0.04em]">
                 <span className="text-rc-muted font-semibold">Lenny Garnier</span> · Fullstack Engineer @ Witik
               </div>
             </div>
@@ -561,7 +561,7 @@ export default function Home() {
               { quote: "I think this is a really great tool!", name: "Yasbira", role: "ISE Student", initials: "Y" },
             ] as const).map((t) => (
               <div key={t.name} className="flex flex-col gap-3 border border-rc-border bg-rc-surface p-5">
-                <span className="font-serif text-[28px] leading-none text-rc-red opacity-60">"</span>
+                <span className="text-[28px] leading-none text-rc-red opacity-60">"</span>
                 <p className="font-sans text-[14px] leading-[1.55] text-rc-text flex-1">{t.quote}</p>
                 <div className="flex items-center gap-2.5 mt-1">
                   {"img" in t ? (
@@ -574,13 +574,13 @@ export default function Home() {
                       style={{ width: 36, height: 36 }}
                     />
                   ) : (
-                    <div className="shrink-0 w-9 h-9 rounded-full bg-rc-bg border border-rc-border flex items-center justify-center font-mono text-[12px] font-bold text-rc-muted">
+                    <div className="shrink-0 w-9 h-9 rounded-full bg-rc-bg border border-rc-border flex items-center justify-center font-sans text-[12px] font-bold text-rc-muted">
                       {t.initials}
                     </div>
                   )}
                   <div className="flex flex-col gap-0.5">
-                    <span className="font-mono text-[11px] font-bold text-rc-text tracking-[0.04em]">{t.name}</span>
-                    <span className="font-mono text-[10px] text-rc-hint tracking-[0.06em] uppercase">{t.role}</span>
+                    <span className="font-sans text-[11px] font-bold text-rc-text tracking-[0.04em]">{t.name}</span>
+                    <span className="font-sans text-[10px] text-rc-hint tracking-[0.04em]">{t.role}</span>
                   </div>
                 </div>
               </div>
@@ -1058,7 +1058,7 @@ export default function Home() {
               <FadeInSection key={i} delay={i * 40}>
                 <article className="h-full border border-rc-border bg-rc-surface p-7">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="font-mono text-[11px] text-rc-red tracking-[0.16em]">0{i + 1}</span>
+                    <span className="font-sans text-[11px] text-rc-red tracking-[0.05em]">0{i + 1}</span>
                     <div className="h-px flex-1 bg-rc-border" />
                   </div>
                   <h3 className="text-[18px] md:text-[19px] font-semibold tracking-[-0.01em] text-rc-text mb-3">
@@ -1068,7 +1068,7 @@ export default function Home() {
                     {item.claim}
                   </p>
                   <div className="pt-3 border-t border-rc-border">
-                    <div className="font-mono text-[10px] tracking-[0.14em] uppercase text-rc-hint mb-2">
+                    <div className="font-sans text-[10px] tracking-[0.05em] uppercase text-rc-hint mb-2">
                       Source
                     </div>
                     <p className="text-[13px] text-rc-muted leading-[1.5] mb-2">{item.source}</p>
@@ -1081,7 +1081,7 @@ export default function Home() {
                             href={lnk.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-mono text-[11px] tracking-wide text-rc-red hover:underline"
+                            className="font-sans text-[11px] tracking-wide text-rc-red hover:underline"
                           >
                             {lnk.label} ↗
                           </a>
@@ -1089,7 +1089,7 @@ export default function Home() {
                           <Link
                             key={j}
                             href={lnk.href}
-                            className="font-mono text-[11px] tracking-wide text-rc-red no-underline hover:underline"
+                            className="font-sans text-[11px] tracking-wide text-rc-red no-underline hover:underline"
                           >
                             {lnk.label} →
                           </Link>
@@ -1120,7 +1120,7 @@ export default function Home() {
                     </h3>
                     <span
                       aria-hidden="true"
-                      className="shrink-0 mt-1 font-mono text-[18px] text-rc-red transition-transform group-open:rotate-45 select-none"
+                      className="shrink-0 mt-1 font-sans text-[18px] text-rc-red transition-transform group-open:rotate-45 select-none"
                     >
                       +
                     </span>
@@ -1135,7 +1135,7 @@ export default function Home() {
                           <Link
                             key={j}
                             href={lnk.href}
-                            className="font-mono text-[11px] tracking-wide text-rc-red no-underline hover:underline"
+                            className="font-sans text-[11px] tracking-wide text-rc-red no-underline hover:underline"
                           >
                             {lnk.label} →
                           </Link>
@@ -1157,7 +1157,7 @@ export default function Home() {
             <blockquote className="mb-10">
               <p className="text-[32px] md:text-[48px] lg:text-[58px] font-semibold leading-[1.1] tracking-[-0.025em] text-rc-text">
                 {t.landing.quote.line1}{" "}
-                <span style={{ color: "var(--rc-red)", fontFamily: "var(--font-serif)", fontStyle: "italic" }}>
+                <span style={{ color: "var(--rc-red)", fontFamily: "var(--font-sans)", fontStyle: "italic" }}>
                   {t.landing.quote.word}
                 </span>
                 ,
@@ -1165,7 +1165,7 @@ export default function Home() {
                 {t.landing.quote.line2}
               </p>
             </blockquote>
-            <p className="font-mono text-[13px] md:text-[14px] tracking-[0.06em] text-rc-hint mb-10">
+            <p className="font-sans text-[13px] md:text-[14px] tracking-[0.06em] text-rc-hint mb-10">
               {t.landing.quote.subtitle}
             </p>
             <Link href={localePath("/analyze")} id="quote-cta" className="btn-primary">
@@ -1181,7 +1181,7 @@ export default function Home() {
         <div className="rc-wrap">
           <div className="grid grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-8 mb-10">
             <div>
-              <div className="font-mono text-[12px] font-bold tracking-[0.06em] mb-3 text-rc-text">
+              <div className="font-sans text-[12px] font-bold tracking-[0.06em] mb-3 text-rc-text">
                 REJECTCHECK<span style={{ color: "var(--rc-red)" }}>!</span>
               </div>
               <p className="text-rc-muted text-[13px] leading-[1.6] max-w-[340px]">
@@ -1189,43 +1189,43 @@ export default function Home() {
               </p>
             </div>
             <div>
-              <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-text font-bold mb-3">Product</div>
-              <Link href={localePath("/analyze")} className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <div className="font-sans text-[10px] tracking-[0.06em] uppercase text-rc-text font-bold mb-3">Product</div>
+              <Link href={localePath("/analyze")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.landing.hero.cta}
               </Link>
-              <Link href={localePath("/pricing")} className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <Link href={localePath("/pricing")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.navbar.pricing}
               </Link>
-              <Link href={localePath("/for-teams")} className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <Link href={localePath("/for-teams")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.landing.footer.forTeams}
               </Link>
             </div>
             <div>
-              <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-text font-bold mb-3">Resources</div>
-              <Link href={localePath("/alternatives")} className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <div className="font-sans text-[10px] tracking-[0.06em] uppercase text-rc-text font-bold mb-3">Resources</div>
+              <Link href={localePath("/alternatives")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.landing.footer.alternatives}
               </Link>
-              <Link href={localePath("/challenge")} className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <Link href={localePath("/challenge")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.challenge.navLink}
               </Link>
               {locale === "en" && (
                 <>
-                  <Link href="/en/cv-review" className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">CV Review</Link>
-                  <Link href="/en/ats-checker" className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">ATS Checker</Link>
+                  <Link href="/en/cv-review" className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">CV Review</Link>
+                  <Link href="/en/ats-checker" className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">ATS Checker</Link>
                 </>
               )}
             </div>
             <div>
-              <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-rc-text font-bold mb-3">Company</div>
-              <Link href={localePath("/privacy")} className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <div className="font-sans text-[10px] tracking-[0.06em] uppercase text-rc-text font-bold mb-3">Company</div>
+              <Link href={localePath("/privacy")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.landing.footer.privacy}
               </Link>
-              <a href="#" className="block py-1 font-mono text-[13px] text-rc-muted hover:text-rc-red transition-colors">
+              <a href="#" className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.landing.footer.terms}
               </a>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row justify-between gap-2 pt-6 border-t border-rc-border font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">
+          <div className="flex flex-col md:flex-row justify-between gap-2 pt-6 border-t border-rc-border font-sans text-[10px] tracking-[0.06em] uppercase text-rc-hint">
             <span>{t.landing.footer.copyright}</span>
             <span>The diagnosis you weren&apos;t sent</span>
           </div>

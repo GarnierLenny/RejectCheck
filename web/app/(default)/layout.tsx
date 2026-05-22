@@ -1,18 +1,18 @@
 import type { Metadata } from 'next'
-import { DM_Sans, Chivo_Mono } from 'next/font/google'
+import { Inter, IBM_Plex_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import Providers from '../providers'
 import '../globals.css'
 
-const dmSans = DM_Sans({
+const inter = Inter({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-sans',
 })
 
-const chivoMono = Chivo_Mono({
-  weight: ['400', '500'],
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ['400', '500', '700'],
   subsets: ['latin'],
   variable: '--font-mono',
 })
@@ -27,7 +27,7 @@ export default function DefaultRootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${chivoMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

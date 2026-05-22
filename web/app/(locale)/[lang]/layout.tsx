@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { DM_Sans, Chivo_Mono } from 'next/font/google'
+import { Inter, IBM_Plex_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import { getDictionary, hasLocale } from './dictionaries'
@@ -9,14 +9,14 @@ import Providers from '../../providers'
 import { JsonLd, organizationSchema, websiteSchema, SITE_URL } from '../../components/JsonLd'
 import '../../globals.css'
 
-const dmSans = DM_Sans({
+const inter = Inter({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-sans',
 })
 
-const chivoMono = Chivo_Mono({
-  weight: ['400', '500'],
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ['400', '500', '700'],
   subsets: ['latin'],
   variable: '--font-mono',
 })
@@ -116,7 +116,7 @@ export default async function LocaleRootLayout({
   return (
     <html
       lang={lang}
-      className={`${dmSans.variable} ${chivoMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
