@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { setPendingCv } from "../../../lib/pending-cv";
+import { SAMPLE_JDS } from "../../../lib/sample-jds";
 import {
   Radar,
   RadarChart,
@@ -93,6 +96,61 @@ const INTERVIEW_AXES = [
   { name: "Specificity",   v: 8.1 },
   { name: "Tech depth",    v: 7.4 },
   { name: "Communication", v: 6.8 },
+];
+
+/* ─── Feature tab showcase data ───────────────────────────────────────── */
+const TRACKER_JOBS = [
+  { company: "Stripe",    role: "Backend Engineer",    status: "applied",   date: "May 19" },
+  { company: "Linear",    role: "Frontend Engineer",   status: "screen",    date: "May 17" },
+  { company: "Vercel",    role: "Staff Engineer",      status: "applied",   date: "May 15" },
+  { company: "Anthropic", role: "ML Engineer",         status: "offer",     date: "May 10" },
+  { company: "GitHub",    role: "DevOps Engineer",     status: "applied",   date: "May 14" },
+  { company: "Notion",    role: "Senior Engineer",     status: "screen",    date: "May 12" },
+  { company: "Loom",      role: "Backend Engineer",    status: "interview", date: "May 11" },
+  { company: "Figma",     role: "Full Stack Engineer", status: "rejected",  date: "May 08" },
+];
+
+const FEATURE_TABS = [
+  {
+    id: "report",
+    label: "Rejection Report",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+    ),
+  },
+  { id: "linkedin",  label: "LinkedIn Optimization", icon: <IconLinkedIn size={15} /> },
+  { id: "github",    label: "GitHub Optimization",   icon: <IconGitHub size={15} /> },
+  {
+    id: "tracker",
+    label: "Job Tracker",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+      </svg>
+    ),
+  },
+  {
+    id: "cv",
+    label: "CV & Cover Letter",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+    ),
+  },
+  {
+    id: "interview",
+    label: "AI Interview",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+  },
 ];
 
 /* ─── Hero qcard scenarios — fictional sample reports ─────────────── */
@@ -426,23 +484,238 @@ function renderTab(id: string, mc: Mc) {
   }
 }
 
+/* ─── Feature tab preview renderer ───────────────────────────────────── */
+function renderFeaturePreview(id: string) {
+  switch (id) {
+    case "report":
+      return (
+        <div className="ftv-report">
+          <div className="ftv-report__metrics">
+            {[
+              { label: "Match Score", val: "82", unit: "/100",  cls: "ok" },
+              { label: "ATS Filter",  val: "34", unit: "/100",  cls: "bad" },
+              { label: "Skill Gaps",  val: "3",  unit: " found", cls: "bad" },
+              { label: "Red Flags",   val: "2",  unit: " found", cls: "warn" },
+            ].map((m) => (
+              <div key={m.label} className={"ftv-metric " + m.cls}>
+                <div className="ftv-metric__lab">{m.label}</div>
+                <div className="ftv-metric__val">{m.val}<span>{m.unit}</span></div>
+              </div>
+            ))}
+          </div>
+          <div className="ftv-report__skills">
+            {SAMPLE_SKILLS.slice(0, 4).map((s) => (
+              <div key={s.name} className="ftv-skill">
+                <div className="ftv-skill__name">{s.name}</div>
+                <div className="ftv-skill__bar">
+                  <i style={{ width: s.have + "%", background: s.ok ? "var(--rc-green)" : "var(--rc-red)" }} />
+                  <div className="ftv-skill__need" style={{ left: s.need + "%" }} />
+                </div>
+                <span className={"ftv-skill__val " + (s.ok ? "ok" : "bad")}>{s.have}/{s.need}</span>
+              </div>
+            ))}
+          </div>
+          <div className="ftv-insight">
+            ATS filter drops this CV before any recruiter reads it — fix <strong>3 missing keywords</strong> to cross the 67% pass-line.
+          </div>
+        </div>
+      );
+
+    case "linkedin":
+      return (
+        <div className="ftv-linkedin">
+          <div className="ftv-linkedin__score">
+            <div className="ftv-score-ring warn">58%</div>
+            <div>
+              <div className="ftv-linkedin__name">LinkedIn Profile</div>
+              <div className="ftv-linkedin__verdict warn">Mixed signal — needs work before applying</div>
+            </div>
+          </div>
+          <div className="ftv-rows-mini">
+            {[
+              { sev: "crit",  title: "No About summary",            sub: "Recruiters check this first — yours is empty" },
+              { sev: "major", title: "Generic headline",             sub: '"Software Engineer" — no stack, no seniority signal' },
+              { sev: "major", title: "Zero recommendations",         sub: "One peer endorsement moves you above 75% of applicants" },
+              { sev: "minor", title: "Skills section underutilized", sub: "12 skills vs. 40+ in the JD — keyword gap visible to ATS" },
+            ].map((r) => (
+              <div key={r.title} className="ftv-row">
+                <span className={"ftv-sev " + r.sev}>{r.sev === "crit" ? "Critical" : r.sev === "major" ? "Major" : "Minor"}</span>
+                <div>
+                  <div className="ftv-row__title">{r.title}</div>
+                  <div className="ftv-row__sub">{r.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "github":
+      return (
+        <div className="ftv-github">
+          <div className="ftv-github__score">
+            <div className="ftv-score-ring warn">72%</div>
+            <div>
+              <div className="ftv-linkedin__name">GitHub Profile</div>
+              <div className="ftv-linkedin__verdict warn">Active contributor — but unpolished</div>
+            </div>
+          </div>
+          <div className="ftv-github__stats">
+            {[
+              { n: "42", l: "Repos",  cls: "ok" },
+              { n: "3",  l: "CI/CD",  cls: "warn" },
+              { n: "1",  l: "Tests",  cls: "bad" },
+              { n: "7",  l: "Stars",  cls: "ok" },
+            ].map((s) => (
+              <div key={s.l} className={"ftv-gstat " + s.cls}>
+                <div className="n">{s.n}</div>
+                <div className="l">{s.l}</div>
+              </div>
+            ))}
+          </div>
+          <div className="ftv-rows-mini">
+            {[
+              { sev: "crit",  title: "Pinned repos lack documentation", sub: "Recruiters open the top repo — no README, no demo → they bounce in 10s" },
+              { sev: "major", title: "Only 1 repo has tests",           sub: "Production engineers write tests — this signal is weak to engineering teams" },
+              { sev: "major", title: "3 of 42 repos have CI",           sub: "Add GitHub Actions badges to your top 3 pinned repos before applying" },
+            ].map((r) => (
+              <div key={r.title} className="ftv-row">
+                <span className={"ftv-sev " + r.sev}>{r.sev === "crit" ? "Critical" : "Major"}</span>
+                <div>
+                  <div className="ftv-row__title">{r.title}</div>
+                  <div className="ftv-row__sub">{r.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "tracker":
+      return (
+        <div className="ftv-tracker">
+          {[
+            { label: "Applied",   cls: "applied",   statuses: ["applied"] },
+            { label: "Screening", cls: "screen",    statuses: ["screen"] },
+            { label: "Interview", cls: "interview", statuses: ["interview"] },
+            { label: "Offer",     cls: "offer",     statuses: ["offer"] },
+            { label: "Rejected",  cls: "rejected",  statuses: ["rejected"] },
+          ].map((col) => {
+            const jobs = TRACKER_JOBS.filter((j) => col.statuses.includes(j.status));
+            return (
+              <div key={col.label} className="ftv-col">
+                <div className={"ftv-col__head " + col.cls}>
+                  <span>{col.label}</span>
+                  <span className="n">{jobs.length}</span>
+                </div>
+                {jobs.slice(0, 2).map((j) => (
+                  <div key={j.company} className={"ftv-job " + col.cls}>
+                    <div className="ftv-job__co">{j.company}</div>
+                    <div className="ftv-job__role">{j.role}</div>
+                    <div className="ftv-job__date">{j.date}</div>
+                  </div>
+                ))}
+                {jobs.length > 2 && (
+                  <div className="ftv-job__more">+{jobs.length - 2} more</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+
+    case "cv":
+      return (
+        <div className="ftv-cv">
+          <div className="ftv-cv__rewrite">
+            <div className="ftv-cv__col before">
+              <div className="ftv-cv__lab">Before</div>
+              <p>Worked on backend systems and helped with API development. Contributed to team projects and participated in code reviews.</p>
+            </div>
+            <div className="ftv-cv__col after">
+              <div className="ftv-cv__lab">After · matched to JD</div>
+              <p><strong>Shipped</strong> 4 gRPC microservices handling 12k req/min. Reduced p99 latency 38% via query optimization and Redis caching. Mentored 3 junior engineers across 2 sprint cycles.</p>
+            </div>
+          </div>
+          <div className="ftv-cv__letter">
+            <div className="ftv-cv__letter-lab">Cover Letter · Generated</div>
+            <div className="ftv-cv__letter-body">
+              <p>Dear Hiring Team,</p>
+              <p>I&apos;m applying for the Senior Backend Engineer role at Stripe. In my last position I scaled our payment processing service from 2k to 50k transactions per minute — exactly the kind of infrastructure challenge I understand your team is navigating now.</p>
+              <p>What draws me to this role is the intersection of high-throughput systems and developer experience that Stripe uniquely sits at...</p>
+              <div className="ftv-cv__letter-fade" />
+            </div>
+          </div>
+        </div>
+      );
+
+    case "interview":
+      return (
+        <div className="ftv-interview">
+          <div className="ftv-interview__round">Round 1 · Technical Screen</div>
+          <div className="ftv-interview__chat">
+            <div className="ftv-interview__q">
+              <span className="who">Interviewer · Senior Engineer</span>
+              Walk me through how you&apos;d design a distributed rate limiter across 50 nodes with sub-millisecond overhead. How do you handle clock skew?
+            </div>
+            <div className="ftv-interview__a">
+              <span className="who">You</span>
+              I&apos;d use a sliding window approach with Redis Lua scripts for atomicity — the script increments the counter and checks the limit in a single round trip, avoiding race conditions entirely...
+            </div>
+          </div>
+          <div className="ftv-interview__scores">
+            {[
+              { name: "Specificity", val: 8.1, cls: "ok" },
+              { name: "Tech depth",  val: 7.4, cls: "ok" },
+              { name: "Structure",   val: 6.2, cls: "warn" },
+              { name: "Clarity",     val: 5.8, cls: "warn" },
+            ].map((s) => (
+              <div key={s.name} className="ftv-score">
+                <span className="name">{s.name}</span>
+                <div className="bar"><i className={s.cls} style={{ width: s.val * 10 + "%" }} /></div>
+                <span className={"val " + s.cls}>{s.val}</span>
+              </div>
+            ))}
+          </div>
+          <div className="ftv-insight">
+            Average <strong>6.9/10</strong> across 6 questions — strongest on tech depth, weakest on structure. Practice STAR-format answers for system design questions.
+          </div>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
+
 /* ─── Landing ─────────────────────────────────────────────────────── */
 export default function Home() {
   const { t, locale, localePath } = useLanguage();
   const mc = t.landing.mockContent;
 
-  /* hero qcard — random scenario + live count-up */
-  const [scenarioIndex, setScenarioIndex] = useState(0);
-  const [run, setRun] = useState(false);
-  const [barIn, setBarIn] = useState(false);
-  useEffect(() => {
-    setScenarioIndex(Math.floor(Math.random() * SCENARIOS.length));
-    const t1 = setTimeout(() => setRun(true), 250);
-    const t2 = setTimeout(() => setBarIn(true), 900);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
-  const scenario = SCENARIOS[scenarioIndex];
-  const rejectionPct = useCountUp(scenario.pct, run);
+  /* hero upload widget */
+  const router = useRouter();
+  const [heroStep, setHeroStep] = useState<1 | 2>(1);
+  const [heroCvFile, setHeroCvFile] = useState<File | null>(null);
+  const [heroJd, setHeroJd] = useState("");
+  const [heroDragging, setHeroDragging] = useState(false);
+  const heroFileRef = useRef<HTMLInputElement>(null);
+
+  function handleHeroDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setHeroDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) { setHeroCvFile(file); setHeroStep(2); }
+  }
+  function handleHeroFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) { setHeroCvFile(file); setHeroStep(2); }
+  }
+  function handleHeroSubmit() {
+    if (!heroCvFile) return;
+    setPendingCv(heroCvFile, heroJd);
+    router.push(localePath("/analyze"));
+  }
 
   /* total analyses counter */
   const [totalAnalyses, setTotalAnalyses] = useState(0);
@@ -473,6 +746,9 @@ export default function Home() {
     { id: "Imp",   name: `${t.tabs.improveCv} ✦`,    cls: "prem" as const },
     { id: "AI",    name: `${t.tabs.aiInterview} ✦`,  cls: "prem" as const },
   ];
+
+  /* feature tab showcase */
+  const [activeFeatureTab, setActiveFeatureTab] = useState("report");
 
   /* diagnosis + signals + bridge inView refs */
   const [diagRadarRef, diagRadarIn] = useInView(0.18);
@@ -528,37 +804,115 @@ export default function Home() {
               </p>
             </div>
             <div className="split__r">
-              <figure
-                className={"qcard qcard--" + tierFor(scenario.pct)}
-                aria-label="Sample diagnostic report"
-                suppressHydrationWarning
-              >
-                <figcaption className="qcard__cap">
-                  <span>{scenario.rc}</span>
-                  <span className="qcard__live"><span className="dot" />live</span>
-                </figcaption>
-                <div className="qcard__name">{scenario.name}</div>
-                <div className="qcard__role">{scenario.role}</div>
-                <div className="qcard__num">
-                  <span className="n">{rejectionPct}</span>
-                  <span className="u">%</span>
+              <div className="hero-widget">
+                {/* Stepper */}
+                <div className="hero-widget__stepper">
+                  <span className={"hero-widget__step" + (heroStep >= 1 ? " active" : "") + (heroCvFile ? " done" : "")}>
+                    {heroCvFile ? <IconCheck size={10} /> : "1"}
+                  </span>
+                  <span className="hero-widget__connector" />
+                  <span className={"hero-widget__step" + (heroStep >= 2 ? " active" : "")}>2</span>
+                  <span className="hero-widget__connector" />
+                  <span className="hero-widget__step">3</span>
                 </div>
-                <div className="qcard__label">Rejection probability</div>
-                <div
-                  className={"qcard__bar " + (barIn ? "in" : "")}
-                  style={{ ["--w" as string]: scenario.pct + "%" }}
-                >
-                  <i />
+                <div className="hero-widget__labels">
+                  <span className={heroStep === 1 && !heroCvFile ? "active" : heroCvFile ? "done" : ""}>Upload CV</span>
+                  <span className={heroStep === 2 ? "active" : ""}>Add job</span>
+                  <span>View results</span>
                 </div>
-                <ul className="qcard__feedback">
-                  {scenario.feedback.map((f, i) => (
-                    <li key={i} className="qcard__fb">
-                      <span className={"mark mark--" + f.mark}>{FB_GLYPH[f.mark]}</span>
-                      <span>{f.text}</span>
-                    </li>
-                  ))}
-                </ul>
-              </figure>
+
+                {/* Step 1 — drop zone */}
+                {heroStep === 1 && (
+                  <div
+                    className={"hero-drop" + (heroDragging ? " drag-over" : "") + (heroCvFile ? " has-file" : "")}
+                    onDragOver={(e) => { e.preventDefault(); setHeroDragging(true); }}
+                    onDragLeave={() => setHeroDragging(false)}
+                    onDrop={handleHeroDrop}
+                    onClick={() => heroFileRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === "Enter" && heroFileRef.current?.click()}
+                  >
+                    <input
+                      ref={heroFileRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      style={{ display: "none" }}
+                      onChange={handleHeroFile}
+                    />
+                    <div className="hero-drop__icon">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="12" y1="18" x2="12" y2="12" />
+                        <line x1="9" y1="15" x2="15" y2="15" />
+                      </svg>
+                    </div>
+                    <div className="hero-drop__label">Drag & drop your CV</div>
+                    <div className="hero-drop__hint">or <span>choose a file</span> · PDF or DOCX</div>
+                  </div>
+                )}
+
+                {/* Step 2 — JD + sample picker */}
+                {heroStep === 2 && (
+                  <>
+                    <div className="hero-widget__file-ok">
+                      <IconCheck size={12} />
+                      <span>{heroCvFile?.name}</span>
+                      <button onClick={() => { setHeroStep(1); setHeroCvFile(null); }}>Change</button>
+                    </div>
+                    <div className="hero-step2">
+                      <div className="hero-step2__paste">
+                        <div className="hero-step2__lab">Paste a job description</div>
+                        <textarea
+                          className="hero-jd"
+                          placeholder="Copy & paste the job description here…"
+                          value={heroJd}
+                          onChange={(e) => setHeroJd(e.target.value)}
+                          rows={7}
+                          autoFocus
+                        />
+                      </div>
+                      <div className="hero-step2__or">OR</div>
+                      <div className="hero-step2__samples">
+                        <div className="hero-step2__lab">Use a sample</div>
+                        <div className="hero-step2__list">
+                          {SAMPLE_JDS.map((cat) => (
+                            <div key={cat.category}>
+                              <div className="hero-step2__cat">{cat.category}</div>
+                              {cat.roles.map((role) => (
+                                <button
+                                  key={role.title}
+                                  className={"hero-step2__role" + (heroJd === role.jd ? " active" : "")}
+                                  onClick={() => setHeroJd(role.jd)}
+                                >
+                                  {role.title}
+                                  {heroJd === role.jd && <IconCheck size={10} />}
+                                </button>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      className="btn-primary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={handleHeroSubmit}
+                    >
+                      Get my score
+                      <IconArrow size={12} color="#fff" />
+                    </button>
+                    <button className="hero-widget__skip" onClick={handleHeroSubmit}>
+                      Skip — just audit my CV
+                    </button>
+                  </>
+                )}
+
+                <a href="#preview" className="hero-widget__sample">
+                  View sample report ↗
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -621,6 +975,34 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ ALL-IN-ONE PLATFORM ════════════════════════════════════════ */}
+      <section className="sec sec--white" id="platform">
+        <div className="rc-wrap">
+          <div className="ft-head">
+            <div className="ft-head__eye">All-in-one platform</div>
+            <h2 className="ft-head__h">Six tools. One subscription.</h2>
+            <p className="ft-head__sub">Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.</p>
+          </div>
+          <div className="ft-tabs">
+            {FEATURE_TABS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setActiveFeatureTab(f.id)}
+                className={"ft-tab" + (activeFeatureTab === f.id ? " is-active" : "")}
+              >
+                {f.icon}
+                <span>{f.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="ft-preview">
+            <div key={activeFeatureTab} className="ft-preview__inner">
+              {renderFeaturePreview(activeFeatureTab)}
+            </div>
           </div>
         </div>
       </section>

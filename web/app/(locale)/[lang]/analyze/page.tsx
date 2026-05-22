@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { consumePendingCv } from "../../../../lib/pending-cv";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
@@ -142,6 +143,14 @@ function AnalyzeContent() {
   useEffect(() => {
     if (bootstrappedRef.current) return;
     bootstrappedRef.current = true;
+
+    const pending = consumePendingCv();
+    if (pending) {
+      setCvFile(pending.file);
+      if (pending.jd) setJobDescription(pending.jd);
+      setFormStep(pending.jd ? 2 : 2);
+    }
+
     try {
       const stored = localStorage.getItem('rc_subscription');
       if (stored) {
