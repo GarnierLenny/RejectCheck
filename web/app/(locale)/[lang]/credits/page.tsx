@@ -10,9 +10,9 @@ import { useLanguage } from "../../../../context/language";
 import { Navbar } from "../../../components/Navbar";
 
 const PACKS = [
-  { quantity: 5,  price: "4,99 €",  sub: "0,99 € / analyse", badge: null,   popular: false },
-  { quantity: 10, price: "8,99 €",  sub: "0,89 € / analyse", badge: "-10%", popular: true  },
-  { quantity: 20, price: "14,99 €", sub: "0,74 € / analyse", badge: "-25%", popular: false },
+  { quantity: 500,  price: "4,99 €",  sub: "= 5× analyse JD · 10× audit CV",          badge: null,   popular: false },
+  { quantity: 1000, price: "8,99 €",  sub: "= 10× analyse JD · 20× audit CV  · -10%", badge: "-10%", popular: true  },
+  { quantity: 2000, price: "15,99 €", sub: "= 20× analyse JD · 40× audit CV  · -20%", badge: "-20%", popular: false },
 ] as const;
 
 const MOCK_HISTORY: { id: number; event: string; date: string; delta: number; type: string }[] = [];
@@ -41,7 +41,7 @@ function CreditsContent() {
   const progressPct = quota
     ? Math.max(0, Math.min(100, ((quota.monthlyCap - quota.monthlyUsed) / quota.monthlyCap) * 100))
     : 0;
-  const isLow = monthlyRemaining !== null && monthlyRemaining <= 3;
+  const isLow = monthlyRemaining !== null && monthlyRemaining < 100;
   const isHired = sub?.plan === "hired";
 
   const resetDays = sub?.currentPeriodEnd
@@ -112,10 +112,10 @@ function CreditsContent() {
 
               {/* Footer */}
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] text-rc-hint">{quota?.monthlyCap ?? 5} crédits gratuits / mois</span>
+                <span className="font-mono text-[11px] text-rc-hint">{quota?.monthlyCap ?? 300} crédits / mois</span>
                 {!isHired && (
                   <Link href={localePath("/pricing")} className="font-mono text-[11px] text-rc-hint hover:text-rc-text no-underline transition-colors">
-                    Plan illimité dès 12,99 €/mois
+                    Jusqu'à 3 000 crédits/mois dès 7,99 €
                   </Link>
                 )}
               </div>
@@ -172,18 +172,18 @@ function CreditsContent() {
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-serif text-[22px] font-normal text-rc-text">Plan Pro · illimité</span>
+                    <span className="font-serif text-[22px] font-normal text-rc-text">Plan Shortlisted</span>
                     <span className="font-mono text-[9px] tracking-[0.1em] uppercase border border-rc-green/40 text-rc-green px-2 py-0.5 rounded">
-                      Sans limite
+                      1 500 crédits/mois
                     </span>
                   </div>
                   <p className="text-[13px] text-rc-hint leading-relaxed">
-                    Analyses illimitées, dashboard pro, partage avancé. Annulation à tout moment.
+                    1 500 crédits/mois + crédits à la demande, dashboard pro, entretien IA, réécriture CV. Annulation à tout moment.
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-3 flex-shrink-0">
                   <div className="text-right">
-                    <span className="font-serif text-[36px] font-medium leading-none text-rc-text">12,99 €</span>
+                    <span className="font-serif text-[36px] font-medium leading-none text-rc-text">7,99 €</span>
                     <p className="font-mono text-[11px] text-rc-hint mt-0.5">/ mois</p>
                   </div>
                   <Link

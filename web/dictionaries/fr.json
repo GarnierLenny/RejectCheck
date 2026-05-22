@@ -488,11 +488,11 @@
     "badge": "Scan Gratuit Terminé",
     "title": "Boostez votre",
     "titleHighlight": "recherche d'emploi.",
-    "subtitle": "Vous avez vu les signaux d'alerte. Il est temps de les corriger et de décrocher votre prochain poste. Débloquez des analyses illimitées et des outils qui changent la donne.",
-    "getAccess": "Accès Illimité",
+    "subtitle": "Vous avez vu les signaux d'alerte. Il est temps de les corriger et de décrocher votre prochain poste. Débloquez 1 500 crédits/mois et des outils qui changent la donne.",
+    "getAccess": "Obtenir plus de crédits",
     "backToAnalyzer": "Retour à l'analyseur",
     "features": [
-      "Analyses approfondies illimitées",
+      "1 500 à 3 000 crédits/mois",
       "Optimisation CV prioritaire",
       "Guide de suppression des signaux d'alerte",
       "IA Entretien & Suivi"
@@ -504,7 +504,7 @@
       "success": "Vous êtes sur la liste prioritaire."
     },
     "freeCapTitle": "Vous avez utilisé vos analyses gratuites ce mois-ci",
-    "freeCapSubtitle": "Passez à 15 ou 30 analyses par mois, ou achetez des crédits à l'unité qui n'expirent jamais.",
+    "freeCapSubtitle": "Passez à 1 500 ou 3 000 crédits/mois (≈ 15–30 analyses JD ou 30–60 audits CV), ou achetez des crédits à l'unité qui n'expirent jamais.",
     "subscriberCapTitle": "Plafond mensuel atteint",
     "subscriberCapSubtitle": "Achetez des crédits à l'unité pour continuer — ils n'expirent jamais et votre quota mensuel se réinitialise le 1er.",
     "buyCredits": "Acheter des crédits",
@@ -859,7 +859,7 @@
         "period": "/à vie",
         "description": "Parfait pour un premier bilan de réalité.",
         "features": [
-          "1 analyse approfondie",
+          "300 crédits (= 3× analyse JD ou 6× audit CV)",
           "Simulation ATS",
           "Audit d'écart de séniorité",
           "Analyse du ton du CV",
@@ -878,7 +878,8 @@
         "description": "Pour les candidats sérieux qui itèrent jusqu'à la victoire.",
         "features": [
           "Tout dans Gratuit",
-          "Analyses illimitées",
+          "1 500 crédits/mois (≈ 15 analyses JD ou 30 audits CV)",
+          "Crédits supplémentaires à l'unité — sans expiration",
           "Suivi d'évolution du score",
           "Historique des analyses",
           "Entretien IA",
@@ -894,6 +895,8 @@
         "description": "Puissance maximale. Nous garantissons votre succès.",
         "features": [
           "Tout dans PRÉSÉLECTIONNÉ",
+          "3 000 crédits/mois (≈ 30 analyses JD ou 60 audits CV)",
+          "Crédits supplémentaires à l'unité — sans expiration",
           "Score de fit via URL (bientôt)",
           "Roadmaps RejectCheck (bientôt)",
           "Générateur de lettre de motivation",
@@ -1452,7 +1455,7 @@
       },
       {
         "question": "RejectCheck est-il gratuit ?",
-        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent les analyses illimitées, l'entretien simulé IA, et la réécriture de CV."
+        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent 1 500 ou 3 000 crédits/mois (≈ 15–30 analyses JD ou 30–60 audits CV), l'entretien simulé IA, la réécriture de CV, et des crédits à l'unité achetables à tout moment qui n'expirent jamais."
       },
       {
         "question": "RejectCheck peut-il m'aider à préparer mes entretiens ?",

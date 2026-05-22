@@ -54,6 +54,14 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     });
   }
 
+  async creditsSince(email: string, since: Date): Promise<number> {
+    const agg = await this.prisma.analysis.aggregate({
+      where: { email, createdAt: { gte: since } },
+      _sum: { creditCost: true },
+    });
+    return agg._sum.creditCost ?? 0;
+  }
+
   async saveRegistered(input: SaveAnalysisInput): Promise<{ id: number }> {
     const created = await this.prisma.analysis.create({
       data: {
@@ -67,6 +75,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         linkedinText: input.linkedinText,
         githubInfo: input.githubInfo,
         motivationLetter: input.motivationLetter,
+        creditCost: input.creditCost,
         result: input.result as unknown as Prisma.InputJsonValue,
         deepAnalysis: input.deepAnalysis
           ? (input.deepAnalysis as unknown as Prisma.InputJsonValue)

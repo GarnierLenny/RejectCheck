@@ -17,6 +17,8 @@ export type SaveAnalysisInput = {
   linkedinText: string | null;
   githubInfo: string | null;
   motivationLetter: string | null;
+  /** Credits to deduct from the monthly allowance. See CREDIT_COSTS. */
+  creditCost: number;
   /** Hot-pass result, or full merged result for backward compat. */
   result: AnalyzeResponse | HotAnalyzeResponse;
   deepAnalysis?: DeepAnalyzeResponse | null;
@@ -53,6 +55,11 @@ export interface AnalysisRepository {
    * Used to compute monthly quota usage (caller passes startOfMonthUTC()).
    */
   countByEmailSince(email: string, since: Date): Promise<number>;
+  /**
+   * Sum of creditCost for all analyses created at or after the given date.
+   * Used to compute credit-based monthly quota usage.
+   */
+  creditsSince(email: string, since: Date): Promise<number>;
 
   /** Persists a registered-user analysis with full payload. */
   saveRegistered(input: SaveAnalysisInput): Promise<{ id: number }>;

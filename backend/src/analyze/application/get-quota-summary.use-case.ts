@@ -41,7 +41,7 @@ export class GetQuotaSummaryUseCase {
     const monthStart = startOfMonthUTC();
     const [subscription, monthlyUsed, creditsBalance] = await Promise.all([
       this.getSubscription.execute(email),
-      this.analyses.countByEmailSince(email, monthStart),
+      this.analyses.creditsSince(email, monthStart),
       this.creditLedger.getBalance(email),
     ]);
 

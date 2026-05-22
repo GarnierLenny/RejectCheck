@@ -65,7 +65,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
   const progressPct = quota
     ? Math.max(0, Math.min(100, ((quota.monthlyCap - quota.monthlyUsed) / quota.monthlyCap) * 100))
     : 0;
-  const isLow = monthlyRemaining !== null && monthlyRemaining <= 3;
+  const isLow = monthlyRemaining !== null && monthlyRemaining < 100;
 
   const resetDays = sub?.currentPeriodEnd
     ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / 86400000))

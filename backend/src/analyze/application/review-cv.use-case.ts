@@ -171,7 +171,7 @@ export class ReviewCvUseCase {
     const monthStart = startOfMonthUTC();
     const [monthlyUsed, countByIpLifetime, creditsBalance] = await Promise.all([
       email
-        ? this.analyses.countByEmailSince(email, monthStart)
+        ? this.analyses.creditsSince(email, monthStart)
         : Promise.resolve(0),
       ip && !email ? this.analyses.countByIp(ip) : Promise.resolve(0),
       email ? this.creditLedger.getBalance(email) : Promise.resolve(0),
@@ -250,6 +250,7 @@ export class ReviewCvUseCase {
       linkedinText: args.linkedinText || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: null,
+      creditCost: CREDIT_COSTS.review,
       result: result as unknown as Parameters<AnalysisRepository['saveRegistered']>[0]['result'],
     });
 

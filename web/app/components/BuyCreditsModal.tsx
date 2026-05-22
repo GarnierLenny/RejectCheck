@@ -131,8 +131,8 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
               className="mt-4 flex items-center justify-between w-full px-4 py-3 rounded-xl bg-rc-bg border border-rc-border hover:border-rc-red/40 transition-all no-underline group"
             >
               <div>
-                <p className="text-[12px] font-semibold text-rc-text">Passer au plan Pro ou Hired</p>
-                <p className="font-mono text-[10px] text-rc-hint mt-0.5">Analyses illimitées · plus de crédits à acheter</p>
+                <p className="text-[12px] font-semibold text-rc-text">Passer au plan Shortlisted ou Hired</p>
+                <p className="font-mono text-[10px] text-rc-hint mt-0.5">1 500 ou 3 000 crédits/mois · extras à la demande</p>
               </div>
               <span className="font-mono text-[11px] text-rc-red group-hover:opacity-70 transition-opacity shrink-0 ml-3">
                 Voir les plans →

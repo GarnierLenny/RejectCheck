@@ -24,9 +24,9 @@
 export type Plan = 'free' | 'shortlisted' | 'hired';
 
 export const MONTHLY_CAPS: Record<Plan, number> = {
-  free: 3,
-  shortlisted: 15,
-  hired: 30,
+  free: 300,
+  shortlisted: 1500,
+  hired: 3000,
 };
 
 export const CREDIT_COSTS = {
@@ -41,8 +41,8 @@ export type QuotaContext = {
   ip?: string;
   plan: Plan;
   /**
-   * Analyses already created this calendar month UTC for this user. The
-   * caller computes this via `countByEmailSince(email, startOfMonthUTC())`.
+   * Credits consumed this calendar month UTC for this user. The caller
+   * computes this via `creditsSince(email, startOfMonthUTC())`.
    */
   monthlyUsed: number;
   /**

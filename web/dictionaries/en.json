@@ -488,11 +488,11 @@
     "badge": "Free Scan Complete",
     "title": "Level up your",
     "titleHighlight": "job search.",
-    "subtitle": "You've seen the red flags. Now it's time to fix them and land your next role. Unlock unlimited deep-dives and career-changing tools.",
-    "getAccess": "Get Unlimited Access",
+    "subtitle": "You've seen the red flags. Now it's time to fix them and land your next role. Unlock 1,500 credits/month and career-changing tools.",
+    "getAccess": "Get More Credits",
     "backToAnalyzer": "Back to Analyzer",
     "features": [
-      "Unlimited deep-dive scans",
+      "1,500–3,000 credits/month",
       "Priority CV optimization",
       "Red flag removal guide",
       "Interview AI & Tracker"
@@ -504,7 +504,7 @@
       "success": "You're on the priority list."
     },
     "freeCapTitle": "You've used your free analyses this month",
-    "freeCapSubtitle": "Upgrade for 15 or 30 analyses per month, or buy one-time credits that never expire.",
+    "freeCapSubtitle": "Upgrade for 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), or buy one-time credits that never expire.",
     "subscriberCapTitle": "Monthly cap reached",
     "subscriberCapSubtitle": "Buy one-time credits to keep going — they never expire and your monthly allowance resets on the 1st.",
     "buyCredits": "Buy credits",
@@ -859,7 +859,7 @@
         "period": "/forever",
         "description": "Perfect for a first reality check.",
         "features": [
-          "1 deep analysis",
+          "300 credits (= 3× JD analysis or 6× CV audit)",
           "ATS simulation",
           "Seniority gap audit",
           "CV tone analysis",
@@ -878,7 +878,8 @@
         "description": "For serious candidates who iterate until they win.",
         "features": [
           "Everything in Free",
-          "Unlimited analyses",
+          "1,500 credits/month (≈ 15 JD analyses or 30 CV audits)",
+          "Buy extra credits anytime — they never expire",
           "Score Evolution Tracker",
           "Analysis history",
           "Interview AI",
@@ -894,6 +895,8 @@
         "description": "Maximum firepower. We guarantee your success.",
         "features": [
           "Everything in SHORTLISTED",
+          "3,000 credits/month (≈ 30 JD analyses or 60 CV audits)",
+          "Buy extra credits anytime — they never expire",
           "RejectCheck Roadmaps (coming soon)",
           "Cover Letter Generator",
           "Negotiation Playbook (counter-offer email + leverage points)",
@@ -1451,7 +1454,7 @@
       },
       {
         "question": "Is RejectCheck free?",
-        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock unlimited analyses, AI mock interview, and CV rewrite."
+        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), AI mock interview, CV rewrite, and extra credits you can buy anytime that never expire."
       },
       {
         "question": "Can RejectCheck help me prepare for job interviews?",

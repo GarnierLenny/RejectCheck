@@ -375,7 +375,7 @@ export class AnalyzeCvUseCase {
     const monthStart = startOfMonthUTC();
     const [monthlyUsed, countByIpLifetime, creditsBalance] = await Promise.all([
       email
-        ? this.analyses.countByEmailSince(email, monthStart)
+        ? this.analyses.creditsSince(email, monthStart)
         : Promise.resolve(0),
       ip && !email ? this.analyses.countByIp(ip) : Promise.resolve(0),
       email ? this.creditLedger.getBalance(email) : Promise.resolve(0),
@@ -480,6 +480,7 @@ export class AnalyzeCvUseCase {
       linkedinText: args.linkedinText || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: args.motivationLetterText || null,
+      creditCost: CREDIT_COSTS.analyze,
       result,
     });
 
