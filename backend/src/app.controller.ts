@@ -20,6 +20,12 @@ export class AppController {
     return { status: 'ok', ts: new Date().toISOString() };
   }
 
+  @Get('api/stats')
+  async stats(): Promise<{ totalAnalyses: number }> {
+    const totalAnalyses = await this.prisma.analysis.count();
+    return { totalAnalyses };
+  }
+
   // Temporary endpoint to verify Sentry wiring end-to-end. Remove after validation.
   @Get('debug-sentry')
   debugSentry(): never {

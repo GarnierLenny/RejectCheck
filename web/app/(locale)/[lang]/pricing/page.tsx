@@ -238,6 +238,14 @@ function PricingContent() {
           ))}
         </div>
 
+        <div className="mt-10 flex items-center justify-center gap-4 flex-wrap text-[12px] text-rc-hint font-sans">
+          <span>Cancel anytime</span>
+          <span className="w-1 h-1 rounded-full bg-rc-border" />
+          <span>
+            Hired? <strong className="text-rc-muted font-semibold">We refund your last month.</strong> No form. Just tell us.
+          </span>
+        </div>
+
         <div className="mt-24 text-center">
           <p className="text-rc-hint text-sm font-mono tracking-widest uppercase">{t.pricing.footer.support}</p>
         </div>

@@ -444,6 +444,23 @@ export default function Home() {
   const scenario = SCENARIOS[scenarioIndex];
   const rejectionPct = useCountUp(scenario.pct, run);
 
+  /* total analyses counter */
+  const [totalAnalyses, setTotalAnalyses] = useState(0);
+  const [statsRun, setStatsRun] = useState(false);
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
+    fetch(`${apiUrl}/api/stats`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d?.totalAnalyses === "number") {
+          setTotalAnalyses(d.totalAnalyses);
+          setStatsRun(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+  const animatedTotal = useCountUp(totalAnalyses, statsRun, 2000);
+
   /* preview tabs */
   const [activeTab, setActiveTab] = useState("ATS");
   const tabs = [
@@ -489,7 +506,26 @@ export default function Home() {
                   {t.landing.hero.cta}
                   <IconArrow size={12} color="#fff" />
                 </Link>
+                <a href="#preview" className="btn-ghost">
+                  See a sample
+                </a>
               </div>
+              <p className="font-sans text-[12px] text-rc-hint tracking-[0.04em] mt-4 flex items-center gap-2 flex-wrap">
+                <span>Free</span>
+                <span className="text-rc-border">·</span>
+                <span>No credit card</span>
+                <span className="text-rc-border">·</span>
+                <span>~2 min</span>
+                {animatedTotal > 0 && (
+                  <>
+                    <span className="text-rc-border">·</span>
+                    <span>
+                      <span className="font-semibold text-rc-muted tabular-nums">{animatedTotal.toLocaleString()}</span>
+                      {" "}CVs analyzed
+                    </span>
+                  </>
+                )}
+              </p>
             </div>
             <div className="split__r">
               <figure
@@ -544,7 +580,7 @@ export default function Home() {
             <div className="flex flex-col gap-2">
               <div className="font-sans text-[9px] tracking-[0.08em] text-rc-red">Founder · Built it for himself</div>
               <p className="italic text-[18px] leading-[1.45] text-rc-text">
-                "During my job search I built the tool I wish existed, this same tool got me a job in 2 months"
+                "During my job search I built the tool I wish existed, this same tool got me 4x more interviews and a job in 2 months"
               </p>
               <div className="font-sans text-[11px] text-rc-hint tracking-[0.04em]">
                 <span className="text-rc-muted font-semibold">Lenny Garnier</span> · Fullstack Engineer @ Witik
@@ -1022,6 +1058,13 @@ export default function Home() {
                   <span className="u">{t.pricing.plans.hired.period}</span>
                 </div>
                 <div className="price__desc">{t.pricing.plans.hired.description}</div>
+                <div className="price__guarantee">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <polyline points="9 12 11 14 15 10" />
+                  </svg>
+                  {t.pricing.plans.hired.guarantee}
+                </div>
                 <ul className="price__feats">
                   {t.pricing.plans.hired.features.slice(0, 5).map((f) => (
                     <li key={f} className="on">
@@ -1040,6 +1083,11 @@ export default function Home() {
               </div>
             </div>
           </FadeInSection>
+          <div className="pricing__trust">
+            <span>Cancel anytime</span>
+            <span className="pricing__trust-dot" />
+            <span>Hired? <strong>We refund your last month.</strong> No form. Just tell us.</span>
+          </div>
         </div>
       </section>
 
@@ -1229,7 +1277,7 @@ export default function Home() {
         </div>
       </footer>
 
-      <a
+      {/* <a
         href="https://www.producthunt.com/products/rejectcheck?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-rejectcheck"
         target="_blank"
         rel="noopener noreferrer"
@@ -1241,7 +1289,7 @@ export default function Home() {
           height="54"
           src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1128865&theme=light&t=1776772520938"
         />
-      </a>
+      </a> */}
     </div>
   );
 }

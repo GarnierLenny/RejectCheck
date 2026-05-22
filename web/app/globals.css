@@ -945,6 +945,20 @@ body {
 .price__feats li.off { color: var(--rc-hint); }
 .price__feats li .check { flex-shrink: 0; color: var(--rc-red); margin-top: 2px; }
 .price__feats li .cross { flex-shrink: 0; color: var(--rc-border); margin-top: 2px; }
+.price__guarantee {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans); font-size: 12px; font-weight: 600;
+  color: var(--rc-red); background: var(--rc-red-bg);
+  border: 1px solid var(--rc-red-border);
+  padding: 8px 12px; margin-top: 14px;
+}
+.pricing__trust {
+  display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 24px;
+  font-family: var(--font-sans); font-size: 12px; color: var(--rc-hint); letter-spacing: 0.02em;
+}
+.pricing__trust strong { color: var(--rc-muted); }
+.pricing__trust-dot { width: 3px; height: 3px; border-radius: 99px; background: var(--rc-border); }
 
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes rcPulse  { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }
