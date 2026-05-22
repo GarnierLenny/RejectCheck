@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npx prisma generate && rm -f tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json && npm run sentry:sourcemaps",
-    "sentry:sourcemaps": "if [ -n \"$SENTRY_AUTH_TOKEN\" ]; then sentry-cli sourcemaps inject ./dist && sentry-cli sourcemaps upload --release=\"${RAILWAY_GIT_COMMIT_SHA:-development}\" ./dist; else echo 'skip sentry sourcemaps (no token)'; fi",
+    "sentry:sourcemaps": "if [ -n \"$SENTRY_AUTH_TOKEN\" ]; then sentry-cli sourcemaps inject ./dist && sentry-cli sourcemaps upload --release=\"${RAILWAY_GIT_COMMIT_SHA:-development}\" ./dist || echo 'sentry sourcemaps upload failed (non-fatal)'; else echo 'skip sentry sourcemaps (no token)'; fi",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start --env-file .env",
     "dev": "nest start --watch --env-file .env",
