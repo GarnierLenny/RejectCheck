@@ -855,7 +855,7 @@
     },
     "plans": {
       "free": {
-        "name": "REJETÉ",
+        "name": "Gratuit",
         "period": "/à vie",
         "description": "Parfait pour un premier bilan de réalité.",
         "features": [
@@ -877,7 +877,7 @@
         "period": "/mois",
         "description": "Pour les candidats sérieux qui itèrent jusqu'à la victoire.",
         "features": [
-          "Tout dans REJETÉ",
+          "Tout dans Gratuit",
           "Analyses illimitées",
           "Suivi d'évolution du score",
           "Historique des analyses",
@@ -922,7 +922,7 @@
         },
         {
           "question": "Y a-t-il un essai gratuit ou un tier gratuit ?",
-          "answer": "Oui. Le plan REJECTED est gratuit à vie et inclut 1 analyse CV approfondie pour les invités (sans inscription) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, audit séniorité, et détection de red flags. Aucune carte requise."
+          "answer": "Oui. Le plan Gratuit est gratuit à vie et inclut 1 analyse CV approfondie pour les invités (sans inscription) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, audit séniorité, et détection de red flags. Aucune carte requise."
         },
         {
           "question": "Le plan Hired me rembourse vraiment si je décroche le job ?",
@@ -1452,7 +1452,7 @@
       },
       {
         "question": "RejectCheck est-il gratuit ?",
-        "answer": "Oui. Le plan REJECTED est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent les analyses illimitées, l'entretien simulé IA, et la réécriture de CV."
+        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent les analyses illimitées, l'entretien simulé IA, et la réécriture de CV."
       },
       {
         "question": "RejectCheck peut-il m'aider à préparer mes entretiens ?",

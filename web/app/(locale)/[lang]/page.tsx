@@ -987,9 +987,6 @@ export default function Home() {
                       Get my score
                       <IconArrow size={12} color="#fff" />
                     </button>
-                    <button className="hero-widget__skip" onClick={handleHeroSubmit}>
-                      Skip — just audit my CV
-                    </button>
                   </>
                 )}
 

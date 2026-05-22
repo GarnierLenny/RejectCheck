@@ -86,7 +86,7 @@ export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
     offers: [
       {
         '@type': 'Offer',
-        name: 'REJECTED (Free)',
+        name: 'Free',
         price: '0',
         priceCurrency: 'EUR',
         url: `${SITE_URL}/${locale}/pricing`,
@@ -148,7 +148,7 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
     {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      name: 'RejectCheck REJECTED (Free plan)',
+      name: 'RejectCheck Free plan',
       description:
         locale === 'fr'
           ? 'Plan gratuit : 1 analyse CV approfondie avec simulation ATS, audit ton, audit séniorité, et détection de red flags.'

@@ -855,7 +855,7 @@
     },
     "plans": {
       "free": {
-        "name": "REJECTED",
+        "name": "Free",
         "period": "/forever",
         "description": "Perfect for a first reality check.",
         "features": [
@@ -877,7 +877,7 @@
         "period": "/month",
         "description": "For serious candidates who iterate until they win.",
         "features": [
-          "Everything in REJECTED",
+          "Everything in Free",
           "Unlimited analyses",
           "Score Evolution Tracker",
           "Analysis history",
@@ -921,7 +921,7 @@
         },
         {
           "question": "Is there a free trial or free tier?",
-          "answer": "Yes. The REJECTED plan is free forever and includes 1 deep CV analysis for guests (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, seniority audit, and red-flag detection. No credit card required."
+          "answer": "Yes. The Free plan is free forever and includes 1 deep CV analysis for guests (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, seniority audit, and red-flag detection. No credit card required."
         },
         {
           "question": "Does the Hired plan actually refund me if I get hired?",
@@ -1451,7 +1451,7 @@
       },
       {
         "question": "Is RejectCheck free?",
-        "answer": "Yes. The REJECTED plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock unlimited analyses, AI mock interview, and CV rewrite."
+        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock unlimited analyses, AI mock interview, and CV rewrite."
       },
       {
         "question": "Can RejectCheck help me prepare for job interviews?",
