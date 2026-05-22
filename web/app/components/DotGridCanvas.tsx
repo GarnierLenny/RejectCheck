@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 const SPACING = 28;
 const BASE_R = 1;
-const MAX_R = 3.5;
+const MAX_R = 1.5;
 const INFLUENCE = 120;
 const BASE_ALPHA = 0.55;
 const HOVER_ALPHA = 0.9;
@@ -18,10 +18,15 @@ function lerp(a: number, b: number, t: number) {
   return Math.round(a + (b - a) * t);
 }
 
+const FADE_DURATION = 500; // ms
+
 export function DotGridCanvas({ dotColor: _dotColor }: { dotColor?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouse = useRef({ x: -9999, y: -9999 });
   const raf = useRef(0);
+  const fade = useRef(0);       // 0–1 influence multiplier
+  const fadeStart = useRef(0);  // timestamp when fade-out began
+  const fading = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -36,8 +41,20 @@ export function DotGridCanvas({ dotColor: _dotColor }: { dotColor?: string }) {
       draw();
     }
 
-    function draw() {
+    function draw(now = 0) {
       raf.current = 0;
+
+      if (fading.current) {
+        const elapsed = now - fadeStart.current;
+        fade.current = Math.max(0, 1 - elapsed / FADE_DURATION);
+        if (fade.current > 0) {
+          raf.current = requestAnimationFrame(draw);
+        } else {
+          fading.current = false;
+          mouse.current = { x: -9999, y: -9999 };
+        }
+      }
+
       const w = canvas!.offsetWidth;
       const h = canvas!.offsetHeight;
       const mx = mouse.current.x;
@@ -50,7 +67,7 @@ export function DotGridCanvas({ dotColor: _dotColor }: { dotColor?: string }) {
           const dx = x - mx;
           const dy = y - my;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          const t = smoothstep(Math.max(0, 1 - dist / INFLUENCE));
+          const t = smoothstep(Math.max(0, 1 - dist / INFLUENCE)) * fade.current;
           const r = BASE_R + (MAX_R - BASE_R) * t;
           const alpha = BASE_ALPHA + (HOVER_ALPHA - BASE_ALPHA) * t;
           const cr = lerp(BASE_RGB[0], RED_RGB[0], t * 0.6);
@@ -74,8 +91,17 @@ export function DotGridCanvas({ dotColor: _dotColor }: { dotColor?: string }) {
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const inBounds = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
-      mouse.current = inBounds ? { x, y } : { x: -9999, y: -9999 };
-      schedule();
+
+      if (inBounds) {
+        mouse.current = { x, y };
+        fade.current = 1;
+        fading.current = false;
+        schedule();
+      } else if (!fading.current && fade.current > 0) {
+        fading.current = true;
+        fadeStart.current = performance.now();
+        raf.current = requestAnimationFrame(draw);
+      }
     }
 
     const ro = new ResizeObserver(resize);
