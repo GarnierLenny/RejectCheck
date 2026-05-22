@@ -1157,11 +1157,12 @@ body {
 .ftv-gstat .l { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rc-hint); margin-top: 4px; }
 
 /* ── Job Tracker ── */
-.ftv-tracker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-@media (max-width: 900px) { .ftv-tracker { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 600px) { .ftv-tracker { grid-template-columns: 1fr 1fr; } }
+.ftv-tracker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+@media (max-width: 1000px) { .ftv-tracker { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px)  { .ftv-tracker { grid-template-columns: 1fr 1fr; } }
 .ftv-col { display: flex; flex-direction: column; gap: 6px; }
 .ftv-col__head { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 4px; font-family: var(--font-sans); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
+.ftv-col__head.saved     { background: rgba(139,92,246,0.08);  color: #6d28d9; }
 .ftv-col__head.applied   { background: rgba(100,116,139,0.10); color: var(--rc-muted); }
 .ftv-col__head.screen    { background: var(--rc-amber-bg);    color: var(--rc-amber); }
 .ftv-col__head.interview { background: rgba(59,130,246,0.08); color: #1d4ed8; }
@@ -1171,9 +1172,12 @@ body {
 .ftv-job { background: var(--rc-surface); border: 1px solid var(--rc-border); border-radius: 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
 .ftv-job.offer    { border-color: var(--rc-green-border); }
 .ftv-job.rejected { opacity: 0.55; }
-.ftv-job__co   { font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--rc-text); }
-.ftv-job__role { font-family: var(--font-sans); font-size: 11px; color: var(--rc-muted); }
-.ftv-job__date { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.06em; color: var(--rc-hint); margin-top: 4px; }
+.ftv-job__co     { font-family: var(--font-sans); font-size: 12px; font-weight: 600; color: var(--rc-text); }
+.ftv-job__role   { font-family: var(--font-sans); font-size: 11px; color: var(--rc-muted); }
+.ftv-job__meta   { display: flex; align-items: center; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+.ftv-job__salary { font-family: var(--font-sans); font-size: 10px; font-weight: 600; color: var(--rc-green); }
+.ftv-job__loc    { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.04em; color: var(--rc-hint); padding: 1px 5px; border: 1px solid var(--rc-border); border-radius: 3px; }
+.ftv-job__date   { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.06em; color: var(--rc-hint); margin-top: 2px; }
 .ftv-job__more { font-family: var(--font-sans); font-size: 11px; color: var(--rc-hint); text-align: center; padding: 4px 0; }
 
 /* ── CV & Cover Letter ── */
@@ -1214,6 +1218,42 @@ body {
 .ftv-score .val { font-family: var(--font-sans); font-weight: 700; font-size: 18px; color: var(--rc-text); line-height: 1; font-variant-numeric: tabular-nums; }
 .ftv-score .val.ok   { color: var(--rc-green); }
 .ftv-score .val.warn { color: var(--rc-amber); }
+
+/* ── Negotiation Coach ── */
+.ftv-negotiation { display: flex; flex-direction: column; gap: 20px; }
+.ftv-nego__range-card { border: 1px solid var(--rc-border); padding: 20px; border-radius: 4px; background: var(--rc-surface-hero); }
+.ftv-nego__range-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.ftv-nego__range-head span:first-child { font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--rc-text); }
+.ftv-nego__range-head .src { font-family: var(--font-sans); font-size: 10px; color: var(--rc-hint); letter-spacing: 0.04em; }
+.ftv-nego__range-wrap { position: relative; }
+.ftv-nego__upper-labels { position: relative; height: 22px; margin-bottom: 4px; }
+.ftv-nego__ulabel { position: absolute; transform: translateX(-50%); font-family: var(--font-sans); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.ftv-nego__ulabel.you    { color: var(--rc-amber); }
+.ftv-nego__ulabel.target { color: var(--rc-green); }
+.ftv-nego__track { position: relative; height: 8px; background: var(--rc-border); border-radius: 99px; }
+.ftv-nego__band { position: absolute; top: 0; bottom: 0; background: rgba(100,116,139,0.22); border-radius: 99px; }
+.ftv-nego__median-line { position: absolute; top: -8px; bottom: -8px; width: 2px; background: var(--rc-hint); transform: translateX(-50%); border-radius: 1px; opacity: 0.6; }
+.ftv-nego__dot { position: absolute; width: 16px; height: 16px; border-radius: 99px; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--rc-surface-hero); }
+.ftv-nego__dot.you    { background: var(--rc-amber); }
+.ftv-nego__dot.target { background: var(--rc-green); }
+.ftv-nego__scale { position: relative; height: 18px; margin-top: 10px; }
+.ftv-nego__scale span { position: absolute; transform: translateX(-50%); font-family: var(--font-sans); font-size: 9px; color: var(--rc-hint); white-space: nowrap; letter-spacing: 0.03em; }
+.ftv-nego__metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 700px) { .ftv-nego__metrics { grid-template-columns: 1fr 1fr; } }
+.ftv-nego__metric { border: 1px solid var(--rc-border); border-radius: 4px; padding: 12px 14px; background: var(--rc-surface); }
+.ftv-nego__metric.ok   { border-color: var(--rc-green-border); background: var(--rc-green-bg); }
+.ftv-nego__metric.warn { border-color: var(--rc-amber-border); background: var(--rc-amber-bg); }
+.ftv-nego__metric .lab { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rc-hint); margin-bottom: 4px; }
+.ftv-nego__metric .val { font-family: var(--font-sans); font-weight: 700; font-size: 22px; color: var(--rc-text); line-height: 1; font-variant-numeric: tabular-nums; }
+.ftv-nego__metric.ok   .val { color: var(--rc-green); }
+.ftv-nego__metric.warn .val { color: var(--rc-amber); }
+.ftv-nego__metric .note { font-family: var(--font-sans); font-size: 10px; color: var(--rc-hint); margin-top: 4px; }
+.ftv-nego__points { background: var(--rc-surface-hero); border: 1px solid var(--rc-border); padding: 16px; border-radius: 4px; }
+.ftv-nego__points-lab { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--rc-red); font-weight: 700; margin-bottom: 10px; }
+.ftv-nego__point { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; padding: 8px 0; border-top: 1px solid var(--rc-border); }
+.ftv-nego__point:first-of-type { border-top: none; padding-top: 0; }
+.ftv-nego__point .n { font-family: var(--font-sans); font-size: 10px; font-weight: 700; color: var(--rc-red); padding-top: 1px; }
+.ftv-nego__point span:last-child { font-family: var(--font-sans); font-size: 13px; color: var(--rc-muted); line-height: 1.45; }
 
 /* ─── Animations ─────────────────────────────────────────────── */
 @keyframes rcPulse  { 0%,100% { opacity: 1 } 50% { opacity: 0.35 } }

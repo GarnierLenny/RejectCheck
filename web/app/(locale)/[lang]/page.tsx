@@ -100,14 +100,16 @@ const INTERVIEW_AXES = [
 
 /* ─── Feature tab showcase data ───────────────────────────────────────── */
 const TRACKER_JOBS = [
-  { company: "Stripe",    role: "Backend Engineer",    status: "applied",   date: "May 19" },
-  { company: "Linear",    role: "Frontend Engineer",   status: "screen",    date: "May 17" },
-  { company: "Vercel",    role: "Staff Engineer",      status: "applied",   date: "May 15" },
-  { company: "Anthropic", role: "ML Engineer",         status: "offer",     date: "May 10" },
-  { company: "GitHub",    role: "DevOps Engineer",     status: "applied",   date: "May 14" },
-  { company: "Notion",    role: "Senior Engineer",     status: "screen",    date: "May 12" },
-  { company: "Loom",      role: "Backend Engineer",    status: "interview", date: "May 11" },
-  { company: "Figma",     role: "Full Stack Engineer", status: "rejected",  date: "May 08" },
+  { company: "Mistral",   role: "Staff Engineer",      status: "saved",     date: "May 21", salary: "€120-150k", location: "Paris" },
+  { company: "Datadog",   role: "Backend Engineer",    status: "saved",     date: "May 20", salary: "€90-115k",  location: "Remote" },
+  { company: "Stripe",    role: "Backend Engineer",    status: "applied",   date: "May 19", salary: "€95-120k",  location: "Remote" },
+  { company: "Linear",    role: "Frontend Engineer",   status: "screen",    date: "May 17", salary: "€85-105k",  location: "Paris" },
+  { company: "Vercel",    role: "Staff Engineer",      status: "applied",   date: "May 15", salary: "€130-160k", location: "Remote" },
+  { company: "Anthropic", role: "ML Engineer",         status: "offer",     date: "May 10", salary: "€140-180k", location: "Remote" },
+  { company: "GitHub",    role: "DevOps Engineer",     status: "applied",   date: "May 14", salary: "€90-115k",  location: "Hybrid" },
+  { company: "Notion",    role: "Senior Engineer",     status: "screen",    date: "May 12", salary: "€100-130k", location: "Remote" },
+  { company: "Loom",      role: "Backend Engineer",    status: "interview", date: "May 11", salary: "€88-110k",  location: "Paris" },
+  { company: "Figma",     role: "Full Stack Engineer", status: "rejected",  date: "May 08", salary: "€80-100k",  location: "Hybrid" },
 ];
 
 const FEATURE_TABS = [
@@ -148,6 +150,15 @@ const FEATURE_TABS = [
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    ),
+  },
+  {
+    id: "negotiation",
+    label: "Negotiation Coach",
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
       </svg>
     ),
   },
@@ -595,6 +606,7 @@ function renderFeaturePreview(id: string) {
       return (
         <div className="ftv-tracker">
           {[
+            { label: "Saved",     cls: "saved",     statuses: ["saved"] },
             { label: "Applied",   cls: "applied",   statuses: ["applied"] },
             { label: "Screening", cls: "screen",    statuses: ["screen"] },
             { label: "Interview", cls: "interview", statuses: ["interview"] },
@@ -612,6 +624,10 @@ function renderFeaturePreview(id: string) {
                   <div key={j.company} className={"ftv-job " + col.cls}>
                     <div className="ftv-job__co">{j.company}</div>
                     <div className="ftv-job__role">{j.role}</div>
+                    <div className="ftv-job__meta">
+                      <span className="ftv-job__salary">{j.salary}</span>
+                      <span className="ftv-job__loc">{j.location}</span>
+                    </div>
                     <div className="ftv-job__date">{j.date}</div>
                   </div>
                 ))}
@@ -679,6 +695,74 @@ function renderFeaturePreview(id: string) {
           </div>
           <div className="ftv-insight">
             Average <strong>6.9/10</strong> across 6 questions — strongest on tech depth, weakest on structure. Practice STAR-format answers for system design questions.
+          </div>
+        </div>
+      );
+
+    case "negotiation":
+      return (
+        <div className="ftv-negotiation">
+          {/* Range card */}
+          <div className="ftv-nego__range-card">
+            <div className="ftv-nego__range-head">
+              <span>Senior Backend Engineer · France · 5 yrs exp</span>
+              <span className="src">Levels.fyi + LinkedIn Salary · May 2026</span>
+            </div>
+            <div className="ftv-nego__range-wrap">
+              {/* Labels above the track */}
+              <div className="ftv-nego__upper-labels">
+                <div className="ftv-nego__ulabel you" style={{ left: "30%" }}>↓ You · €82k</div>
+                <div className="ftv-nego__ulabel target" style={{ left: "59%" }}>↓ Target · €105k</div>
+              </div>
+              {/* Track */}
+              <div className="ftv-nego__track">
+                <div className="ftv-nego__band" style={{ left: "25%", width: "46%" }} />
+                <div className="ftv-nego__median-line" style={{ left: "46%" }} />
+                <div className="ftv-nego__dot you" style={{ left: "30%" }} />
+                <div className="ftv-nego__dot target" style={{ left: "59%" }} />
+              </div>
+              {/* Scale */}
+              <div className="ftv-nego__scale">
+                {[
+                  { label: "€58k",           pct: "0%" },
+                  { label: "P25 · €78k",     pct: "25%" },
+                  { label: "Median · €95k",  pct: "46%" },
+                  { label: "P75 · €115k",    pct: "71%" },
+                  { label: "€138k",          pct: "100%" },
+                ].map((s) => (
+                  <span key={s.label} style={{ left: s.pct }}>{s.label}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Metrics */}
+          <div className="ftv-nego__metrics">
+            {[
+              { label: "Your current",   val: "€82k",  note: "P30",  cls: "warn" },
+              { label: "Market median",  val: "€95k",  note: "P50",  cls: "" },
+              { label: "Your target",    val: "€105k", note: "P59",  cls: "ok" },
+              { label: "Upside",         val: "+€23k", note: "+28%", cls: "ok" },
+            ].map((m) => (
+              <div key={m.label} className={"ftv-nego__metric " + m.cls}>
+                <div className="lab">{m.label}</div>
+                <div className="val">{m.val}</div>
+                <div className="note">{m.note}</div>
+              </div>
+            ))}
+          </div>
+          {/* Talking points */}
+          <div className="ftv-nego__points">
+            <div className="ftv-nego__points-lab">Negotiation script · generated from your report + market data</div>
+            {[
+              "P65 for this role in France is €103-108k — open with €108k, settle at €105k",
+              "2 competing offers in your tracker = real leverage — mention it without naming companies",
+              "Don't anchor first — wait for their number, then counter with market data",
+            ].map((p, i) => (
+              <div key={i} className="ftv-nego__point">
+                <span className="n">{i + 1}</span>
+                <span>{p}</span>
+              </div>
+            ))}
           </div>
         </div>
       );
