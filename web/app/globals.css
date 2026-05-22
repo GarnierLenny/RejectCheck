@@ -113,8 +113,6 @@ body {
   padding: 80px 0 120px;
   overflow: hidden;
   background-color: var(--rc-bg);
-  background-image: radial-gradient(circle, rgba(180,175,168,0.55) 1px, transparent 1px);
-  background-size: 28px 28px;
 }
 .hero__rule { position: absolute; left: 0; right: 0; top: 0; height: 0.5px; background: var(--rc-border); }
 .hero__grain {
@@ -343,16 +341,8 @@ body {
 
 /* ─── Section scaffolding ────────────────────────────────────── */
 .sec { padding: 120px 0; border-top: 0.5px solid var(--rc-border); position: relative; }
-.sec--cream {
-  background-color: var(--rc-bg);
-  background-image: radial-gradient(circle, rgba(180,175,168,0.55) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-.sec--paper {
-  background-color: var(--rc-surface-hero);
-  background-image: radial-gradient(circle, rgba(165,160,153,0.55) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
+.sec--cream { background-color: var(--rc-bg); }
+.sec--paper { background-color: var(--rc-surface-hero); }
 .sec--white { background: var(--rc-surface); }
 .sec--dark  { background: #161412; color: #f4f1ec; }
 .sec--dark .sec__num,

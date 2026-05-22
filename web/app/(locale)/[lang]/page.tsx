@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { Navbar } from "../../components/Navbar";
 import { FadeInSection, useInView } from "../../components/FadeInSection";
+import { DotGridCanvas } from "../../components/DotGridCanvas";
 import { useLanguage } from "../../../context/language";
 import {
   JsonLd,
@@ -951,6 +952,7 @@ export default function Home() {
 
       {/* ═══ HERO SPLIT ════════════════════════════════════════════════════ */}
       <section className="hero hero--split">
+        <DotGridCanvas dotColor="180,175,168" />
         <div className="hero__rule" />
         <div className="hero__grain" />
         <div className="rc-wrap hero__inner">
@@ -1113,6 +1115,7 @@ export default function Home() {
 
       {/* ═══ TESTIMONIALS ════════════════════════════════════════════════ */}
       <section className="sec sec--cream">
+        <DotGridCanvas dotColor="180,175,168" />
         <div className="rc-wrap">
           {/* Founder story */}
           <div className="flex items-center gap-6 border border-rc-border bg-rc-surface p-7 mb-4">
@@ -1218,6 +1221,7 @@ export default function Home() {
 
       {/* ═══ TRUST FACTS ═════════════════════════════════════════════════ */}
       <section id="trust" className="sec sec--paper">
+        <DotGridCanvas dotColor="165,160,153" />
         <div className="rc-wrap">
           <SecHead
             num="04"
@@ -1269,6 +1273,7 @@ export default function Home() {
 
       {/* ═══ PRICING TRIO ════════════════════════════════════════════════ */}
       <section id="pricing" className="sec sec--cream">
+        <DotGridCanvas dotColor="180,175,168" />
         <div className="rc-wrap">
           <SecHead
             num="05"
@@ -1418,6 +1423,7 @@ export default function Home() {
 
       {/* ═══ FINAL QUOTE / CTA ═══════════════════════════════════════════ */}
       <section className="sec sec--paper">
+        <DotGridCanvas dotColor="165,160,153" />
         <div className="rc-wrap text-center">
           <FadeInSection>
             <blockquote className="mb-10">
