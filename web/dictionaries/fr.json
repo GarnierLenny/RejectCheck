@@ -510,6 +510,23 @@
     "buyCredits": "Acheter des crédits",
     "creditsExpiryNote": "Les crédits sont permanents et utilisés une fois votre quota mensuel atteint."
   },
+  "buyCreditsModal": {
+    "title": "Recharger les crédits",
+    "monthlyLabel": "crédits mensuels restants",
+    "permanentLabel": "crédits permanents",
+    "resetIn": "reset dans",
+    "day": "jour",
+    "days": "jours",
+    "packsLabel": "Acheter des crédits",
+    "credit": "crédit",
+    "credits": "crédits",
+    "popular": "Populaire",
+    "upgradeTitle": "Passer au plan Shortlisted ou Hired",
+    "upgradeSub": "1 500 ou 3 000 crédits/mois · extras à la demande",
+    "upgradeCta": "Voir les plans →",
+    "paymentNote": "Paiement unique · Stripe",
+    "close": "Fermer"
+  },
   "quota": {
     "monthlyAnalyses": "Analyses ce mois",
     "permanentCredit": "crédit permanent",

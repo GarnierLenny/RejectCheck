@@ -510,6 +510,23 @@
     "buyCredits": "Buy credits",
     "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached."
   },
+  "buyCreditsModal": {
+    "title": "Top up credits",
+    "monthlyLabel": "monthly credits left",
+    "permanentLabel": "permanent credits",
+    "resetIn": "resets in",
+    "day": "day",
+    "days": "days",
+    "packsLabel": "Buy credits",
+    "credit": "credit",
+    "credits": "credits",
+    "popular": "Popular",
+    "upgradeTitle": "Switch to Shortlisted or Hired",
+    "upgradeSub": "1,500 or 3,000 credits/month · extras on demand",
+    "upgradeCta": "See plans →",
+    "paymentNote": "One-time payment · Stripe",
+    "close": "Close"
+  },
   "quota": {
     "monthlyAnalyses": "Monthly analyses",
     "permanentCredit": "permanent credit",

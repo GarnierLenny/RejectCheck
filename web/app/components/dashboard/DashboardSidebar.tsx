@@ -67,9 +67,9 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
     : 0;
   const isLow = monthlyRemaining !== null && monthlyRemaining < 100;
 
-  const resetDays = sub?.currentPeriodEnd
-    ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / 86400000))
-    : null;
+  const _now = new Date();
+  const _nextMonth = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth() + 1, 1));
+  const resetDays = Math.ceil((_nextMonth.getTime() - _now.getTime()) / 86400000);
 
   return (
     <aside
@@ -116,7 +116,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
             <div className="flex justify-between items-baseline mb-2">
               <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold">Credits</span>
               <span className={`font-mono text-[9px] tracking-[0.1em] font-bold ${isLow ? "text-rc-red" : "text-rc-green"}`}>
-                {resetDays !== null ? `Reset ${resetDays}d` : "—"}
+                {`Reset ${resetDays}d`}
               </span>
             </div>
 

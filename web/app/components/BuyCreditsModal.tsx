@@ -24,7 +24,7 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
   const buyCredits = useBuyCredits();
   const { data: quota } = useQuota();
   const { data: sub } = useSubscription();
-  const { localePath } = useLanguage();
+  const { t, localePath } = useLanguage();
 
   useEffect(() => {
     if (isOpen) {
@@ -37,11 +37,13 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
 
   if (!isOpen && !isVisible) return null;
 
-  const resetDays = sub?.currentPeriodEnd
-    ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / 86400000))
-    : null;
+  const now = new Date();
+  const nextMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const resetDays = Math.ceil((nextMonthStart.getTime() - now.getTime()) / 86400000);
 
-  const usedCredits = quota?.monthlyCap ?? 5;
+  const monthlyRemaining = quota ? quota.monthlyCap - quota.monthlyUsed : null;
+  const permanentBalance = quota?.creditsBalance ?? 0;
+  const showPermanent = permanentBalance >= 50;
   const isHired = sub?.plan === "hired";
 
   const handleBuy = (quantity: number) => {
@@ -67,17 +69,14 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
       >
         {/* Header */}
         <div className="px-7 pt-7 pb-6">
-          <div className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-red font-bold flex items-center gap-1.5 mb-3">
-            <span className="text-[7px]">●</span> Crédits épuisés
+          <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint mb-3">{t.buyCreditsModal.title}</p>
+          <div className="flex items-baseline gap-3 mb-1.5">
+            <span className="font-serif text-[52px] font-medium leading-none text-rc-text">{monthlyRemaining ?? "—"}</span>
+            <span className="text-[13px] text-rc-muted leading-tight">{t.buyCreditsModal.monthlyLabel}</span>
           </div>
-          <h2 className="text-[26px] font-bold text-rc-text leading-[1.15] tracking-[-0.02em] mb-3">
-            Tu as utilisé tes {usedCredits} crédits<span className="text-rc-red" style={{ fontFamily: "Georgia, serif" }}>.</span>
-          </h2>
-          <p className="text-[13px] text-rc-muted leading-[1.6]">
-            {resetDays !== null
-              ? <>Le reset arrive dans <strong className="text-rc-text font-semibold">{resetDays} jour{resetDays > 1 ? "s" : ""}</strong>. Ta candidature et tes signaux sont sauvegardés — relance dès que tu recharges.</>
-              : <>Ta candidature et tes signaux sont sauvegardés — recharge pour continuer.</>
-            }
+          <p className="font-mono text-[10px] text-rc-hint">
+            {t.buyCreditsModal.resetIn} {resetDays} {resetDays > 1 ? t.buyCreditsModal.days : t.buyCreditsModal.day}
+            {showPermanent && <><span className="mx-1.5 opacity-30">·</span><span className="text-rc-green">+{permanentBalance} {t.buyCreditsModal.permanentLabel}</span></>}
           </p>
         </div>
 
@@ -85,7 +84,7 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
 
         {/* Credit packs */}
         <div className="px-7 py-5">
-          <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint mb-3">Acheter des crédits</p>
+          <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint mb-3">{t.buyCreditsModal.packsLabel}</p>
 
           <div className="flex flex-col gap-2">
             {PACKS.map((pack) => (
@@ -103,11 +102,11 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[14px] font-bold text-rc-text">
-                      {pack.quantity} crédit{pack.quantity > 1 ? "s" : ""}
+                      {pack.quantity} {pack.quantity > 1 ? t.buyCreditsModal.credits : t.buyCreditsModal.credit}
                     </span>
                     {pack.popular && (
                       <span className="font-mono text-[8px] tracking-[0.1em] uppercase text-rc-red border border-rc-red/40 px-1.5 py-0.5 rounded">
-                        Populaire
+                        {t.buyCreditsModal.popular}
                       </span>
                     )}
                   </div>
@@ -131,11 +130,11 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
               className="mt-4 flex items-center justify-between w-full px-4 py-3 rounded-xl bg-rc-bg border border-rc-border hover:border-rc-red/40 transition-all no-underline group"
             >
               <div>
-                <p className="text-[12px] font-semibold text-rc-text">Passer au plan Shortlisted ou Hired</p>
-                <p className="font-mono text-[10px] text-rc-hint mt-0.5">1 500 ou 3 000 crédits/mois · extras à la demande</p>
+                <p className="text-[12px] font-semibold text-rc-text">{t.buyCreditsModal.upgradeTitle}</p>
+                <p className="font-mono text-[10px] text-rc-hint mt-0.5">{t.buyCreditsModal.upgradeSub}</p>
               </div>
               <span className="font-mono text-[11px] text-rc-red group-hover:opacity-70 transition-opacity shrink-0 ml-3">
-                Voir les plans →
+                {t.buyCreditsModal.upgradeCta}
               </span>
             </Link>
           )}
@@ -144,13 +143,13 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
         {/* Footer */}
         <div className="px-7 py-4 border-t border-rc-border flex items-center justify-between">
           <span className="font-mono text-[10px] text-rc-hint tracking-[0.06em]">
-            Paiement unique · Stripe
+            {t.buyCreditsModal.paymentNote}
           </span>
           <button
             onClick={onClose}
             className="font-mono text-[10px] tracking-[0.12em] uppercase text-rc-hint hover:text-rc-text transition-colors"
           >
-            Fermer
+            {t.buyCreditsModal.close}
           </button>
         </div>
       </div>

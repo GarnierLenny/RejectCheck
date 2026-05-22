@@ -44,12 +44,10 @@ function CreditsContent() {
   const isLow = monthlyRemaining !== null && monthlyRemaining < 100;
   const isHired = sub?.plan === "hired";
 
-  const resetDays = sub?.currentPeriodEnd
-    ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / 86400000))
-    : null;
-  const resetDate = sub?.currentPeriodEnd
-    ? new Date(sub.currentPeriodEnd).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })
-    : null;
+  const _now = new Date();
+  const _nextMonth = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth() + 1, 1));
+  const resetDays = Math.ceil((_nextMonth.getTime() - _now.getTime()) / 86400000);
+  const resetDate = _nextMonth.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 
   const handleBuy = (quantity: number) => {
     setLoadingQty(quantity);
@@ -93,13 +91,11 @@ function CreditsContent() {
                 </div>
 
                 {/* Reset info */}
-                {resetDays !== null && (
-                  <div className="text-right pb-1">
-                    <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-rc-hint mb-1">Reset gratuit</p>
-                    <p className="font-serif text-[28px] font-medium leading-none text-rc-text">{resetDays} jours</p>
-                    {resetDate && <p className="font-mono text-[11px] text-rc-hint mt-1">{resetDate}</p>}
-                  </div>
-                )}
+                <div className="text-right pb-1">
+                  <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-rc-hint mb-1">Reset gratuit</p>
+                  <p className="font-serif text-[28px] font-medium leading-none text-rc-text">{resetDays} jours</p>
+                  <p className="font-mono text-[11px] text-rc-hint mt-1">{resetDate}</p>
+                </div>
               </div>
 
               {/* Progress bar */}
