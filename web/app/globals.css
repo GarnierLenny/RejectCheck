@@ -163,14 +163,35 @@ body {
   margin-top: 24px; max-width: 540px;
 }
 
-/* HERO C · SPLIT */
-.hero--split { padding: 40px 0 100px; }
-.hero--split .rc-wrap { max-width: 1400px; padding: 0 40px; }
-.hero--split .split {
-  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 80px; align-items: center;
+/* HERO · CENTERED */
+.hero--centered { padding: 72px 0 100px; }
+.hero--centered .rc-wrap { max-width: 900px; padding: 0 40px; }
+.hero--centered .hero__inner { display: flex; flex-direction: column; align-items: center; }
+.hero--centered .hero__text { text-align: center; width: 100%; }
+.hero--centered .hero__eyebrow { margin-left: auto; margin-right: auto; }
+.hero--centered .hero__h { font-size: clamp(42px, 5.5vw, 80px); }
+.hero--centered .hero__sub { max-width: 600px; margin-left: auto; margin-right: auto; }
+.hero--centered .cta-row { justify-content: center; }
+.hero--centered .hero-widget { width: 100%; max-width: 680px; margin-top: 56px; }
+@media (max-width: 768px) { .hero--centered .rc-wrap { padding: 0 24px; } .hero--centered { padding: 48px 0 72px; } }
+
+/* HERO · SPLIT */
+.hero--split { padding: 72px 0 100px; }
+.hero--split .rc-wrap { max-width: 1440px; padding: 0 64px; }
+.hero--split .hero__inner { display: flex; flex-direction: row; align-items: center; gap: 56px; }
+.hero--split .hero__text { flex: 1; min-width: 0; }
+.hero--split .hero__h { font-size: clamp(42px, 4.8vw, 78px); }
+.hero--split .hero__sub { max-width: 480px; }
+.hero--split .hero-widget { flex: 0 0 580px; width: 580px; margin-top: 0; }
+@media (max-width: 960px) {
+  .hero--split .hero__inner { flex-direction: column; gap: 40px; }
+  .hero--split .hero-widget { flex: none; width: 100%; max-width: 620px; }
+  .hero--split .hero__h { font-size: clamp(40px, 7vw, 62px); }
 }
-@media (max-width: 1100px) { .hero--split .rc-wrap { padding: 0 28px; } }
-@media (max-width: 900px) { .hero--split .split { grid-template-columns: 1fr; gap: 32px; } }
+@media (max-width: 600px) {
+  .hero--split { padding: 48px 0 64px; }
+  .hero--split .rc-wrap { padding: 0 24px; }
+}
 
 /* qcard — quiet score card */
 .qcard {

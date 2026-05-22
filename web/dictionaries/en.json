@@ -249,27 +249,23 @@
     },
     "trust": {
       "badge": "Verifiable facts",
-      "title": "Why trust the diagnosis",
-      "subtitle": "No manufactured claims. Every fact below is verifiable by reading the code, the privacy policy, or the product itself.",
+      "title": "Why users trust RejectCheck",
+      "subtitle": "No manufactured claims. Every fact below is verifiable by reading the privacy policy or the product itself.",
       "items": [
         {
-          "label": "Dual-AI pipeline",
-          "claim": "GPT-4o and Anthropic Claude run in parallel via Promise.allSettled on every analysis - not one model doing everything, not one model fallback-calling another.",
-          "source": "Documented in the privacy policy and the publicly accessible backend code",
+          "label": "Job-specific, not generic",
+          "claim": "Every analysis is anchored to a real job description, not a generic CV scan. RejectCheck measures keyword gaps, seniority fit, tone match, and required skills against the actual posting you're applying to. A CV that scores 90% on one role may score 50% on another.",
+          "source": "Observable by running two analyses with different job descriptions on the same CV",
           "sourceLinks": [
             {
-              "label": "Privacy policy",
-              "href": "/en/privacy"
-            },
-            {
-              "label": "GitHub",
-              "href": "https://github.com/GarnierLenny/RejectCheck"
+              "label": "Try it",
+              "href": "/en/analyze"
             }
           ]
         },
         {
-          "label": "Average analysis under 60 seconds",
-          "claim": "End-to-end runtime (CV upload, dual-AI analysis, rendering) measured under a minute on a typical CV + job description pair, because both models run in parallel rather than sequentially.",
+          "label": "Analysis under 60 seconds",
+          "claim": "End-to-end runtime (CV upload, AI analysis, full result rendering) measured under a minute on a typical CV + job description pair.",
           "source": "Observable by timing any analysis on /en/analyze",
           "sourceLinks": [
             {
@@ -280,7 +276,7 @@
         },
         {
           "label": "Bilingual by design",
-          "claim": "English and French are both first-class: UI, analysis output, keywords, tone audit, and FAQ are localized - not machine-translated as an afterthought. Jobscan, Rezi, Resume Worded, and Enhancv are English-only as of April 2026.",
+          "claim": "English and French are both first-class: UI, analysis output, keyword detection, tone audit, and FAQ are fully localized, not machine-translated as an afterthought. Jobscan, Rezi, Resume Worded, and Enhancv are English-only as of May 2026.",
           "source": "Compare /en/ and /fr/ side by side",
           "sourceLinks": [
             {
@@ -295,8 +291,8 @@
         },
         {
           "label": "Free tier is real",
-          "claim": "Guest users get 1 full analysis without signup or credit card - not a limited teaser. Registered (free) users get 3 analyses. Free-tier Claude sections are blurred, not absent: the full analysis runs and is saved - only the premium views are hidden until upgrade.",
-          "source": "Privacy policy documents data handling; product-marketing context documented in memory",
+          "claim": "Guest users get 1 full analysis without signup or credit card, not a teaser. Registered (free) users get 3 analyses. Premium sections are blurred, not absent: the full analysis runs and is saved, only gated views are hidden until upgrade.",
+          "source": "Verifiable by running a guest analysis and inspecting the result",
           "sourceLinks": [
             {
               "label": "Pricing",
@@ -310,7 +306,7 @@
         },
         {
           "label": "No guest data retention",
-          "claim": "For unregistered (guest) users, CVs and analysis results are NOT stored in the database. Only usage is tracked (by IP, to enforce the 1-analysis-per-guest limit). Registered users' analyses are saved to their dashboard by choice.",
+          "claim": "For unregistered users, CVs and analysis results are NOT stored in the database. Only usage is tracked by IP to enforce the 1-analysis-per-guest limit. Registered users' analyses are saved to their dashboard, at their own choice.",
           "source": "Privacy policy, section on data handling",
           "sourceLinks": [
             {
@@ -321,7 +317,7 @@
         },
         {
           "label": "Hired plan refund is genuine",
-          "claim": "If you subscribe to Hired (€11.99/month) and get hired during an active billing month, we refund that month on receipt of an accepted offer letter. This is a guarantee clause, not marketing language.",
+          "claim": "If you subscribe to Hired (€11.99/month) and get hired during an active billing month, we refund that month on receipt of an accepted offer letter. This is a contractual guarantee clause, not marketing language.",
           "source": "Refund policy documented in the pricing FAQ",
           "sourceLinks": [
             {
@@ -339,7 +335,7 @@
       "items": [
         {
           "label": "Daily code review challenge",
-          "description": "One real production code snippet reviewed by dual-AI every day. Build your senior-engineer pattern-matching muscles with a 5-minute daily drill. Streaks, badges, scored debrief.",
+          "description": "One real production code snippet, AI-reviewed every day. Build your senior-engineer pattern-matching muscles with a 5-minute daily drill. Streaks, badges, scored debrief.",
           "ctaLabel": "Try today's challenge",
           "href": "/challenge"
         },

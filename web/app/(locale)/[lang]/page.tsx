@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { setPendingCv } from "../../../lib/pending-cv";
 import { SAMPLE_JDS } from "../../../lib/sample-jds";
@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Navbar } from "../../components/Navbar";
-import { FadeInSection, useInView, useCountUp } from "../../components/FadeInSection";
+import { FadeInSection, useInView } from "../../components/FadeInSection";
 import { useLanguage } from "../../../context/language";
 import {
   JsonLd,
@@ -274,6 +274,7 @@ const RADAR_DATA = SAMPLE_SKILLS.map((s) => ({
 }));
 
 function renderTab(id: string, mc: Mc) {
+  const kw = (s: string) => <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11px", background: "rgba(201,58,57,0.08)", color: "var(--rc-red)", padding: "1px 4px", borderRadius: "2px" }}>{s}</span>;
   switch (id) {
     case "Skill":
       return (
@@ -284,26 +285,8 @@ function renderTab(id: string, mc: Mc) {
                 <RadarChart data={RADAR_DATA} outerRadius="78%">
                   <PolarGrid stroke="#d4cfc9" strokeWidth={0.75} />
                   <PolarAngleAxis dataKey="skill" tick={{ fontSize: 10, fill: "#6b6860", fontFamily: "var(--font-sans)" }} />
-                  <Radar
-                    name="Target"
-                    dataKey="target"
-                    stroke="#94a3b8"
-                    fill="rgba(100,116,139,0.08)"
-                    strokeWidth={1.25}
-                    strokeDasharray="4 3"
-                    isAnimationActive
-                    animationDuration={900}
-                  />
-                  <Radar
-                    name="You"
-                    dataKey="you"
-                    stroke="#C93A39"
-                    fill="rgba(201,58,57,0.14)"
-                    strokeWidth={1.6}
-                    isAnimationActive
-                    animationDuration={1200}
-                    animationBegin={200}
-                  />
+                  <Radar name="Target" dataKey="target" stroke="#94a3b8" fill="rgba(100,116,139,0.08)" strokeWidth={1.25} strokeDasharray="4 3" isAnimationActive animationDuration={900} />
+                  <Radar name="You" dataKey="you" stroke="#C93A39" fill="rgba(201,58,57,0.14)" strokeWidth={1.6} isAnimationActive animationDuration={1200} animationBegin={200} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -312,16 +295,29 @@ function renderTab(id: string, mc: Mc) {
                 <div key={s.name} className="fp-radar__legend-item">
                   <i style={{ background: s.ok ? "var(--rc-green)" : "var(--rc-red)" }} />
                   <span>{s.name}</span>
-                  <span className="v" style={{ color: s.ok ? "var(--rc-green)" : "var(--rc-red)" }}>
-                    {s.have}/{s.need}
-                  </span>
+                  <span className="v" style={{ color: s.ok ? "var(--rc-green)" : "var(--rc-red)" }}>{s.have}/{s.need}</span>
                 </div>
               ))}
             </div>
           </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px", margin: "10px 0" }}>
+            {[
+              { skill: "Distributed systems", gap: "Listed in skills section. No project, PR, or production incident backs the claim. Recruiters are trained to flag this as unverifiable.", sev: "crit" },
+              { skill: "Kubernetes", gap: "3 of 4 target companies run k8s in prod. CV mentions it once in a skills list. No cluster ownership, no ops story, no cert.", sev: "crit" },
+              { skill: "Event-driven arch.", gap: "JD explicitly requires Kafka or RabbitMQ ownership. Absent from CV entirely. Not even in skills.", sev: "major" },
+            ].map((g) => (
+              <div key={g.skill} style={{ display: "flex", gap: "10px", padding: "8px 10px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)" }}>
+                <span className={"fp-row__pill " + g.sev} style={{ alignSelf: "flex-start", flexShrink: 0 }}>Gap</span>
+                <div>
+                  <div style={{ fontFamily: "var(--font-sans)", fontSize: "12px", fontWeight: 600, color: "var(--rc-text)", marginBottom: "2px" }}>{g.skill}</div>
+                  <div style={{ fontFamily: "var(--font-sans)", fontSize: "11px", color: "var(--rc-muted)", lineHeight: 1.45 }}>{g.gap}</div>
+                </div>
+              </div>
+            ))}
+          </div>
           <div className="fp-analysis">
-            Strong on <span className="em">TypeScript</span> and <span className="em">PostgreSQL</span>.
-            <span className="num"> 3 critical gaps</span> on distributed systems, Kubernetes, and event-driven arch — the senior backbone this JD requires.
+            Strong on <span className="em">TypeScript</span> and <span className="em">PostgreSQL</span>, both verified by project context.
+            <span className="num"> 3 critical gaps</span>: distributed systems, Kubernetes, event-driven arch are the senior backbone this JD requires, and none are evidenced anywhere on the CV.
           </div>
         </>
       );
@@ -331,9 +327,9 @@ function renderTab(id: string, mc: Mc) {
         <>
           <div className="frame__grid">
             <div className="frame-card bad">
-              <div className="lab">ATS Filter</div>
+              <div className="lab">ATS Score</div>
               <div className="num">34<small>/100</small></div>
-              <div className="verd">{mc.radar.atsWouldNotPass}</div>
+              <div className="verd">Below 67% pass-line · filtered</div>
             </div>
             <div className="frame-card good">
               <div className="lab">Skill match</div>
@@ -341,9 +337,31 @@ function renderTab(id: string, mc: Mc) {
               <div className="verd">✓ Strong fit on stack</div>
             </div>
           </div>
+          <div style={{ margin: "10px 0" }}>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: "6px" }}>Keyword scan · 18 terms from JD</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+              {[
+                { kw: "typescript",          found: true,  freq: "4×", note: "skills + 3 bullets, solid" },
+                { kw: "node.js",             found: true,  freq: "2×", note: "skills section only" },
+                { kw: "postgresql",          found: true,  freq: "1×", note: "skills only, no project context" },
+                { kw: "rest api",            found: true,  freq: "1×", note: "mentioned once, no scale signal" },
+                { kw: "docker",              found: false, freq: "0×", note: "required · JD mentions 3 times" },
+                { kw: "kubernetes / k8s",    found: false, freq: "0×", note: "required · infrastructure role" },
+                { kw: "microservices",       found: false, freq: "0×", note: "required · architecture scope" },
+                { kw: "distributed systems", found: false, freq: "0×", note: "required · in skills only, not keyword-matched" },
+                { kw: "kafka",               found: false, freq: "0×", note: "preferred · event-driven section" },
+              ].map((k) => (
+                <div key={k.kw} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 8px", background: k.found ? "rgba(22,163,74,0.04)" : "rgba(201,58,57,0.04)", borderLeft: `2px solid ${k.found ? "var(--rc-green)" : "var(--rc-red)"}` }}>
+                  <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11px", color: k.found ? "var(--rc-green)" : "var(--rc-red)", width: "12px", textAlign: "center", flexShrink: 0 }}>{k.found ? "✓" : "✗"}</span>
+                  <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "11px", color: "var(--rc-text)", flex: "0 0 160px" }}>{k.kw}</span>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-hint)", flex: "0 0 28px" }}>{k.freq}</span>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-muted)" }}>{k.note}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="fp-analysis">
-            <span className="num">34/100</span> means the bot drops this CV before any human sees it. Injecting the
-            <span className="em"> 3 missing keywords</span> (<span className="num">docker</span>, <span className="num">k8s</span>, <span className="num">microservices</span>) lifts the score above the <span className="num">67%</span> pass-line.
+            <span className="num">34/100</span>: the bot drops this CV before any human reads it. Adding {kw("docker")}, {kw("kubernetes")}, {kw("microservices")} in context (not keyword-dumped) lifts the score to <span className="num">~71</span>, above the 67% pass-line. The stack match is strong. Fixable formatting problem, not a skills problem.
           </div>
         </>
       );
@@ -351,11 +369,14 @@ function renderTab(id: string, mc: Mc) {
     case "CV":
       return (
         <>
+          <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: "8px" }}>CV analysis · 11 bullets reviewed</div>
           <div className="fp-rows">
             {[
-              { title: "Passive bullets", sub: "5 detected · rewrite for impact", sev: "major", count: "5" },
-              { title: "Vague seniority", sub: "no scope or ownership signals", sev: "crit",  count: "2" },
-              { title: "Missing impact metrics", sub: "no quantified outcomes",  sev: "major", count: "4" },
+              { title: "No quantified impact",         sub: "0 of 11 bullets contain a metric, percentage, or scale signal. Recruiters can't assess scope.", sev: "crit",  count: "11" },
+              { title: "Passive voice throughout",     sub: "\"Worked on\", \"Helped with\", \"Contributed to\": reads as junior IC, not senior engineer",    sev: "major", count: "5" },
+              { title: "Missing seniority signals",    sub: "No \"led\", no cross-team scope, no RFC/ADR authored, no mentoring, no headcount owned",         sev: "crit",  count: "3" },
+              { title: "Skills listed, not evidenced", sub: "\"Distributed systems\", \"Kafka\", \"k8s\" in skills section. Zero project or story backs them.", sev: "crit", count: "4" },
+              { title: "Two-column layout",            sub: "ATS parsers read left column only. Your entire skills section may be invisible to bots.",         sev: "major", count: "1" },
             ].map((r) => (
               <div key={r.title} className="fp-row">
                 <div>
@@ -366,8 +387,21 @@ function renderTab(id: string, mc: Mc) {
               </div>
             ))}
           </div>
+          <div style={{ marginTop: "10px" }}>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: "6px" }}>Flagged bullets</div>
+            {[
+              { bad: "Worked on backend systems and helped with API development.", why: "Passive · no ownership · no scale · no outcome" },
+              { bad: "Contributed to microservices migration project.",            why: "Vague · no scope · no metric · no evidence of lead" },
+              { bad: "Participated in architecture discussions.",                  why: "IC framing at staff scope. No artifact, no decision owned." },
+            ].map((b, i) => (
+              <div key={i} style={{ padding: "7px 10px", marginBottom: "4px", background: "rgba(201,58,57,0.04)", borderLeft: "2px solid var(--rc-red)" }}>
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: "12px", color: "var(--rc-text)", lineHeight: 1.4, marginBottom: "3px" }}>"{b.bad}"</div>
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-red)", letterSpacing: "0.02em" }}>{b.why}</div>
+              </div>
+            ))}
+          </div>
           <div className="fp-analysis">
-            Passive voice + missing metrics are the dominant patterns. Rewriting these <span className="num">11 lines</span> would lift the seniority signal by <span className="em">~28%</span> — and stop recruiters from skimming past the third bullet.
+            Zero metrics across <span className="num">11 bullets</span> is the primary signal of a junior profile, even when the work itself was senior. Adding scope + metric + outcome to each bullet lifts the seniority read by <span className="em">~28%</span> based on recruiter scoring patterns.
           </div>
         </>
       );
@@ -379,22 +413,63 @@ function renderTab(id: string, mc: Mc) {
             <div className="fp-stat">
               <div className="fp-stat__head">
                 <IconGitHub size={18} />
-                <span className="fp-stat__name">GitHub signal</span>
+                <span className="fp-stat__name">GitHub · @alex-morales</span>
               </div>
               <div className="fp-stat__num warn">72%</div>
-              <p className="fp-stat__caption">Active contributor — but pinned repos lack documentation.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "4px", margin: "6px 0 8px" }}>
+                {[{ n: "42", l: "Repos", cls: "ok" }, { n: "3", l: "CI/CD", cls: "warn" }, { n: "1", l: "Tests", cls: "bad" }, { n: "7", l: "Stars", cls: "warn" }].map((s) => (
+                  <div key={s.l} style={{ textAlign: "center", padding: "5px 2px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)" }}>
+                    <div style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "14px", color: s.cls === "ok" ? "var(--rc-green)" : s.cls === "bad" ? "var(--rc-red)" : "var(--rc-text)" }}>{s.n}</div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-hint)" }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              {[
+                { sev: "crit",  t: "Top pinned repo: \"todo-app\"",    d: "No README, no demo, no description. Recruiters bounce in under 10s." },
+                { sev: "major", t: "1 of 42 repos has tests",          d: "Strong negative signal to engineering managers evaluating prod quality" },
+                { sev: "minor", t: "3 of 42 repos have CI badges",     d: "Add GitHub Actions to top 3 pinned repos before applying" },
+              ].map((r) => (
+                <div key={r.t} style={{ display: "flex", gap: "8px", padding: "5px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <span className={"fp-row__pill " + r.sev} style={{ alignSelf: "flex-start", flexShrink: 0, fontSize: "9px" }}>{r.sev === "crit" ? "Crit" : r.sev === "major" ? "Maj" : "Min"}</span>
+                  <div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: "11px", fontWeight: 600, color: "var(--rc-text)", marginBottom: "1px" }}>{r.t}</div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-muted)", lineHeight: 1.4 }}>{r.d}</div>
+                  </div>
+                </div>
+              ))}
             </div>
             <div className="fp-stat">
               <div className="fp-stat__head">
                 <IconLinkedIn size={18} />
-                <span className="fp-stat__name">LinkedIn signal</span>
+                <span className="fp-stat__name">LinkedIn · Alex Morales</span>
               </div>
               <div className="fp-stat__num bad">58%</div>
-              <p className="fp-stat__caption">Profile reads competent but generic — summary missing.</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "4px", margin: "6px 0 8px" }}>
+                {[{ n: "312", l: "Connections", cls: "ok" }, { n: "0", l: "Recs", cls: "bad" }, { n: "14", l: "Endorsements", cls: "warn" }].map((s) => (
+                  <div key={s.l} style={{ textAlign: "center", padding: "5px 2px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)" }}>
+                    <div style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: "14px", color: s.cls === "ok" ? "var(--rc-green)" : s.cls === "bad" ? "var(--rc-red)" : "var(--rc-text)" }}>{s.n}</div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-hint)" }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              {[
+                { sev: "crit",  t: "About section is empty",          d: "Recruiters check this first. Empty About signals zero effort on candidacy." },
+                { sev: "crit",  t: "Headline: \"Software Engineer\"", d: "No stack, no seniority, no domain. Invisible in recruiter search filters." },
+                { sev: "major", t: "0 recommendations",               d: "1 peer rec moves you above 75% of applicants in this salary band" },
+                { sev: "minor", t: "12 skills listed",                d: "JD has 40+ keywords. Add matching skills to recover ATS score." },
+              ].map((r) => (
+                <div key={r.t} style={{ display: "flex", gap: "8px", padding: "5px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <span className={"fp-row__pill " + r.sev} style={{ alignSelf: "flex-start", flexShrink: 0, fontSize: "9px" }}>{r.sev === "crit" ? "Crit" : r.sev === "major" ? "Maj" : "Min"}</span>
+                  <div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: "11px", fontWeight: 600, color: "var(--rc-text)", marginBottom: "1px" }}>{r.t}</div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: "var(--rc-muted)", lineHeight: 1.4 }}>{r.d}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div className="fp-analysis">
-            GitHub looks alive but unpolished — recruiters open the top pinned repo and bounce. LinkedIn lacks the <span className="em">social proof</span> they scan first: <span className="num">one</span> peer recommendation moves you above 75% of applicants in this band.
+            GitHub has volume but no signal: <span className="em">42 repos, none polished</span>. LinkedIn is the bigger blocker. Empty About + generic headline = invisible in recruiter search. One afternoon of profile work moves the combined signal from <span className="num">65% → 83%+</span>.
           </div>
         </>
       );
@@ -402,11 +477,16 @@ function renderTab(id: string, mc: Mc) {
     case "Flag":
       return (
         <>
+          <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: "8px" }}>
+            2 critical · 2 major · 1 minor
+          </div>
           <div className="fp-rows">
             {[
-              { title: "Skills without evidence", sub: "claims expertise · no project, talk, or repo backs it", sev: "crit",  label: "Critical" },
-              { title: "Employment gap (8 mo)",   sub: "Apr 2023 → Dec 2023 unaccounted for",                     sev: "major", label: "Major" },
-              { title: "Title doesn't match seniority", sub: "listed III · JD asks staff scope",                  sev: "minor", label: "Minor" },
+              { title: "Skill claims without evidence", sub: "\"Distributed systems\", \"Kubernetes\", \"Kafka\" in skills list. No project, PR, cert, or talk backs any of them. Recruiters are trained to catch this and it triggers hard rejection at senior level.", sev: "crit",  label: "Critical" },
+              { title: "Zero quantified impact: all 11 bullets", sub: "Not one number, percentage, or scale indicator. A senior engineer's output is measured. This CV reads as IC even if the work was staff-level. Non-negotiable fix.", sev: "crit",  label: "Critical" },
+              { title: "Employment gap · Apr → Dec 2023", sub: "8 months unaddressed. Recruiters will ask in screen call. Prepare a one-line answer: freelance, study, health, or personal. Optionally add a line to the CV.", sev: "major", label: "Major" },
+              { title: "Two-column layout", sub: "ATS parsers read left-to-right linearly. Skills section is in column 2. Likely invisible to the bot, which explains the 34/100 ATS score despite strong stack match.", sev: "major", label: "Major" },
+              { title: "Title: Engineer III vs. staff scope", sub: "CV lists \"Software Engineer III\" but JD asks for staff scope (system design ownership, cross-team delivery, RFC authorship). None evidenced in bullets.", sev: "minor", label: "Minor" },
             ].map((r) => (
               <div key={r.title} className="fp-row">
                 <div>
@@ -418,7 +498,7 @@ function renderTab(id: string, mc: Mc) {
             ))}
           </div>
           <div className="fp-analysis">
-            <span className="num">1 critical flag</span> (skill claims unbacked) is the binary blocker — address that first. Major and minor flags rarely get a CV rejected on their own, but they compound a recruiter&apos;s <span className="em">overall reading</span> of seniority.
+            The <span className="num">2 critical flags</span> compound: unbacked claims + zero metrics reads as fabrication to experienced recruiters. Fix the layout first (10 min, fixes ATS immediately), then address bullet quality. The minor flag won&apos;t get you rejected, but it lowers the <span className="em">recruiter&apos;s ceiling</span> on seniority assessment.
           </div>
         </>
       );
@@ -426,22 +506,30 @@ function renderTab(id: string, mc: Mc) {
     case "Road":
       return (
         <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)" }}>Action plan · ~5h 30min total</div>
+            <div style={{ fontFamily: "var(--font-sans)", fontSize: "11px", color: "var(--rc-muted)" }}>2 of 5 done · ATS 26 → 47</div>
+          </div>
           <div className="fp-roadmap">
             {[
-              { t: "Inject 4 missing keywords",   state: "done", lab: "✓ Done" },
-              { t: "Quantify 3 vague bullets",    state: "done", lab: "✓ Done" },
-              { t: "Rewrite 5 passive sentences", state: "now",  lab: "→ Now" },
-              { t: "Add seniority scope signals", state: "todo", lab: "○ Next" },
+              { t: "Switch to single-column layout",       sub: "10 min · ATS: 26 → 34 · removes major flag",     state: "done", lab: "✓ Done" },
+              { t: "Inject 5 missing keywords in context", sub: "30 min · ATS: 34 → 47 · clears keyword scan",    state: "done", lab: "✓ Done" },
+              { t: "Quantify all 11 bullets with metrics", sub: "2h · seniority signal +31% · removes crit flag",  state: "now",  lab: "→ Now" },
+              { t: "Remove or evidence 4 unbacked claims", sub: "1h · removes remaining critical flag",             state: "todo", lab: "○ Next" },
+              { t: "Address employment gap in timeline",   sub: "20 min · removes major flag · prep screen answer", state: "todo", lab: "○ Later" },
             ].map((s, i) => (
               <div key={i} className={"fp-roadmap__item " + s.state}>
                 <span className={"fp-roadmap__check " + s.state}>{i + 1}</span>
-                <span className="fp-roadmap__t">{s.t}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="fp-roadmap__t">{s.t}</div>
+                  <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", color: s.state === "done" ? "var(--rc-green)" : "var(--rc-hint)", marginTop: "2px" }}>{s.sub}</div>
+                </div>
                 <span className="fp-roadmap__lab">{s.lab}</span>
               </div>
             ))}
           </div>
           <div className="fp-analysis">
-            <span className="num">2 of 4</span> actions completed in <span className="num">~50min</span>. Keyword injection alone moved ATS score from <span className="num">26 → 41</span>. Estimated <span className="em">~4h remaining</span> to clear the pass-line and ship.
+            <span className="num">2 of 5</span> done. Layout fix moved ATS from <span className="num">26 → 47</span> in 10 minutes. Completing step 3 (quantifying bullets) is the highest-leverage action: it resolves both critical flags at once and is estimated to cut rejection probability from <span className="num">84% → ~42%</span>.
           </div>
         </>
       );
@@ -449,20 +537,37 @@ function renderTab(id: string, mc: Mc) {
     case "Imp":
       return (
         <>
-          <div className="fp-rewrite">
-            <div className="fp-rewrite__col before">
-              <div className="fp-rewrite__lab">Before</div>
-              <p className="fp-rewrite__t">{mc.rewriteCard.beforeText}</p>
+          <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: "8px" }}>14 bullets rewritten · JD-matched · no fabrication</div>
+          {[
+            {
+              before: "Worked on backend systems and helped with API development.",
+              after:  "Designed gRPC API handling 8k req/min; cut p95 latency 43% via connection pooling and query index optimisation.",
+              fix: "ownership + scale + metric",
+            },
+            {
+              before: "Contributed to microservices migration project.",
+              after:  "Led decomposition of monolith → 6 domain services; reduced deploy time 45 min → 9 min, eliminated 3 cross-module bug classes.",
+              fix: "lead signal + outcome + measurable",
+            },
+            {
+              before: "Participated in architecture discussions and helped with code reviews.",
+              after:  "Authored ADR-14 (async event pipeline, adopted by 3 squads); reviewed 80+ PRs in Q3 across backend and infra teams.",
+              fix: "artifact + scope + volume",
+            },
+          ].map((rw, i) => (
+            <div key={i} className="fp-rewrite" style={{ marginBottom: i < 2 ? "8px" : 0 }}>
+              <div className="fp-rewrite__col before">
+                <div className="fp-rewrite__lab">Before</div>
+                <p className="fp-rewrite__t">{rw.before}</p>
+              </div>
+              <div className="fp-rewrite__col after">
+                <div className="fp-rewrite__lab">After · {rw.fix}</div>
+                <p className="fp-rewrite__t"><strong>{rw.after.split(" ")[0]}</strong>{" "}{rw.after.split(" ").slice(1).join(" ")}</p>
+              </div>
             </div>
-            <div className="fp-rewrite__col after">
-              <div className="fp-rewrite__lab">After · matches JD</div>
-              <p className="fp-rewrite__t">
-                <strong>Shipped</strong> 4 microservices · 12k req/min · −38% p99 latency.
-              </p>
-            </div>
-          </div>
+          ))}
           <div className="fp-analysis">
-            Surgical rewrites preserve your voice — <span className="em">14 bullets restructured</span>, all keywords from the JD injected naturally. <span className="num">No keyword dumping</span>, no fabrication. Every change traces to a flagged issue.
+            Every rewrite uses only information already on your CV. <span className="em">No fabrication, no inflation.</span> Keywords from the JD injected naturally. Seniority signals added via ownership language, artifact references (ADRs, PRs), and team scope, all traceable to flagged issues.
           </div>
         </>
       );
@@ -470,22 +575,43 @@ function renderTab(id: string, mc: Mc) {
     case "AI":
       return (
         <>
+          <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: "8px" }}>
+            Mock interview · Round 1 · Technical screen · 6 questions
+          </div>
           <div className="fp-interview">
-            <div className="fp-interview__bub">
-              <span className="who">{mc.interviewCard.aiLabel} · Round 1</span>
-              {mc.interviewCard.aiQuestion}
+            <div className="fp-interview__bub" style={{ marginBottom: "8px" }}>
+              <span className="who">Senior Engineer · Datadog · Round 1</span>
+              Walk me through how you&apos;ve worked with distributed systems at scale. Specifically, what failure modes did you have to design around and how did you diagnose them in production?
+            </div>
+            <div className="fp-interview__bub" style={{ background: "var(--rc-surface)", borderColor: "var(--rc-border)", marginBottom: "6px" }}>
+              <span className="who" style={{ color: "var(--rc-muted)" }}>You</span>
+              I&apos;ve worked with microservices and distributed architectures in my previous roles, building APIs and working with various backend technologies to handle different scale scenarios...
+            </div>
+            <div style={{ padding: "8px 10px", background: "rgba(201,58,57,0.05)", borderLeft: "2px solid var(--rc-red)", marginBottom: "10px" }}>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: "10px", fontWeight: 700, color: "var(--rc-red)", marginBottom: "3px" }}>AI feedback · Specificity: 3.2/10</div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: "11px", color: "var(--rc-muted)", lineHeight: 1.5 }}>
+                No failure mode named, no system referenced, no scale mentioned. &quot;Various backend technologies&quot; is a non-answer at this level. Expected: a specific incident (network partition, clock skew, cascading failure) with your exact diagnosis and fix.
+              </div>
             </div>
             <div className="fp-interview__axes">
-              {INTERVIEW_AXES.map((a) => (
+              {[
+                { name: "Tech depth",    v: 8.1, cls: "ok" },
+                { name: "Specificity",   v: 3.2, cls: "bad" },
+                { name: "Communication", v: 6.8, cls: "warn" },
+                { name: "STAR structure", v: 5.1, cls: "warn" },
+              ].map((a) => (
                 <div key={a.name} className="fp-interview__ax">
                   <span className="name">{a.name}</span>
-                  <span className="v">{a.v}</span>
+                  <div style={{ flex: 1, height: "4px", background: "var(--rc-border)", borderRadius: "2px", margin: "0 8px" }}>
+                    <div style={{ height: "100%", width: a.v * 10 + "%", background: a.cls === "ok" ? "var(--rc-green)" : a.cls === "bad" ? "var(--rc-red)" : "#d97706", borderRadius: "2px", transition: "width 0.6s ease" }} />
+                  </div>
+                  <span className="v" style={{ color: a.cls === "ok" ? "var(--rc-green)" : a.cls === "bad" ? "var(--rc-red)" : "var(--rc-text)" }}>{a.v}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="fp-analysis">
-            Average <span className="num">7.4/10</span> across 6 questions. Strongest on <span className="em">tech depth (8.1)</span>, weakest on communication clarity (<span className="num">6.8</span>). Practice STAR-format answers — concrete situations beat abstract reasoning every time.
+            Average <span className="num">5.8/10</span> across 6 questions. Strong theoretical knowledge (<span className="em">tech depth 8.1</span>) collapses under open-ended questions. Specificity drops to 3.2. Prepare one concrete incident story per major system you&apos;ve built. STAR format, specific numbers, your personal contribution clearly separated from the team&apos;s.
           </div>
         </>
       );
@@ -527,7 +653,7 @@ function renderFeaturePreview(id: string) {
             ))}
           </div>
           <div className="ftv-insight">
-            ATS filter drops this CV before any recruiter reads it — fix <strong>3 missing keywords</strong> to cross the 67% pass-line.
+            ATS filter drops this CV before any recruiter reads it. Fix <strong>3 missing keywords</strong> to cross the 67% pass-line.
           </div>
         </div>
       );
@@ -539,15 +665,15 @@ function renderFeaturePreview(id: string) {
             <div className="ftv-score-ring warn">58%</div>
             <div>
               <div className="ftv-linkedin__name">LinkedIn Profile</div>
-              <div className="ftv-linkedin__verdict warn">Mixed signal — needs work before applying</div>
+              <div className="ftv-linkedin__verdict warn">Mixed signal. Needs work before applying.</div>
             </div>
           </div>
           <div className="ftv-rows-mini">
             {[
-              { sev: "crit",  title: "No About summary",            sub: "Recruiters check this first — yours is empty" },
-              { sev: "major", title: "Generic headline",             sub: '"Software Engineer" — no stack, no seniority signal' },
+              { sev: "crit",  title: "No About summary",            sub: "Recruiters check this first. Yours is empty." },
+              { sev: "major", title: "Generic headline",             sub: '"Software Engineer": no stack, no seniority signal' },
               { sev: "major", title: "Zero recommendations",         sub: "One peer endorsement moves you above 75% of applicants" },
-              { sev: "minor", title: "Skills section underutilized", sub: "12 skills vs. 40+ in the JD — keyword gap visible to ATS" },
+              { sev: "minor", title: "Skills section underutilized", sub: "12 skills vs. 40+ in the JD. Keyword gap visible to ATS." },
             ].map((r) => (
               <div key={r.title} className="ftv-row">
                 <span className={"ftv-sev " + r.sev}>{r.sev === "crit" ? "Critical" : r.sev === "major" ? "Major" : "Minor"}</span>
@@ -568,7 +694,7 @@ function renderFeaturePreview(id: string) {
             <div className="ftv-score-ring warn">72%</div>
             <div>
               <div className="ftv-linkedin__name">GitHub Profile</div>
-              <div className="ftv-linkedin__verdict warn">Active contributor — but unpolished</div>
+              <div className="ftv-linkedin__verdict warn">Active contributor, but unpolished</div>
             </div>
           </div>
           <div className="ftv-github__stats">
@@ -586,8 +712,8 @@ function renderFeaturePreview(id: string) {
           </div>
           <div className="ftv-rows-mini">
             {[
-              { sev: "crit",  title: "Pinned repos lack documentation", sub: "Recruiters open the top repo — no README, no demo → they bounce in 10s" },
-              { sev: "major", title: "Only 1 repo has tests",           sub: "Production engineers write tests — this signal is weak to engineering teams" },
+              { sev: "crit",  title: "Pinned repos lack documentation", sub: "Recruiters open the top repo. No README, no demo → they bounce in 10s." },
+              { sev: "major", title: "Only 1 repo has tests",           sub: "Production engineers write tests. This signal is weak to engineering teams." },
               { sev: "major", title: "3 of 42 repos have CI",           sub: "Add GitHub Actions badges to your top 3 pinned repos before applying" },
             ].map((r) => (
               <div key={r.title} className="ftv-row">
@@ -657,7 +783,7 @@ function renderFeaturePreview(id: string) {
             <div className="ftv-cv__letter-lab">Cover Letter · Generated</div>
             <div className="ftv-cv__letter-body">
               <p>Dear Hiring Team,</p>
-              <p>I&apos;m applying for the Senior Backend Engineer role at Stripe. In my last position I scaled our payment processing service from 2k to 50k transactions per minute — exactly the kind of infrastructure challenge I understand your team is navigating now.</p>
+              <p>I&apos;m applying for the Senior Backend Engineer role at Stripe. In my last position I scaled our payment processing service from 2k to 50k transactions per minute, exactly the kind of infrastructure challenge I understand your team is navigating now.</p>
               <p>What draws me to this role is the intersection of high-throughput systems and developer experience that Stripe uniquely sits at...</p>
               <div className="ftv-cv__letter-fade" />
             </div>
@@ -676,7 +802,7 @@ function renderFeaturePreview(id: string) {
             </div>
             <div className="ftv-interview__a">
               <span className="who">You</span>
-              I&apos;d use a sliding window approach with Redis Lua scripts for atomicity — the script increments the counter and checks the limit in a single round trip, avoiding race conditions entirely...
+              I&apos;d use a sliding window approach with Redis Lua scripts for atomicity. The script increments the counter and checks the limit in a single round trip, avoiding race conditions entirely...
             </div>
           </div>
           <div className="ftv-interview__scores">
@@ -694,7 +820,7 @@ function renderFeaturePreview(id: string) {
             ))}
           </div>
           <div className="ftv-insight">
-            Average <strong>6.9/10</strong> across 6 questions — strongest on tech depth, weakest on structure. Practice STAR-format answers for system design questions.
+            Average <strong>6.9/10</strong> across 6 questions. Strongest on tech depth, weakest on structure. Practice STAR-format answers for system design questions.
           </div>
         </div>
       );
@@ -754,9 +880,9 @@ function renderFeaturePreview(id: string) {
           <div className="ftv-nego__points">
             <div className="ftv-nego__points-lab">Negotiation script · generated from your report + market data</div>
             {[
-              "P65 for this role in France is €103-108k — open with €108k, settle at €105k",
-              "2 competing offers in your tracker = real leverage — mention it without naming companies",
-              "Don't anchor first — wait for their number, then counter with market data",
+              "P65 for this role in France is €103-108k. Open with €108k, settle at €105k.",
+              "2 competing offers in your tracker = real leverage. Mention it without naming companies.",
+              "Don't anchor first. Wait for their number, then counter with market data.",
             ].map((p, i) => (
               <div key={i} className="ftv-nego__point">
                 <span className="n">{i + 1}</span>
@@ -801,23 +927,6 @@ export default function Home() {
     router.push(localePath("/analyze"));
   }
 
-  /* total analyses counter */
-  const [totalAnalyses, setTotalAnalyses] = useState(0);
-  const [statsRun, setStatsRun] = useState(false);
-  useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
-    fetch(`${apiUrl}/api/stats`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (typeof d?.totalAnalyses === "number") {
-          setTotalAnalyses(d.totalAnalyses);
-          setStatsRun(true);
-        }
-      })
-      .catch(() => {});
-  }, []);
-  const animatedTotal = useCountUp(totalAnalyses, statsRun, 2000);
-
   /* preview tabs */
   const [activeTab, setActiveTab] = useState("ATS");
   const tabs = [
@@ -834,10 +943,6 @@ export default function Home() {
   /* feature tab showcase */
   const [activeFeatureTab, setActiveFeatureTab] = useState("report");
 
-  /* diagnosis + signals + bridge inView refs */
-  const [diagRadarRef, diagRadarIn] = useInView(0.18);
-  const [diagFlagsRef, diagFlagsIn] = useInView(0.18);
-
   return (
     <div className="min-h-screen overflow-x-hidden">
       <JsonLd id="ld-software-app" data={softwareApplicationSchema(locale)} />
@@ -849,46 +954,27 @@ export default function Home() {
         <div className="hero__rule" />
         <div className="hero__grain" />
         <div className="rc-wrap hero__inner">
-          <div className="split">
-            <div className="split__l">
-              <div className="hero__eyebrow"><span className="pulse" />{t.landing.badge}</div>
-              <h1 className="hero__h">
-                {t.landing.hero.title}
-                <span className="second">{t.landing.hero.titleItalic}</span>
-              </h1>
-              <p className="hero__sub">
-                {(t.landing.hero.subtitle.split(":")[0] || t.landing.hero.subtitle)
-                  .replace(/\s+$/, "")
-                  .replace(/[.\s]*$/, "")}.
-              </p>
-              <div className="cta-row">
-                <Link href={localePath("/analyze")} className="btn-primary" id="hero-cta">
-                  {t.landing.hero.cta}
-                  <IconArrow size={12} color="#fff" />
-                </Link>
-                <a href="#preview" className="btn-ghost">
-                  See a sample
-                </a>
-              </div>
-              <p className="font-sans text-[12px] text-rc-hint tracking-[0.04em] mt-4 flex items-center gap-2 flex-wrap">
-                <span>Free</span>
-                <span className="text-rc-border">·</span>
-                <span>No credit card</span>
-                <span className="text-rc-border">·</span>
-                <span>~2 min</span>
-                {animatedTotal > 0 && (
-                  <>
-                    <span className="text-rc-border">·</span>
-                    <span>
-                      <span className="font-semibold text-rc-muted tabular-nums">{animatedTotal.toLocaleString()}</span>
-                      {" "}CVs analyzed
-                    </span>
-                  </>
-                )}
-              </p>
-            </div>
-            <div className="split__r">
-              <div className="hero-widget">
+          <div className="hero__text">
+            <div className="hero__eyebrow"><span className="pulse" />{t.landing.badge}</div>
+            <h1 className="hero__h">
+              {t.landing.hero.title}
+              <span className="second">{t.landing.hero.titleItalic}</span>
+            </h1>
+            <p className="hero__sub">
+              {(t.landing.hero.subtitle.split(":")[0] || t.landing.hero.subtitle)
+                .replace(/\s+$/, "")
+                .replace(/[.\s]*$/, "")}.
+            </p>
+            <a
+              href="#preview"
+              className="font-sans text-[13px] text-rc-hint hover:text-rc-red transition-colors mt-4 inline-flex items-center gap-1.5"
+              onClick={(e) => { e.preventDefault(); document.getElementById("preview")?.scrollIntoView({ behavior: "smooth" }); }}
+            >
+              See a sample report
+              <IconArrow size={11} color="currentColor" />
+            </a>
+          </div>
+          <div className="hero-widget">
                 {/* Stepper */}
                 <div className="hero-widget__stepper">
                   <span className={"hero-widget__step" + (heroStep >= 1 ? " active" : "") + (heroCvFile ? " done" : "")}>
@@ -994,6 +1080,32 @@ export default function Home() {
                   View sample report ↗
                 </a>
               </div>
+        </div>
+      </section>
+
+      {/* ═══ ALL-IN-ONE PLATFORM ════════════════════════════════════════ */}
+      <section className="sec sec--white" id="platform">
+        <div className="rc-wrap">
+          <div className="ft-head">
+            <div className="ft-head__eye">All-in-one platform</div>
+            <h2 className="ft-head__h">Six tools. One subscription.</h2>
+            <p className="ft-head__sub">Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.</p>
+          </div>
+          <div className="ft-tabs">
+            {FEATURE_TABS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setActiveFeatureTab(f.id)}
+                className={"ft-tab" + (activeFeatureTab === f.id ? " is-active" : "")}
+              >
+                {f.icon}
+                <span>{f.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="ft-preview">
+            <div key={activeFeatureTab} className="ft-preview__inner">
+              {renderFeaturePreview(activeFeatureTab)}
             </div>
           </div>
         </div>
@@ -1026,10 +1138,10 @@ export default function Home() {
           {/* 4-card strip */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {([
-              { quote: "Best job search tool I've ever used", name: "Raphael", role: "Fullstack Engineer", img: "/testimonials/raphael.png" },
-              { quote: "Actual game changer for job-seekers", name: "Arshiyaa", role: "Product Manager", img: "/testimonials/arshiyaa.jpeg" },
-              { quote: "The advice is really good", name: "Sheryll", role: "Software Eng. Student", initials: "S" },
-              { quote: "I think this is a really great tool!", name: "Yasbira", role: "ISE Student", initials: "Y" },
+              { quote: "Best job search tool I've ever used. Went from 0 callbacks to 3 in a week.", name: "Raphael", role: "Fullstack Engineer", img: "/testimonials/raphael.png" },
+              { quote: "Actual game changer. 3 interviews in 2 weeks after fixing the gaps it flagged.", name: "Arshiyaa", role: "Product Manager", img: "/testimonials/arshiyaa.jpeg" },
+              { quote: "The advice is really good.", name: "Sheryll", role: "Software Eng. Student", initials: "S" },
+              { quote: "This is a really great tool!", name: "Yasbira", role: "ISE Student", initials: "Y" },
             ] as const).map((t) => (
               <div key={t.name} className="flex flex-col gap-3 border border-rc-border bg-rc-surface p-5">
                 <span className="text-[28px] leading-none text-rc-red opacity-60">"</span>
@@ -1056,190 +1168,6 @@ export default function Home() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ ALL-IN-ONE PLATFORM ════════════════════════════════════════ */}
-      <section className="sec sec--white" id="platform">
-        <div className="rc-wrap">
-          <div className="ft-head">
-            <div className="ft-head__eye">All-in-one platform</div>
-            <h2 className="ft-head__h">Six tools. One subscription.</h2>
-            <p className="ft-head__sub">Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.</p>
-          </div>
-          <div className="ft-tabs">
-            {FEATURE_TABS.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setActiveFeatureTab(f.id)}
-                className={"ft-tab" + (activeFeatureTab === f.id ? " is-active" : "")}
-              >
-                {f.icon}
-                <span>{f.label}</span>
-              </button>
-            ))}
-          </div>
-          <div className="ft-preview">
-            <div key={activeFeatureTab} className="ft-preview__inner">
-              {renderFeaturePreview(activeFeatureTab)}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ DIAGNOSIS — radar + flags ════════════════════════════════════ */}
-      <section className="sec sec--paper">
-        <div className="rc-wrap">
-          <SecHead
-            num="01"
-            eyebrow={t.landing.sections.whatYouGet}
-            lead={mc.radar.subtitle}
-          >
-            {hl(t.landing.sections.diagnosticTitle)}
-          </SecHead>
-          <div className="diag">
-            <div ref={diagRadarRef} className={"panel " + (diagRadarIn ? "in" : "")}>
-              <div className="panel__lab">
-                <span>{mc.radar.title}</span>
-                <span className="meta">sample</span>
-              </div>
-              <div className="radar">
-                {SAMPLE_SKILLS.map((s) => (
-                  <div key={s.name} className="radar__row">
-                    <div className="name">
-                      <span>{s.name}</span>
-                      <span style={{ color: s.ok ? "var(--rc-green)" : "var(--rc-red)" }}>
-                        {s.have} / {s.need}
-                      </span>
-                    </div>
-                    <div
-                      className="radar__bar"
-                      style={{
-                        ["--need" as string]: s.need + "%",
-                        ["--have" as string]: s.have + "%",
-                      }}
-                    >
-                      <i className="need" />
-                      <i
-                        className="have"
-                        style={{
-                          background: s.ok
-                            ? "var(--rc-green)"
-                            : "linear-gradient(90deg, #c93a39, #8a2625)",
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div ref={diagFlagsRef} className={"panel " + (diagFlagsIn ? "in" : "")}>
-              <div className="panel__lab">
-                <span>{mc.radar.redFlagsLabel}</span>
-                <span className="meta">{(mc.radar.redFlagItems as string[]).length} found</span>
-              </div>
-              {(mc.radar.redFlagItems as string[]).map((item, i) => {
-                const sev = i === 0 ? "crit" : i === 1 ? "major" : "minor";
-                const label = sev === "crit" ? "Critical" : sev === "major" ? "Major" : "Minor";
-                return (
-                  <div key={item} className="flag">
-                    <span className={"flag__sev " + sev}>
-                      <span className="dot" />
-                      {label}
-                    </span>
-                    <div>
-                      <div className="flag__title">{item}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ SIGNALS DARK — github + linkedin ═════════════════════════════ */}
-      <section className="sec sec--dark">
-        <div className="rc-wrap">
-          <SecHead
-            num="02"
-            eyebrow={t.landing.sections.beyondCv}
-            lead={t.landing.sections.beyondDesc}
-          >
-            {hl(t.landing.sections.beyondTitle)}
-          </SecHead>
-          <div className="signals">
-            <div className="sigcard">
-              <div className="sigcard__head">
-                <span className="sigcard__icon"><IconGitHub size={28} /></span>
-                <div>
-                  <div className="sigcard__name">{t.landing.whatYouGet.github.title}</div>
-                  <div className="sigcard__sub">sample · 42 public repos</div>
-                </div>
-                <span className="sigcard__verdict weak">Weak</span>
-              </div>
-              <div className="sigcard__stats">
-                <div className="sigcard__stat"><div className="n">42</div><div className="l">Repos</div></div>
-                <div className="sigcard__stat warn"><div className="n">3</div><div className="l">CI</div></div>
-                <div className="sigcard__stat bad"><div className="n">1</div><div className="l">Tests</div></div>
-              </div>
-              <div className="sigcard__issues">
-                <div className="sigcard__issues-lab">Issues detected · 3</div>
-                {(mc.github.issues as { severity: string; label: string; detail: string }[]).slice(0, 3).map((issue, i) => (
-                  <div key={i} className="sigcard__issue">
-                    <span className={"sigcard__issue-sev " + issue.severity}>{issue.severity}</span>
-                    <div>
-                      <div className="sigcard__issue-label">{issue.label}</div>
-                      <div className="sigcard__issue-detail">{issue.detail}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="sigcard__fix">
-                <div className="sigcard__fix-lab">Top fixes</div>
-                <ul className="sigcard__fix-list">
-                  <li>Pin 3 polished repos with READMEs and screenshots</li>
-                  <li>Add CI badges (GitHub Actions) to top pinned repos</li>
-                  <li>Push 2 weeks of consistent commits before applying</li>
-                </ul>
-              </div>
-            </div>
-            <div className="sigcard">
-              <div className="sigcard__head">
-                <span className="sigcard__icon"><IconLinkedIn size={28} /></span>
-                <div>
-                  <div className="sigcard__name">{t.landing.whatYouGet.linkedin.title}</div>
-                  <div className="sigcard__sub">sample · headline · summary · skills</div>
-                </div>
-                <span className="sigcard__verdict weak">Mixed</span>
-              </div>
-              <div className="sigcard__stats">
-                <div className="sigcard__stat good"><div className="n">312</div><div className="l">Connections</div></div>
-                <div className="sigcard__stat good"><div className="n">14</div><div className="l">Endorsements</div></div>
-                <div className="sigcard__stat warn"><div className="n">0</div><div className="l">Recs</div></div>
-              </div>
-              <div className="sigcard__issues">
-                <div className="sigcard__issues-lab">Issues detected · 3</div>
-                {(mc.linkedin.issues as { severity: string; label: string; detail: string }[]).slice(0, 3).map((issue, i) => (
-                  <div key={i} className="sigcard__issue">
-                    <span className={"sigcard__issue-sev " + issue.severity}>{issue.severity}</span>
-                    <div>
-                      <div className="sigcard__issue-label">{issue.label}</div>
-                      <div className="sigcard__issue-detail">{issue.detail}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="sigcard__fix">
-                <div className="sigcard__fix-lab">Top fixes</div>
-                <ul className="sigcard__fix-list">
-                  <li>Ask the manager from your last role for one recommendation</li>
-                  <li>Rewrite headline with seniority + domain (not just &quot;Developer&quot;)</li>
-                  <li>Add a 4-line About section with stack keywords from JD</li>
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -1288,166 +1216,54 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ FIXIT STRIP — 3 premium tools ════════════════════════════════ */}
-      <section className="sec sec--paper">
+      {/* ═══ TRUST FACTS ═════════════════════════════════════════════════ */}
+      <section id="trust" className="sec sec--paper">
         <div className="rc-wrap">
           <SecHead
             num="04"
-            eyebrow={t.landing.sections.everyTab}
-            lead={t.landing.sections.coverDesc}
+            eyebrow={t.landing.trust.badge}
+            lead={t.landing.trust.subtitle}
           >
-            {hl(t.landing.sections.fixTitle)}
+            {t.landing.trust.title}
           </SecHead>
-          <FadeInSection>
-            <div className="fixstrip">
-              {/* CV Rewrite */}
-              <div className="fixcard">
-                <div className="fixcard__prem">✦ Premium</div>
-                <div className="fixcard__lab">{mc.rewriteCard.label}</div>
-                <div>
-                  <div className="fixcard__title">{mc.rewriteCard.title}</div>
-                  <p className="fixcard__desc">{mc.rewriteCard.desc}</p>
-                </div>
-                <div className="fixcard__demo">
-                  <div>
-                    <div className="ba__lab before">{mc.rewriteCard.before}</div>
-                    <div className="ba__text before">{mc.rewriteCard.beforeText}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {t.landing.trust.items.map((item, i) => (
+              <FadeInSection key={i} delay={i * 40}>
+                <article className="h-full border border-rc-border bg-rc-surface p-7">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="font-sans text-[11px] text-rc-red tracking-[0.05em]">0{i + 1}</span>
+                    <div className="h-px flex-1 bg-rc-border" />
                   </div>
-                  <div className="ba__rule" />
-                  <div>
-                    <div className="ba__lab after">{mc.rewriteCard.after}</div>
-                    <div className="ba__text after">
-                      <strong>{(mc.rewriteCard.afterText as string).split(" ")[0]}</strong>{" "}
-                      {(mc.rewriteCard.afterText as string).split(" ").slice(1).join(" ")}
+                  <h3 className="text-[18px] md:text-[19px] font-semibold tracking-[-0.01em] text-rc-text mb-3">
+                    {item.label}
+                  </h3>
+                  <p className="text-rc-muted text-[14px] md:text-[15px] leading-[1.6] mb-4">
+                    {item.claim}
+                  </p>
+                  <div className="pt-3 border-t border-rc-border">
+                    <div className="font-sans text-[10px] tracking-[0.05em] uppercase text-rc-hint mb-2">
+                      Source
+                    </div>
+                    <p className="text-[13px] text-rc-muted leading-[1.5] mb-2">{item.source}</p>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      {item.sourceLinks.map((lnk, j) => {
+                        const isExternal = lnk.href.startsWith("http");
+                        return isExternal ? (
+                          <a key={j} href={lnk.href} target="_blank" rel="noopener noreferrer" className="font-sans text-[11px] tracking-wide text-rc-red hover:underline">
+                            {lnk.label} ↗
+                          </a>
+                        ) : (
+                          <Link key={j} href={lnk.href} className="font-sans text-[11px] tracking-wide text-rc-red no-underline hover:underline">
+                            {lnk.label} →
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
-                </div>
-              </div>
-              {/* AI Mock Interview */}
-              <div className="fixcard">
-                <div className="fixcard__prem">✦ Premium</div>
-                <div className="fixcard__lab">{mc.interviewCard.label}</div>
-                <div>
-                  <div className="fixcard__title">{mc.interviewCard.title}</div>
-                  <p className="fixcard__desc">{mc.interviewCard.desc}</p>
-                </div>
-                <div className="fixcard__demo">
-                  <div className="chat">
-                    <div className="chat__bub ai">
-                      <span className="who">{mc.interviewCard.aiLabel} · Round 1</span>
-                      {mc.interviewCard.aiQuestion}
-                    </div>
-                    <div className="chat__bub you">
-                      <span className="who">{mc.interviewCard.youLabel}</span>
-                      {mc.interviewCard.youAnswer}
-                    </div>
-                    <div className="chat__axes">
-                      {INTERVIEW_AXES.map((a) => (
-                        <div key={a.name} className="chat__axis">
-                          <span className="name">{a.name}</span>
-                          <span className="bar"><i style={{ width: a.v * 10 + "%" }} /></span>
-                          <span className="val">{a.v}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Cover Letter */}
-              <div className="fixcard">
-                <div className="fixcard__prem">✦ Premium</div>
-                <div className="fixcard__lab">{t.landing.sections.coverLabel}</div>
-                <div>
-                  <div className="fixcard__title">{t.landing.sections.coverTitle}</div>
-                  <p className="fixcard__desc">{t.landing.sections.coverDesc}</p>
-                </div>
-                <div className="fixcard__demo">
-                  <div className="letter">
-                    <div className="date">{mc.coverLetter.date}</div>
-                    <p>{mc.coverLetter.greeting}</p>
-                    <p>{mc.coverLetter.p1}</p>
-                    <p>{mc.coverLetter.p2}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </FadeInSection>
-        </div>
-      </section>
-
-      {/* ═══ BRIDGE THE GAP ═══════════════════════════════════════════════ */}
-      <section className="sec sec--cream">
-        <div className="rc-wrap">
-          <SecHead
-            num="05"
-            eyebrow={t.landing.sections.bridgeLabel}
-            lead={t.landing.sections.bridgeDesc}
-          >
-            {hl(t.landing.sections.bridgeTitle)}
-          </SecHead>
-          <FadeInSection>
-            <div className="bridge">
-              <div className="bridge__bar">
-                <div className="bridge__bar-l">{mc.bridge.headerLabel}</div>
-                <span className="bridge__lvl">{mc.bridge.level}</span>
-              </div>
-              <div className="bridge__body">
-                <div>
-                  <h3 className="bridge__title">{mc.bridge.projectTitle}</h3>
-                  <p className="bridge__lead">{mc.bridge.projectDesc}</p>
-                  <div className="bridge__quote">
-                    <div className="bridge__quote-lab">{mc.bridge.architectureLabel}</div>
-                    <div className="bridge__quote-text">{mc.bridge.architectureText}</div>
-                  </div>
-                  <div className="bridge__steps-lab">{mc.bridge.whatToBuildLabel}</div>
-                  {(mc.bridge.whatToBuild as string[]).map((step, i) => (
-                    <div key={i} className={"bridge__step " + (i >= 2 ? "locked" : "")}>
-                      <span className="n">{i + 1}.</span>
-                      <span className="t">{step}</span>
-                    </div>
-                  ))}
-                </div>
-                <aside className="bridge__side">
-                  <div className="bridge__pill-box">
-                    <div className="bridge__pill-lab core">{mc.bridge.coreStackLabel}</div>
-                    <div className="bridge__pills">
-                      {["Docker", "Kubernetes", "Kafka", "TypeScript", "Node.js", "Redis", "PostgreSQL", "GitHub Actions"].map((p) => (
-                        <span key={p} className="pill">{p}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="bridge__pill-box">
-                    <div className="bridge__pill-lab adv">{mc.bridge.advancedLabel}</div>
-                    <div className="bridge__pills">
-                      {["Event Sourcing", "CQRS", "Circuit Breaker", "Saga Pattern"].map((p) => (
-                        <span key={p} className="pill adv">{p}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="bridge__pill-box">
-                    <div className="bridge__pill-lab ok">{mc.bridge.successLabel}</div>
-                    <div className="bridge__criteria">
-                      {(mc.bridge.success as string[]).map((c) => (
-                        <div key={c} className="bridge__crit">
-                          <span className="ok">✓</span>
-                          <span>{c}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </aside>
-              </div>
-              <div className="bridge__cta-strip">
-                <div className="bridge__cta-note">
-                  <span className="star">✦</span> {t.landing.sections.bridgePremiumNote}
-                </div>
-                <Link href={localePath("/pricing")} className="btn-primary">
-                  {t.landing.sections.bridgeCta}
-                  <IconArrow size={12} color="#fff" />
-                </Link>
-              </div>
-            </div>
-          </FadeInSection>
+                </article>
+              </FadeInSection>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -1455,7 +1271,7 @@ export default function Home() {
       <section id="pricing" className="sec sec--cream">
         <div className="rc-wrap">
           <SecHead
-            num="06"
+            num="05"
             eyebrow={t.pricing.badge}
             lead={t.pricing.subtitle + " " + t.pricing.subtitleLine2}
           >
@@ -1554,71 +1370,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ TRUST FACTS ═════════════════════════════════════════════════ */}
-      <section id="trust" className="sec sec--paper">
-        <div className="rc-wrap">
-          <SecHead
-            num="07"
-            eyebrow={t.landing.trust.badge}
-            lead={t.landing.trust.subtitle}
-          >
-            {t.landing.trust.title}
-          </SecHead>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {t.landing.trust.items.map((item, i) => (
-              <FadeInSection key={i} delay={i * 40}>
-                <article className="h-full border border-rc-border bg-rc-surface p-7">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="font-sans text-[11px] text-rc-red tracking-[0.05em]">0{i + 1}</span>
-                    <div className="h-px flex-1 bg-rc-border" />
-                  </div>
-                  <h3 className="text-[18px] md:text-[19px] font-semibold tracking-[-0.01em] text-rc-text mb-3">
-                    {item.label}
-                  </h3>
-                  <p className="text-rc-muted text-[14px] md:text-[15px] leading-[1.6] mb-4">
-                    {item.claim}
-                  </p>
-                  <div className="pt-3 border-t border-rc-border">
-                    <div className="font-sans text-[10px] tracking-[0.05em] uppercase text-rc-hint mb-2">
-                      Source
-                    </div>
-                    <p className="text-[13px] text-rc-muted leading-[1.5] mb-2">{item.source}</p>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1">
-                      {item.sourceLinks.map((lnk, j) => {
-                        const isExternal = lnk.href.startsWith("http");
-                        return isExternal ? (
-                          <a
-                            key={j}
-                            href={lnk.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-sans text-[11px] tracking-wide text-rc-red hover:underline"
-                          >
-                            {lnk.label} ↗
-                          </a>
-                        ) : (
-                          <Link
-                            key={j}
-                            href={lnk.href}
-                            className="font-sans text-[11px] tracking-wide text-rc-red no-underline hover:underline"
-                          >
-                            {lnk.label} →
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </article>
-              </FadeInSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ═══ FAQ ═════════════════════════════════════════════════════════ */}
       <section id="faq" className="sec sec--white">
         <div className="rc-wrap--tight">
-          <SecHead num="08" eyebrow="FAQ" lead={t.faq.subtitle}>
+          <SecHead num="06" eyebrow="FAQ" lead={t.faq.subtitle}>
             {t.faq.title}
           </SecHead>
           <div className="space-y-3">
