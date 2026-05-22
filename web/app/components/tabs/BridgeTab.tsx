@@ -3,7 +3,6 @@
 import { CheckCircle2, Zap, Target, ArrowRight, Layers, ShieldCheck, Gauge, Lightbulb, ListChecks } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult } from "../types";
-import { ChallengeAnalysisCard } from "./ChallengeAnalysisCard";
 import { ProjectRecommendationSkeleton } from "../skeletons/ProjectRecommendationSkeleton";
 
 type Props = {
@@ -23,7 +22,6 @@ export function BridgeTab({ result }: Props) {
   if (!project) {
     return (
       <div className="space-y-6">
-        <ChallengeAnalysisCard analysis={result.challenge_analysis} />
         <ProjectRecommendationSkeleton />
       </div>
     );
@@ -36,9 +34,6 @@ export function BridgeTab({ result }: Props) {
 
   return (
     <div className="space-y-6">
-
-      {/* ── Challenge analysis (CTA or strengths) ────────────── */}
-      <ChallengeAnalysisCard analysis={result.challenge_analysis} />
 
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">

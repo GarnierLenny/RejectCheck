@@ -65,11 +65,10 @@ export function XpPanel() {
 function humanizeReason(reason: string): string {
   switch (reason) {
     case "challenge_completion":
-      return "Daily challenge";
+    case "backfill_legacy":
+      return "XP bonus";
     case "first_perfect_focus_tag":
       return "First perfect on this topic";
-    case "backfill_legacy":
-      return "Past challenges";
     default:
       return reason.replace(/_/g, " ");
   }

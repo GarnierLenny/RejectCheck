@@ -1205,10 +1205,7 @@ export default function Home() {
               <Link href={localePath("/alternatives")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
                 {t.landing.footer.alternatives}
               </Link>
-              <Link href={localePath("/challenge")} className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">
-                {t.challenge.navLink}
-              </Link>
-              {locale === "en" && (
+{locale === "en" && (
                 <>
                   <Link href="/en/cv-review" className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">CV Review</Link>
                   <Link href="/en/ats-checker" className="block py-1 font-sans text-[13px] text-rc-muted hover:text-rc-red transition-colors">ATS Checker</Link>

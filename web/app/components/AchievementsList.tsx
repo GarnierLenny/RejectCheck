@@ -23,14 +23,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
 };
 
 const STATIC_DEFS: { slug: string; progress: (p: AchievementsBundle["progress"]) => string | null }[] = [
-  { slug: "first_steps",   progress: () => "1 / 1" },
-  { slug: "perfect_score", progress: (p) => `${Math.min(p.perfectCount, 1)} / 1` },
-  { slug: "triple_crown",  progress: (p) => `${Math.min(p.perfectCount, 5)} / 5` },
-  { slug: "week_warrior",  progress: (p) => `${Math.min(p.longestStreak, 7)} / 7` },
-  { slug: "month_warrior", progress: (p) => `${Math.min(p.longestStreak, 30)} / 30` },
-  { slug: "polyglot",      progress: (p) => `${Math.min(p.languagesCount, 3)} / 3` },
-  { slug: "centurion",     progress: (p) => `${Math.min(p.totalCount, 100)} / 100` },
-  { slug: "connected",     progress: (p) => `${Math.min(p.followersCount, 10)} / 10` },
+  { slug: "connected", progress: (p) => `${Math.min(p.followersCount, 10)} / 10` },
 ];
 
 function parsePct(text: string | null): number {
@@ -99,32 +92,6 @@ export function AchievementsList({ achievements }: Props) {
       progressText: raw,
       label: (dict[def.slug as keyof typeof dict] as { label: string })?.label ?? def.slug,
       description: (dict[def.slug as keyof typeof dict] as { description: string })?.description ?? "",
-    });
-  }
-
-  // Focus master
-  const focusMasterEarned = achievements.earned.filter((e) => e.slug.startsWith("focus_master:"));
-  for (const fm of focusMasterEarned) {
-    const tag = fm.slug.split(":")[1];
-    const fmDict = dict.focus_master as { label: string; labelWithTag: string; description: string };
-    items.push({
-      slug: fm.slug,
-      earned: true,
-      progressText: "1 / 1",
-      label: fmDict.labelWithTag?.replace("{tag}", tag) ?? fmDict.label,
-      description: fmDict.description,
-    });
-  }
-  if (focusMasterEarned.length === 0) {
-    const counts = achievements.progress.focusMasterCounts;
-    const best = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-    const fmDict = dict.focus_master as { label: string; description: string };
-    items.push({
-      slug: "focus_master",
-      earned: false,
-      progressText: best ? `${Math.min(best[1], 5)} / 5` : "0 / 5",
-      label: fmDict.label,
-      description: fmDict.description,
     });
   }
 

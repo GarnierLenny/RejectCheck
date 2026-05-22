@@ -44,9 +44,7 @@ export async function generateMetadata({
   }
   const name = profile.displayName ?? `@${profile.username}`;
   const title = `${name} · RejectCheck`;
-  const description = profile.bio
-    ? profile.bio
-    : `${profile.challenges.total} challenges completed · ${profile.challenges.currentStreak}-day streak · best score ${profile.challenges.bestScore}`;
+  const description = profile.bio ?? `${name} on RejectCheck`;
   return {
     title,
     description,

@@ -184,48 +184,12 @@ export function PublicProfileHeader({ profile }: Props) {
         </div>
       </div>
 
-      {/* STATS BIG NUMBERS */}
-      <div className="grid py-8 border-b border-rc-border" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
-        <EDStatCol
-          label={t.publicProfilePage.header.challenges}
-          value={profile.challenges.total}
-        />
-        <EDStatCol
-          label={t.publicProfilePage.header.avgScore}
-          value={profile.challenges.avgScore}
-          suffix={profile.challenges.avgScore ? "/ 100" : null}
-        />
-        <EDStatCol
-          label={t.publicProfilePage.header.bestScore}
-          value={profile.challenges.bestScore}
-          suffix={profile.challenges.bestScore ? "/ 100" : null}
-          accent={profile.challenges.bestScore === 100}
-        />
-        <EDStatCol
-          label={t.publicProfilePage.header.currentStreak}
-          value={profile.challenges.currentStreak}
-          suffix="d"
-        />
-        <EDStatCol
-          label={t.publicProfilePage.header.longestStreak}
-          value={profile.challenges.longestStreak}
-          suffix="d"
-        />
-      </div>
-
       {/* CREDITS + NEXT ACHIEVEMENT */}
       {(() => {
         const p = profile.achievements.progress;
         const earnedSlugs = new Set(profile.achievements.earned.map(e => e.slug));
         const defs: { slug: string; label: string; description: string; progressText: string | null; pct: number }[] = [
-          { slug: "first_steps",  label: "First Steps",   description: "Complete your first challenge",                  progressText: null,                                           pct: earnedSlugs.has("first_steps") ? 100 : 0 },
-          { slug: "perfect_score",label: "Perfect Score", description: "Score 100 on a challenge",                       progressText: "0 / 1",                                        pct: 0 },
-          { slug: "triple_crown", label: "Triple Crown",  description: "Get 5 perfect scores",                           progressText: `${Math.min(p.perfectCount, 5)} / 5`,           pct: Math.min(p.perfectCount, 5) / 5 * 100 },
-          { slug: "week_warrior", label: "Week Warrior",  description: "Hit a 7-day streak",                             progressText: `${Math.min(p.longestStreak, 7)} / 7`,          pct: Math.min(p.longestStreak, 7) / 7 * 100 },
-          { slug: "month_warrior",label: "Month Warrior", description: "Hit a 30-day streak",                            progressText: `${Math.min(p.longestStreak, 30)} / 30`,        pct: Math.min(p.longestStreak, 30) / 30 * 100 },
-          { slug: "polyglot",     label: "Polyglot",      description: "Solve challenges in 3 different languages",      progressText: `${Math.min(p.languagesCount, 3)} / 3`,         pct: Math.min(p.languagesCount, 3) / 3 * 100 },
-          { slug: "centurion",    label: "Centurion",     description: "Complete 100 challenges",                        progressText: `${Math.min(p.totalCount, 100)} / 100`,         pct: Math.min(p.totalCount, 100) },
-          { slug: "connected",    label: "Connected",     description: "Reach 10 followers",                             progressText: `${Math.min(p.followersCount, 10)} / 10`,       pct: Math.min(p.followersCount, 10) / 10 * 100 },
+          { slug: "connected", label: "Connected", description: "Reach 10 followers", progressText: `${Math.min(p.followersCount, 10)} / 10`, pct: Math.min(p.followersCount, 10) / 10 * 100 },
         ];
         const nextAch = defs.find(d => !earnedSlugs.has(d.slug));
         const monthlyRemaining = quota ? quota.monthlyCap - quota.monthlyUsed : null;

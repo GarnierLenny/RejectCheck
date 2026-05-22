@@ -99,8 +99,6 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
         <NavSection label="Tools">
           <LinkItem label="Analyze CV"     href={localePath("/analyze")} />
           <LinkItem label="Mock interview" href={`${localePath("/analyze")}?tab=interview`} />
-          <LinkItem label="Challenge"      href={localePath("/challenge")} />
-          <LinkItem label="Leaderboard"    href={localePath("/leaderboard")} />
         </NavSection>
 
         <NavSection label="Account">
