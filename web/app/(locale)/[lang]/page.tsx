@@ -1112,10 +1112,10 @@ export default function Home() {
       </section>
 
       {/* ═══ TESTIMONIALS ════════════════════════════════════════════════ */}
-      <section className="border-t border-rc-border bg-rc-surface py-16">
+      <section className="sec sec--cream">
         <div className="rc-wrap">
           {/* Founder story */}
-          <div className="flex items-center gap-6 border border-rc-border bg-rc-bg p-7 mb-4">
+          <div className="flex items-center gap-6 border border-rc-border bg-rc-surface p-7 mb-4">
             <Image
               src="/testimonials/lenny.jpeg"
               alt="Lenny Garnier"
