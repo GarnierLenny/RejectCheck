@@ -31,7 +31,22 @@
       "subtitle": "Importez votre CV. En moins d'une minute : simulation ATS, radar de compétences, réécriture IA, entretien simulé. Adapté à l'offre exacte.",
       "cta": "Analyser mon CV, gratuit",
       "noDataStored": "Sans compte requis · Données non stockées",
-      "freeBadge": "Gratuit · Sans inscription"
+      "freeBadge": "Gratuit · Sans inscription",
+      "step1": "Importer le CV",
+      "step2": "Ajouter l'offre",
+      "step3": "Voir les résultats",
+      "dropLabel": "Glisse-dépose ton CV",
+      "dropHintOr": "ou",
+      "dropHintChoose": "choisir un fichier",
+      "dropHintFormat": "PDF ou DOCX",
+      "changeFile": "Changer",
+      "pasteLabel": "Coller une offre d'emploi",
+      "pastePlaceholder": "Copiez-collez l'offre d'emploi ici…",
+      "orDivider": "OU",
+      "sampleLabel": "Utiliser un exemple",
+      "submitCta": "Obtenir mon score",
+      "viewSample": "Voir un exemple de rapport ↗",
+      "seeSample": "Voir un exemple de rapport"
     },
     "sections": {
       "whatYouGet": "Ce que vous obtenez",
@@ -51,7 +66,13 @@
       "coverDesc": "Générée depuis votre CV, l'offre d'emploi et votre audit de signaux. Pas un modèle. Adaptée à l'entreprise et au poste exact.",
       "coverCta": "Générer ma lettre de motivation",
       "coverPremiumNote": "Lettre complète générée avec Premium, adaptée par entreprise et poste",
-      "bridgePremiumNote": "Feuille de route complète, étapes actionnables et conseil recruteur avec Premium"
+      "bridgePremiumNote": "Feuille de route complète, étapes actionnables et conseil recruteur avec Premium",
+      "platformLabel": "Plateforme tout-en-un",
+      "platformTitle": "Six outils. Un seul abonnement.",
+      "platformSubtitle": "Tout ce qu'il faut pour passer de candidat ignoré à embauché : CV, LinkedIn, GitHub, suivi des candidatures, lettre de motivation et entretiens simulés.",
+      "founderLabel": "Fondateur · Construit pour lui-même",
+      "cancelAnytime": "Résiliation possible à tout moment",
+      "hiredRefund": "Embauché ? On rembourse ton dernier mois. Sans formulaire. Dis-le nous."
     },
     "mockContent": {
       "radar": {

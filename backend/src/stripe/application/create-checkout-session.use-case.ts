@@ -33,6 +33,7 @@ export class CreateCheckoutSessionUseCase {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true,
       success_url: `${frontendUrl}/dashboard?success=true`,
       cancel_url: `${frontendUrl}/pricing?error=true`,
       ...(cmd.customerEmail ? { customer_email: cmd.customerEmail } : {}),

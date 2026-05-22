@@ -31,7 +31,22 @@
       "subtitle": "Upload your CV. In under a minute, get a full breakdown: ATS simulation, skill gap radar, CV rewrite, and an AI mock interview. Tailored to the exact job.",
       "cta": "Analyze my CV, free",
       "noDataStored": "No account required · No data stored",
-      "freeBadge": "Free · No sign-up required"
+      "freeBadge": "Free · No sign-up required",
+      "step1": "Upload CV",
+      "step2": "Add job",
+      "step3": "View results",
+      "dropLabel": "Drag & drop your CV",
+      "dropHintOr": "or",
+      "dropHintChoose": "choose a file",
+      "dropHintFormat": "PDF or DOCX",
+      "changeFile": "Change",
+      "pasteLabel": "Paste a job description",
+      "pastePlaceholder": "Copy & paste the job description here…",
+      "orDivider": "OR",
+      "sampleLabel": "Use a sample",
+      "submitCta": "Get my score",
+      "viewSample": "View sample report ↗",
+      "seeSample": "See a sample report"
     },
     "sections": {
       "whatYouGet": "What you get",
@@ -51,7 +66,13 @@
       "coverDesc": "Generated from your CV, the job description, and your signal audit. Not a template. Tailored to the exact company and role.",
       "coverCta": "Generate my cover letter",
       "coverPremiumNote": "Full letter generated with Premium, tailored per company and role",
-      "bridgePremiumNote": "Full project roadmap, actionable steps & recruiter tip unlocked with Premium"
+      "bridgePremiumNote": "Full project roadmap, actionable steps & recruiter tip unlocked with Premium",
+      "platformLabel": "All-in-one platform",
+      "platformTitle": "Six tools. One subscription.",
+      "platformSubtitle": "Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.",
+      "founderLabel": "Founder · Built it for himself",
+      "cancelAnytime": "Cancel anytime",
+      "hiredRefund": "Hired? We refund your last month. No form. Just tell us."
     },
     "mockContent": {
       "radar": {

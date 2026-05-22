@@ -970,7 +970,7 @@ export default function Home() {
               className="font-sans text-[13px] text-rc-hint hover:text-rc-red transition-colors mt-4 inline-flex items-center gap-1.5"
               onClick={(e) => { e.preventDefault(); document.getElementById("preview")?.scrollIntoView({ behavior: "smooth" }); }}
             >
-              See a sample report
+              {t.landing.hero.seeSample}
               <IconArrow size={11} color="currentColor" />
             </a>
           </div>
@@ -986,9 +986,9 @@ export default function Home() {
                   <span className="hero-widget__step">3</span>
                 </div>
                 <div className="hero-widget__labels">
-                  <span className={heroStep === 1 && !heroCvFile ? "active" : heroCvFile ? "done" : ""}>Upload CV</span>
-                  <span className={heroStep === 2 ? "active" : ""}>Add job</span>
-                  <span>View results</span>
+                  <span className={heroStep === 1 && !heroCvFile ? "active" : heroCvFile ? "done" : ""}>{t.landing.hero.step1}</span>
+                  <span className={heroStep === 2 ? "active" : ""}>{t.landing.hero.step2}</span>
+                  <span>{t.landing.hero.step3}</span>
                 </div>
 
                 {/* Step 1 — drop zone */}
@@ -1018,8 +1018,8 @@ export default function Home() {
                         <line x1="9" y1="15" x2="15" y2="15" />
                       </svg>
                     </div>
-                    <div className="hero-drop__label">Drag & drop your CV</div>
-                    <div className="hero-drop__hint">or <span>choose a file</span> · PDF or DOCX</div>
+                    <div className="hero-drop__label">{t.landing.hero.dropLabel}</div>
+                    <div className="hero-drop__hint">{t.landing.hero.dropHintOr} <span>{t.landing.hero.dropHintChoose}</span> · {t.landing.hero.dropHintFormat}</div>
                   </div>
                 )}
 
@@ -1029,23 +1029,23 @@ export default function Home() {
                     <div className="hero-widget__file-ok">
                       <IconCheck size={12} />
                       <span>{heroCvFile?.name}</span>
-                      <button onClick={() => { setHeroStep(1); setHeroCvFile(null); }}>Change</button>
+                      <button onClick={() => { setHeroStep(1); setHeroCvFile(null); }}>{t.landing.hero.changeFile}</button>
                     </div>
                     <div className="hero-step2">
                       <div className="hero-step2__paste">
-                        <div className="hero-step2__lab">Paste a job description</div>
+                        <div className="hero-step2__lab">{t.landing.hero.pasteLabel}</div>
                         <textarea
                           className="hero-jd"
-                          placeholder="Copy & paste the job description here…"
+                          placeholder={t.landing.hero.pastePlaceholder}
                           value={heroJd}
                           onChange={(e) => setHeroJd(e.target.value)}
                           rows={7}
                           autoFocus
                         />
                       </div>
-                      <div className="hero-step2__or">OR</div>
+                      <div className="hero-step2__or">{t.landing.hero.orDivider}</div>
                       <div className="hero-step2__samples">
-                        <div className="hero-step2__lab">Use a sample</div>
+                        <div className="hero-step2__lab">{t.landing.hero.sampleLabel}</div>
                         <div className="hero-step2__list">
                           {SAMPLE_JDS.map((cat) => (
                             <div key={cat.category}>
@@ -1070,14 +1070,14 @@ export default function Home() {
                       style={{ width: "100%", justifyContent: "center" }}
                       onClick={handleHeroSubmit}
                     >
-                      Get my score
+                      {t.landing.hero.submitCta}
                       <IconArrow size={12} color="#fff" />
                     </button>
                   </>
                 )}
 
                 <a href="#preview" className="hero-widget__sample">
-                  View sample report ↗
+                  {t.landing.hero.viewSample}
                 </a>
               </div>
         </div>
@@ -1087,9 +1087,9 @@ export default function Home() {
       <section className="sec sec--white" id="platform">
         <div className="rc-wrap">
           <div className="ft-head">
-            <div className="ft-head__eye">All-in-one platform</div>
-            <h2 className="ft-head__h">Six tools. One subscription.</h2>
-            <p className="ft-head__sub">Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.</p>
+            <div className="ft-head__eye">{t.landing.sections.platformLabel}</div>
+            <h2 className="ft-head__h">{t.landing.sections.platformTitle}</h2>
+            <p className="ft-head__sub">{t.landing.sections.platformSubtitle}</p>
           </div>
           <div className="ft-tabs">
             {FEATURE_TABS.map((f) => (
@@ -1125,7 +1125,7 @@ export default function Home() {
               style={{ width: 52, height: 52 }}
             />
             <div className="flex flex-col gap-2">
-              <div className="font-sans text-[9px] tracking-[0.08em] text-rc-red">Founder · Built it for himself</div>
+              <div className="font-sans text-[9px] tracking-[0.08em] text-rc-red">{t.landing.sections.founderLabel}</div>
               <p className="italic text-[18px] leading-[1.45] text-rc-text">
                 "During my job search I built the tool I wish existed, this same tool got me 4x more interviews and a job in 2 months"
               </p>
@@ -1363,9 +1363,9 @@ export default function Home() {
             </div>
           </FadeInSection>
           <div className="pricing__trust">
-            <span>Cancel anytime</span>
+            <span>{t.landing.sections.cancelAnytime}</span>
             <span className="pricing__trust-dot" />
-            <span>Hired? <strong>We refund your last month.</strong> No form. Just tell us.</span>
+            <span>{t.landing.sections.hiredRefund}</span>
           </div>
         </div>
       </section>

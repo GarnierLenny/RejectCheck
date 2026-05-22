@@ -1076,7 +1076,7 @@ body {
   color: var(--rc-hint); letter-spacing: 0.08em;
   border-left: 1px solid var(--rc-border); border-right: 1px solid var(--rc-border);
   background: var(--rc-surface-hero);
-  writing-mode: vertical-rl;
+  writing-mode: horizontal-tb;
 }
 .hero-step2__samples { padding: 12px; overflow-y: auto; max-height: 220px; }
 .hero-step2__lab {
