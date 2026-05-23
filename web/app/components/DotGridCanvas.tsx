@@ -70,9 +70,9 @@ export function DotGridCanvas({ dotColor: _dotColor }: { dotColor?: string }) {
           const t = smoothstep(Math.max(0, 1 - dist / INFLUENCE)) * fade.current;
           const r = BASE_R + (MAX_R - BASE_R) * t;
           const alpha = BASE_ALPHA + (HOVER_ALPHA - BASE_ALPHA) * t;
-          const cr = lerp(BASE_RGB[0], RED_RGB[0], t * 0.6);
-          const cg = lerp(BASE_RGB[1], RED_RGB[1], t * 0.6);
-          const cb = lerp(BASE_RGB[2], RED_RGB[2], t * 0.6);
+          const cr = lerp(BASE_RGB[0], RED_RGB[0], t);
+          const cg = lerp(BASE_RGB[1], RED_RGB[1], t);
+          const cb = lerp(BASE_RGB[2], RED_RGB[2], t);
 
           ctx.beginPath();
           ctx.arc(x, y, r, 0, Math.PI * 2);
