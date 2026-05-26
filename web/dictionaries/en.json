@@ -1238,8 +1238,10 @@
     "rejectionPhrase": "has a",
     "rejectionSuffix": "chance of rejection",
     "rejectionFor": "for",
-    "ctaText": "Analyse your CV against a job posting and find out why you might get rejected before applying.",
-    "ctaButton": "Analyse your own application"
+    "ctaText": "You now know what's holding {name} back. What's holding you back?",
+    "ctaTextCvReview": "You just saw {name}'s CV score. What's yours?",
+    "ctaButton": "Find out my weaknesses",
+    "ctaButtonCvReview": "Score my CV"
   },
   "block": {
     "menuLabel": "More actions",

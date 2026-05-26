@@ -89,6 +89,7 @@ export default async function SharedAnalysisPage({
         company={data.company}
         profile={data.profile}
         lang={locale}
+        token={token}
       />
     </div>
   );

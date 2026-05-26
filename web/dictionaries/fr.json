@@ -1239,8 +1239,10 @@
     "rejectionPhrase": "a",
     "rejectionSuffix": "de chances de se faire rejeter",
     "rejectionFor": "pour",
-    "ctaText": "Analyse ton CV face à une offre et découvre pourquoi tu risques d'être rejeté avant d'envoyer.",
-    "ctaButton": "Analyse ta propre candidature"
+    "ctaText": "Tu sais maintenant ce qui bloque {name}. Qu'est-ce qui te bloque, toi ?",
+    "ctaTextCvReview": "Tu viens de voir le score CV de {name}. Et le tien ?",
+    "ctaButton": "Découvrir mes points faibles",
+    "ctaButtonCvReview": "Évaluer mon CV"
   },
   "block": {
     "menuLabel": "Plus d'actions",

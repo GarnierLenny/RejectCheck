@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import posthog from "posthog-js";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, X } from "lucide-react";
@@ -35,13 +36,26 @@ type Props = {
   company: string | null;
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   lang: string;
+  token: string;
 };
 
-export function SharedAnalysisView({ result, jobLabel, company, profile, lang }: Props) {
+export function SharedAnalysisView({ result, jobLabel, company, profile, lang, token }: Props) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
   const isCvReview = !!result.cv_quality;
+
+  useEffect(() => {
+    posthog.capture("share_link_visited", {
+      token,
+      mode: isCvReview ? "cv-review" : "vs-job",
+      score: isCvReview ? result.cv_quality!.overall : result.score,
+      has_position: !!(jobLabel || company),
+      lang,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const noop = () => {};
 
   const displayName = profile?.displayName ?? "Someone";
@@ -235,13 +249,13 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang }:
       {/* CTA block */}
       <div className="max-w-[1600px] w-[92%] mx-auto px-5 md:px-[32px] py-12 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-rc-border mt-4">
         <p className="text-[15px] text-rc-text leading-snug max-w-[420px]">
-          {t.share.ctaText}
+          {(isCvReview ? t.share.ctaTextCvReview : t.share.ctaText).replace("{name}", displayName)}
         </p>
         <Link
           href={`/${lang}/analyze`}
           className="shrink-0 inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
         >
-          {t.share.ctaButton} →
+          {isCvReview ? t.share.ctaButtonCvReview : t.share.ctaButton} →
         </Link>
       </div>
     </div>
