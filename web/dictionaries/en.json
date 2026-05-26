@@ -1233,7 +1233,13 @@
     "copyLink": "Copy link",
     "copied": "Copied!",
     "profileText": "Check out {user}'s profile on RejectCheck",
-    "scoreText": "I just scored {score} on the RejectCheck challenge \"{challenge}\""
+    "scoreText": "I just scored {score} on the RejectCheck challenge \"{challenge}\"",
+    "cvScorePhrase": "has a CV score of",
+    "rejectionPhrase": "has a",
+    "rejectionSuffix": "chance of rejection",
+    "rejectionFor": "for",
+    "ctaText": "Analyse your CV against a job posting and find out why you might get rejected before applying.",
+    "ctaButton": "Analyse your own application"
   },
   "block": {
     "menuLabel": "More actions",

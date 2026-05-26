@@ -48,7 +48,7 @@ function SourceBadge({ source }: { source: 'cv' | 'github' | 'linkedin' }) {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
-export function CvReviewTab({ result }: { result: AnalysisResult }) {
+export function CvReviewTab({ result, actions }: { result: AnalysisResult; actions?: React.ReactNode }) {
   const { locale } = useLanguage();
   const fr = locale === 'fr';
 
@@ -100,10 +100,11 @@ export function CvReviewTab({ result }: { result: AnalysisResult }) {
       <div className="bg-rc-surface border border-rc-border overflow-hidden">
 
         {/* Top bar */}
-        <div className="px-8 py-4 border-b border-rc-border bg-rc-surface-hero">
+        <div className="px-8 py-4 border-b border-rc-border bg-rc-surface-hero flex items-center justify-between">
           <span className="font-mono text-[12px] tracking-[0.15em] uppercase text-rc-hint">
             {fr ? 'Bilan CV' : 'CV Audit'}
           </span>
+          {actions && <div className="flex items-center gap-2">{actions}</div>}
         </div>
 
         <div className="flex flex-col lg:flex-row">
@@ -237,7 +238,14 @@ export function CvReviewTab({ result }: { result: AnalysisResult }) {
               </span>
             </div>
             <div className="px-12 py-10">
-              <RadarChart axes={skill_radar.axes} fluid />
+              <RadarChart
+                axes={skill_radar.axes}
+                fluid
+                evidenceHeader={{
+                  title: fr ? 'Détail des scores' : 'Skill breakdown',
+                  subtitle: fr ? 'Score par dimension clé' : 'Score across each key dimension',
+                }}
+              />
             </div>
           </div>
         )}

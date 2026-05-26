@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -250,6 +251,51 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     });
     if (!exists) throw new AnalysisNotFoundException(id);
     await this.prisma.analysis.delete({ where: { id } });
+  }
+
+  async createShareToken(id: number, email: string): Promise<string> {
+    const row = await this.prisma.analysis.findFirst({
+      where: { id, email, result: { not: Prisma.DbNull } },
+      select: { shareToken: true },
+    });
+    if (!row) throw new AnalysisNotFoundException(id);
+    if (row.shareToken) return row.shareToken;
+    const token = randomUUID();
+    await this.prisma.analysis.update({ where: { id }, data: { shareToken: token } });
+    return token;
+  }
+
+  async findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null> {
+    const row = await this.prisma.analysis.findUnique({
+      where: { shareToken: token },
+      select: {
+        id: true,
+        email: true,
+        jobLabel: true,
+        company: true,
+        jobDescription: true,
+        result: true,
+        deepAnalysis: true,
+        coverLetter: true,
+        negotiationAnalysis: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (!row || !row.result) return null;
+    return {
+      id: row.id,
+      email: row.email,
+      jobLabel: row.jobLabel,
+      company: row.company,
+      jobDescription: row.jobDescription,
+      coverLetter: row.coverLetter,
+      result: row.result as AnalyzeResponse | null,
+      deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
+      negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
   }
 
   private toDomain(row: AnalysisRow): StoredAnalysis {

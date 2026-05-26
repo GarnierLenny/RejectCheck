@@ -36,6 +36,7 @@ RejectCheck is optimised for developers, but works for any role — PMs, designe
 ### Premium
 
 - **CV rewrite** *(Improve CV tab)* — AI rewrites your CV based on detected issues: injects missing keywords, fixes tone, adds seniority signals. Exportable as PDF.
+- **Cover letter generation** *(Cover Letter tab)* — generates a tailored cover letter from the analysis context (CV + JD). Supports auto language detection from the JD, or manual selection (EN, FR, ES, DE). Copy to clipboard or export as PDF. Regenerable and persisted between sessions.
 - **AI Interview** *(AI Interview tab)* — 10-minute voice interview simulated by AI, tailored to the job. Questions are generated from your analysis — skill gaps, red flags, JD expectations. Turn-based: the AI speaks and listens, detects when you finish, and asks follow-ups when answers are vague. After the interview: a full performance report with axis scores (communication, technical relevance, composure, etc.), per-question feedback, key strengths and improvements. Retry with new questions anytime, with attempt history tracked.
 
 ### Dashboard

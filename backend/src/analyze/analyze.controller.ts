@@ -57,6 +57,7 @@ import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
+import { CreateShareTokenUseCase } from './application/create-share-token.use-case';
 import {
   GetProfileUseCase,
   UpdateProfileUseCase,
@@ -98,6 +99,7 @@ export class AnalyzeController {
     private readonly listSavedCvsUc: ListSavedCvsUseCase,
     private readonly addSavedCvUc: AddSavedCvUseCase,
     private readonly removeSavedCvUc: RemoveSavedCvUseCase,
+    private readonly createShareTokenUc: CreateShareTokenUseCase,
   ) {}
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
@@ -502,5 +504,16 @@ export class AnalyzeController {
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     await this.deleteAnalysisUc.execute(id, email);
     return { ok: true };
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Post(':id/share')
+  @ApiOperation({
+    summary: 'Generate (or return existing) public share token for an analysis',
+  })
+  async createShareToken(@AuthEmail() email: string, @Param('id') rawId: string) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    return this.createShareTokenUc.execute(id, email);
   }
 }

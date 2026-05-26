@@ -1234,7 +1234,13 @@
     "copyLink": "Copier le lien",
     "copied": "Copié !",
     "profileText": "Regarde le profil de {user} sur RejectCheck",
-    "scoreText": "Je viens d'obtenir {score} sur le défi RejectCheck \"{challenge}\""
+    "scoreText": "Je viens d'obtenir {score} sur le défi RejectCheck \"{challenge}\"",
+    "cvScorePhrase": "a un score CV de",
+    "rejectionPhrase": "a",
+    "rejectionSuffix": "de chances de se faire rejeter",
+    "rejectionFor": "pour",
+    "ctaText": "Analyse ton CV face à une offre et découvre pourquoi tu risques d'être rejeté avant d'envoyer.",
+    "ctaButton": "Analyse ta propre candidature"
   },
   "block": {
     "menuLabel": "Plus d'actions",

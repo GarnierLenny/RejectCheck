@@ -1,0 +1,95 @@
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { hasLocale, type Locale } from "../../dictionaries";
+import { Navbar } from "../../../../components/Navbar";
+import { SharedAnalysisView } from "../../../../components/SharedAnalysisView";
+import type { AnalysisResult } from "../../../../components/types";
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
+
+type SharedAnalysisData = {
+  id: number;
+  jobLabel: string | null;
+  company: string | null;
+  result: AnalysisResult | null;
+  profile: { displayName: string | null; avatarUrl: string | null } | null;
+  createdAt: string;
+};
+
+async function fetchSharedAnalysis(token: string): Promise<SharedAnalysisData | null> {
+  const res = await fetch(`${API_BASE}/api/share/${token}`, {
+    next: { revalidate: 3600 },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; token: string }>;
+}): Promise<Metadata> {
+  const { lang, token } = await params;
+  const data = await fetchSharedAnalysis(token);
+  if (!data || !data.result) {
+    return { title: "Shared analysis · RejectCheck" };
+  }
+
+  const name = data.profile?.displayName ?? "Someone";
+  const position = [data.jobLabel, data.company].filter(Boolean).join(" @ ");
+  const title = position
+    ? `${name} · ${data.result.score}% rejection risk for ${position} · RejectCheck`
+    : `${name} · ${data.result.score}% rejection risk · RejectCheck`;
+  const description = `See ${name}'s full CV analysis on RejectCheck — ATS score, red flags, signals, and more.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `/${lang}/share/${token}`,
+      siteName: "RejectCheck",
+      images: [
+        {
+          url: `https://www.rejectcheck.com/${lang}/opengraph-image/main`,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
+
+export default async function SharedAnalysisPage({
+  params,
+}: {
+  params: Promise<{ lang: string; token: string }>;
+}) {
+  const { lang, token } = await params;
+  const locale = (hasLocale(lang) ? lang : "en") as Locale;
+
+  const data = await fetchSharedAnalysis(token);
+  if (!data || !data.result) notFound();
+
+  return (
+    <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col">
+      <Navbar />
+      <SharedAnalysisView
+        result={data.result}
+        jobLabel={data.jobLabel}
+        company={data.company}
+        profile={data.profile}
+        lang={locale}
+      />
+    </div>
+  );
+}

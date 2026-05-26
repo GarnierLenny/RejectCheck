@@ -1,5 +1,6 @@
 import { Module, Provider } from '@nestjs/common';
 import { AnalyzeController } from './analyze.controller';
+import { ShareController } from './share.controller';
 import { StripeModule } from '../stripe/stripe.module';
 import { SocialModule } from '../social/social.module';
 import { ChallengeModule } from '../challenge/challenge.module';
@@ -49,6 +50,8 @@ import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
+import { CreateShareTokenUseCase } from './application/create-share-token.use-case';
+import { GetSharedAnalysisUseCase } from './application/get-shared-analysis.use-case';
 import {
   GetProfileUseCase,
   UpdateProfileUseCase,
@@ -69,7 +72,7 @@ import {
     CreditsModule,
     QueueModule.register(),
   ],
-  controllers: [AnalyzeController],
+  controllers: [AnalyzeController, ShareController],
   providers: [
     LlmJobsService,
     ...queueProviders,
@@ -98,6 +101,8 @@ import {
     ListSavedCvsUseCase,
     AddSavedCvUseCase,
     RemoveSavedCvUseCase,
+    CreateShareTokenUseCase,
+    GetSharedAnalysisUseCase,
   ],
 })
 export class AnalyzeModule {}

@@ -31,6 +31,11 @@ import { InterviewTab } from "../../../components/tabs/InterviewTab";
 import { CoverLetterTab } from "../../../components/tabs/CoverLetterTab";
 import { NegotiationTab } from "../../../components/tabs/NegotiationTab";
 import { TechnicalRadarChart } from "../../../components/TechnicalRadarChart";
+import dynamic from "next/dynamic";
+const CvPdfViewer = dynamic(
+  () => import("../../../components/CvPdfViewer").then((m) => m.CvPdfViewer),
+  { ssr: false },
+);
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../../utils/export";
 import { useAuth } from "../../../../context/auth";
 import { useSubscription, useAnalysis, useProfile, useSavedCvs, useQuota } from "../../../../lib/queries";
@@ -38,7 +43,7 @@ import { useRegenerateDeep } from "../../../../lib/mutations";
 import { consumeSSE } from "../../../../lib/sse";
 import { useLanguage } from "../../../../context/language";
 import { toast } from "sonner";
-import { Check, X } from "lucide-react";
+import { Check, X, Share2, Download } from "lucide-react";
 import posthog from "posthog-js";
 
 type Tab = "cv-review" | "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
@@ -53,6 +58,8 @@ function AnalyzeContent() {
   const { t, localePath, locale } = useLanguage();
   const [jobDescription, setJobDescription] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvBlobUrl, setCvBlobUrl] = useState<string | null>(null);
+  const [showPdf, setShowPdf] = useState(false);
   const [liFile, setLiFile] = useState<File | null>(null);
   const [mlFile, setMlFile] = useState<File | null>(null);
   const [mlText, setMlText] = useState("");
@@ -86,6 +93,8 @@ function AnalyzeContent() {
   const [analysisId, setAnalysisId] = useState<number | null>(null);
   const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const shareToastShownRef = useRef<number | null>(null);
   const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
   // Deep-pass status: 'pending' while we're still streaming the first run,
   // 'failed' if the SSE flow ended without a deep_done event, 'ready' once
@@ -96,6 +105,13 @@ function AnalyzeContent() {
   );
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
+
+  useEffect(() => {
+    if (!cvFile) return;
+    const url = URL.createObjectURL(cvFile);
+    setCvBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [cvFile]);
 
   // True between `handleSubmit` and the SSE `done` event. While streaming, we
   // ignore inbound state from useAnalysis (URL just got primed at
@@ -231,6 +247,21 @@ function AnalyzeContent() {
     setError(msg);
     setLoading(false);
   }, [isAnalysisError, analysisError]);
+
+  useEffect(() => {
+    if (!result || !visualLoadingDone || !analysisId || !user) return;
+    if (result.score >= 25) return;
+    if (shareToastShownRef.current === analysisId) return;
+    shareToastShownRef.current = analysisId;
+    const timer = setTimeout(() => {
+      toast("Tu as un excellent profil pour ce poste !", {
+        description: "Partage tes résultats — ça ne prend que 2 secondes.",
+        action: { label: "Partager", onClick: shareAnalysis },
+        duration: 8000,
+      });
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [result, visualLoadingDone, analysisId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Safety net: if the background deep pass never lands (worker crash, Redis
   // outage), flip 'pending' → 'failed' after 5 minutes so the user sees the
@@ -612,6 +643,25 @@ function AnalyzeContent() {
     prevUrlIdRef.current = urlId;
   }, [urlId, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  async function shareAnalysis() {
+    if (!analysisId || !session?.access_token) return;
+    setIsSharing(true);
+    try {
+      const { token } = await fetch(`${apiUrl}/api/analyze/${analysisId}/share`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).then((r) => r.json());
+      const shareUrl = `${window.location.origin}${localePath(`/share/${token}`)}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Lien copié !", { description: shareUrl });
+      posthog.capture("analysis_shared", { analysis_id: analysisId });
+    } catch {
+      toast.error("Impossible de générer le lien de partage.");
+    } finally {
+      setIsSharing(false);
+    }
+  }
+
   async function handleRewrite() {
     const emailVal = activeSubscription?.email || user?.email;
     if (!analysisId || !emailVal || !session?.access_token) return;
@@ -797,6 +847,8 @@ function AnalyzeContent() {
                 onExportMd={exportToMd}
                 onExportPdf={exportToPdf}
                 isExportingPdf={isExportingPdf}
+                onShare={analysisId && user ? shareAnalysis : undefined}
+                isSharing={isSharing}
               />
             )}
 
@@ -820,11 +872,34 @@ function AnalyzeContent() {
             )}
 
             {isCvReview ? (
-              <CvReviewTab result={result} />
+              <>
+                <CvReviewTab
+                  result={result}
+                  actions={<>
+                    <button
+                      onClick={exportToMd}
+                      className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider"
+                    >
+                      <Download size={12} />
+                      .md
+                    </button>
+                    {analysisId && user && (
+                      <button
+                        onClick={shareAnalysis}
+                        disabled={isSharing}
+                        className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
+                      >
+                        <Share2 size={12} />
+                        {isSharing ? "…" : "Share"}
+                      </button>
+                    )}
+                  </>}
+                />
+              </>
             ) : (
               <>
                 {/* Tab nav */}
-                <div className="mb-8 border-b border-rc-border">
+                <div className="mb-8 border-b border-rc-border flex items-end justify-between">
                   <div className="tabs-scrollbar flex overflow-x-auto">
                     {tabs.map((tab) => (
                       <button
@@ -839,9 +914,31 @@ function AnalyzeContent() {
                       </button>
                     ))}
                   </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {cvBlobUrl && (
+                      <button
+                        onClick={() => setShowPdf(v => !v)}
+                        className={`mb-1 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] px-3 py-1.5 border transition-colors ${
+                          showPdf
+                            ? "border-rc-red text-rc-red bg-rc-red/5"
+                            : "border-rc-border text-rc-muted hover:text-rc-text hover:border-rc-text/40"
+                        }`}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                          <rect x="1" y="1" width="12" height="12" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+                          <path d="M4 4h6M4 7h6M4 10h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                        </svg>
+                        {showPdf ? "Hide CV" : "View CV"}
+                      </button>
+                    )}
+                  </div>
+
                 </div>
 
                 {/* Tab content */}
+                <div className={showPdf && cvBlobUrl ? "grid grid-cols-2 gap-6 items-start" : ""}>
+                {showPdf && cvBlobUrl && <CvPdfViewer url={cvBlobUrl} />}
+                <div>
                 {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
                 {activeTab === "ats"          && result.ats_simulation && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
                 {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} fixesReady={true} />}
@@ -878,6 +975,8 @@ function AnalyzeContent() {
                     savedCoverLetter={savedAnalysis?.coverLetter ?? null}
                   />
                 )}
+                </div>
+                </div>
               </>
             )}
 
@@ -900,14 +999,6 @@ function AnalyzeContent() {
         )}
       </div>
 
-      <footer className={`border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4 max-w-[100vw] ${isFormView ? "hidden" : ""}`}>
-        <div className="font-mono text-[13px] text-rc-muted">{t.analyzeNav.footer.copyright}</div>
-        <div className="flex gap-6">
-          <Link href={localePath("/alternatives")} className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">{t.analyzeNav.footer.alternatives}</Link>
-          <Link href={localePath("/privacy")} className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">{t.analyzeNav.footer.privacy}</Link>
-          <a href="#" className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline cursor-pointer transition-colors hover:text-rc-text">{t.analyzeNav.footer.terms}</a>
-        </div>
-      </footer>
     </div>
   );
 }

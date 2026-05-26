@@ -108,4 +108,13 @@ export interface AnalysisRepository {
 
   /** Throws AnalysisNotFoundException if the row doesn't belong to the email. */
   deleteByIdForEmail(id: number, email: string): Promise<void>;
+
+  /**
+   * Generates (or returns existing) share token for an analysis.
+   * Throws AnalysisNotFoundException if the analysis doesn't belong to the email.
+   */
+  createShareToken(id: number, email: string): Promise<string>;
+
+  /** Finds a shared analysis by its public token. Returns null if not found or has no result. */
+  findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null>;
 }

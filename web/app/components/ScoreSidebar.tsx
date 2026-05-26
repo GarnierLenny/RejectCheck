@@ -1,6 +1,6 @@
 import type { AnalysisResult } from "./types";
 import { Tooltip } from "./Tooltip";
-import { Download, FileDown, RotateCcw } from "lucide-react";
+import { Download, FileDown, RotateCcw, Share2 } from "lucide-react";
 import { useLanguage } from "../../context/language";
 
 type Props = {
@@ -10,9 +10,12 @@ type Props = {
   onExportMd: () => void;
   isExportingPdf?: boolean;
   isCvReview?: boolean;
+  readOnly?: boolean;
+  onShare?: () => void;
+  isSharing?: boolean;
 };
 
-export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExportingPdf, isCvReview = false }: Props) {
+export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExportingPdf, isCvReview = false, readOnly = false, onShare, isSharing }: Props) {
   const { t } = useLanguage();
   const score = isCvReview ? (result.cv_quality?.overall ?? result.score) : result.score;
 
@@ -41,23 +44,35 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
             </div>
           </Tooltip>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onExportPdf}
-            disabled={isExportingPdf}
-            className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
-          >
-            <FileDown size={12} className="text-rc-red" />
-            {isExportingPdf ? t.scoreSidebar.exporting : "PDF"}
-          </button>
-          <button
-            onClick={onExportMd}
-            className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider"
-          >
-            <Download size={12} />
-            .md
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onExportPdf}
+              disabled={isExportingPdf}
+              className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
+            >
+              <FileDown size={12} className="text-rc-red" />
+              {isExportingPdf ? t.scoreSidebar.exporting : "PDF"}
+            </button>
+            <button
+              onClick={onExportMd}
+              className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider"
+            >
+              <Download size={12} />
+              .md
+            </button>
+            {onShare && (
+              <button
+                onClick={onShare}
+                disabled={isSharing}
+                className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
+              >
+                <Share2 size={12} />
+                {isSharing ? "…" : "Share"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Score + Breakdown body */}
@@ -136,14 +151,16 @@ export function ScoreSidebar({ result, onReset, onExportPdf, onExportMd, isExpor
           {result.confidence.reason}
         </p>
         ) : <div />}
-        <button
-          type="button"
-          onClick={onReset}
-          className="flex items-center gap-2 font-mono text-[12px] text-rc-hint hover:text-rc-text transition-colors uppercase tracking-wider shrink-0"
-        >
-          <RotateCcw size={13} />
-          {t.scoreSidebar.newProfile}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="flex items-center gap-2 font-mono text-[12px] text-rc-hint hover:text-rc-text transition-colors uppercase tracking-wider shrink-0"
+          >
+            <RotateCcw size={13} />
+            {t.scoreSidebar.newProfile}
+          </button>
+        )}
       </div>
     </div>
   );
