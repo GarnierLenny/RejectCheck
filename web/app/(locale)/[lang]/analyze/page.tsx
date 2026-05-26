@@ -44,6 +44,7 @@ import { consumeSSE } from "../../../../lib/sse";
 import { useLanguage } from "../../../../context/language";
 import { toast } from "sonner";
 import { Check, X, Share2, Download } from "lucide-react";
+import { ShareModal } from "../../../components/ShareModal";
 import posthog from "posthog-js";
 
 type Tab = "cv-review" | "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
@@ -94,6 +95,8 @@ function AnalyzeContent() {
   const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
   const [isRewriting, setIsRewriting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
   const shareToastShownRef = useRef<number | null>(null);
   const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
   // Deep-pass status: 'pending' while we're still streaming the first run,
@@ -651,9 +654,9 @@ function AnalyzeContent() {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       }).then((r) => r.json());
-      const shareUrl = `${window.location.origin}${localePath(`/share/${token}`)}`;
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Lien copié !", { description: shareUrl });
+      const url = `${window.location.origin}${localePath(`/share/${token}`)}`;
+      setShareToken(token);
+      setShareUrl(url);
       posthog.capture("analysis_shared", { analysis_id: analysisId });
     } catch {
       toast.error("Impossible de générer le lien de partage.");
@@ -999,6 +1002,18 @@ function AnalyzeContent() {
         )}
       </div>
 
+      {shareToken && shareUrl && result && (
+        <ShareModal
+          token={shareToken}
+          shareUrl={shareUrl}
+          displayName={profile?.displayName ?? user?.email?.split("@")[0] ?? "You"}
+          isCvReview={!!result.cv_quality}
+          score={result.cv_quality ? result.cv_quality.overall : result.score}
+          jobLabel={null}
+          company={null}
+          onClose={() => { setShareToken(null); setShareUrl(null); }}
+        />
+      )}
     </div>
   );
 }
