@@ -42,8 +42,17 @@ type Props = {
 export function SharedAnalysisView({ result, jobLabel, company, profile, lang, token }: Props) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [stickyVisible, setStickyVisible] = useState(false);
 
   const isCvReview = !!result.cv_quality;
+
+  useEffect(() => {
+    function onScroll() {
+      setStickyVisible(window.scrollY > 300);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     posthog.capture("share_link_visited", {
@@ -246,17 +255,22 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
         )}
       </div>
 
-      {/* CTA block */}
-      <div className="max-w-[1600px] w-[92%] mx-auto px-5 md:px-[32px] py-12 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-rc-border mt-4">
-        <p className="text-[15px] text-rc-text leading-snug max-w-[420px]">
-          {(isCvReview ? t.share.ctaTextCvReview : t.share.ctaText).replace("{name}", displayName)}
-        </p>
-        <Link
-          href={`/${lang}/analyze`}
-          className="shrink-0 inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
-        >
-          {isCvReview ? t.share.ctaButtonCvReview : t.share.ctaButton} →
-        </Link>
+      {/* Sticky CTA bar */}
+      <div className={`fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ${stickyVisible ? "translate-y-0" : "translate-y-full"}`}>
+        <div className="bg-rc-surface border-t border-rc-border shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+          <div className="max-w-[1600px] w-[92%] mx-auto px-5 md:px-[32px] py-4 flex items-center justify-between gap-4">
+            <p className="text-[13px] text-rc-text leading-snug hidden sm:block">
+              {(isCvReview ? t.share.ctaTextCvReview : t.share.ctaText).replace("{name}", displayName)}
+            </p>
+            <Link
+              href={`/${lang}/analyze`}
+              onClick={() => posthog.capture("share_sticky_cta_clicked", { token, mode: isCvReview ? "cv-review" : "vs-job" })}
+              className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
+            >
+              {isCvReview ? t.share.ctaButtonCvReview : t.share.ctaButton} →
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
