@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Link, Check, Download, ImageIcon } from "lucide-react";
+import posthog from "posthog-js";
 import { useLanguage } from "../../context/language";
 
 type Props = {
@@ -39,10 +40,13 @@ export function ShareModal({
   const cardUrl = `/og/share/${token}`;
   const positionLabel = [jobLabel, company].filter(Boolean).join(" @ ");
 
+  const mode = isCvReview ? "cv-review" : "vs-job";
+
   async function handleCopy() {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    posthog.capture("share_copy_link", { token, mode });
   }
 
   function handleDownload() {
@@ -50,6 +54,7 @@ export function ShareModal({
     a.href = cardUrl;
     a.download = `rejectcheck-${token.slice(0, 8)}.png`;
     a.click();
+    posthog.capture("share_download_card", { token, mode });
   }
 
   const xText = encodeURIComponent(
@@ -60,12 +65,32 @@ export function ShareModal({
   const xUrl = `https://twitter.com/intent/tweet?text=${xText}&url=${encodeURIComponent(shareUrl)}`;
   const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
 
+  const clipboardSupported = typeof ClipboardItem !== "undefined";
+  const nativeShareSupported = typeof navigator !== "undefined" && !!navigator.share;
+
+  async function handleNativeShare() {
+    try {
+      const res = await fetch(cardUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `rejectcheck-${token.slice(0, 8)}.png`, { type: "image/png" });
+      const shareData = { title: isCvReview ? `${displayName}'s CV Score` : `${displayName}'s rejection risk`, url: shareUrl, files: [file] };
+      if (navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.share({ title: shareData.title, url: shareUrl });
+      }
+      posthog.capture("share_native", { token, mode });
+    } catch { /* user cancelled or unsupported */ }
+  }
+
   async function handleX() {
     setXState("copying");
+    let clipboardOk = false;
     try {
       const res = await fetch(cardUrl);
       const blob = await res.blob();
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      clipboardOk = true;
       setXState("ready");
       setTimeout(() => {
         window.open(xUrl, "_blank", "noopener,noreferrer");
@@ -75,24 +100,27 @@ export function ShareModal({
       window.open(xUrl, "_blank", "noopener,noreferrer");
       setXState("idle");
     }
+    posthog.capture("share_click_x", { token, mode, clipboard_ok: clipboardOk });
   }
 
   async function handleLinkedIn() {
     setLiState("copying");
+    let clipboardOk = false;
     try {
       const res = await fetch(cardUrl);
       const blob = await res.blob();
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      clipboardOk = true;
       setLiState("ready");
       setTimeout(() => {
         window.open(liUrl, "_blank", "noopener,noreferrer");
         setLiState("idle");
       }, 2000);
     } catch {
-      // Clipboard failed (e.g. Firefox) — open LinkedIn directly
       window.open(liUrl, "_blank", "noopener,noreferrer");
       setLiState("idle");
     }
+    posthog.capture("share_click_linkedin", { token, mode, clipboard_ok: clipboardOk });
   }
 
   return (
@@ -174,6 +202,18 @@ export function ShareModal({
         )}
 
         {/* Action buttons */}
+        {/* Native share — mobile only */}
+        {nativeShareSupported && (
+          <div className="px-8 pt-4 pb-0">
+            <button
+              onClick={handleNativeShare}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-rc-red hover:bg-rc-red/90 text-white font-mono text-[11px] font-semibold uppercase tracking-wider transition-colors"
+            >
+              Share
+            </button>
+          </div>
+        )}
+
         <div className="px-8 py-5 flex gap-3">
 
           {/* Download */}
@@ -198,7 +238,9 @@ export function ShareModal({
               <span className="text-[14px] leading-none">𝕏</span>
               {xState === "copying" ? "Preparing…" : "Post on X"}
             </div>
-            <div className="font-mono text-[10px] text-white/50">@rejectcheck</div>
+            <div className="font-mono text-[10px] text-white/50">
+              {clipboardSupported ? "@rejectcheck" : "Download & attach manually"}
+            </div>
           </button>
 
           {/* LinkedIn */}
@@ -214,7 +256,7 @@ export function ShareModal({
               {liState === "copying" ? "Preparing…" : "Share on LinkedIn"}
             </div>
             <div className="font-mono text-[10px] text-white/60">
-              {liState === "ready" ? "Image copied — paste in post" : "Public post"}
+              {liState === "ready" ? "Image copied — paste in post" : clipboardSupported ? "Public post" : "Download & attach manually"}
             </div>
           </button>
         </div>

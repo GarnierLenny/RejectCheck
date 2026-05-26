@@ -39,10 +39,19 @@ export async function generateMetadata({
 
   const name = data.profile?.displayName ?? "Someone";
   const position = [data.jobLabel, data.company].filter(Boolean).join(" @ ");
-  const title = position
-    ? `${name} · ${data.result.score}% rejection risk for ${position} · RejectCheck`
-    : `${name} · ${data.result.score}% rejection risk · RejectCheck`;
-  const description = `See ${name}'s full CV analysis on RejectCheck — ATS score, red flags, signals, and more.`;
+  const isCvReview = !!data.result.cv_quality;
+  const score = isCvReview ? data.result.cv_quality!.overall : data.result.score;
+  const ogImageUrl = `https://www.rejectcheck.com/og/share/${token}`;
+
+  const title = isCvReview
+    ? `${name} · ${score}% CV Score · RejectCheck`
+    : position
+      ? `${name} · ${score}% rejection risk for ${position} · RejectCheck`
+      : `${name} · ${score}% rejection risk · RejectCheck`;
+
+  const description = isCvReview
+    ? `See ${name}'s CV score on RejectCheck — layout, keywords, ATS compatibility and more.`
+    : `See ${name}'s full application analysis on RejectCheck — ATS score, red flags, skill gap, and more.`;
 
   return {
     title,
@@ -52,19 +61,13 @@ export async function generateMetadata({
       description,
       url: `/${lang}/share/${token}`,
       siteName: "RejectCheck",
-      images: [
-        {
-          url: `https://www.rejectcheck.com/og/share/${token}`,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      images: [{ url: ogImageUrl, width: 1290, height: 630, alt: title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: [ogImageUrl],
     },
   };
 }

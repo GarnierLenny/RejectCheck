@@ -654,7 +654,8 @@ function AnalyzeContent() {
         method: "POST",
         headers: { Authorization: `Bearer ${session.access_token}` },
       }).then((r) => r.json());
-      const url = `${window.location.origin}${localePath(`/share/${token}`)}`;
+      const base = `${window.location.origin}${localePath(`/share/${token}`)}`;
+      const url = `${base}?utm_source=rejectcheck&utm_medium=share_card&utm_campaign=user_share`;
       setShareToken(token);
       setShareUrl(url);
       posthog.capture("analysis_shared", { analysis_id: analysisId });
