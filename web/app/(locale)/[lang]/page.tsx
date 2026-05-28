@@ -69,7 +69,7 @@ const DIAG_PROFILES = [
     findings: [
       { mark: "×", color: "var(--rc-red)", text: <>3 keywords missing: <b>distributed systems</b>, <b>gRPC</b>, <b>observability</b>.</> },
       { mark: "!", color: "#d97706", text: "6-month employment gap not addressed in the timeline." },
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: "TypeScript and React signal is strong — keep this section." },
+      { mark: "✓", color: "var(--rc-green, #16a34a)", text: "TypeScript and React signal is strong - keep this section." },
     ],
   },
   {
@@ -87,14 +87,14 @@ const DIAG_PROFILES = [
     findings: [
       { mark: "✓", color: "var(--rc-green, #16a34a)", text: <>Experience, stack and seniority are a near-perfect fit for the role.</> },
       { mark: "✓", color: "var(--rc-green, #16a34a)", text: "Leadership and cross-functional work align with Notion's eng culture." },
-      { mark: "!", color: "#d97706", text: "Mobile experience absent — minor gap, not a blocker." },
+      { mark: "!", color: "#d97706", text: "Mobile experience absent - minor gap, not a blocker." },
     ],
   },
   {
     name: "Jade T.", expYears: 2, targetRole: "Senior Frontend Engineer", company: "Linear",
     score: 89, riskLabel: "Very high risk · tailor CV",
     findings: [
-      { mark: "×", color: "var(--rc-red)", text: <>Role requires <b>5+ years</b> — seniority gap is the primary blocker.</> },
+      { mark: "×", color: "var(--rc-red)", text: <>Role requires <b>5+ years</b> - seniority gap is the primary blocker.</> },
       { mark: "×", color: "var(--rc-red)", text: "No design-system ownership or Figma handoff mentioned." },
       { mark: "!", color: "#d97706", text: "Strong React skills but missing testing (Playwright, Vitest)." },
     ],
@@ -104,7 +104,7 @@ const DIAG_PROFILES = [
     score: 41, riskLabel: "Moderate risk · some gaps",
     findings: [
       { mark: "✓", color: "var(--rc-green, #16a34a)", text: "Spark and Airflow experience aligns well with the stack." },
-      { mark: "!", color: "#d97706", text: <>Delta Lake not mentioned — add it, it&apos;s used daily here.</> },
+      { mark: "!", color: "#d97706", text: <>Delta Lake not mentioned - add it, it&apos;s used daily here.</> },
       { mark: "×", color: "var(--rc-red)", text: "No ML pipeline or feature-store exposure listed." },
     ],
   },
@@ -963,7 +963,10 @@ export default function Home() {
                 <span style={{ color: "var(--rc-red)" }}>{t.landing.s07.quoteRed}</span>
               </p>
               <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", marginTop: 48 }}>
-                {t.landing.s07.attribution} <b style={{ color: "var(--rc-text)", fontWeight: 600 }}>Lenny Garnier</b> &amp; the RejectCheck team
+                {t.landing.s07.attribution}{" "}
+                <a href="https://www.linkedin.com/in/lenny-garnier-2ab689199/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--rc-text)", fontWeight: 600, textDecoration: "none" }}>Lenny Garnier</a>
+                {" "}&amp;{" "}
+                <a href="https://www.linkedin.com/in/arshiyaa-rai-56aa342b5/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--rc-text)", fontWeight: 600, textDecoration: "none" }}>Arshiyaa Rai</a>
               </p>
             </div>
           </div>
