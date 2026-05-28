@@ -3,9 +3,20 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInterviewHistory } from "../../../lib/queries";
-import { Mic, RotateCcw, Loader2, ChevronDown, ChevronUp, Play, Clock, TrendingUp } from "lucide-react";
+import { Mic, RotateCcw, Loader2, ChevronDown, ChevronUp, Play, Clock } from "lucide-react";
 import { useLanguage } from "../../../context/language";
 import { PremiumPaywall } from "../PremiumFeature";
+
+// ── Design tokens ─────────────────────────────────────────────────────────────
+
+const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
+const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
+
+function scoreColor(score: number): string {
+  return score >= 7 ? "var(--rc-green)" : score >= 4 ? "var(--rc-amber)" : "var(--rc-red)";
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type InterviewTabProps = {
   isPremium: boolean;
@@ -16,9 +27,7 @@ type InterviewTabProps = {
 };
 
 type InterviewState = "idle" | "in_progress" | "loading" | "done";
-
 type ChatMessage = { role: "ai" | "user"; content: string };
-
 type AxisScore = { name: string; score: number; feedback: string };
 type QuestionFeedback = { question: string; answer: string; verdict: "good" | "average" | "poor"; comment: string };
 type InterviewAnalysis = {
@@ -43,23 +52,21 @@ function formatTime(s: number) {
   return `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
 }
 
-function scoreColorClass(score: number) {
-  return score >= 7 ? "text-green-400" : score >= 4 ? "text-amber-400" : "text-rc-red";
-}
-
-function scoreBgClass(score: number) {
-  return score >= 7 ? "bg-green-500" : score >= 4 ? "bg-amber-500" : "bg-rc-red";
-}
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function VerdictChip({ verdict }: { verdict: "good" | "average" | "poor" }) {
   const { t } = useLanguage();
-  const map = {
-    good:    { label: t.interviewTab.verdicts.good,    cls: "bg-green-500/10 text-green-400 border-green-500/20" },
-    average: { label: t.interviewTab.verdicts.average, cls: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-    poor:    { label: t.interviewTab.verdicts.poor,    cls: "bg-rc-red/10 text-rc-red border-rc-red/20" },
+  const map: Record<string, { label: string; color: string; bg: string; border: string }> = {
+    good:    { label: t.interviewTab.verdicts.good,    color: "var(--rc-green)", bg: "var(--rc-green-bg)", border: "var(--rc-green-border)" },
+    average: { label: t.interviewTab.verdicts.average, color: "var(--rc-amber)", bg: "var(--rc-amber-bg)", border: "var(--rc-amber-border)" },
+    poor:    { label: t.interviewTab.verdicts.poor,    color: "var(--rc-red)",   bg: "var(--rc-red-bg)",   border: "var(--rc-red-border)" },
   };
-  const { label, cls } = map[verdict];
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full border font-mono text-[9px] tracking-widest uppercase font-bold ${cls}`}>{label}</span>;
+  const { label, color, bg, border } = map[verdict];
+  return (
+    <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700, color, background: bg, border: `1px solid ${border}`, padding: "1px 6px", borderRadius: 4, flexShrink: 0, whiteSpace: "nowrap" as const }}>
+      {label}
+    </span>
+  );
 }
 
 function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewAnalysis; attemptNumber: number; date: string }) {
@@ -68,89 +75,110 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
   const globalScore = Math.round(analysis.axes.reduce((s, a) => s + a.score, 0) / analysis.axes.length);
 
   return (
-    <div className="h-full overflow-y-auto px-6 py-5 space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-1">Attempt #{attemptNumber} · {date}</p>
-          <div className="flex items-baseline gap-2">
-            <span className={`text-4xl font-bold ${scoreColorClass(globalScore)}`}>{globalScore}</span>
-            <span className="text-rc-hint text-lg">/10</span>
-          </div>
+    <div style={{ height: "100%", overflowY: "auto", padding: "24px 28px", display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Score header */}
+      <div>
+        <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 8 }}>
+          Attempt #{attemptNumber} · {date}
+        </div>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+          <span style={{ ...MONO, fontSize: 52, fontWeight: 700, letterSpacing: "-0.04em", color: scoreColor(globalScore), lineHeight: 1 }}>
+            {globalScore}
+          </span>
+          <span style={{ ...MONO, fontSize: 20, color: "var(--rc-hint)" }}>/10</span>
         </div>
       </div>
 
       {/* Global verdict */}
-      <p className="text-[14px] text-rc-muted leading-relaxed border-l-2 border-rc-border pl-3">
+      <p style={{ ...SANS, fontSize: 13, lineHeight: 1.65, color: "var(--rc-muted)", borderLeft: "2px solid var(--rc-border)", paddingLeft: 12, margin: 0 }}>
         {analysis.globalVerdict}
       </p>
 
       {/* Axes */}
       <div>
-        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-3">{t.interviewTab.performance}</p>
-        <div className="space-y-3">
+        <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 16 }}>
+          {t.interviewTab.performance}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {analysis.axes.map((axis, i) => (
             <div key={i}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[13px] text-rc-text">{axis.name}</span>
-                <span className={`font-mono text-[12px] font-bold ${scoreColorClass(axis.score)}`}>{axis.score}/10</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)" }}>{axis.name}</span>
+                <span style={{ ...MONO, fontSize: 12, fontWeight: 700, color: scoreColor(axis.score) }}>{axis.score}/10</span>
               </div>
-              <div className="h-1 bg-rc-border rounded-full overflow-hidden mb-1">
-                <div className={`h-full rounded-full ${scoreBgClass(axis.score)}`} style={{ width: `${axis.score * 10}%` }} />
+              <div style={{ height: 3, background: "var(--rc-border)", borderRadius: 99, overflow: "hidden", marginBottom: 5 }}>
+                <div style={{ height: "100%", borderRadius: 99, background: scoreColor(axis.score), width: `${axis.score * 10}%` }} />
               </div>
-              <p className="text-[11px] text-rc-hint leading-relaxed">{axis.feedback}</p>
+              <p style={{ ...SANS, fontSize: 11, color: "var(--rc-hint)", lineHeight: 1.55, margin: 0 }}>{axis.feedback}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Strengths + improvements */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-green-500/5 border border-green-500/15 rounded-xl p-4">
-          <p className="font-mono text-[9px] tracking-widest uppercase text-green-400 mb-2.5">{t.interviewTab.strengths}</p>
-          <ul className="space-y-2">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ background: "var(--rc-green-bg)", border: "1px solid var(--rc-green-border)", borderRadius: 6, padding: "14px 16px" }}>
+          <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-green)", fontWeight: 700, marginBottom: 10 }}>
+            {t.interviewTab.strengths}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {analysis.keyStrengths.map((s, i) => (
-              <li key={i} className="flex gap-1.5 text-[12px] text-rc-text leading-snug">
-                <span className="text-green-400 shrink-0 mt-px">+</span>{s}
-              </li>
+              <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                <span style={{ color: "var(--rc-green)", flexShrink: 0, ...MONO, fontSize: 11 }}>+</span>
+                <span style={{ ...SANS, fontSize: 12, color: "var(--rc-text)", lineHeight: 1.5 }}>{s}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
-        <div className="bg-rc-red/5 border border-rc-red/15 rounded-xl p-4">
-          <p className="font-mono text-[9px] tracking-widest uppercase text-rc-red mb-2.5">{t.interviewTab.toImprove}</p>
-          <ul className="space-y-2">
+        <div style={{ background: "var(--rc-red-bg)", border: "1px solid var(--rc-red-border)", borderRadius: 6, padding: "14px 16px" }}>
+          <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 10 }}>
+            {t.interviewTab.toImprove}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {analysis.keyImprovements.map((s, i) => (
-              <li key={i} className="flex gap-1.5 text-[12px] text-rc-text leading-snug">
-                <span className="text-rc-red shrink-0 mt-px">→</span>{s}
-              </li>
+              <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                <span style={{ color: "var(--rc-red)", flexShrink: 0, ...MONO, fontSize: 11 }}>→</span>
+                <span style={{ ...SANS, fontSize: 12, color: "var(--rc-text)", lineHeight: 1.5 }}>{s}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
 
       {/* Question feedback */}
       <div>
-        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-hint mb-3">{t.interviewTab.questionFeedback}</p>
-        <div className="border border-rc-border rounded-xl overflow-hidden divide-y divide-rc-border">
+        <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 12 }}>
+          {t.interviewTab.questionFeedback}
+        </div>
+        <div style={{ border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
           {analysis.questionFeedback.map((qf, i) => (
-            <div key={i}>
+            <div key={i} style={{ borderTop: i === 0 ? "none" : "1px solid var(--rc-border)" }}>
               <button
                 onClick={() => setExpandedQ(expandedQ === i ? null : i)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-rc-surface/60 transition-colors"
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: expandedQ === i ? "var(--rc-surface)" : "none", border: "none", cursor: "pointer", textAlign: "left" as const }}
               >
                 <VerdictChip verdict={qf.verdict} />
-                <span className="text-[12px] text-rc-text flex-1 truncate">{qf.question}</span>
-                {expandedQ === i ? <ChevronUp className="w-3.5 h-3.5 text-rc-hint shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 text-rc-hint shrink-0" />}
+                <span style={{ ...SANS, fontSize: 12, color: "var(--rc-text)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
+                  {qf.question}
+                </span>
+                {expandedQ === i
+                  ? <ChevronUp size={14} style={{ color: "var(--rc-hint)", flexShrink: 0 }} />
+                  : <ChevronDown size={14} style={{ color: "var(--rc-hint)", flexShrink: 0 }} />
+                }
               </button>
               {expandedQ === i && (
-                <div className="px-4 pb-4 space-y-2 bg-rc-bg/40">
-                  <div className="rounded-lg border border-rc-border p-3">
-                    <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint mb-1">{t.interviewTab.yourAnswer}</p>
-                    <p className="text-[12px] text-rc-muted italic leading-relaxed">{qf.answer}</p>
+                <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 8, background: "var(--rc-surface)" }}>
+                  <div style={{ borderRadius: 4, border: "1px solid var(--rc-border)", padding: "10px 12px" }}>
+                    <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 5 }}>
+                      {t.interviewTab.yourAnswer}
+                    </div>
+                    <p style={{ ...SANS, fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.6, fontStyle: "italic", margin: 0 }}>{qf.answer}</p>
                   </div>
-                  <div className="rounded-lg border border-rc-border p-3">
-                    <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint mb-1">{t.interviewTab.feedback}</p>
-                    <p className="text-[12px] text-rc-text leading-relaxed">{qf.comment}</p>
+                  <div style={{ borderRadius: 4, border: "1px solid var(--rc-border)", padding: "10px 12px" }}>
+                    <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 5 }}>
+                      {t.interviewTab.feedback}
+                    </div>
+                    <p style={{ ...SANS, fontSize: 12, color: "var(--rc-text)", lineHeight: 1.6, margin: 0 }}>{qf.comment}</p>
                   </div>
                 </div>
               )}
@@ -165,32 +193,34 @@ function AnalysisPanel({ analysis, attemptNumber, date }: { analysis: InterviewA
 function EmptyRight({ onStart, micGranted, onRequestMic }: { onStart: () => void; micGranted: boolean; onRequestMic: () => void }) {
   const { t } = useLanguage();
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-6 px-8 text-center">
-      <div className="w-16 h-16 rounded-full bg-rc-surface border border-rc-border flex items-center justify-center">
-        <TrendingUp className="w-7 h-7 text-rc-muted" />
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: "48px", textAlign: "center" }}>
+      <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Mic size={24} style={{ color: "var(--rc-muted)" }} />
       </div>
       <div>
-        <p className="text-[15px] font-medium text-rc-text mb-1">{t.interviewTab.noAttemptSelected}</p>
-        <p className="text-[13px] text-rc-hint">{t.interviewTab.noAttemptDesc}</p>
+        <p style={{ ...SANS, fontSize: 15, fontWeight: 500, color: "var(--rc-text)", margin: "0 0 5px" }}>{t.interviewTab.noAttemptSelected}</p>
+        <p style={{ ...SANS, fontSize: 13, color: "var(--rc-hint)", margin: 0 }}>{t.interviewTab.noAttemptDesc}</p>
       </div>
-      {micGranted ? (
-        <button
-          onClick={onStart}
-          className="flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-lg shadow-rc-red/20"
-        >
-          <Play className="w-3.5 h-3.5" />{t.interviewTab.startInterview}
-        </button>
-      ) : (
-        <button
-          onClick={onRequestMic}
-          className="flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-lg shadow-rc-red/20"
-        >
-          <Mic className="w-3.5 h-3.5" />{t.interviewTab.allowMicrophone}
-        </button>
-      )}
+      <button
+        onClick={micGranted ? onStart : onRequestMic}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+          padding: "12px 22px", background: "var(--rc-red)", color: "#fff",
+          border: "none", borderRadius: 6, cursor: "pointer",
+          boxShadow: "0 6px 20px rgba(201,58,57,0.22)",
+        }}
+      >
+        {micGranted
+          ? <><Play size={13} />{t.interviewTab.startInterview}</>
+          : <><Mic size={13} />{t.interviewTab.allowMicrophone}</>
+        }
+      </button>
     </div>
   );
 }
+
+// ── Main component ────────────────────────────────────────────────────────────
 
 export function InterviewTab({ isPremium, analysisId, email, accessToken, defaultInterviewId }: InterviewTabProps) {
   const queryClient = useQueryClient();
@@ -223,7 +253,6 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // Sync selectedAttemptId when history loads or defaultInterviewId changes
   useEffect(() => {
     if (history.length === 0) return;
     setSelectedAttemptId(prev => {
@@ -260,17 +289,14 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     try {
       const res = await fetch(`${apiUrl}/api/interview/complete`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ interviewId: interviewIdRef.current }),
       });
       if (!res.ok) throw new Error();
       const data: InterviewAnalysis = await res.json();
       setLiveAnalysis(data);
       setInterviewState("done");
-      queryClient.invalidateQueries({ queryKey: ['interview-history'] });
+      queryClient.invalidateQueries({ queryKey: ["interview-history"] });
     } catch {
       setInterviewState("done");
     }
@@ -358,10 +384,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     try {
       const res = await fetch(`${apiUrl}/api/interview/start`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ analysisId }),
       });
       if (!res.ok) throw new Error();
@@ -369,7 +392,10 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
       interviewIdRef.current = data.interviewId;
       setMessages([{ role: "ai", content: data.question.text }]);
       timerRef.current = setInterval(() => {
-        setTimeLeft(t => { if (t <= 1) { clearInterval(timerRef.current!); completeInterview(); return 0; } return t - 1; });
+        setTimeLeft(t => {
+          if (t <= 1) { clearInterval(timerRef.current!); completeInterview(); return 0; }
+          return t - 1;
+        });
       }, 1000);
       await playAudio(data.question.audioBase64);
       startListening();
@@ -384,7 +410,8 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     currentAudioRef.current?.pause();
   }, [stopVad]);
 
-  // ─── PAYWALL ────────────────────────────────────────────────────────────────
+  // ── Paywall ──────────────────────────────────────────────────────────────────
+
   if (!isPremium) {
     return (
       <PremiumPaywall
@@ -396,50 +423,72 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     );
   }
 
-  // ─── IN PROGRESS ────────────────────────────────────────────────────────────
+  // ── In progress ──────────────────────────────────────────────────────────────
+
   if (interviewState === "in_progress") {
     const progress = ((INTERVIEW_DURATION - timeLeft) / INTERVIEW_DURATION) * 100;
     return (
-      <div className="max-w-[680px] mx-auto py-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-rc-red animate-pulse" />
-            <span className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">{t.interviewTab.liveInterview}</span>
+      <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Timer row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ width: 6, height: 6, borderRadius: 99, background: "var(--rc-red)", display: "inline-block", animation: "pulse 1.5s infinite" }} />
+            <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-muted)" }}>{t.interviewTab.liveInterview}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-rc-hint" />
-            <span className={`font-mono text-[13px] font-bold ${timeLeft < 60 ? "text-rc-red" : "text-rc-text"}`}>{formatTime(timeLeft)}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Clock size={13} style={{ color: "var(--rc-hint)" }} />
+            <span style={{ ...MONO, fontSize: 13, fontWeight: 700, color: timeLeft < 60 ? "var(--rc-red)" : "var(--rc-text)" }}>{formatTime(timeLeft)}</span>
           </div>
         </div>
-        <div className="h-0.5 bg-rc-border rounded-full mb-5 overflow-hidden">
-          <div className="h-full bg-rc-red/50 rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
+
+        {/* Progress bar */}
+        <div style={{ height: 2, background: "var(--rc-border)", borderRadius: 99, overflow: "hidden" }}>
+          <div style={{ height: "100%", background: "rgba(201,58,57,0.5)", borderRadius: 99, width: `${progress}%`, transition: "width 1s linear" }} />
         </div>
-        <div className="bg-rc-surface border border-rc-border rounded-2xl p-4 mb-3 min-h-[380px] max-h-[500px] overflow-y-auto flex flex-col gap-3">
+
+        {/* Chat */}
+        <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 8, padding: "16px", minHeight: 380, maxHeight: 500, overflowY: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
           {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === "ai" ? "justify-start" : "justify-end"}`}>
-              <div className={`max-w-[78%] rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${msg.role === "ai" ? "bg-rc-bg border border-rc-border text-rc-text rounded-tl-sm" : "bg-rc-red/10 border border-rc-red/20 text-rc-text rounded-tr-sm"}`}>
+            <div key={i} style={{ display: "flex", justifyContent: msg.role === "ai" ? "flex-start" : "flex-end" }}>
+              <div style={{
+                maxWidth: "78%", borderRadius: msg.role === "ai" ? "4px 12px 12px 12px" : "12px 4px 12px 12px",
+                padding: "12px 16px", ...SANS, fontSize: 14, lineHeight: 1.6,
+                background: msg.role === "ai" ? "var(--rc-bg)" : "var(--rc-red-bg)",
+                border: `1px solid ${msg.role === "ai" ? "var(--rc-border)" : "var(--rc-red-border)"}`,
+                color: "var(--rc-text)",
+              }}>
                 {msg.content}
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 h-6">
+
+        {/* Status + end button */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, height: 24 }}>
             {isProcessing ? (
-              <><Loader2 className="w-3.5 h-3.5 text-rc-muted animate-spin" /><span className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">{t.interviewTab.processing}</span></>
+              <>
+                <Loader2 size={13} className="animate-spin" style={{ color: "var(--rc-muted)" }} />
+                <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-muted)" }}>{t.interviewTab.processing}</span>
+              </>
             ) : isListening ? (
               <>
-                <div className="flex gap-0.5 items-end h-4">
-                  {[...Array(5)].map((_, i) => <div key={i} className="w-0.5 bg-rc-red rounded-full animate-bounce" style={{ height: `${[8, 14, 10, 16, 6][i]}px`, animationDelay: `${i * 0.1}s` }} />)}
+                <div style={{ display: "flex", gap: 2, alignItems: "flex-end", height: 16 }}>
+                  {[8, 14, 10, 16, 6].map((h, i) => (
+                    <div key={i} className="animate-bounce" style={{ width: 2, borderRadius: 99, background: "var(--rc-red)", height: h, animationDelay: `${i * 0.1}s` }} />
+                  ))}
                 </div>
-                <span className="font-mono text-[10px] tracking-widest uppercase text-rc-red">{t.interviewTab.listening}</span>
+                <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-red)" }}>{t.interviewTab.listening}</span>
               </>
             ) : (
-              <span className="font-mono text-[10px] tracking-widest uppercase text-rc-hint">{t.interviewTab.waiting}</span>
+              <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)" }}>{t.interviewTab.waiting}</span>
             )}
           </div>
-          <button onClick={completeInterview} className="font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-muted transition-colors">
+          <button
+            onClick={completeInterview}
+            style={{ ...MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          >
             {t.interviewTab.endEarly}
           </button>
         </div>
@@ -447,94 +496,98 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
     );
   }
 
-  // ─── LOADING ─────────────────────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────────────────────
+
   if (interviewState === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <Loader2 className="w-7 h-7 text-rc-red animate-spin" />
-        <p className="font-mono text-[10px] tracking-widest uppercase text-rc-muted">{t.interviewTab.analysing}</p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", gap: 16 }}>
+        <Loader2 size={28} className="animate-spin" style={{ color: "var(--rc-red)" }} />
+        <span style={{ ...MONO, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)" }}>
+          {t.interviewTab.analysing}
+        </span>
       </div>
     );
   }
 
-  // ─── IDLE + DONE - Two-column master-detail ──────────────────────────────────
+  // ── Idle + Done — two-column master-detail ────────────────────────────────────
+
   const selectedAttempt = history.find(h => h.id === selectedAttemptId) ?? null;
-  // After a completed interview, show the fresh analysis until user picks from history
   const displayedAnalysis = interviewState === "done" && liveAnalysis && !selectedAttemptId
     ? liveAnalysis
     : selectedAttempt?.analysis ?? null;
-
   const displayedAttemptNumber = selectedAttempt ? history.length - history.indexOf(selectedAttempt) : history.length + 1;
   const displayedDate = selectedAttempt
     ? new Date(selectedAttempt.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
     : "Just now";
 
   return (
-    <div className="flex gap-0 border border-rc-border rounded-2xl overflow-hidden" style={{ minHeight: 560 }}>
+    <div style={{ display: "flex", border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden", minHeight: 560 }}>
 
-      {/* ── LEFT SIDEBAR ──────────────────────────────────────────────────────── */}
-      <div className="w-[260px] shrink-0 border-r border-rc-border flex flex-col bg-rc-surface">
+      {/* Left sidebar */}
+      <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "var(--rc-surface)" }}>
         {/* CTA */}
-        <div className="p-4 border-b border-rc-border">
-          {micGranted ? (
-            <button
-              onClick={startInterview}
-              disabled={!analysisId || !email}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-md shadow-rc-red/20 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Play className="w-3.5 h-3.5" />
-              {history.length > 0 ? t.interviewTab.newAttempt : t.interviewTab.startInterview}
-            </button>
-          ) : (
-            <button
-              onClick={requestMicPermission}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-xl hover:scale-[1.02] active:scale-95 transition-all font-bold shadow-md shadow-rc-red/20"
-            >
-              <Mic className="w-3.5 h-3.5" />
-              {t.interviewTab.allowMicrophone}
-            </button>
-          )}
+        <div style={{ padding: 14, borderBottom: "1px solid var(--rc-border)" }}>
+          <button
+            onClick={micGranted ? startInterview : requestMicPermission}
+            disabled={micGranted && (!analysisId || !email)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+              ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              padding: "10px 0", background: "var(--rc-red)", color: "#fff",
+              border: "none", borderRadius: 4, cursor: "pointer",
+              boxShadow: "0 4px 14px rgba(201,58,57,0.22)",
+              opacity: micGranted && (!analysisId || !email) ? 0.4 : 1,
+            }}
+          >
+            {micGranted ? <><Play size={12} />{history.length > 0 ? t.interviewTab.newAttempt : t.interviewTab.startInterview}</> : <><Mic size={12} />{t.interviewTab.allowMicrophone}</>}
+          </button>
           {micGranted && (
-            <p className="text-center font-mono text-[9px] text-rc-hint mt-2 tracking-wide">{t.interviewTab.sessionInfo}</p>
+            <p style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)", textAlign: "center", marginTop: 6, marginBottom: 0, lineHeight: 1.5 }}>
+              {t.interviewTab.sessionInfo}
+            </p>
           )}
         </div>
 
-        {/* Attempt list */}
-        <div className="flex-1 overflow-y-auto">
+        {/* History list */}
+        <div style={{ flex: 1, overflowY: "auto" }}>
           {history.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center py-8">
-              <p className="text-[12px] text-rc-hint leading-relaxed">{t.interviewTab.noInterviewsYet}</p>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: "24px 16px", textAlign: "center" }}>
+              <p style={{ ...SANS, fontSize: 12, color: "var(--rc-hint)", lineHeight: 1.6, margin: 0 }}>{t.interviewTab.noInterviewsYet}</p>
             </div>
           ) : (
             <>
-              <p className="font-mono text-[9px] tracking-widest uppercase text-rc-hint px-4 pt-3 pb-2">
+              <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", padding: "12px 16px 8px" }}>
                 {history.length} {history.length > 1 ? t.interviewTab.attempts : t.interviewTab.attempt}
-              </p>
+              </div>
               {history.map((h, i) => {
                 const isSelected = h.id === selectedAttemptId;
                 return (
                   <button
                     key={h.id}
                     onClick={() => setSelectedAttemptId(h.id)}
-                    className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-rc-border last:border-0 ${isSelected ? "bg-rc-bg" : "hover:bg-rc-bg/50"}`}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "10px 16px", background: isSelected ? "var(--rc-bg)" : "none",
+                      border: "none", borderTop: "1px solid var(--rc-border)", cursor: "pointer", textAlign: "left" as const,
+                    }}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-1 h-6 rounded-full shrink-0 ${isSelected ? "bg-rc-red" : "bg-transparent"}`} />
-                      <div className="min-w-0">
-                        <p className="text-[12px] text-rc-text font-medium truncate">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                      <div style={{ width: 2, height: 22, borderRadius: 99, background: isSelected ? "var(--rc-red)" : "transparent", flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ ...SANS, fontSize: 12, color: "var(--rc-text)", fontWeight: 500, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>
                           {new Date(h.createdAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
                         </p>
-                        <p className="text-[10px] text-rc-hint">
+                        <p style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)", margin: 0 }}>
                           #{history.length - i} · {new Date(h.createdAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                     </div>
                     {h.globalScore !== null ? (
-                      <span className={`font-mono text-[13px] font-bold shrink-0 ${scoreColorClass(h.globalScore)}`}>
-                        {h.globalScore}<span className="text-rc-hint text-[10px]">/10</span>
+                      <span style={{ ...MONO, fontSize: 13, fontWeight: 700, flexShrink: 0, color: scoreColor(h.globalScore) }}>
+                        {h.globalScore}<span style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)" }}>/10</span>
                       </span>
                     ) : (
-                      <span className="font-mono text-[10px] text-rc-hint">-</span>
+                      <span style={{ ...MONO, fontSize: 10, color: "var(--rc-hint)" }}>—</span>
                     )}
                   </button>
                 );
@@ -543,21 +596,25 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
           )}
         </div>
 
-        {/* Retry at bottom */}
+        {/* Retry */}
         {interviewState === "done" && (
-          <div className="p-3 border-t border-rc-border">
+          <div style={{ padding: 12, borderTop: "1px solid var(--rc-border)" }}>
             <button
               onClick={() => { setInterviewState("idle"); setLiveAnalysis(null); }}
-              className="w-full flex items-center justify-center gap-1.5 py-2 font-mono text-[9px] tracking-widest uppercase text-rc-muted hover:text-rc-text border border-rc-border rounded-lg transition-colors"
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                ...MONO, fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)",
+                padding: "8px 0", background: "none", border: "1px solid var(--rc-border)", borderRadius: 4, cursor: "pointer",
+              }}
             >
-              <RotateCcw className="w-3 h-3" /> {t.interviewTab.newAttempt}
+              <RotateCcw size={11} /> {t.interviewTab.newAttempt}
             </button>
           </div>
         )}
       </div>
 
-      {/* ── RIGHT PANEL ───────────────────────────────────────────────────────── */}
-      <div className="flex-1 bg-rc-bg overflow-hidden">
+      {/* Right panel */}
+      <div style={{ flex: 1, background: "var(--rc-bg)", overflow: "hidden" }}>
         {displayedAnalysis ? (
           <AnalysisPanel
             analysis={displayedAnalysis}
@@ -572,6 +629,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
           />
         )}
       </div>
+
     </div>
   );
 }

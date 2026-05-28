@@ -9,7 +9,7 @@ export async function SeoFooter({ lang }: { lang: Locale }) {
 
   return (
     <footer className="border-t border-rc-border bg-white/50 backdrop-blur-sm relative z-10">
-      <div className="max-w-[1200px] mx-auto py-12 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="max-w-[1200px] mx-auto py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col items-center md:items-start gap-4">
           <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={32} height={32} />
           <div className="font-mono text-[12px] text-rc-hint">{f.copyright}</div>

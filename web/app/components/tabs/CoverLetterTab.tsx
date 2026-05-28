@@ -8,6 +8,12 @@ import { generateCoverLetterPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
 import { PremiumPaywall } from "../PremiumFeature";
 
+const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
+const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
+const DISPLAY_ITALIC: React.CSSProperties = {
+  fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)",
+};
+
 const LANGUAGE_OPTIONS = [
   { value: "auto", label: "Match job description" },
   { value: "en", label: "English" },
@@ -81,124 +87,111 @@ export function CoverLetterTab({ analysisId, isPremium, company, candidateName, 
     }
   }
 
+  const ghostBtn: React.CSSProperties = {
+    ...MONO, fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase",
+    padding: "7px 12px", border: "1px solid var(--rc-border)", borderRadius: 4,
+    cursor: "pointer", background: "var(--rc-surface)", color: "var(--rc-hint)",
+    display: "inline-flex", alignItems: "center", gap: 6,
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Header + language selector */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
         <div>
-          <h2 className="text-[18px] font-bold text-rc-text tracking-tight">
-            {t.coverLetterTab.title}
-          </h2>
-          <p className="text-[13px] text-rc-muted mt-0.5">
+          <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: "0 0 6px", lineHeight: 1.1 }}>
+            Addresses the JD <span style={DISPLAY_ITALIC}>point by point.</span>
+          </h3>
+          <p style={{ ...MONO, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--rc-hint)", margin: 0 }}>
             {t.coverLetterTab.subtitle}
           </p>
         </div>
-        {/* Language selector */}
-        <div className="flex flex-col items-end gap-1">
-          <label className="font-mono text-[10px] uppercase tracking-[0.15em] text-rc-hint">
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end", flexShrink: 0 }}>
+          <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--rc-hint)" }}>
             {t.coverLetterTab.languageLabel}
-          </label>
+          </span>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="font-mono text-[11px] bg-rc-surface border border-rc-border rounded-lg px-3 py-1.5 text-rc-text focus:outline-none focus:border-rc-red/40"
+            style={{ ...MONO, fontSize: 11, background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 4, padding: "6px 10px", color: "var(--rc-text)", cursor: "pointer" }}
           >
             {LANGUAGE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
           {detectedLanguage && language === "auto" && (
-            <span className="font-mono text-[10px] text-rc-hint">
+            <span style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)" }}>
               {t.coverLetterTab.autoDetected}: {LANG_NAMES[detectedLanguage] ?? detectedLanguage}
             </span>
           )}
         </div>
       </div>
 
-      {/* Generate button - shown before first generation */}
+      {/* Generate CTA (before first generation) */}
       {!coverLetter && (
-        <div className="flex justify-center py-8">
+        <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
           <button
             onClick={handleGenerate}
             disabled={isPending || !analysisId}
-            className="flex items-center gap-2 px-8 py-4 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-rc-red/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              ...MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              padding: "14px 32px", background: "var(--rc-red)", color: "#fff",
+              border: "none", borderRadius: 6,
+              cursor: isPending || !analysisId ? "not-allowed" : "pointer",
+              opacity: isPending || !analysisId ? 0.55 : 1,
+              boxShadow: "0 8px 24px rgba(201,58,57,0.22)",
+            }}
           >
-            {isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                {t.coverLetterTab.generating}
-              </>
-            ) : (
-              t.coverLetterTab.generateButton
-            )}
+            {isPending
+              ? <><Loader2 size={14} className="animate-spin" />{t.coverLetterTab.generating}</>
+              : t.coverLetterTab.generateButton
+            }
           </button>
         </div>
       )}
 
-      {/* Error state */}
       {isError && (
-        <p className="text-center text-[13px] text-rc-red">{t.coverLetterTab.error}</p>
+        <p style={{ ...SANS, fontSize: 13, color: "var(--rc-red)", textAlign: "center", margin: 0 }}>{t.coverLetterTab.error}</p>
       )}
 
-      {/* Cover letter card */}
+      {/* Result */}
       {coverLetter && (
-        <div className="space-y-4">
-          <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-[12px] p-8">
-            <div className="font-sans">
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => <h1 className="text-[18px] font-bold text-rc-text mb-4">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-[16px] font-semibold text-rc-text mb-3">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-[14px] font-semibold text-rc-text mb-2">{children}</h3>,
-                  p: ({ children }) => <p className="text-[14px] text-rc-text leading-[1.8] mb-4 last:mb-0">{children}</p>,
-                  strong: ({ children }) => <strong className="font-semibold text-rc-text">{children}</strong>,
-                  em: ({ children }) => <em className="italic">{children}</em>,
-                  ul: ({ children }) => <ul className="list-disc pl-5 mb-4 space-y-1">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>,
-                  li: ({ children }) => <li className="text-[14px] text-rc-text leading-[1.8]">{children}</li>,
-                }}
-              >
-                {coverLetter}
-              </ReactMarkdown>
-            </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ background: "white", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 8, padding: "36px 40px" }}>
+            <ReactMarkdown
+              components={{
+                h1: ({ children }) => <h1 style={{ ...SANS, fontSize: 18, fontWeight: 700, color: "var(--rc-text)", marginBottom: 16 }}>{children}</h1>,
+                h2: ({ children }) => <h2 style={{ ...SANS, fontSize: 16, fontWeight: 600, color: "var(--rc-text)", marginBottom: 12 }}>{children}</h2>,
+                h3: ({ children }) => <h3 style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)", marginBottom: 10 }}>{children}</h3>,
+                p: ({ children }) => <p style={{ ...SANS, fontSize: 14, color: "var(--rc-text)", lineHeight: 1.8, marginBottom: 16 }}>{children}</p>,
+                strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
+                ul: ({ children }) => <ul style={{ paddingLeft: 20, marginBottom: 16 }}>{children}</ul>,
+                li: ({ children }) => <li style={{ ...SANS, fontSize: 14, color: "var(--rc-text)", lineHeight: 1.8 }}>{children}</li>,
+              }}
+            >
+              {coverLetter}
+            </ReactMarkdown>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-2 px-4 py-2 border border-rc-border rounded-lg text-[12px] font-mono text-rc-muted hover:text-rc-text hover:border-rc-text/20 transition-all"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-rc-green" />
-                  {t.coverLetterTab.copied}
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  {t.coverLetterTab.copy}
-                </>
-              )}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={handleCopy} style={ghostBtn}>
+              {copied
+                ? <><Check size={12} style={{ color: "var(--rc-green)" }} />{t.coverLetterTab.copied}</>
+                : <><Copy size={12} />{t.coverLetterTab.copy}</>
+              }
             </button>
-
-            <button
-              onClick={handleExportPdf}
-              disabled={isExportingPdf}
-              className="flex items-center gap-2 px-4 py-2 border border-rc-border rounded-lg text-[12px] font-mono text-rc-muted hover:text-rc-text hover:border-rc-text/20 transition-all disabled:opacity-50"
-            >
-              <Download className="w-3.5 h-3.5" />
+            <button onClick={handleExportPdf} disabled={isExportingPdf} style={{ ...ghostBtn, opacity: isExportingPdf ? 0.5 : 1, cursor: isExportingPdf ? "wait" : "pointer" }}>
+              <Download size={12} />
               {isExportingPdf ? t.coverLetterTab.exporting : t.coverLetterTab.exportPdf}
             </button>
-
             <button
               onClick={handleGenerate}
               disabled={isPending}
-              className="flex items-center gap-2 text-[12px] font-mono text-rc-hint hover:text-rc-muted transition-colors ml-auto"
+              style={{ ...MONO, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--rc-hint)", background: "none", border: "none", cursor: isPending ? "wait" : "pointer", display: "inline-flex", alignItems: "center", gap: 6, marginLeft: "auto", padding: 0 }}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isPending ? "animate-spin" : ""}`} />
+              <RefreshCw size={12} className={isPending ? "animate-spin" : ""} />
               {isPending ? t.coverLetterTab.regenerating : t.coverLetterTab.regenerate}
             </button>
           </div>

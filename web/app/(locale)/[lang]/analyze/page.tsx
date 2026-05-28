@@ -812,12 +812,18 @@ function AnalyzeContent() {
           cvBlobUrl={cvBlobUrl}
           deepStatus={deepStatus}
           isPremium={!!activeSubscription}
+          userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
           onReset={handleReset}
           onExportMd={exportToMd}
           onExportPdf={exportToPdf}
           isExportingPdf={isExportingPdf}
           onShare={analysisId && user ? shareAnalysis : undefined}
           isSharing={isSharing}
+          reconstructedCv={reconstructedCv}
+          isRewriting={isRewriting}
+          onRewrite={handleRewrite}
+          email={activeSubscription?.email || user?.email || null}
+          accessToken={session?.access_token ?? null}
         />
       ) : (
         <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>

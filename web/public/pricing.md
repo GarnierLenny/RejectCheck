@@ -37,8 +37,9 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
   - Unlimited deep analyses
   - Score Evolution Tracker (compare scores across iterations)
   - Full analysis history saved to dashboard
-  - **AI Interview** - 10-minute voice-based mock interview tailored to the specific job, ending with a scored debrief
   - **CV Rewrite Mode** - one-click surgical rewrite with keywords injected, passive tone converted, seniority signals added; export as PDF
+  - **Bridge Project** - 5-day side project plan scoped to your exact skill gaps: tech stack, milestones, README template
+  - **Cover Letter Generator** (AI-generated cover letter tailored to the job and CV)
   - CV Version Manager (save and compare multiple CV versions)
   - Application Tracker (kanban-style tracking of job applications)
   - Full (unblurred) technical skill radar, GitHub signal, LinkedIn signal, project recommendations
@@ -54,7 +55,7 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
 - **Included analyses**: Unlimited
 - **Features**: Everything in SHORTLISTED, plus:
   - RejectCheck Roadmaps (personalized multi-week preparation roadmap) - *coming soon*
-  - Cover Letter Generator (AI-generated cover letter tailored to the job and CV)
+  - **AI Interview** - 10-minute voice-based mock interview tailored to the specific job, ending with a scored debrief
   - **Negotiation Playbook** (market positioning chart, leverage points cited from CV/JD, ready-to-send counter-offer email, anchoring strategy, interview talking points, salary impact estimate for each roadmap action)
   - Recruiter Message Generator (tailored LinkedIn/email outreach messages) - *coming soon*
   - Chrome Extension (one-click analysis from any job board) - *coming soon*
@@ -68,7 +69,7 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
 | Tier | Price | Analyses | AI Interview | CV Rewrite | Roadmaps | Guarantee |
 |---|---|---|---|---|---|---|
 | REJECTED | €0 / forever | 1 (guest) / 3 (registered) | ❌ | ❌ | ❌ | - |
-| SHORTLISTED | €7.99 / month | Unlimited | ✅ | ✅ | ❌ | - |
+| SHORTLISTED | €7.99 / month | Unlimited | ✅ | ✅ | ✅ Bridge Project | - |
 | HIRED | €11.99 / month | Unlimited | ✅ | ✅ | ✅ (coming soon) | Refund if hired |
 
 ---
@@ -79,4 +80,4 @@ Official pricing page: https://rejectcheck.com/en/pricing (FR: https://rejectche
 - Contact: support@rejectcheck.com
 - Refunds: see the HIRED guarantee above. For other cases, contact support.
 
-Last updated: 2026-04-23
+Last updated: 2026-05-28

@@ -6,6 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "../../context/language";
 import { SourceTimeline } from "./timeline/SourceTimeline";
+import { GitBranch, PenLine, Mail, Mic, TrendingUp } from "lucide-react";
+import { ImproveTab } from "./tabs/ImproveTab";
+import { CoverLetterTab } from "./tabs/CoverLetterTab";
+import { InterviewTab } from "./tabs/InterviewTab";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -97,12 +101,18 @@ type Props = {
   cvBlobUrl: string | null;
   deepStatus: "pending" | "failed" | "ready";
   isPremium: boolean;
+  userPlan?: "free" | "shortlisted" | "hired";
   onReset: () => void;
   onExportMd: () => void;
   onExportPdf: () => void;
   isExportingPdf: boolean;
   onShare?: () => void;
   isSharing: boolean;
+  reconstructedCv?: string | null;
+  isRewriting?: boolean;
+  onRewrite?: () => void;
+  email?: string | null;
+  accessToken?: string | null;
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -113,12 +123,18 @@ export function DiagnosticResult({
   cvBlobUrl,
   deepStatus,
   isPremium,
+  userPlan = "free",
   onReset,
   onExportMd,
   onExportPdf,
   isExportingPdf,
   onShare,
   isSharing,
+  reconstructedCv = null,
+  isRewriting = false,
+  onRewrite,
+  email = null,
+  accessToken = null,
 }: Props) {
   const { localePath } = useLanguage();
 
@@ -127,6 +143,7 @@ export function DiagnosticResult({
   const [barGo, setBarGo] = useState(false);
   const [activeSection, setActiveSection] = useState("s1");
   const [skillsGo, setSkillsGo] = useState(false);
+  const [proTier, setProTier] = useState<"shortlisted" | "hired">("shortlisted");
   const mainRef = useRef<HTMLElement>(null);
 
   // Score count-up
@@ -381,9 +398,17 @@ export function DiagnosticResult({
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Premium</div>
-            {tocItem("s9", "09", "Bridge project", tocBadge("◆", "lock"), !isPremium)}
-            {tocItem("s10", "10", "CV rewrite", tocBadge("◆", "lock"), !isPremium)}
-            {tocItem("s11", "11", "AI interview", tocBadge("◆", "lock"), !isPremium)}
+            {(() => {
+              const hasShortlisted = userPlan === "shortlisted" || userPlan === "hired";
+              const hasHired = userPlan === "hired";
+              return (<>
+                {tocItem(hasShortlisted ? "s9"  : "s-pro", "09", "Bridge project", hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+                {tocItem(hasShortlisted ? "s10" : "s-pro", "10", "CV rewrite",     hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+                {tocItem(hasShortlisted ? "s11" : "s-pro", "11", "Cover letter",   hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+                {tocItem(hasHired ? "s12" : "s-pro", "12", "AI interview",  hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
+                {tocItem(hasHired ? "s13" : "s-pro", "13", "Negotiation",   hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
+              </>);
+            })()}
           </div>
         </aside>
 
@@ -952,55 +977,260 @@ export function DiagnosticResult({
             )}
           </section>
 
-          {/* ── §09 Premium: Bridge project ── */}
-          <PremiumSection
-            id="s9"
-            sectionLabel="§ 09 · Bridge-the-gap project"
-            title={<>A one-week side project that <span style={DISPLAY_ITALIC}>closes your gap.</span></>}
-            isPremium={isPremium}
-            ctaText="Unlock with Pro · $19/mo →"
-            unlockTitle={<>A tailored 5-day project plan, built around <span style={DISPLAY_ITALIC}>your</span> gaps.</>}
-            unlockDesc="Tech stack, repo structure, day-by-day milestones, README template — everything you need to ship something that lands the keywords you're missing."
-          >
-            <PremDecoLines rows={[70, 95, 60, 88, 75, 92, 64]} />
-          </PremiumSection>
+          {/* ── §09–13 Premium sections ── */}
+          {(() => {
+            const hasShortlisted = userPlan === "shortlisted" || userPlan === "hired";
+            const hasHired = userPlan === "hired";
 
-          {/* ── §10 Premium: CV rewrite ── */}
-          <PremiumSection
-            id="s10"
-            sectionLabel="§ 10 · CV rewrite"
-            title={<>Your whole CV, rewritten <span style={DISPLAY_ITALIC}>bullet by bullet.</span></>}
-            isPremium={isPremium}
-            ctaText="Unlock with Pro · $19/mo →"
-            unlockTitle={<>Bullets rewritten, ready to <span style={DISPLAY_ITALIC}>paste into your CV.</span></>}
-            unlockDesc="Each suggestion preserves your truth and adds the metric / verb / scope that's missing. Export as PDF, DOCX, or Markdown."
-          >
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, minHeight: 180 }}>
-              <PremDecoLines rows={[100, 92, 85, 78, 95, 70]} />
-              <PremDecoLines rows={[88, 100, 75, 90, 82, 68]} />
-            </div>
-          </PremiumSection>
-
-          {/* ── §11 Premium: AI interview ── */}
-          <PremiumSection
-            id="s11"
-            sectionLabel="§ 11 · AI mock interview"
-            title={<>Ten minutes of <span style={DISPLAY_ITALIC}>voice rehearsal</span>, tailored to this JD.</>}
-            isPremium={isPremium}
-            ctaText="Unlock with Pro · $19/mo →"
-            unlockTitle={<>Questions get <span style={DISPLAY_ITALIC}>harder where you&apos;re soft</span>, easier where you&apos;re strong.</>}
-            unlockDesc="Voice, in your browser. 10 minutes. Axis scores and a written debrief at the end."
-          >
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, minHeight: 180 }}>
-              {[[80, 60, 80], [120, 90]].map((heights, ci) => (
-                <div key={ci} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {heights.map((h, i) => (
-                    <div key={i} style={{ height: h, background: "var(--rc-surface-hero)", border: "1px solid var(--rc-border)", borderRadius: 4 }} />
-                  ))}
+            // Reusable launch card for features that require separate generation
+            const launchCard = (icon: React.ReactNode, title: string, desc: string, bullets: string[]) => (
+              <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 8, padding: "28px 32px", display: "flex", gap: 28, alignItems: "flex-start" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(201,58,57,0.08)", border: "1px solid rgba(201,58,57,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 16px rgba(201,58,57,0.25)" }}>
+                  {icon}
                 </div>
-              ))}
-            </div>
-          </PremiumSection>
+                <div style={{ flex: 1 }}>
+                  <div style={{ ...SANS, fontWeight: 600, fontSize: 15, color: "var(--rc-text)", marginBottom: 6, letterSpacing: "-0.01em" }}>{title}</div>
+                  <div style={{ ...SANS, fontSize: 13, lineHeight: 1.6, color: "var(--rc-muted)", marginBottom: 14 }}>{desc}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 18 }}>
+                    {bullets.map((b, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                        <span style={{ width: 3, height: 3, borderRadius: 99, background: "var(--rc-red)", display: "inline-block", flexShrink: 0, marginTop: 6 }} />
+                        <span style={{ ...SANS, fontSize: 12, color: "var(--rc-muted)" }}>{b}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <span style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--rc-hint)" }}>Available in your workspace →</span>
+                </div>
+              </div>
+            );
+
+            return (<>
+
+              {/* §09 Bridge project */}
+              {hasShortlisted && (
+                <section data-dr-sec="s9" id="s9" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <div style={SEC_NUM}><SecNumLine />§ 09 · Bridge project</div>
+                  {result.project_recommendation ? (() => {
+                    const p = result.project_recommendation;
+                    const diffColor = p.difficulty_level === "Expert" ? "var(--rc-red)" : p.difficulty_level === "Advanced" ? "var(--rc-amber)" : "var(--rc-hint)";
+                    return (<>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 20 }}>
+                        <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.1 }}>
+                          <span style={DISPLAY_ITALIC}>{p.name}</span>
+                        </h3>
+                        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: diffColor, padding: "2px 7px", border: `1px solid ${diffColor}33`, borderRadius: 4, flexShrink: 0 }}>{p.difficulty_level}</span>
+                      </div>
+                      <p style={{ ...SANS, fontSize: 14, lineHeight: 1.65, color: "var(--rc-muted)", margin: "0 0 24px", maxWidth: 680 }}>{p.why_it_matters}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginBottom: 28 }}>
+                        {p.technologies.map((t) => (
+                          <span key={t} style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--rc-text)", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 4, padding: "3px 8px" }}>{t}</span>
+                        ))}
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        {p.key_features.slice(0, 4).map((f, i) => (
+                          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 16px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6 }}>
+                            <span style={{ ...MONO, fontSize: 10, color: "var(--rc-red)", fontWeight: 700, flexShrink: 0, paddingTop: 1 }}>{String(i + 1).padStart(2, "0")}</span>
+                            <span style={{ ...SANS, fontSize: 13, lineHeight: 1.5, color: "var(--rc-text)" }}>{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>);
+                  })() : launchCard(
+                    <GitBranch size={22} strokeWidth={1.5} color="#C93A39" />,
+                    "Bridge project",
+                    "A 5-day side project scoped to your exact skill gaps.",
+                    ["Tech stack, repo structure, day-by-day milestones", "README template ready to publish", "Built around the keywords this JD expects"]
+                  )}
+                </section>
+              )}
+
+              {/* §10 CV rewrite */}
+              {hasShortlisted && (
+                <section data-dr-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 10 · CV rewrite</div>
+                  <ImproveTab
+                    reconstructedCv={reconstructedCv}
+                    isLoading={isRewriting}
+                    isPremium={true}
+                    hasAnalysisId={!!analysisId}
+                    onRewrite={onRewrite ?? (() => {})}
+                  />
+                </section>
+              )}
+
+              {/* §11 Cover letter */}
+              {hasShortlisted && (
+                <section data-dr-sec="s11" id="s11" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 11 · Cover letter</div>
+                  <CoverLetterTab
+                    analysisId={analysisId}
+                    isPremium={true}
+                    company={result.job_details?.company ?? null}
+                    candidateName={null}
+                    savedCoverLetter={null}
+                  />
+                </section>
+              )}
+
+              {/* §12 AI mock interview */}
+              {hasHired && (
+                <section data-dr-sec="s12" id="s12" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 12 · AI mock interview</div>
+                  <InterviewTab
+                    isPremium={true}
+                    analysisId={analysisId}
+                    email={email}
+                    accessToken={accessToken}
+                    defaultInterviewId={null}
+                  />
+                </section>
+              )}
+
+              {/* §13 Negotiation */}
+              {hasHired && (
+                <section data-dr-sec="s13" id="s13" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+                  <div style={SEC_NUM}><SecNumLine />§ 13 · Negotiation</div>
+                  {result.negotiation_analysis ? (() => {
+                    const n = result.negotiation_analysis!;
+                    const glyph = n.market_range.currency === "USD" ? "$" : n.market_range.currency === "GBP" ? "£" : "€";
+                    const fmt = (v: number) => `${glyph}${Math.round(v / 1000)}k`;
+                    const leverageColors: Record<string, string> = { high: "var(--rc-green)", medium: "var(--rc-amber)", watch: "var(--rc-red)" };
+                    return (<>
+                      <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: "0 0 28px", lineHeight: 1.1 }}>
+                        Your <span style={DISPLAY_ITALIC}>negotiation playbook.</span>
+                      </h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 28 }}>
+                        <div style={{ padding: "20px 24px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 8 }}>
+                          <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--rc-hint)", fontWeight: 700, marginBottom: 8 }}>Market range</div>
+                          <div style={{ ...SANS, fontWeight: 600, fontSize: 22, color: "var(--rc-text)", letterSpacing: "-0.02em" }}>{fmt(n.market_range.min)} – {fmt(n.market_range.max)}</div>
+                          <div style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)", marginTop: 4 }}>per {n.period === "daily" ? "day" : "year"}</div>
+                        </div>
+                        <div style={{ padding: "20px 24px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 8 }}>
+                          <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--rc-hint)", fontWeight: 700, marginBottom: 8 }}>Your anchor</div>
+                          <div style={{ ...SANS, fontWeight: 600, fontSize: 22, color: "var(--rc-red)", letterSpacing: "-0.02em" }}>{fmt(n.anchoring_strategy.anchor_amount)}</div>
+                          <div style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)", marginTop: 4 }}>opening ask</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {n.leverage_points.slice(0, 4).map((lp, i) => (
+                          <div key={i} style={{ display: "grid", gridTemplateColumns: "72px 1fr", gap: 12, alignItems: "start", padding: "12px 16px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6 }}>
+                            <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: leverageColors[lp.level], padding: "2px 0" }}>{lp.level}</span>
+                            <div>
+                              <div style={{ ...SANS, fontSize: 13, fontWeight: 600, color: "var(--rc-text)", marginBottom: 2 }}>{lp.label}</div>
+                              <div style={{ ...SANS, fontSize: 12, lineHeight: 1.5, color: "var(--rc-muted)" }}>{lp.evidence}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: 16, ...MONO, fontSize: 10, letterSpacing: "0.08em", color: "var(--rc-hint)" }}>Full counter-offer email and talking points available in your workspace →</div>
+                    </>);
+                  })() : launchCard(
+                    <TrendingUp size={22} strokeWidth={1.5} color="#C93A39" />,
+                    "Negotiation playbook",
+                    "Counter-offer email, market salary chart, leverage points — generated from your analysis.",
+                    ["Market range vs your current position", "Leverage points ranked by impact", "Ready-to-send counter-offer email"]
+                  )}
+                </section>
+              )}
+
+              {/* Upsell — only for features the user doesn't have yet */}
+              {userPlan !== "hired" && (() => {
+                type ProFeature = { num: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>; name: string; desc: string };
+                const ALL_FEATURES: ProFeature[] = [
+                  { num: "§ 09", Icon: GitBranch,  name: "Bridge project",    desc: "Ship a working repo in 5 days. Built around the exact stack and keywords this JD expects." },
+                  { num: "§ 10", Icon: PenLine,    name: "CV rewrite",        desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
+                  { num: "§ 11", Icon: Mail,       name: "Cover letter",      desc: "Addresses the JD point by point. Sounds like you wrote it — because the analysis did." },
+                  { num: "§ 12", Icon: Mic,        name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots — scored debrief at the end." },
+                  { num: "§ 13", Icon: TrendingUp, name: "Negotiation",       desc: "Counter-offer email, market chart, leverage points. Ready to send before the offer call." },
+                ];
+                // shortlisted users only see hired-only features in upsell
+                const upsellFeatures = hasShortlisted ? ALL_FEATURES.slice(3) : ALL_FEATURES;
+                const isHired = hasShortlisted ? true : proTier === "hired";
+                const cols = upsellFeatures.length;
+                const gridCols = cols === 2 ? "repeat(2, 1fr)" : cols === 3 ? "repeat(3, 1fr)" : "repeat(6, 1fr)";
+
+                const featureCard = (f: ProFeature, i: number, total: number, topBorder = false) => (
+                  <div key={f.num} style={{
+                    gridColumn: total === 5 ? `span ${i < 3 ? 2 : 3}` : "span 1",
+                    padding: "48px 32px",
+                    borderRight: (total === 5 ? [0,1,3] : Array.from({length: total - 1}, (_, k) => k)).includes(i) ? "1px solid rgba(255,255,255,0.07)" : "none",
+                    borderTop: topBorder || (total === 5 && i >= 3) ? "1px solid rgba(255,255,255,0.07)" : "none",
+                    display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 18,
+                  }}>
+                    <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(201,58,57,0.1)", border: "1px solid rgba(201,58,57,0.18)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px rgba(201,58,57,0.4), 0 0 48px rgba(201,58,57,0.18)" }}>
+                      <f.Icon size={28} strokeWidth={1.5} color="#C93A39" />
+                    </div>
+                    <div>
+                      <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", color: "rgba(255,255,255,0.28)", fontWeight: 700, marginBottom: 7 }}>{f.num}</div>
+                      <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.92)", marginBottom: 8, letterSpacing: "-0.01em" }}>{f.name}</div>
+                      <div style={{ ...SANS, fontSize: 12, lineHeight: 1.65, color: "rgba(255,255,255,0.42)" }}>{f.desc}</div>
+                    </div>
+                  </div>
+                );
+
+                return (
+                  <section data-dr-sec="s-pro" id="s-pro" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+                    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
+                      <div>
+                        <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 12–13 · Hired features" : "§ 09–13 · Pro features"}</div>
+                        <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(26px,2.8vw,36px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.05 }}>
+                          {result.score >= 50
+                            ? <>{`You scored ${result.score}.`} <span style={DISPLAY_ITALIC}>Here&apos;s how to flip it.</span></>
+                            : result.score >= 25
+                            ? <>{`You scored ${result.score}.`} <span style={DISPLAY_ITALIC}>Close the remaining gaps.</span></>
+                            : <>Strong match. <span style={DISPLAY_ITALIC}>Make it unrejectable.</span></>
+                          }
+                        </h3>
+                      </div>
+                      {!hasShortlisted && (
+                        <div style={{ display: "flex", flexShrink: 0, border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
+                          {(["shortlisted", "hired"] as const).map((tier) => {
+                            const active = proTier === tier;
+                            return (
+                              <button key={tier} onClick={() => setProTier(tier)} style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "8px 16px", border: "none", borderLeft: tier === "hired" ? "1px solid var(--rc-border)" : "none", cursor: "pointer", background: active ? "var(--rc-text)" : "var(--rc-bg)", color: active ? "var(--rc-bg)" : "var(--rc-hint)", transition: "all 150ms ease", whiteSpace: "nowrap" as const }}>
+                                {tier === "shortlisted" ? "Shortlisted · €7.99" : "Hired · €11.99"}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid var(--rc-border)" }}>
+                      <div style={{ background: "#111", display: "grid", gridTemplateColumns: gridCols }}>
+                        {cols === 5 ? (
+                          <>
+                            <div style={{ display: "contents" }}>
+                              {upsellFeatures.slice(0, 3).map((f, i) => featureCard(f, i, 5))}
+                            </div>
+                            <div style={{ display: "grid", gridColumn: "span 6", gridTemplateColumns: "repeat(6, 1fr)" }}>
+                              {/* animated row 2 for free users */}
+                              <div style={{ gridColumn: "span 6", display: "grid", gridTemplateRows: isHired ? "1fr" : "0fr", transition: "grid-template-rows 380ms ease" }}>
+                                <div style={{ overflow: "hidden" }}>
+                                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", opacity: isHired ? 1 : 0, transform: isHired ? "translateY(0)" : "translateY(-8px)", transition: "opacity 280ms ease 80ms, transform 280ms ease 80ms" }}>
+                                    {upsellFeatures.slice(3).map((f, i) => featureCard(f, i, 2, true))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          upsellFeatures.map((f, i) => featureCard(f, i, cols))
+                        )}
+                      </div>
+                      <div style={{ background: "var(--rc-bg)", borderTop: "1px solid var(--rc-border)", padding: "20px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
+                        <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.06em", color: "var(--rc-hint)" }}>Cancel anytime · no commitment</span>
+                        <Link href="/pricing" style={{ ...SANS, fontWeight: 700, fontSize: 14, padding: "12px 26px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", boxShadow: "0 8px 28px rgba(201,58,57,0.32)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, letterSpacing: "-0.01em", flexShrink: 0 }}>
+                          {isHired || hasShortlisted ? "Get Hired →" : proTier === "hired" ? "Get Hired →" : "Get Shortlisted →"}
+                        </Link>
+                      </div>
+                    </div>
+                  </section>
+                );
+              })()}
+
+            </>);
+          })()}
 
         </main>
 
@@ -1026,93 +1256,3 @@ export function DiagnosticResult({
   );
 }
 
-// ── Premium section helper ────────────────────────────────────────────────────
-
-function PremiumSection({
-  id,
-  sectionLabel,
-  title,
-  isPremium,
-  ctaText,
-  unlockTitle,
-  unlockDesc,
-  children,
-}: {
-  id: string;
-  sectionLabel: string;
-  title: React.ReactNode;
-  isPremium: boolean;
-  ctaText: string;
-  unlockTitle: React.ReactNode;
-  unlockDesc: string;
-  children: React.ReactNode;
-}) {
-  const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
-  const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
-  const DISPLAY_ITALIC: React.CSSProperties = { fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" };
-  const SEC_NUM: React.CSSProperties = { display: "flex", alignItems: "center", gap: 14, ...MONO, fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase" as const, color: "var(--rc-hint)", marginBottom: 8 };
-
-  return (
-    <section data-dr-sec={id} id={id} style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)", position: "relative" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24, gap: 18 }}>
-        <div>
-          <div style={SEC_NUM}>
-            <span style={{ width: 28, height: 1, background: "var(--rc-text)", display: "inline-block", flexShrink: 0 }} />
-            {sectionLabel}
-          </div>
-          <h3 style={{ ...SANS, fontWeight: 500, fontSize: 28, letterSpacing: "-0.025em", margin: 0, lineHeight: 1.1 }}>{title}</h3>
-        </div>
-        {!isPremium && (
-          <span style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-red)", padding: "4px 10px", background: "var(--rc-red-bg)", border: "1px solid var(--rc-red-border)", borderRadius: 4, whiteSpace: "nowrap" as const, flexShrink: 0 }}>
-            ◆ Pro
-          </span>
-        )}
-      </div>
-      <div style={{ position: "relative", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, padding: 28, overflow: "hidden" }}>
-        {!isPremium ? (
-          <>
-            <div style={{ filter: "blur(4px)", userSelect: "none", pointerEvents: "none", opacity: 0.72 }}>
-              {children}
-            </div>
-            <div style={{
-              position: "absolute", left: 0, right: 0, bottom: 0, height: "60%",
-              background: "linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,0.98) 60%, rgba(255,255,255,1))",
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
-              paddingBottom: 24, textAlign: "center",
-            }}>
-              <h4 style={{ ...SANS, fontWeight: 600, fontSize: 17, letterSpacing: "-0.015em", color: "var(--rc-text)", margin: "0 0 4px", maxWidth: 480 }}>{unlockTitle}</h4>
-              <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "0 0 16px", maxWidth: 440 }}>{unlockDesc}</p>
-              <Link
-                href="/pricing"
-                style={{
-                  ...SANS, fontWeight: 500, fontSize: 13,
-                  padding: "10px 18px", borderRadius: 6,
-                  background: "linear-gradient(180deg, var(--rc-red), #A32A29)",
-                  color: "#fff", border: "none",
-                  boxShadow: "0 8px 20px rgba(201,58,57,0.22)",
-                  whiteSpace: "nowrap" as const,
-                  textDecoration: "none",
-                  display: "inline-block",
-                }}
-              >
-                {ctaText}
-              </Link>
-            </div>
-          </>
-        ) : (
-          children
-        )}
-      </div>
-    </section>
-  );
-}
-
-function PremDecoLines({ rows }: { rows: number[] }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-      {rows.map((w, i) => (
-        <div key={i} style={{ height: 12, background: "var(--rc-surface-hero)", borderRadius: 99, width: `${w}%` }} />
-      ))}
-    </div>
-  );
-}
