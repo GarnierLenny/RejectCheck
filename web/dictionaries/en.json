@@ -349,6 +349,129 @@
         }
       ]
     },
+    "s01": {
+      "smallLabel": "The promise",
+      "h1Part1": "Know",
+      "h1Italic": "why.",
+      "h1Part2": "Before they",
+      "h1Faded": "don't say.",
+      "subtitle": "You send 80 applications. 78 disappear into silence. RejectCheck reads your CV the way a recruiter would — and tells you, before you apply, exactly what would have killed it.",
+      "stat1Value": "60 seconds",
+      "stat1Label": "per analysis",
+      "stat2Value": "2 free",
+      "stat2Label": "per month",
+      "stat3Value": "No signup",
+      "stat3Label": "to start",
+      "dropLabel": "Drop your CV here",
+      "dropItalic": "— or paste a job link.",
+      "dropHint": "PDF or DOCX up to 5MB · no signup required for the first run",
+      "dropCta": "Get my diagnosis →"
+    },
+    "s02": {
+      "smallLabel": "The method",
+      "h2Part1": "Six dimensions a recruiter scans in",
+      "h2Italic": "six seconds.",
+      "h2Part2": "We score each one, in numbers.",
+      "items": [
+        {
+          "n": "01",
+          "title": "ATS",
+          "it": "keyword filter",
+          "desc": "We simulate the 4 most-used Applicant Tracking Systems and tell you exactly which required terms are missing — including singular/plural and synonym variants."
+        },
+        {
+          "n": "02",
+          "title": "Seniority",
+          "it": "match",
+          "desc": "\"5+ years\" vs \"8 years\" reads very differently. We map your titles, scope, and tenure against the band the JD expects."
+        },
+        {
+          "n": "03",
+          "title": "Quantified",
+          "it": "outcomes",
+          "desc": "Bullets without numbers blur. We flag every bullet missing a metric and suggest where to add one — truthfully."
+        },
+        {
+          "n": "04",
+          "title": "Red",
+          "it": "flags",
+          "desc": "Unexplained gaps, vague titles, inconsistencies. The things a recruiter spots in two seconds — we surface them before they do."
+        },
+        {
+          "n": "05",
+          "title": "GitHub /",
+          "it": "portfolio signal",
+          "desc": "For technical roles, your GitHub matters more than your bullets. We read public activity, language mix, and project depth, then weigh them against the JD."
+        },
+        {
+          "n": "06",
+          "title": "Tone &",
+          "it": "style",
+          "desc": "Buzzword density, voice consistency, length-to-impact ratio. We tell you where it sounds like a template — and where it sounds like you."
+        }
+      ]
+    },
+    "s03": {
+      "smallLabel": "The report",
+      "h2Part1": "Not a score. A",
+      "h2Italic": "briefing.",
+      "subtitle": "The report you get isn't a thumbs-up or down. It's an actionable document — the kind you'd pay a senior recruiter $300 to write for you.",
+      "browserSaved": "SAVED · 2 MIN AGO",
+      "topFixTitle": "The one fix that moves you most",
+      "topFixBody": "Add distributed systems, gRPC, and observability to your bullets where they truthfully apply. Estimated score impact: −22 points.",
+      "skillMapLabel": "Skill mapping · 4 of 6 matched"
+    },
+    "s04": {
+      "smallLabel": "Honestly",
+      "h2Part1": "There are other tools. Here's",
+      "h2Italic": "what they don't do.",
+      "compRows": [
+        {
+          "feat": "Honest verdict score",
+          "sub": "Tells you when you'll be rejected, not just \"matched\"."
+        },
+        {
+          "feat": "GitHub / portfolio scan",
+          "sub": "Reads your public repos and weighs them against the JD."
+        },
+        {
+          "feat": "AI mock interview",
+          "sub": "10-minute voice interview tailored to the JD."
+        },
+        {
+          "feat": "Bullet-by-bullet rewrite",
+          "sub": "Suggests truthful rewrites, not generic action verbs."
+        },
+        {
+          "feat": "No upsell on essentials",
+          "sub": "Score, keywords, and red flags are always free."
+        },
+        {
+          "feat": "Pricing",
+          "sub": "What you pay for the unlimited plan."
+        }
+      ]
+    },
+    "s05": {
+      "smallLabel": "People",
+      "h2Part1": "What people say.",
+      "h2Italic": "Unfiltered.",
+      "founderQuote": "During my job search I built the tool I wish existed, this same tool got me 4x more interviews and a job in 2 months"
+    },
+    "s06": {
+      "smallLabel": "Pricing",
+      "recommendedSuffix": "· recommended",
+      "hiredPeriod": "/month"
+    },
+    "s07": {
+      "smallLabel": "In closing",
+      "quotePart1": "The rejection arrives in silence. Or it doesn't arrive at all.",
+      "quoteRed": "We just thought you'd want to know first.",
+      "attribution": "Made in Paris · by"
+    },
+    "footerBrand": {
+      "tagline": "The CV coach that tells you why you'd be rejected, before you apply. Built for developers, useful for any role."
+    },
     "whatsNew": {
       "badge": "More from RejectCheck",
       "title": "Beyond one-shot CV analysis",

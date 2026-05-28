@@ -349,6 +349,129 @@
         }
       ]
     },
+    "s01": {
+      "smallLabel": "La promesse",
+      "h1Part1": "Savoir",
+      "h1Italic": "pourquoi.",
+      "h1Part2": "Avant qu'ils ne",
+      "h1Faded": "disent rien.",
+      "subtitle": "Vous envoyez 80 candidatures. 78 disparaissent dans le silence. RejectCheck lit votre CV comme un recruteur le lirait — et vous dit, avant de postuler, exactement ce qui l'aurait tué.",
+      "stat1Value": "60 secondes",
+      "stat1Label": "par analyse",
+      "stat2Value": "2 gratuites",
+      "stat2Label": "par mois",
+      "stat3Value": "Sans compte",
+      "stat3Label": "pour commencer",
+      "dropLabel": "Déposez votre CV ici",
+      "dropItalic": "— ou collez un lien d'offre.",
+      "dropHint": "PDF ou DOCX jusqu'à 5 Mo · sans inscription pour la première analyse",
+      "dropCta": "Obtenir mon diagnostic →"
+    },
+    "s02": {
+      "smallLabel": "La méthode",
+      "h2Part1": "Six dimensions qu'un recruteur scanne en",
+      "h2Italic": "six secondes.",
+      "h2Part2": "On score chacune, en chiffres.",
+      "items": [
+        {
+          "n": "01",
+          "title": "Filtre",
+          "it": "ATS",
+          "desc": "On simule les 4 ATS les plus utilisés et on vous dit exactement quels termes requis manquent — variantes singulier/pluriel et synonymes inclus."
+        },
+        {
+          "n": "02",
+          "title": "Correspondance",
+          "it": "de séniorité",
+          "desc": "\"5+ ans\" vs \"8 ans\" ne se lit pas pareil. On mappe vos titres, périmètre et ancienneté contre la tranche que l'offre attend."
+        },
+        {
+          "n": "03",
+          "title": "Résultats",
+          "it": "quantifiés",
+          "desc": "Les bullets sans chiffres se fondent. On signale chaque bullet sans métrique et suggère où en ajouter une — honnêtement."
+        },
+        {
+          "n": "04",
+          "title": "Signaux",
+          "it": "d'alerte",
+          "desc": "Gaps inexpliqués, titres vagues, incohérences. Ce qu'un recruteur repère en deux secondes — on le remonte avant lui."
+        },
+        {
+          "n": "05",
+          "title": "Signal GitHub /",
+          "it": "portfolio",
+          "desc": "Pour les postes techniques, votre GitHub compte plus que vos bullets. On lit l'activité publique, le mix de langages, la profondeur des projets, puis on les pèse contre l'offre."
+        },
+        {
+          "n": "06",
+          "title": "Ton &",
+          "it": "style",
+          "desc": "Densité de buzzwords, cohérence de voix, ratio longueur/impact. On vous dit où ça sonne comme un template — et où ça sonne comme vous."
+        }
+      ]
+    },
+    "s03": {
+      "smallLabel": "Le rapport",
+      "h2Part1": "Pas un score. Un",
+      "h2Italic": "briefing.",
+      "subtitle": "Le rapport que vous recevez n'est pas un pouce levé ou baissé. C'est un document actionnable — le genre pour lequel vous paieriez 300 € à un recruteur senior.",
+      "browserSaved": "ENREGISTRÉ · IL Y A 2 MIN",
+      "topFixTitle": "La correction qui vous fait gagner le plus",
+      "topFixBody": "Ajoutez distributed systems, gRPC et observability dans vos bullets là où c'est vrai. Impact estimé sur le score : −22 points.",
+      "skillMapLabel": "Cartographie compétences · 4 sur 6 matchés"
+    },
+    "s04": {
+      "smallLabel": "Honnêtement",
+      "h2Part1": "Il y a d'autres outils. Voici",
+      "h2Italic": "ce qu'ils ne font pas.",
+      "compRows": [
+        {
+          "feat": "Score de verdict honnête",
+          "sub": "Dit quand vous serez rejeté, pas juste « matché »."
+        },
+        {
+          "feat": "Scan GitHub / portfolio",
+          "sub": "Lit vos repos publics et les pèse contre l'offre."
+        },
+        {
+          "feat": "Entretien simulé IA",
+          "sub": "Entretien vocal de 10 minutes adapté à l'offre."
+        },
+        {
+          "feat": "Réécriture bullet par bullet",
+          "sub": "Propose des réécritures honnêtes, pas des verbes d'action génériques."
+        },
+        {
+          "feat": "Sans upsell sur l'essentiel",
+          "sub": "Score, mots-clés et red flags sont toujours gratuits."
+        },
+        {
+          "feat": "Tarif",
+          "sub": "Ce que vous payez pour le plan illimité."
+        }
+      ]
+    },
+    "s05": {
+      "smallLabel": "Les gens",
+      "h2Part1": "Ce que les gens disent.",
+      "h2Italic": "Sans filtre.",
+      "founderQuote": "Pendant ma recherche d'emploi j'ai construit l'outil que j'aurais voulu avoir, ce même outil m'a valu 4x plus d'entretiens et un poste en 2 mois"
+    },
+    "s06": {
+      "smallLabel": "Tarifs",
+      "recommendedSuffix": "· recommandé",
+      "hiredPeriod": "/mois"
+    },
+    "s07": {
+      "smallLabel": "En guise de conclusion",
+      "quotePart1": "Le refus arrive dans le silence. Ou il n'arrive pas du tout.",
+      "quoteRed": "On a juste pensé que vous voudriez le savoir avant.",
+      "attribution": "Fait à Paris · par"
+    },
+    "footerBrand": {
+      "tagline": "Le coach CV qui vous dit pourquoi vous seriez rejeté, avant de postuler. Conçu pour les devs, utile pour tous les métiers."
+    },
     "whatsNew": {
       "badge": "Plus dans RejectCheck",
       "title": "Plus qu'une analyse ponctuelle de CV",

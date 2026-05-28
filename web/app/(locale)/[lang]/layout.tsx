@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Inter, IBM_Plex_Mono } from 'next/font/google'
+import { Inter, IBM_Plex_Mono, DM_Serif_Display } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import { getDictionary, hasLocale } from './dictionaries'
@@ -19,6 +19,13 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ['400', '500', '700'],
   subsets: ['latin'],
   variable: '--font-mono',
+})
+
+const dmSerifDisplay = DM_Serif_Display({
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  variable: '--font-display',
 })
 
 export async function generateStaticParams() {
@@ -116,7 +123,7 @@ export default async function LocaleRootLayout({
   return (
     <html
       lang={lang}
-      className={`${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${ibmPlexMono.variable} ${dmSerifDisplay.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
