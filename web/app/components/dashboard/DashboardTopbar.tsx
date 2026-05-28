@@ -1,48 +1,69 @@
 "use client";
 
 import Link from "next/link";
-import { AuthNavLink } from "../AuthNavLink";
-import { LangSwitcher } from "../LangSwitcher";
 import { useLanguage } from "../../../context/language";
 
 type DashboardTab = "home" | "analyses" | "applications";
 
 interface Props {
   activeTab: DashboardTab;
-  totalAnalyses: number;
-  totalApps: number;
+  firstName?: string;
+  onBuyCredits: () => void;
 }
 
-const TAB_META: Record<DashboardTab, { title: string; sub: (n: number) => string }> = {
-  home:         { title: "Overview",     sub: () => "" },
-  analyses:     { title: "Analyses",     sub: (n) => `${n} total` },
-  applications: { title: "Applications", sub: (n) => `${n} active` },
-};
-
-export function DashboardTopbar({ activeTab, totalAnalyses, totalApps }: Props) {
+export function DashboardTopbar({ activeTab, firstName, onBuyCredits }: Props) {
   const { localePath } = useLanguage();
-  const meta = TAB_META[activeTab];
-  const subText = meta.sub(activeTab === "analyses" ? totalAnalyses : totalApps);
+
+  const now = new Date();
+  const dateLabel = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
+  const eyebrow =
+    activeTab === "home" ? dateLabel :
+    activeTab === "analyses" ? "Analysis history" :
+    "Pipeline";
+
+  const headingPrefix =
+    activeTab === "home" ? `${greeting}, ` :
+    "Your ";
+
+  const headingItalic =
+    activeTab === "home" ? `${firstName || "there"}.` :
+    activeTab === "analyses" ? "analyses." :
+    "applications.";
 
   return (
-    <div
-      className="flex items-center justify-between flex-shrink-0 bg-rc-bg px-7"
-      style={{ paddingTop: 14, paddingBottom: 14, borderBottom: "1px solid var(--rc-border)" }}
-    >
-      {/* Left: page title */}
-      <div className="flex items-baseline gap-2">
-        <h1 className="font-sans font-semibold text-rc-text" style={{ fontSize: 18, letterSpacing: -0.3 }}>
-          {meta.title}
+    <div className="flex items-end justify-between mb-7 shrink-0">
+      <div>
+        <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.1em] uppercase text-rc-hint">
+          <span className="w-1.5 h-1.5 rounded-full bg-rc-red animate-pulse shrink-0" />
+          {eyebrow}
+        </p>
+        <h1
+          className="font-sans font-semibold leading-none mt-3 text-rc-text"
+          style={{ fontSize: "clamp(26px, 3vw, 38px)", letterSpacing: -0.5 }}
+        >
+          {headingPrefix}
+          <span className="font-serif italic text-rc-red" style={{ fontWeight: 400 }}>
+            {headingItalic}
+          </span>
         </h1>
-        {subText && (
-          <span className="font-mono text-[11px] text-rc-hint tracking-[0.08em]">{subText}</span>
-        )}
       </div>
 
-      {/* Right: lang switcher + profile avatar */}
-      <div className="flex items-center gap-3">
-        <LangSwitcher />
-        <AuthNavLink />
+      <div className="flex items-center gap-2.5 shrink-0">
+        <button
+          onClick={onBuyCredits}
+          className="px-3.5 py-1.5 rounded-lg border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:border-rc-red/30 hover:text-rc-text transition-all"
+        >
+          Buy credits
+        </button>
+        <Link
+          href={localePath("/analyze")}
+          className="px-4 py-2 rounded-lg bg-rc-red text-white font-mono text-[10px] font-bold tracking-widest uppercase no-underline hover:opacity-90 transition-opacity"
+        >
+          + New analysis
+        </Link>
       </div>
     </div>
   );

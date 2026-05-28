@@ -11,6 +11,7 @@ interface Props {
   totalAnalyses: number;
   totalApps: number;
   onBuyCredits: () => void;
+  firstName?: string;
   children: React.ReactNode;
 }
 
@@ -20,6 +21,7 @@ export function DashboardShell({
   totalAnalyses,
   totalApps,
   onBuyCredits,
+  firstName,
   children,
 }: Props) {
   return (
@@ -32,16 +34,14 @@ export function DashboardShell({
         onTabChange={onTabChange}
         onBuyCredits={onBuyCredits}
       />
-      <div className="flex flex-col flex-1 min-w-0">
+      <main className="flex-1 min-w-0 overflow-auto flex flex-col" style={{ padding: "28px 32px" }}>
         <DashboardTopbar
           activeTab={activeTab}
-          totalAnalyses={totalAnalyses}
-          totalApps={totalApps}
+          firstName={firstName}
+          onBuyCredits={onBuyCredits}
         />
-        <main className="flex-1 overflow-auto" style={{ padding: "20px 28px 24px" }}>
-          {children}
-        </main>
-      </div>
+        {children}
+      </main>
     </div>
   );
 }

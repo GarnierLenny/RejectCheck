@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import {
+  LayoutDashboard, FileSearch, Briefcase,
+  FileText, Mic, User, Trophy, CreditCard, Settings,
+} from "lucide-react";
 import { useQuota, useUserXp, useSubscription, useProfile } from "../../../lib/queries";
 import { useLanguage } from "../../../context/language";
+import { LangSwitcher } from "../LangSwitcher";
+import { AuthNavLink } from "../AuthNavLink";
 
 type DashboardTab = "home" | "analyses" | "applications";
 
@@ -24,30 +30,50 @@ function NavSection({ label, children }: { label: string; children: React.ReactN
   );
 }
 
-function TabItem({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function TabItem({
+  label,
+  icon: Icon,
+  active,
+  onClick,
+}: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-r-lg transition-colors text-[13px] ${
+      className={`flex items-center gap-2.5 w-full text-left py-2 rounded-lg transition-colors text-[13px] border-l-2 ${
         active
-          ? "bg-white border-l-2 border-rc-red font-semibold text-rc-text shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
-          : "text-rc-hint hover:bg-rc-surface-raised border-l-2 border-transparent font-medium"
+          ? "bg-rc-red/[0.06] border-rc-red font-semibold text-rc-red pl-[10px] pr-3"
+          : "border-transparent text-rc-hint hover:bg-rc-surface-raised hover:text-rc-text font-medium px-3"
       }`}
     >
-      {active && <span className="w-1.5 h-1.5 rounded-full bg-rc-red flex-shrink-0" />}
-      {!active && <span className="w-1.5 h-1.5 flex-shrink-0" />}
+      <Icon className="w-3.5 h-3.5 shrink-0 opacity-80" />
       {label}
     </button>
   );
 }
 
-function LinkItem({ label, href, badge }: { label: string; href: string; badge?: string }) {
+function LinkItem({
+  label,
+  icon: Icon,
+  href,
+  badge,
+}: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+  badge?: string;
+}) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-between px-3 py-2 rounded-lg text-[13px] text-rc-hint font-medium no-underline hover:bg-rc-surface-raised hover:text-rc-text transition-colors"
+      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-rc-hint font-medium no-underline hover:bg-rc-surface-raised hover:text-rc-text transition-colors border-l-2 border-transparent"
     >
-      <span>{label}</span>
+      <Icon className="w-3.5 h-3.5 shrink-0 opacity-75" />
+      <span className="flex-1">{label}</span>
       {badge && <span className="font-mono text-[10px] text-rc-hint">{badge}</span>}
     </Link>
   );
@@ -91,23 +117,23 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
       {/* Nav */}
       <div className="flex-1 flex flex-col gap-5 overflow-y-auto px-2 py-4">
         <NavSection label="Dashboard">
-          <TabItem label="Overview"     active={activeTab === "home"}         onClick={() => onTabChange("home")} />
-          <TabItem label="Analyses"     active={activeTab === "analyses"}     onClick={() => onTabChange("analyses")} />
-          <TabItem label="Applications" active={activeTab === "applications"} onClick={() => onTabChange("applications")} />
+          <TabItem label="Overview"     icon={LayoutDashboard} active={activeTab === "home"}         onClick={() => onTabChange("home")} />
+          <TabItem label="Analyses"     icon={FileSearch}      active={activeTab === "analyses"}     onClick={() => onTabChange("analyses")} />
+          <TabItem label="Applications" icon={Briefcase}       active={activeTab === "applications"} onClick={() => onTabChange("applications")} />
         </NavSection>
 
         <NavSection label="Tools">
-          <LinkItem label="Analyze CV"     href={localePath("/analyze")} />
-          <LinkItem label="Mock interview" href={`${localePath("/analyze")}?tab=interview`} />
+          <LinkItem label="Analyze CV"     icon={FileText} href={localePath("/analyze")} />
+          <LinkItem label="Mock interview" icon={Mic}      href={`${localePath("/analyze")}?tab=interview`} />
         </NavSection>
 
         <NavSection label="Account">
           {profile?.username && (
-            <LinkItem label="Profile" href={localePath(`/u/${profile.username}`)} />
+            <LinkItem label="Profile"       icon={User}       href={localePath(`/u/${profile.username}`)} />
           )}
-          <LinkItem label="Rank & rewards" href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
-          <LinkItem label="Plan & billing" href={localePath("/settings")} />
-          <LinkItem label="Settings"       href={localePath("/settings")} />
+          <LinkItem label="Rank & rewards" icon={Trophy}     href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
+          <LinkItem label="Plan & billing" icon={CreditCard} href={localePath("/settings")} />
+          <LinkItem label="Settings"       icon={Settings}   href={localePath("/settings")} />
         </NavSection>
 
         {/* Credits */}
@@ -145,6 +171,15 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
             </button>
           </div>
         )}
+      </div>
+
+      {/* User strip */}
+      <div
+        className="flex items-center justify-between px-3 py-3"
+        style={{ borderTop: "1px solid var(--rc-border)" }}
+      >
+        <LangSwitcher />
+        <AuthNavLink />
       </div>
     </aside>
   );

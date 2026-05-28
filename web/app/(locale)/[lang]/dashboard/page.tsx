@@ -404,6 +404,7 @@ function DashboardContent() {
         totalAnalyses={totalAnalyses}
         totalApps={activeApplications.length}
         onBuyCredits={() => setIsCreditsModalOpen(true)}
+        firstName={profile?.displayName?.split(" ")[0]}
       >
         {/* ── HOME ─────────────────────────────────────────────────────── */}
         {activeTab === "home" && (
