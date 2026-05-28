@@ -45,6 +45,7 @@ import { useLanguage } from "../../../../context/language";
 import { toast } from "sonner";
 import { Check, X, Share2, Download } from "lucide-react";
 import { ShareModal } from "../../../components/ShareModal";
+import { DiagnosticResult } from "../../../components/DiagnosticResult";
 import posthog from "posthog-js";
 
 type Tab = "cv-review" | "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
@@ -798,210 +799,130 @@ function AnalyzeContent() {
   const tabs = vsJobTabs;
 
   const isFormView = !paywallState && !result && !loading;
+  const showDiagnostic = !!(result && visualLoadingDone && !isCvReview);
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
-      <Navbar activePage="analyze" />
+      {!showDiagnostic && <Navbar activePage="analyze" />}
 
-      <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
-        {paywallState ? (
-          <PaywallScreen mode={paywallState.mode} monthlyCap={paywallState.monthlyCap} />
-        ) : (!result || !visualLoadingDone) ? (
-          (loading || (result && !visualLoadingDone)) ? (
-            <LoadingScreen
-              currentStep={!loading && result ? "done" : currentStep}
-              streamText={streamText}
-              hasGithub={githubUsername.trim().length > 0}
-              hasLinkedin={liFile !== null}
-              hasML={mlFile !== null || mlText.trim().length > 0}
-              isHired={activeSubscription?.plan === 'hired'}
-              onFinished={() => setVisualLoadingDone(true)}
-            />
-          ) : (
-            <div className="flex-1 flex flex-col min-h-0">
-              <UploadForm
-                cvFile={cvFile} setCvFile={setCvFile}
-                liFile={liFile} setLiFile={setLiFile}
-                mlFile={mlFile} setMlFile={setMlFile}
-                mlText={mlText} setMlText={setMlText}
-                jobDescription={jobDescription} setJobDescription={setJobDescription}
-                githubUsername={githubUsername} setGithubUsername={setGithubUsername}
-                portfolioUrl={portfolioUrl} setPortfolioUrl={setPortfolioUrl}
-                onSubmit={(e) => {
-                  const useReviewMode = jobDescription.trim().length === 0;
-                  setAnalyzeMode(useReviewMode ? 'cv-review' : 'vs-job');
-                  return useReviewMode ? handleCvReviewSubmit(e) : handleSubmit(e);
-                }}
-                loading={false} error={error}
-                step={formStep} onStepChange={setFormStep}
-                savedCvFiles={savedCvs}
-                savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
-                savedPortfolioUrl={profile?.portfolioUrl ?? undefined}
-                roleType={profile?.roleType ?? null}
-                roleLabel={profile?.roleType ? t.onboarding.roles[profile.roleType] : null}
+      {showDiagnostic ? (
+        <DiagnosticResult
+          result={result!}
+          analysisId={analysisId}
+          cvBlobUrl={cvBlobUrl}
+          deepStatus={deepStatus}
+          isPremium={!!activeSubscription}
+          onReset={handleReset}
+          onExportMd={exportToMd}
+          onExportPdf={exportToPdf}
+          isExportingPdf={isExportingPdf}
+          onShare={analysisId && user ? shareAnalysis : undefined}
+          isSharing={isSharing}
+        />
+      ) : (
+        <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
+          {paywallState ? (
+            <PaywallScreen mode={paywallState.mode} monthlyCap={paywallState.monthlyCap} />
+          ) : (!result || !visualLoadingDone) ? (
+            (loading || (result && !visualLoadingDone)) ? (
+              <LoadingScreen
+                currentStep={!loading && result ? "done" : currentStep}
+                streamText={streamText}
+                hasGithub={githubUsername.trim().length > 0}
+                hasLinkedin={liFile !== null}
+                hasML={mlFile !== null || mlText.trim().length > 0}
+                isHired={activeSubscription?.plan === 'hired'}
+                onFinished={() => setVisualLoadingDone(true)}
               />
-            </div>
-          )
-        ) : (
-          <div>
-            {!isCvReview && (
-              <ScoreSidebar
-                result={result}
-                onReset={handleReset}
-                onExportMd={exportToMd}
-                onExportPdf={exportToPdf}
-                isExportingPdf={isExportingPdf}
-                onShare={analysisId && user ? shareAnalysis : undefined}
-                isSharing={isSharing}
-              />
-            )}
-
-            {deepStatus === 'failed' && (
-              <div className="mb-6 p-4 bg-rc-amber/10 border border-rc-amber/30 flex items-center justify-between gap-4">
-                <div className="text-[13px] text-rc-text leading-snug">
-                  <span className="font-semibold uppercase tracking-wider text-rc-amber font-mono text-[11px] block mb-1">
-                    Some content didn&apos;t load
-                  </span>
-                  Fixes, the Bridge-the-Gap project, and technical analysis
-                  couldn&apos;t be generated. Regenerate to fill them in.
-                </div>
-                <button
-                  onClick={handleRegenerateDeep}
-                  disabled={regenerateDeep.isPending}
-                  className="shrink-0 font-mono text-[12px] uppercase tracking-[0.12em] px-4 py-2 border border-rc-amber/50 text-rc-amber hover:bg-rc-amber/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {regenerateDeep.isPending ? 'Regenerating…' : 'Regenerate'}
-                </button>
-              </div>
-            )}
-
-            {isCvReview ? (
-              <>
-                <CvReviewTab
-                  result={result}
-                  actions={<>
-                    <button
-                      onClick={exportToMd}
-                      className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider"
-                    >
-                      <Download size={12} />
-                      .md
-                    </button>
-                    {analysisId && user && (
-                      <button
-                        onClick={shareAnalysis}
-                        disabled={isSharing}
-                        className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
-                      >
-                        <Share2 size={12} />
-                        {isSharing ? "…" : "Share"}
-                      </button>
-                    )}
-                  </>}
-                />
-              </>
             ) : (
-              <>
-                {/* Tab nav */}
-                <div className="mb-8 border-b border-rc-border flex items-end justify-between">
-                  <div className="tabs-scrollbar flex overflow-x-auto">
-                    {tabs.map((tab) => (
-                      <button
-                        key={tab.id}
-                        onClick={() => { setActiveTab(tab.id as Tab); posthog.capture("analysis_tab_changed", { tab: tab.id, analysis_id: analysisId }); }}
-                        className={`shrink-0 flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
-                          activeTab === tab.id ? "border-rc-red text-rc-red font-bold" : "border-transparent text-rc-muted hover:text-rc-text"
-                        }`}
-                      >
-                        {tab.label}
-                        {'badge' in tab && tab.badge && <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {cvBlobUrl && (
-                      <button
-                        onClick={() => setShowPdf(v => !v)}
-                        className={`mb-1 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] px-3 py-1.5 border transition-colors ${
-                          showPdf
-                            ? "border-rc-red text-rc-red bg-rc-red/5"
-                            : "border-rc-border text-rc-muted hover:text-rc-text hover:border-rc-text/40"
-                        }`}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                          <rect x="1" y="1" width="12" height="12" rx="1" stroke="currentColor" strokeWidth="1.2"/>
-                          <path d="M4 4h6M4 7h6M4 10h4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                        </svg>
-                        {showPdf ? "Hide CV" : "View CV"}
-                      </button>
-                    )}
-                  </div>
-
-                </div>
-
-                {/* Tab content */}
-                <div className={showPdf && cvBlobUrl ? "grid grid-cols-2 gap-6 items-start" : ""}>
-                {showPdf && cvBlobUrl && <CvPdfViewer url={cvBlobUrl} />}
-                <div>
-                {activeTab === "overview"     && <TechnicalRadarChart data={result.technical_analysis} />}
-                {activeTab === "ats"          && result.ats_simulation && <AtsTab ats={result.ats_simulation} checkedKeywords={checkedKeywords} onToggle={toggleKeyword} onReset={() => setCheckedKeywords(new Set())} />}
-                {activeTab === "cv-analysis"  && <CvAnalysisTab result={result} fixesReady={true} />}
-                {activeTab === "signals"      && <SignalsTab github={result.audit.github} linkedin={result.audit.linkedin} hasGithub={hasGithubVal} hasLinkedin={hasLinkedinVal} />}
-                {activeTab === "flags"        && <FlagsTab flags={result.hidden_red_flags} jdMatch={result.audit.jd_match} score={result.score} verdict={result.verdict} confidence={result.confidence} breakdown={result.breakdown} fixesReady={true} />}
-                {activeTab === "consistency"  && <ConsistencyTab inconsistencies={result.cross_profile_inconsistencies ?? []} timelineEntries={result.timeline_entries ?? []} />}
-                {activeTab === "negotiation"  && <NegotiationTab result={result} analysisId={analysisId} isPremium={activeSubscription?.plan === 'hired'} />}
-                {activeTab === "roadmap"      && <RoadmapTab result={result} />}
-                {activeTab === "project"      && <BridgeTab result={result} />}
-                {activeTab === "improve" && (
-                  <ImproveTab
-                    reconstructedCv={reconstructedCv}
-                    isLoading={isRewriting}
-                    isPremium={!!activeSubscription}
-                    hasAnalysisId={!!analysisId}
-                    onRewrite={handleRewrite}
-                  />
-                )}
-                {activeTab === "interview" && (
-                  <InterviewTab
-                    isPremium={!!activeSubscription}
-                    analysisId={analysisId}
-                    email={activeSubscription?.email || user?.email || null}
-                    accessToken={session?.access_token ?? null}
-                    defaultInterviewId={searchParams.get("interviewId") ? Number(searchParams.get("interviewId")) : null}
-                  />
-                )}
-                {activeTab === "cover-letter" && (
-                  <CoverLetterTab
-                    analysisId={analysisId}
-                    isPremium={activeSubscription?.plan === 'hired'}
-                    company={(result as any)?.job_details?.company ?? null}
-                    candidateName={profile?.coverLetterName ?? profile?.displayName ?? null}
-                    savedCoverLetter={savedAnalysis?.coverLetter ?? null}
-                  />
-                )}
-                </div>
-                </div>
-              </>
-            )}
-
-            {/* Anonymous CTA */}
-            {!user && (
-              <div className="mt-12 p-8 bg-rc-surface border border-rc-border text-center">
-                <h3 className="text-[18px] font-bold mb-3 font-mono uppercase tracking-tight">{t.analyzeNav.anonymousCta.title}</h3>
-                <p className="text-rc-muted text-[15px] max-w-[420px] mx-auto mb-6 leading-relaxed">
-                  {t.analyzeNav.anonymousCta.desc}
-                </p>
-                <Link
-                  href={localePath("/login")}
-                  className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
-                >
-                  {t.analyzeNav.anonymousCta.button}
-                </Link>
+              <div className="flex-1 flex flex-col min-h-0">
+                <UploadForm
+                  cvFile={cvFile} setCvFile={setCvFile}
+                  liFile={liFile} setLiFile={setLiFile}
+                  mlFile={mlFile} setMlFile={setMlFile}
+                  mlText={mlText} setMlText={setMlText}
+                  jobDescription={jobDescription} setJobDescription={setJobDescription}
+                  githubUsername={githubUsername} setGithubUsername={setGithubUsername}
+                  portfolioUrl={portfolioUrl} setPortfolioUrl={setPortfolioUrl}
+                  onSubmit={(e) => {
+                    const useReviewMode = jobDescription.trim().length === 0;
+                    setAnalyzeMode(useReviewMode ? 'cv-review' : 'vs-job');
+                    return useReviewMode ? handleCvReviewSubmit(e) : handleSubmit(e);
+                  }}
+                  loading={false} error={error}
+                  step={formStep} onStepChange={setFormStep}
+                  savedCvFiles={savedCvs}
+                  savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
+                  savedPortfolioUrl={profile?.portfolioUrl ?? undefined}
+                  roleType={profile?.roleType ?? null}
+                  roleLabel={profile?.roleType ? t.onboarding.roles[profile.roleType] : null}
+                />
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            )
+          ) : (
+            /* Only cv-review results reach this branch (vs-job is handled by DiagnosticResult above) */
+            <div>
+              {deepStatus === 'failed' && (
+                <div className="mb-6 p-4 bg-rc-amber/10 border border-rc-amber/30 flex items-center justify-between gap-4">
+                  <div className="text-[13px] text-rc-text leading-snug">
+                    <span className="font-semibold uppercase tracking-wider text-rc-amber font-mono text-[11px] block mb-1">
+                      Some content didn&apos;t load
+                    </span>
+                    Fixes, the Bridge-the-Gap project, and technical analysis
+                    couldn&apos;t be generated. Regenerate to fill them in.
+                  </div>
+                  <button
+                    onClick={handleRegenerateDeep}
+                    disabled={regenerateDeep.isPending}
+                    className="shrink-0 font-mono text-[12px] uppercase tracking-[0.12em] px-4 py-2 border border-rc-amber/50 text-rc-amber hover:bg-rc-amber/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {regenerateDeep.isPending ? 'Regenerating…' : 'Regenerate'}
+                  </button>
+                </div>
+              )}
+
+              <CvReviewTab
+                result={result}
+                actions={<>
+                  <button
+                    onClick={exportToMd}
+                    className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider"
+                  >
+                    <Download size={12} />
+                    .md
+                  </button>
+                  {analysisId && user && (
+                    <button
+                      onClick={shareAnalysis}
+                      disabled={isSharing}
+                      className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
+                    >
+                      <Share2 size={12} />
+                      {isSharing ? "…" : "Share"}
+                    </button>
+                  )}
+                </>}
+              />
+
+              {/* Anonymous CTA */}
+              {!user && (
+                <div className="mt-12 p-8 bg-rc-surface border border-rc-border text-center">
+                  <h3 className="text-[18px] font-bold mb-3 font-mono uppercase tracking-tight">{t.analyzeNav.anonymousCta.title}</h3>
+                  <p className="text-rc-muted text-[15px] max-w-[420px] mx-auto mb-6 leading-relaxed">
+                    {t.analyzeNav.anonymousCta.desc}
+                  </p>
+                  <Link
+                    href={localePath("/login")}
+                    className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
+                  >
+                    {t.analyzeNav.anonymousCta.button}
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {shareToken && shareUrl && result && (
         <ShareModal
