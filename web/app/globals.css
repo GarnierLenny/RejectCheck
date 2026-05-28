@@ -80,12 +80,13 @@ body {
   50%       { opacity: 0.35; }
 }
 @keyframes dr-pulse-ring {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,58,57,0.45); }
-  50%       { box-shadow: 0 0 0 8px rgba(201,58,57,0); }
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 7px transparent; }
 }
 .dr-fade-up    { animation: dr-fade-up 700ms 800ms ease-out both; }
 .dr-blink      { animation: dr-blink 1.6s ease-in-out infinite; }
 .dr-pulse-ring { animation: dr-pulse-ring 1.8s ease-in-out infinite; }
+
 
 /* Tab header - hide native scrollbar on all browsers */
 .tabs-scrollbar {

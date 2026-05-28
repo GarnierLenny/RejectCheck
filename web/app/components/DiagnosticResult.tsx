@@ -518,20 +518,20 @@ export function DiagnosticResult({
         }}>
           <div style={{ ...EYEBROW, marginBottom: 14, paddingLeft: 8 }}>Diagnosis</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {tocItem("s1", "01", "The one move", tocBadge("key", "crit"))}
+            {tocItem("s1", "01", "The one move", null)}
             {tocItem("s2", "02", "Skill mapping", skills.length ? tocBadge(`${gapCount} gaps`, gapCount > 2 ? "crit" : "warn") : tocBadge("pending", "lock"))}
             {tocItem("s3", "03", "ATS filter", result.ats_simulation ? tocBadge(result.ats_simulation.would_pass ? "pass" : "fail", result.ats_simulation.would_pass ? "ok" : "crit") : tocBadge("—", "lock"))}
-            {tocItem("s4", "04", "CV bullets", tocBadge(String(result.audit.cv.issues.length), result.audit.cv.issues.some(i => i.severity === "critical") ? "crit" : "warn"))}
-            {tocItem("s5", "05", "Red flags", tocBadge(String(result.hidden_red_flags.length), result.hidden_red_flags.length >= 2 ? "crit" : "warn"))}
+            {tocItem("s4", "04", "CV bullets", null)}
+            {tocItem("s5", "05", "Red flags", null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Action</div>
-            {tocItem("s6", "06", "Roadmap", tocBadge("~2h", "ok"))}
+            {tocItem("s6", "06", "Roadmap", null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Signals</div>
-            {tocItem("s7", "07", "GitHub · LinkedIn", result.audit.github.score !== null || result.audit.linkedin.score !== null ? tocBadge(String((result.audit.github.issues.length + result.audit.linkedin.issues.length)), (result.audit.github.issues.length + result.audit.linkedin.issues.length) > 2 ? "warn" : "ok") : tocBadge("—", "lock"))}
-            {tocItem("s8", "08", "Timeline", result.cross_profile_inconsistencies?.length ? tocBadge(String(result.cross_profile_inconsistencies.length), result.cross_profile_inconsistencies.some(i => i.severity === "critical") ? "crit" : "warn") : tocBadge("—", "lock"))}
+            {tocItem("s7", "07", "GitHub · LinkedIn", null)}
+            {tocItem("s8", "08", "Timeline", null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Premium</div>
@@ -586,7 +586,7 @@ export function DiagnosticResult({
                   ...MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.16em",
                   textTransform: "uppercase", color, marginTop: 16,
                 }}>
-                  <span className="dr-pulse-ring" style={{ width: 8, height: 8, borderRadius: 99, background: color, display: "inline-block" }} />
+                  <span className="dr-pulse-ring" style={{ width: 8, height: 8, borderRadius: 99, background: color, display: "inline-block", flexShrink: 0 }} />
                   {verdictLabel(result.score)}
                 </div>
                 <div style={{ height: 4, background: "var(--rc-border)", borderRadius: 99, overflow: "hidden", marginTop: 28 }}>
