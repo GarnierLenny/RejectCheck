@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Download, CheckCircle2, Wand2 } from "lucide-react";
+import { Loader2, Download, CheckCircle2, Wand2, Zap, ScanSearch, TrendingUp, FileWarning } from "lucide-react";
 import { generateCvPdf } from "../../utils/export";
 import { CvMarkdownRenderer } from "../CvMarkdownRenderer";
 import { useLanguage } from "../../../context/language";
@@ -107,10 +107,10 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
   }
 
   const fixes = [
-    { color: "var(--rc-red)", text: t.improveTab.fixes[0].text },
-    { color: "var(--rc-amber)", text: t.improveTab.fixes[1].text },
-    { color: "#8b5cf6", text: t.improveTab.fixes[2].text },
-    { color: "var(--rc-hint)", text: t.improveTab.fixes[3].text },
+    { Icon: Zap,         color: "var(--rc-red)",   text: t.improveTab.fixes[0].text },
+    { Icon: ScanSearch,  color: "var(--rc-amber)",  text: t.improveTab.fixes[1].text },
+    { Icon: TrendingUp,  color: "#8b5cf6",          text: t.improveTab.fixes[2].text },
+    { Icon: FileWarning, color: "var(--rc-hint)",   text: t.improveTab.fixes[3].text },
   ];
 
   return (
@@ -130,10 +130,10 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
           {t.improveTab.whatGetsRewritten}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {fixes.map((fix, i) => (
+          {fixes.map(({ Icon, color, text }, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <span style={{ width: 6, height: 6, borderRadius: 99, background: fix.color, flexShrink: 0, marginTop: 5 }} />
-              <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)", lineHeight: 1.55 }}>{fix.text}</span>
+              <Icon size={14} style={{ color, flexShrink: 0, marginTop: 1 }} />
+              <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)", lineHeight: 1.55 }}>{text}</span>
             </div>
           ))}
         </div>

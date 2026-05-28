@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { AnalysisResult } from "./types";
+import type { AnalysisResult, NegotiationAnalysis } from "./types";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "../../context/language";
@@ -114,6 +114,143 @@ type Props = {
   email?: string | null;
   accessToken?: string | null;
 };
+
+// ── Salary range bar ─────────────────────────────────────────────────────────
+
+function SalaryBar({ n, fmt }: { n: NegotiationAnalysis; fmt: (v: number) => string }) {
+  const [tooltip, setTooltip] = useState<{ label: string; value: string; x: number; y: number } | null>(null);
+
+  const candidateMid = Math.round((n.candidate_range.min + n.candidate_range.max) / 2);
+  const anchor = n.anchoring_strategy.anchor_amount;
+  const jdMid = n.jd_disclosed_salary
+    ? Math.round((n.jd_disclosed_salary.min + n.jd_disclosed_salary.max) / 2)
+    : null;
+
+  const allValues = [n.market_range.min, n.market_range.max, anchor, candidateMid, ...(jdMid ? [jdMid] : [])];
+  const rawMin = Math.min(...allValues);
+  const rawMax = Math.max(...allValues);
+  const pad = (rawMax - rawMin) * 0.12;
+  const trackMin = rawMin - pad;
+  const trackMax = rawMax + pad;
+  const span = trackMax - trackMin;
+
+  const pct = (v: number) => ((v - trackMin) / span * 100).toFixed(2) + "%";
+  const numPct = (v: number) => +((v - trackMin) / span * 100).toFixed(2);
+
+  const belowPct = numPct(n.market_range.min);
+  const marketMaxPct = numPct(n.market_range.max);
+  const trackGradient = [
+    `rgba(201,58,57,0.10) 0%`,
+    `rgba(201,58,57,0.10) ${belowPct}%`,
+    `rgba(217,119,6,0.16) ${belowPct}%`,
+    `rgba(217,119,6,0.16) ${marketMaxPct}%`,
+    `rgba(22,163,74,0.14) ${marketMaxPct}%`,
+    `rgba(22,163,74,0.14) 100%`,
+  ].join(", ");
+
+  const candColor = candidateMid < n.market_range.min
+    ? "var(--rc-red)"
+    : candidateMid > n.market_range.max
+    ? "var(--rc-green)"
+    : "var(--rc-amber)";
+
+  const mkHandlers = (label: string, value: string) => ({
+    onMouseEnter: (e: React.MouseEvent) => setTooltip({ label, value, x: e.clientX, y: e.clientY }),
+    onMouseLeave: () => setTooltip(null),
+    onMouseMove: (e: React.MouseEvent) => setTooltip((t) => t ? { ...t, x: e.clientX, y: e.clientY } : t),
+  });
+
+  return (
+    <div style={{ marginBottom: 28 }}>
+      {/* Legend */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18, flexWrap: "wrap" }}>
+        {([
+          { color: "rgba(201,58,57,0.18)", label: "Below market" },
+          { color: "rgba(217,119,6,0.22)",  label: "Market range" },
+          { color: "rgba(22,163,74,0.18)",  label: "Above market" },
+        ] as const).map(({ color, label }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ display: "inline-block", width: 14, height: 7, background: color, borderRadius: 2 }} />
+            <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "var(--rc-hint)" }}>{label}</span>
+          </div>
+        ))}
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ color: candColor, fontSize: 12, lineHeight: 1 }}>▼</span>
+            <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "var(--rc-hint)" }}>You</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ color: "var(--rc-red)", fontSize: 10, lineHeight: 1 }}>◆</span>
+            <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "var(--rc-hint)" }}>Anchor</span>
+          </div>
+          {jdMid && (
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ display: "inline-block", width: 2, height: 12, background: "var(--rc-amber)", verticalAlign: "middle" }} />
+              <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase" as const, color: "var(--rc-hint)" }}>JD listed</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Track */}
+      <div style={{ position: "relative", height: 82 }}>
+        <div style={{
+          position: "absolute", top: 28, left: 0, right: 0, height: 14,
+          borderRadius: 6, border: "1px solid var(--rc-border)",
+          background: `linear-gradient(to right, ${trackGradient})`,
+        }} />
+
+        {/* Market boundary dividers */}
+        <div style={{ position: "absolute", top: 22, left: pct(n.market_range.min), height: 26, borderLeft: "1px dashed rgba(0,0,0,0.12)", transform: "translateX(-0.5px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: 22, left: pct(n.market_range.max), height: 26, borderLeft: "1px dashed rgba(0,0,0,0.12)", transform: "translateX(-0.5px)", pointerEvents: "none" }} />
+
+        {/* JD salary dashed line */}
+        {jdMid && (
+          <div
+            style={{ position: "absolute", top: 20, left: pct(jdMid), height: 30, borderLeft: "1.5px dashed var(--rc-amber)", transform: "translateX(-0.75px)", cursor: "crosshair" }}
+            {...mkHandlers("JD listed salary", fmt(jdMid))}
+          />
+        )}
+
+        {/* Candidate ▼ */}
+        <div
+          style={{ position: "absolute", top: 14, left: pct(candidateMid), transform: "translateX(-50%)", cursor: "crosshair", lineHeight: 1 }}
+          {...mkHandlers("Your target", `${fmt(n.candidate_range.min)} – ${fmt(n.candidate_range.max)}`)}
+        >
+          <span style={{ fontSize: 14, color: candColor }}>▼</span>
+        </div>
+
+        {/* Anchor ◆ */}
+        <div
+          style={{ position: "absolute", top: 44, left: pct(anchor), transform: "translateX(-50%)", cursor: "crosshair", lineHeight: 1 }}
+          {...mkHandlers("Your anchor", fmt(anchor))}
+        >
+          <span style={{ fontSize: 12, color: "var(--rc-red)" }}>◆</span>
+        </div>
+
+        {/* Boundary labels */}
+        <div style={{ position: "absolute", top: 56, left: pct(n.market_range.min), transform: "translateX(-50%)", ...MONO, fontSize: 9, color: "var(--rc-hint)", whiteSpace: "nowrap" as const, pointerEvents: "none" }}>
+          {fmt(n.market_range.min)}
+        </div>
+        <div style={{ position: "absolute", top: 56, left: pct(n.market_range.max), transform: "translateX(-50%)", ...MONO, fontSize: 9, color: "var(--rc-hint)", whiteSpace: "nowrap" as const, pointerEvents: "none" }}>
+          {fmt(n.market_range.max)}
+        </div>
+      </div>
+
+      {/* Hover tooltip */}
+      {tooltip && (
+        <div style={{
+          position: "fixed", left: tooltip.x + 14, top: tooltip.y - 44, zIndex: 9999, pointerEvents: "none",
+          background: "var(--rc-bg)", border: "1px solid var(--rc-border)", borderRadius: 8,
+          padding: "10px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+        }}>
+          <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--rc-hint)", marginBottom: 3 }}>{tooltip.label}</div>
+          <div style={{ ...SANS, fontSize: 16, fontWeight: 600, color: "var(--rc-text)", letterSpacing: "-0.02em" }}>{tooltip.value}</div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -1099,6 +1236,7 @@ export function DiagnosticResult({
                       <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: "0 0 28px", lineHeight: 1.1 }}>
                         Your <span style={DISPLAY_ITALIC}>negotiation playbook.</span>
                       </h3>
+                      <SalaryBar n={n} fmt={fmt} />
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 28 }}>
                         <div style={{ padding: "20px 24px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 8 }}>
                           <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "var(--rc-hint)", fontWeight: 700, marginBottom: 8 }}>Market range</div>
