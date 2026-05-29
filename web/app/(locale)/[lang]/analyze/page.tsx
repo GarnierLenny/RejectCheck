@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import { Check, X, Share2, Download } from "lucide-react";
 import { ShareModal } from "../../../components/ShareModal";
 import { DiagnosticResult } from "../../../components/DiagnosticResult";
+import { CvAuditResult } from "../../../components/CvAuditResult";
 import posthog from "posthog-js";
 
 type Tab = "cv-review" | "overview" | "ats" | "cv-analysis" | "signals" | "flags" | "consistency" | "negotiation" | "roadmap" | "project" | "improve" | "interview" | "cover-letter";
@@ -799,12 +800,29 @@ function AnalyzeContent() {
 
   const isFormView = !paywallState && !result && !loading;
   const showDiagnostic = !!(result && visualLoadingDone && !isCvReview);
+  const showCvAudit = !!(result && visualLoadingDone && isCvReview);
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
-      {!showDiagnostic && <Navbar activePage="analyze" />}
+      {!showDiagnostic && !showCvAudit && <Navbar activePage="analyze" />}
 
-      {showDiagnostic ? (
+      {showCvAudit ? (
+        <CvAuditResult
+          result={result!}
+          analysisId={analysisId}
+          cvBlobUrl={cvBlobUrl}
+          onReset={handleReset}
+          onExportMd={exportToMd}
+          onShare={analysisId && user ? shareAnalysis : undefined}
+          isSharing={isSharing}
+          userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
+          reconstructedCv={reconstructedCv}
+          isRewriting={isRewriting}
+          onRewrite={handleRewrite}
+          email={activeSubscription?.email || user?.email || null}
+          accessToken={session?.access_token ?? null}
+        />
+      ) : showDiagnostic ? (
         <DiagnosticResult
           result={result!}
           analysisId={analysisId}
