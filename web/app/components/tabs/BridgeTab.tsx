@@ -528,7 +528,7 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
   if (!project) return <ProjectRecommendationSkeleton />;
 
   function handleDownloadRepo() {
-    if (!analysisId) return;
+    if (!analysisId || !project) return;
     generateRepo(analysisId, {
       onSuccess: (blob) => {
         const slug = project.name
