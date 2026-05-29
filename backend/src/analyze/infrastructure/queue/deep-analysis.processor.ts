@@ -25,10 +25,10 @@ export class DeepAnalysisProcessor extends WorkerHost {
   }
 
   async process(job: Job<DeepAnalysisJobPayload>): Promise<void> {
-    const { analysisId, email } = job.data;
+    const { analysisId, email, generateBridgeProject } = job.data;
     const startedAt = Date.now();
     try {
-      await this.regenerateDeep.execute(analysisId, email);
+      await this.regenerateDeep.execute(analysisId, email, generateBridgeProject);
       this.logger.log(
         `Deep pass completed (analysisId=${analysisId}, ms=${
           Date.now() - startedAt

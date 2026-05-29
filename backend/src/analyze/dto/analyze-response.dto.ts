@@ -56,19 +56,48 @@ const strOrArr = z
   .union([z.array(z.string()), z.string()])
   .transform((v) => (Array.isArray(v) ? v : [v]));
 
+const techItemSchema = z.union([
+  z.string(),
+  z.object({ name: z.string(), category: z.string(), reason: z.string() }),
+]);
+
 export const ProjectRecommendationSchema = z.object({
   name: z.string(),
   description: z.string(),
-  technologies: strOrArr,
+  technologies: z.union([z.array(techItemSchema), z.string()]).transform((v) =>
+    Array.isArray(v) ? v : [v],
+  ),
   key_features: strOrArr,
   architecture: z.string(),
-  // Optional for backward compat with analyses stored before these fields
-  // were removed from the tool schema. New analyses won't have them.
   advanced_concepts: strOrArr.optional(),
   success_criteria: strOrArr,
-  difficulty_level: z.enum(['Intermediate', 'Advanced', 'Expert']),
+  difficulty_level: z.enum(['Beginner', 'Intermediate', 'Advanced', 'Expert']),
   why_it_matters: z.string(),
   what_matters: strOrArr.optional(),
+  cv_bullet: z.string().optional(),
+  signal_boost: z.string().optional(),
+  architecture_diagram: z.string().optional(),
+  sections: z.array(z.object({
+    title: z.string(),
+    duration: z.string(),
+    steps: z.array(z.object({ title: z.string(), description: z.string() })),
+  })).optional(),
+  /** Backward compat — flat steps from analyses before sections were introduced */
+  steps: z.array(z.object({ title: z.string(), description: z.string(), duration: z.string() })).optional(),
+  edge_cases: z.array(z.object({ problem: z.string(), solution: z.string() })).optional(),
+  going_further: z.array(z.string()).optional(),
+  how_to_sell: z.object({
+    github_readme_tip: z.string(),
+    interview_pitch: z.string(),
+    star_tactics: z.string(),
+  }).optional(),
+  interview_questions: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
+  testing_strategy: z.string().optional(),
+  gap_bridges: z.array(z.object({
+    skill_name: z.string(),
+    phase_title: z.string(),
+    claim: z.string(),
+  })).optional(),
 });
 
 export const ChallengeAnalysisSchema = z.object({
@@ -260,7 +289,7 @@ export const DeepAnalyzeResponseSchema = z.object({
    * the field. New analyses won't populate this.
    */
   technical_analysis: TechnicalAnalysisSchema.optional(),
-  project_recommendation: ProjectRecommendationSchema,
+  project_recommendation: ProjectRecommendationSchema.optional(),
   ats_critical_missing_keywords: z.array(AtsCriticalMissingKeywordSchema),
   fixes: z.object({
     seniority_analysis: FixSchema,

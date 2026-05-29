@@ -961,7 +961,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               <View style={styles.techBadgeContainer}>
                 {result.project_recommendation.technologies.map((tech, i) => (
                   <View key={i} style={styles.techBadge}>
-                    <Text style={styles.techBadgeText}>{stripMd(tech)}</Text>
+                    <Text style={styles.techBadgeText}>{stripMd(typeof tech === "string" ? tech : tech.name)}</Text>
                   </View>
                 ))}
               </View>

@@ -45,6 +45,11 @@ export type AnalyzeApplicationInput = {
 export type AnalyzeApplicationDeepInput = AnalyzeApplicationInput & {
   /** Hot pass result, used as grounding for the deep pass. */
   hot: HotAnalyzeResponse;
+  /**
+   * When false, Claude skips generating project_recommendation. Defaults to
+   * true. Set to false for free-tier users who cannot see §09 Bridge Project.
+   */
+  generateBridgeProject?: boolean;
 };
 
 export type RewriteCvInput = {

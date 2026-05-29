@@ -528,6 +528,28 @@ export function useRegenerateDeep() {
   });
 }
 
+export function useGenerateStarterRepo() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+
+  return useMutation({
+    mutationFn: async (analysisId: number): Promise<Blob> => {
+      const res = await fetch(
+        `${BASE_URL}/api/analyze/${analysisId}/starter-repo`,
+        {
+          method: 'POST',
+          headers: authHeaders(token!),
+        },
+      );
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      return res.blob();
+    },
+  });
+}
+
 export function useGenerateNegotiation() {
   const { session } = useAuth();
   const token = session?.access_token;
@@ -545,5 +567,26 @@ export function useGenerateNegotiation() {
           body: JSON.stringify({ locale: locale ?? 'en' }),
         },
       ),
+  });
+}
+
+export function useSaveStepProgress() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ analysisId, completedSteps }: { analysisId: number; completedSteps: number[] }) =>
+      apiFetch<{ ok: boolean }>(
+        `/api/analyze/${analysisId}/bridge-progress`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...authHeaders(token!) },
+          body: JSON.stringify({ completed_steps: completedSteps }),
+        },
+      ),
+    onSuccess: (_, { analysisId }) => {
+      queryClient.invalidateQueries({ queryKey: ['analysis', analysisId] });
+    },
   });
 }

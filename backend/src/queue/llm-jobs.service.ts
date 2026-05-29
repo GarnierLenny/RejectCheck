@@ -63,7 +63,7 @@ export class LlmJobsService {
   private runInlineDeep(payload: DeepAnalysisJobPayload): void {
     setImmediate(() => {
       const uc = this.moduleRef.get(RegenerateDeepUseCase, { strict: false });
-      uc.execute(payload.analysisId, payload.email).catch((err: unknown) => {
+      uc.execute(payload.analysisId, payload.email, payload.generateBridgeProject).catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         this.logger.warn(
           `Inline deep pass failed (analysisId=${payload.analysisId}): ${msg}`,

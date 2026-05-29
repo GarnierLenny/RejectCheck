@@ -4,6 +4,8 @@ export const NEGOTIATION_QUEUE = 'analyze-negotiation';
 export type DeepAnalysisJobPayload = {
   analysisId: number;
   email: string;
+  /** When false, Claude skips project_recommendation generation. */
+  generateBridgeProject?: boolean;
 };
 
 export type NegotiationJobPayload = {

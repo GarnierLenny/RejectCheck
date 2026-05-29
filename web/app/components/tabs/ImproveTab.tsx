@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Loader2, Download, CheckCircle2, Wand2, Zap, ScanSearch, TrendingUp, FileWarning } from "lucide-react";
 import { generateCvPdf } from "../../utils/export";
 import { CvMarkdownRenderer } from "../CvMarkdownRenderer";
@@ -133,7 +134,9 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
           {fixes.map(({ Icon, color, text }, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <Icon size={14} style={{ color, flexShrink: 0, marginTop: 1 }} />
-              <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)", lineHeight: 1.55 }}>{text}</span>
+              <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)", lineHeight: 1.55 }}>
+                <ReactMarkdown components={{ p: ({ children }) => <>{children}</> }}>{text}</ReactMarkdown>
+              </span>
             </div>
           ))}
         </div>

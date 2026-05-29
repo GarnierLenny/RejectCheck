@@ -697,7 +697,7 @@ export function useAnalysis(
   return useQuery({
     queryKey: ['analysis', id, userId],
     queryFn: () =>
-      apiFetch<{ result: any; jobDescription: string; jobLabel?: string; company?: string; rewrite?: any; coverLetter?: string | null }>(
+      apiFetch<{ result: any; jobDescription: string; jobLabel?: string; company?: string; rewrite?: any; coverLetter?: string | null; completedSteps?: number[] }>(
         `/api/analyze/${id}`,
         { headers: authHeaders(token!) },
       ),

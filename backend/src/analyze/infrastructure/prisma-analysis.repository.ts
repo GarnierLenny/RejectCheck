@@ -147,6 +147,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         deepAnalysis: true,
         coverLetter: true,
         negotiationAnalysis: true,
+        completedSteps: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -162,9 +163,17 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
       negotiationAnalysis:
         row.negotiationAnalysis as NegotiationAnalysis | null,
+      completedSteps: row.completedSteps ?? [],
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
+  }
+
+  async saveCompletedSteps(id: number, email: string, steps: number[]): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: { completedSteps: steps },
+    });
   }
 
   async paginateByEmail(
@@ -244,6 +253,25 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     });
   }
 
+  async findStarterRepo(id: number, email: string): Promise<unknown | null> {
+    const row = await this.prisma.analysis.findFirst({
+      where: { id, email },
+      select: { starterRepo: true },
+    });
+    return row?.starterRepo ?? null;
+  }
+
+  async attachStarterRepo(
+    id: number,
+    email: string,
+    repo: unknown,
+  ): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: { starterRepo: repo as Prisma.InputJsonValue },
+    });
+  }
+
   async deleteByIdForEmail(id: number, email: string): Promise<void> {
     const exists = await this.prisma.analysis.findFirst({
       where: { id, email },
@@ -278,6 +306,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         deepAnalysis: true,
         coverLetter: true,
         negotiationAnalysis: true,
+        completedSteps: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -293,6 +322,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       result: row.result as AnalyzeResponse | null,
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
       negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
+      completedSteps: row.completedSteps ?? [],
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

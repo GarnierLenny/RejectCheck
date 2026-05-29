@@ -23,7 +23,6 @@ import { CvReviewTab } from "../../../components/tabs/CvReviewTab";
 import { SignalsTab } from "../../../components/tabs/SignalsTab";
 import { FlagsTab } from "../../../components/tabs/FlagsTab";
 import { RoadmapTab } from "../../../components/tabs/RoadmapTab";
-import { BridgeTab } from "../../../components/tabs/BridgeTab";
 import { ConsistencyTab } from "../../../components/tabs/ConsistencyTab";
 import { TECH_ROLES } from "../../../../lib/onboarding-data";
 import { ImproveTab } from "../../../components/tabs/ImproveTab";
@@ -824,6 +823,7 @@ function AnalyzeContent() {
           onRewrite={handleRewrite}
           email={activeSubscription?.email || user?.email || null}
           accessToken={session?.access_token ?? null}
+          completedSteps={savedAnalysis?.completedSteps}
         />
       ) : (
         <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>

@@ -611,20 +611,36 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           },
           technologies: {
             type: 'array' as const,
-            items: { type: 'string' as const },
+            items: {
+              type: 'object' as const,
+              properties: {
+                name: { type: 'string' as const, description: 'Technology name, e.g. "NestJS"' },
+                category: {
+                  type: 'string' as const,
+                  enum: ['frontend', 'backend', 'database', 'infra', 'ai/ml', 'tooling', 'cloud'],
+                },
+                reason: {
+                  type: 'string' as const,
+                  description: 'Why this tech was chosen for this project. ≤ 12 words.',
+                },
+              },
+              required: ['name', 'category', 'reason'],
+            },
             maxItems: 8,
           },
           key_features: {
             type: 'array' as const,
             items: { type: 'string' as const },
             maxItems: 3,
-            description:
-              'At most 3 key features. Each ≤ 12 words, action-oriented.',
+            description: 'At most 3 key features. Each ≤ 12 words, action-oriented.',
           },
           architecture: {
             type: 'string' as const,
-            description:
-              'Short technical sketch of how the system is laid out. ≤ 50 words.',
+            description: 'Short technical sketch of how the system is laid out. ≤ 50 words.',
+          },
+          architecture_diagram: {
+            type: 'string' as const,
+            description: 'A valid Mermaid diagram string (flowchart LR). Show the main components and data flow. Max 8 nodes. No quotes or special characters in node labels. Keep it simple.',
           },
           success_criteria: {
             type: 'array' as const,
@@ -634,12 +650,127 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           },
           difficulty_level: {
             type: 'string' as const,
-            enum: ['Intermediate', 'Advanced', 'Expert'],
+            enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
           },
           why_it_matters: {
             type: 'string' as const,
+            description: 'Why building this matters for THIS specific JD. ≤ 50 words.',
+          },
+          cv_bullet: {
+            type: 'string' as const,
             description:
-              'Why building this matters for THIS specific JD. ≤ 50 words.',
+              'A ready-to-paste CV bullet the candidate can add once the project is done. Start with a strong past-tense verb. Include the core technologies and one concrete metric (estimated or synthetic is fine). ≤ 25 words.',
+          },
+          signal_boost: {
+            type: 'string' as const,
+            description:
+              'One or two sentences the candidate can drop verbatim into their cover letter or say in the first interview round. Must reference a concrete detail from the job description. ≤ 40 words.',
+          },
+          sections: {
+            type: 'array' as const,
+            description: '3 to 6 implementation sections (e.g. Setup, Core, Backend, Frontend, Testing, Deployment). Only include sections relevant to this project. Each section contains 2 to 5 concrete checkable steps.',
+            items: {
+              type: 'object' as const,
+              properties: {
+                title: { type: 'string' as const, description: 'Section name. ≤ 5 words. e.g. "Setup", "Core pipeline", "Testing".' },
+                duration: { type: 'string' as const, description: 'Estimated time for this section. e.g. "Jour 1", "Jour 2-3".' },
+                steps: {
+                  type: 'array' as const,
+                  items: {
+                    type: 'object' as const,
+                    properties: {
+                      title: { type: 'string' as const, description: 'Actionable step title. ≤ 8 words.' },
+                      description: { type: 'string' as const, description: 'What to do. Be concrete and specific. ≤ 50 words.' },
+                    },
+                    required: ['title', 'description'],
+                  },
+                  minItems: 2,
+                  maxItems: 5,
+                },
+              },
+              required: ['title', 'duration', 'steps'],
+            },
+            minItems: 3,
+            maxItems: 6,
+          },
+          edge_cases: {
+            type: 'array' as const,
+            description: '2 to 4 common pitfalls specific to this project and stack.',
+            items: {
+              type: 'object' as const,
+              properties: {
+                problem: { type: 'string' as const, description: '≤ 12 words' },
+                solution: { type: 'string' as const, description: '≤ 30 words' },
+              },
+              required: ['problem', 'solution'],
+            },
+            minItems: 2,
+            maxItems: 4,
+          },
+          going_further: {
+            type: 'array' as const,
+            description: '3 to 5 ideas to extend the project after the MVP.',
+            items: { type: 'string' as const, description: '≤ 12 words each' },
+            minItems: 3,
+            maxItems: 5,
+          },
+          how_to_sell: {
+            type: 'object' as const,
+            properties: {
+              github_readme_tip: {
+                type: 'string' as const,
+                description: 'How to write the GitHub README to impress recruiters. ≤ 40 words.',
+              },
+              interview_pitch: {
+                type: 'string' as const,
+                description: 'Opening sentence to pitch this project in an interview. ≤ 40 words.',
+              },
+              star_tactics: {
+                type: 'string' as const,
+                description: 'How to get GitHub stars and community visibility (HN, Reddit, etc.). ≤ 40 words.',
+              },
+            },
+            required: ['github_readme_tip', 'interview_pitch', 'star_tactics'],
+          },
+          interview_questions: {
+            type: 'array' as const,
+            description: '3 to 5 technical interview questions a recruiter would ask about this specific project, with concise answers.',
+            items: {
+              type: 'object' as const,
+              properties: {
+                question: { type: 'string' as const },
+                answer: { type: 'string' as const, description: '≤ 60 words. Reference the project architecture and the JD.' },
+              },
+              required: ['question', 'answer'],
+            },
+            minItems: 3,
+            maxItems: 5,
+          },
+          testing_strategy: {
+            type: 'string' as const,
+            description: 'How to test this project: what to unit test, integration test, and which tools. Specific to the stack. ≤ 60 words.',
+          },
+          gap_bridges: {
+            type: 'array' as const,
+            description: 'For each skill gap from technical_analysis (current < expected), identify the specific section that closes it and the concrete interview claim the candidate earns by completing it.',
+            items: {
+              type: 'object' as const,
+              properties: {
+                skill_name: {
+                  type: 'string' as const,
+                  description: 'Exact skill name from technical_analysis.skills.',
+                },
+                phase_title: {
+                  type: 'string' as const,
+                  description: 'Title of the section that primarily closes this gap. Must match a section title exactly.',
+                },
+                claim: {
+                  type: 'string' as const,
+                  description: 'Concrete sentence the candidate can say in an interview after completing this phase. Start with "I built..." or "I implemented...". ≤ 20 words.',
+                },
+              },
+              required: ['skill_name', 'phase_title', 'claim'],
+            },
           },
         },
         required: [
@@ -648,9 +779,18 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           'technologies',
           'key_features',
           'architecture',
+          'architecture_diagram',
           'success_criteria',
           'difficulty_level',
           'why_it_matters',
+          'cv_bullet',
+          'signal_boost',
+          'sections',
+          'edge_cases',
+          'going_further',
+          'how_to_sell',
+          'interview_questions',
+          'testing_strategy',
         ],
       },
       ats_critical_missing_keywords: {
@@ -712,3 +852,27 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
     ],
   },
 };
+
+/**
+ * Returns the deep-pass tool definition. When `generateBridgeProject` is
+ * false, `project_recommendation` is removed from the schema so Claude
+ * skips generating it entirely (saves ~1–2k tokens per analysis for free
+ * users who cannot see §09 anyway).
+ */
+export function buildDeepAnalysisTool(generateBridgeProject: boolean) {
+  if (generateBridgeProject) return SUBMIT_ANALYSIS_DEEP_TOOL;
+
+  const { project_recommendation: _dropped, ...propertiesWithout } =
+    SUBMIT_ANALYSIS_DEEP_TOOL.input_schema.properties;
+
+  return {
+    ...SUBMIT_ANALYSIS_DEEP_TOOL,
+    description:
+      'Submit the DEEP analysis pass that runs after the hot pass. Generate ATS critical missing keywords and ALL fix blocks. Each fix array MUST have the same length as the corresponding hot-pass array (one fix per issue/red flag, in order).',
+    input_schema: {
+      ...SUBMIT_ANALYSIS_DEEP_TOOL.input_schema,
+      properties: propertiesWithout,
+      required: ['ats_critical_missing_keywords', 'fixes'],
+    },
+  };
+}

@@ -21,17 +21,48 @@ export type ChallengeAnalysis = {
   bridge_to_project?: string | null;
 };
 
+export type TechItem = string | { name: string; category: string; reason: string };
+
+export function techName(item: TechItem): string {
+  return typeof item === 'string' ? item : item.name;
+}
+
+export type ProjectStep = { title: string; description: string; duration: string };
+export type ProjectSectionStep = { title: string; description: string };
+export type ProjectSection = { title: string; duration: string; steps: ProjectSectionStep[] };
+export type ProjectEdgeCase = { problem: string; solution: string };
+export type GapBridge = { skill_name: string; phase_title: string; claim: string };
+export type ProjectInterviewQuestion = { question: string; answer: string };
+export type ProjectHowToSell = {
+  github_readme_tip: string;
+  interview_pitch: string;
+  star_tactics: string;
+};
+
 export type ProjectRecommendation = {
   name: string;
   description: string;
-  technologies: string[];
+  technologies: TechItem[];
   key_features: string[];
   architecture: string;
   advanced_concepts: string[];
   success_criteria: string[];
-  difficulty_level: 'Intermediate' | 'Advanced' | 'Expert';
+  difficulty_level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
   why_it_matters: string;
   what_matters: string[];
+  cv_bullet?: string;
+  signal_boost?: string;
+  // README fields (new analyses only)
+  architecture_diagram?: string;
+  sections?: ProjectSection[];
+  /** Backward compat — flat steps before sections were introduced */
+  steps?: ProjectStep[];
+  edge_cases?: ProjectEdgeCase[];
+  going_further?: string[];
+  how_to_sell?: ProjectHowToSell;
+  interview_questions?: ProjectInterviewQuestion[];
+  testing_strategy?: string;
+  gap_bridges?: GapBridge[];
 };
 
 export type SalaryRange = {

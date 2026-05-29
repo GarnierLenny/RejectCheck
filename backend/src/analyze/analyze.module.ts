@@ -47,6 +47,8 @@ import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
+import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
+import { GeminiStarterRepoProvider } from './infrastructure/gemini-starter-repo.provider';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
@@ -103,6 +105,8 @@ import {
     RemoveSavedCvUseCase,
     CreateShareTokenUseCase,
     GetSharedAnalysisUseCase,
+    GeminiStarterRepoProvider,
+    GenerateStarterRepoUseCase,
   ],
 })
 export class AnalyzeModule {}

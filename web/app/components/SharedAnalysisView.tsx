@@ -250,7 +250,7 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
               <NegotiationTab result={result} analysisId={null} isPremium={true} />
             )}
             {activeTab === "roadmap" && <RoadmapTab result={result} />}
-            {activeTab === "project" && <BridgeTab result={result} />}
+            {activeTab === "project" && <BridgeTab result={result} analysisId={null} />}
           </>
         )}
       </div>

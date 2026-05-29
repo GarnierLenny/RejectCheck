@@ -33,6 +33,7 @@ export class RegenerateDeepUseCase {
   async execute(
     analysisId: number,
     email: string,
+    generateBridgeProject = true,
   ): Promise<DeepAnalyzeResponse> {
     const stored = await this.analyses.findById(analysisId, email);
     if (!stored || !stored.result) {
@@ -65,6 +66,7 @@ export class RegenerateDeepUseCase {
       userExperienceLevel: profile?.experienceLevel ?? null,
       userTechStack: profile?.techStack ?? [],
       userLanguages: profile?.languages ?? [],
+      generateBridgeProject,
     });
 
     await this.analyses.attachDeepAnalysis(analysisId, email, deep);

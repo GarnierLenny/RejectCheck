@@ -1,0 +1,1 @@
+ALTER TABLE "Analysis" ADD COLUMN IF NOT EXISTS "completedSteps" INTEGER[] NOT NULL DEFAULT '{}';

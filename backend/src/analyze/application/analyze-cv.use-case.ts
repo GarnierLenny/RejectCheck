@@ -306,7 +306,8 @@ export class AnalyzeCvUseCase {
     // — they still receive deep_done over the SSE stream before the response
     // ends. Negotiation is hired-only and therefore registered-only.
     if (cmd.email && cmd.isRegistered && analysisId !== null) {
-      await this.llmJobs.enqueueDeep({ analysisId, email: cmd.email });
+      const generateBridgeProject = subscriptionState.plan !== 'rejected';
+      await this.llmJobs.enqueueDeep({ analysisId, email: cmd.email, generateBridgeProject });
       if (subscriptionState.plan === 'hired') {
         await this.llmJobs.enqueueNegotiation({
           analysisId,
@@ -323,6 +324,7 @@ export class AnalyzeCvUseCase {
         const deep = await this.claude.analyzeApplicationDeep({
           ...claudeInput,
           hot,
+          generateBridgeProject: false,
           onDelta: (delta) => emit({ type: 'deep_delta', delta }),
         });
         Object.assign(result, mergeHotAndDeep(hot, deep));

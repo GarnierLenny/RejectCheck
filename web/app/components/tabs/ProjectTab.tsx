@@ -104,11 +104,14 @@ export function ProjectTab({ project }: Props) {
             <Zap className="w-3.5 h-3.5" /> Core Stack
           </h4>
           <div className="flex flex-wrap gap-2">
-            {project.technologies.map((tech) => (
-              <span key={tech} className="px-2.5 py-1 bg-rc-surface-raised border border-rc-border font-mono text-[12px] text-rc-text">
-                {stripMd(tech)}
-              </span>
-            ))}
+            {project.technologies.map((tech, i) => {
+              const name = typeof tech === "string" ? tech : tech.name;
+              return (
+                <span key={i} className="px-2.5 py-1 bg-rc-surface-raised border border-rc-border font-mono text-[12px] text-rc-text">
+                  {stripMd(name)}
+                </span>
+              );
+            })}
           </div>
         </div>
         {project.advanced_concepts && project.advanced_concepts.length > 0 && (

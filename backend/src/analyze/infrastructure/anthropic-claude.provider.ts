@@ -40,7 +40,7 @@ import type {
   RewriteCvInput,
 } from '../ports/claude.provider';
 import {
-  SUBMIT_ANALYSIS_DEEP_TOOL,
+  buildDeepAnalysisTool,
   SUBMIT_ANALYSIS_HOT_TOOL,
 } from './schemas/claude-analysis.schema';
 import { SUBMIT_CV_REVIEW_TOOL } from './schemas/cv-review.schema';
@@ -421,7 +421,7 @@ Formatting rules:
           ],
           tools: [
             {
-              ...SUBMIT_ANALYSIS_DEEP_TOOL,
+              ...buildDeepAnalysisTool(input.generateBridgeProject ?? true),
               cache_control: { type: 'ephemeral', ttl: '1h' },
             },
           ],
@@ -802,11 +802,27 @@ Formatting rules:
           .join('\n')
       : '  (none — empty fix array)';
 
+    const skills = hot.technical_analysis?.skills as
+      | Array<{ name: string; current: number; expected: number }>
+      | undefined;
+    const skillGapLines = skills
+      ?.filter((s) => s.current < s.expected && s.expected > 0)
+      .map((s) => `  - ${s.name}: current=${s.current}/10 expected=${s.expected}/10 (gap=${+(s.expected - s.current).toFixed(1)})`)
+      .join('\n');
+    const hasGaps = !!skillGapLines;
+    const skillGapBlock = skillGapLines
+      ? `SKILL GAPS FROM TECHNICAL ANALYSIS (gaps to close — use these to calibrate difficulty and gap_bridges):\n${skillGapLines}\n\n---\n\n`
+      : `NO SKILL GAPS DETECTED — the candidate already meets the technical bar for this role.\n\n---\n\n`;
+
     return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
 
 Generate the DEEP analysis pass for the application below. The HOT pass has already produced scores, audits, red flag titles, and technical_analysis. Your job now is to:
 
-1. Produce a single \`project_recommendation\` (the Bridge-the-Gap project — keep it strong and specific, this is the main user-facing artefact).
+1. Produce a single \`project_recommendation\` (the Bridge project — keep it strong and specific, this is the main user-facing artefact).
+   - ${hasGaps
+     ? 'The candidate has skill gaps (see SKILL GAPS below). Design the project to close them. Calibrate section durations to the actual gap size: current ≤4/10 on a core skill → ~2-3 days for that section; 6-7/10 → 1 day. Populate `gap_bridges` for every listed gap — `phase_title` MUST match a section title exactly.'
+     : 'The candidate already meets the bar. Design a showcase project that demonstrates their strongest skills in the specific context of this JD — something they can point to as proof of depth and initiative, not a remediation exercise. Aim for Advanced or Expert difficulty. Skip `gap_bridges` (no gaps to bridge).'
+   }
 2. List the ATS \`critical_missing_keywords\` ordered by score_impact desc.
 3. Generate ONE \`fix\` per issue / red flag / seniority gap identified in the hot pass. Each fix array MUST have the SAME LENGTH as its hot counterpart, in the SAME ORDER. The cv_tone diagnostic does NOT need a fix — set fixes.cv_tone to a minimal placeholder if the schema requires it (or it'll be optional).
 
@@ -822,7 +838,7 @@ ${formatChallengeStats(input.challengeStats)}
 
 ---
 
-HOT-PASS SUMMARY (anchor your fixes to these exact items, in order):
+${skillGapBlock}HOT-PASS SUMMARY (anchor your fixes to these exact items, in order):
 
 Overall: score=${hot.score} verdict=${hot.verdict} (confidence=${hot.confidence.score})
 

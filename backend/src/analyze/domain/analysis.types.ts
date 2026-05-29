@@ -52,7 +52,7 @@ export type AnalysisDetail = Pick<
   | 'negotiationAnalysis'
   | 'createdAt'
   | 'updatedAt'
->;
+> & { completedSteps: number[] };
 
 export type Profile = {
   id: number;

@@ -106,6 +106,15 @@ export interface AnalysisRepository {
     deep: DeepAnalyzeResponse,
   ): Promise<void>;
 
+  /** Returns cached starter repo files, or null if not generated yet. */
+  findStarterRepo(id: number, email: string): Promise<unknown | null>;
+
+  /** Persists the Gemini-generated starter repo file tree. */
+  attachStarterRepo(id: number, email: string, repo: unknown): Promise<void>;
+
+  /** Persists the bridge project step indices checked off by the user. */
+  saveCompletedSteps(id: number, email: string, steps: number[]): Promise<void>;
+
   /** Throws AnalysisNotFoundException if the row doesn't belong to the email. */
   deleteByIdForEmail(id: number, email: string): Promise<void>;
 

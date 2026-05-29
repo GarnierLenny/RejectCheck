@@ -4,7 +4,9 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -54,6 +56,9 @@ import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
+import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
+import { ANALYSIS_REPOSITORY } from './ports/tokens';
+import type { AnalysisRepository } from './ports/analysis.repository';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
 import { DeleteAnalysisUseCase } from './application/delete-analysis.use-case';
@@ -100,6 +105,8 @@ export class AnalyzeController {
     private readonly addSavedCvUc: AddSavedCvUseCase,
     private readonly removeSavedCvUc: RemoveSavedCvUseCase,
     private readonly createShareTokenUc: CreateShareTokenUseCase,
+    private readonly generateStarterRepoUc: GenerateStarterRepoUseCase,
+    @Inject(ANALYSIS_REPOSITORY) private readonly analysisRepo: AnalysisRepository,
   ) {}
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
@@ -495,6 +502,21 @@ export class AnalyzeController {
   }
 
   @UseGuards(SupabaseGuard)
+  @Patch(':id/bridge-progress')
+  async saveBridgeProgress(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Body() body: unknown,
+  ) {
+    const id = parseInt(rawId as string, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const parsed = z.object({ completed_steps: z.array(z.number().int().min(0)) }).safeParse(body);
+    if (!parsed.success) throw new BadRequestException('Invalid payload');
+    await this.analysisRepo.saveCompletedSteps(id, email, parsed.data.completed_steps);
+    return { ok: true };
+  }
+
+  @UseGuards(SupabaseGuard)
   @Post(':id/delete')
   @ApiOperation({
     summary: 'Delete an analysis (must belong to the authenticated user)',
@@ -515,5 +537,43 @@ export class AnalyzeController {
     const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     return this.createShareTokenUc.execute(id, email);
+  }
+
+  @RequiresPremium('shortlisted')
+  @Post(':id/starter-repo')
+  @ApiOperation({
+    summary: 'Generate (or return cached) starter repo ZIP for the bridge project',
+  })
+  async starterRepo(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Res() res: SseResponse,
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+
+    const { repo, projectName } = await this.generateStarterRepoUc.execute(id, email);
+
+    const zipSlug = projectName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'starter-repo';
+
+    // Build ZIP in memory with jszip
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const JSZip = require('jszip') as typeof import('jszip');
+    const zip = new JSZip();
+    for (const file of repo.files) {
+      zip.file(file.path, file.content);
+    }
+    const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+
+    (res as unknown as import('express').Response)
+      .set({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${zipSlug}.zip"`,
+        'Content-Length': String(buffer.length),
+      })
+      .end(buffer);
   }
 }

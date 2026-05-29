@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
 import type { AnalysisResult, NegotiationAnalysis } from "./types";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +9,8 @@ import { useLanguage } from "../../context/language";
 import { SourceTimeline } from "./timeline/SourceTimeline";
 import { GitBranch, PenLine, Mail, Mic, TrendingUp } from "lucide-react";
 import { ImproveTab } from "./tabs/ImproveTab";
+import { BridgeTab } from "./tabs/BridgeTab";
+import { ProjectRecommendationSkeleton } from "./skeletons/ProjectRecommendationSkeleton";
 import { CoverLetterTab } from "./tabs/CoverLetterTab";
 import { InterviewTab } from "./tabs/InterviewTab";
 
@@ -113,6 +116,7 @@ type Props = {
   onRewrite?: () => void;
   email?: string | null;
   accessToken?: string | null;
+  completedSteps?: number[];
 };
 
 // ── Salary range bar ─────────────────────────────────────────────────────────
@@ -272,6 +276,7 @@ export function DiagnosticResult({
   onRewrite,
   email = null,
   accessToken = null,
+  completedSteps,
 }: Props) {
   const { localePath } = useLanguage();
 
@@ -873,7 +878,7 @@ export function DiagnosticResult({
                         <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-green)", fontWeight: 700, display: "block", marginBottom: 4 }}>
                           Coach rewrite
                         </span>
-                        {issue.fix.example.after}
+                        <ReactMarkdown>{issue.fix.example.after}</ReactMarkdown>
                       </div>
                     )}
                     {!issue.fix && deepStatus === "pending" && (
@@ -999,7 +1004,7 @@ export function DiagnosticResult({
                         {issue.fix?.example && (
                           <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--rc-green-bg)", borderLeft: "2px solid var(--rc-green)", ...SANS, fontSize: 12, lineHeight: 1.5 }}>
                             <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-green)", fontWeight: 700, display: "block", marginBottom: 3 }}>Fix</span>
-                            {issue.fix.example.after}
+                            <ReactMarkdown>{issue.fix.example.after}</ReactMarkdown>
                           </div>
                         )}
                       </div>
@@ -1035,7 +1040,7 @@ export function DiagnosticResult({
                         {issue.fix?.example && (
                           <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--rc-green-bg)", borderLeft: "2px solid var(--rc-green)", ...SANS, fontSize: 12, lineHeight: 1.5 }}>
                             <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-green)", fontWeight: 700, display: "block", marginBottom: 3 }}>Fix</span>
-                            {issue.fix.example.after}
+                            <ReactMarkdown>{issue.fix.example.after}</ReactMarkdown>
                           </div>
                         )}
                       </div>
@@ -1147,32 +1152,11 @@ export function DiagnosticResult({
               {hasShortlisted && (
                 <section data-dr-sec="s9" id="s9" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
                   <div style={SEC_NUM}><SecNumLine />§ 09 · Bridge project</div>
-                  {result.project_recommendation ? (() => {
-                    const p = result.project_recommendation;
-                    const diffColor = p.difficulty_level === "Expert" ? "var(--rc-red)" : p.difficulty_level === "Advanced" ? "var(--rc-amber)" : "var(--rc-hint)";
-                    return (<>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 20 }}>
-                        <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.1 }}>
-                          <span style={DISPLAY_ITALIC}>{p.name}</span>
-                        </h3>
-                        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: diffColor, padding: "2px 7px", border: `1px solid ${diffColor}33`, borderRadius: 4, flexShrink: 0 }}>{p.difficulty_level}</span>
-                      </div>
-                      <p style={{ ...SANS, fontSize: 14, lineHeight: 1.65, color: "var(--rc-muted)", margin: "0 0 24px", maxWidth: 680 }}>{p.why_it_matters}</p>
-                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginBottom: 28 }}>
-                        {p.technologies.map((t) => (
-                          <span key={t} style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--rc-text)", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 4, padding: "3px 8px" }}>{t}</span>
-                        ))}
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        {p.key_features.slice(0, 4).map((f, i) => (
-                          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 16px", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6 }}>
-                            <span style={{ ...MONO, fontSize: 10, color: "var(--rc-red)", fontWeight: 700, flexShrink: 0, paddingTop: 1 }}>{String(i + 1).padStart(2, "0")}</span>
-                            <span style={{ ...SANS, fontSize: 13, lineHeight: 1.5, color: "var(--rc-text)" }}>{f}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </>);
-                  })() : launchCard(
+                  {result.project_recommendation ? (
+                    <BridgeTab result={result} analysisId={analysisId} completedSteps={completedSteps} />
+                  ) : deepStatus === "pending" ? (
+                    <ProjectRecommendationSkeleton />
+                  ) : launchCard(
                     <GitBranch size={22} strokeWidth={1.5} color="#C93A39" />,
                     "Bridge project",
                     "A 5-day side project scoped to your exact skill gaps.",
