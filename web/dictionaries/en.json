@@ -602,6 +602,86 @@
       "linkedinPdf": "LinkedIn PDF",
       "portfolioProvided": "Portfolio link",
       "coverLetterPasted": "Pasted text"
+    },
+    "intake": {
+      "eyebrow": "New analysis · ~60s",
+      "headline": "What should we look at?",
+      "lead": "Pick the analysis you want, we tune the inputs to match. Change your mind as you go.",
+      "needs": "Needs",
+      "modes": {
+        "compare": {
+          "eyebrow": "Compare",
+          "headline": "Will this application get through?",
+          "desc": "Score your CV against one specific job: ATS simulation, skill gaps, red flags, the fixes that move the needle.",
+          "needs": "CV + job post"
+        },
+        "audit": {
+          "eyebrow": "CV audit",
+          "headline": "How strong is my CV on its own?",
+          "desc": "No job in mind yet. Get a quality read on your CV plus your public signals, and what a recruiter sees first.",
+          "needs": "CV only"
+        },
+        "vet": {
+          "eyebrow": "Vet the offer",
+          "headline": "Is this job real and worth my time?",
+          "desc": "No CV needed. We screen the posting for scams, unrealistic asks, off-market pay, and ghost-job signs.",
+          "needs": "Job post only",
+          "soon": "Soon"
+        }
+      },
+      "ctx": {
+        "compare": "We'll read your CV the way this specific recruiter would: both inputs targeted at the role.",
+        "audit": "No job needed, how your CV reads on its own, plus your public signals.",
+        "vet": "No CV needed, we screen this posting for scams, unrealistic asks, pay and ghost-job signals."
+      },
+      "nudge": {
+        "looksLikeCompare": "Looks like a Compare.",
+        "looksLikeAudit": "Looks like a CV audit.",
+        "looksLikeVet": "Looks like a Vet.",
+        "reasonAudit": "No job post attached, this is a standalone CV audit.",
+        "reasonVet": "No CV attached, just a posting on the table.",
+        "reasonCompare": "You have a CV and a job post.",
+        "switchTo": "Switch to {mode}"
+      },
+      "slots": {
+        "jobLabel": "The job post",
+        "savedUse": "Saved, click to use",
+        "uploadDifferent": "Upload a different file",
+        "cvDropPrompt": "Drop your CV or click to browse.",
+        "cvFormat": "PDF · DOCX · 5MB max",
+        "saveHint": "Save CVs for quick reuse in Settings",
+        "jobPlaceholder": "Paste the posting: title, must-haves, nice-to-haves, salary if shown...",
+        "pasteUrl": "Paste a URL instead"
+      },
+      "ghost": {
+        "addCv": "Add your CV",
+        "addCvSub": "score it or compare",
+        "addJob": "Add a job post",
+        "addJobSub": "compare against a role"
+      },
+      "signals": {
+        "title": "Sharpen it, optional",
+        "subtitle": "Public signals cross-check what your CV claims",
+        "githubHint": "Activity and contribution quality",
+        "uploadDifferent": "Upload different"
+      },
+      "vetChecks": {
+        "title": "What we'll screen for",
+        "subtitle": "No CV involved",
+        "scam": "Scam / fraud signals",
+        "unrealistic": "Unrealistic requirements",
+        "pay": "Pay vs market",
+        "ghost": "Ghost-job likelihood",
+        "pressure": "Pressure language",
+        "intent": "What they really want"
+      },
+      "actionBar": {
+        "analysesLeft": "analyses left",
+        "noCard": "No card required",
+        "comingSoon": "Coming soon",
+        "analyzing": "Analyzing..."
+      },
+      "privacy": "Stays private, auto-deleted after 30 days, never used for training"
     }
   },
   "loadingScreen": {

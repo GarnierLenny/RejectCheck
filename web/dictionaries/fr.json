@@ -602,6 +602,86 @@
       "portfolioProvided": "Lien portfolio",
       "linkedinPdf": "PDF LinkedIn",
       "coverLetterPasted": "Texte collé"
+    },
+    "intake": {
+      "eyebrow": "Nouvelle analyse · ~60s",
+      "headline": "Qu'est-ce qu'on regarde ?",
+      "lead": "Choisissez le type d'analyse, on adapte les champs en conséquence. Changez d'avis en cours de route.",
+      "needs": "Exige",
+      "modes": {
+        "compare": {
+          "eyebrow": "Comparer",
+          "headline": "Cette candidature va-t-elle passer ?",
+          "desc": "Score de votre CV face à un poste précis : simulation ATS, manques de compétences, red flags, les corrections qui font la différence.",
+          "needs": "CV + offre d'emploi"
+        },
+        "audit": {
+          "eyebrow": "Audit CV",
+          "headline": "Mon CV tient-il la route seul ?",
+          "desc": "Pas encore de poste en tête. Un bilan complet de votre CV et de vos signaux publics, et ce qu'un recruteur voit en premier.",
+          "needs": "CV uniquement"
+        },
+        "vet": {
+          "eyebrow": "Vérifier l'offre",
+          "headline": "Ce poste est-il réel et vaut-il mon temps ?",
+          "desc": "Pas de CV nécessaire. On analyse l'offre pour détecter les arnaques, exigences irréalistes, salaires hors marché et faux postes.",
+          "needs": "Offre d'emploi uniquement",
+          "soon": "Bientôt"
+        }
+      },
+      "ctx": {
+        "compare": "On lira votre CV comme le ferait ce recruteur précis : les deux champs ciblés sur le poste.",
+        "audit": "Pas d'offre nécessaire, comment votre CV se lit seul, plus vos signaux publics.",
+        "vet": "Pas de CV, on analyse cette offre pour détecter arnaques, exigences irréalistes et faux postes."
+      },
+      "nudge": {
+        "looksLikeCompare": "On dirait un Comparatif.",
+        "looksLikeAudit": "On dirait un Audit CV.",
+        "looksLikeVet": "On dirait une Vérification d'offre.",
+        "reasonAudit": "Pas d'offre jointe, c'est un audit CV seul.",
+        "reasonVet": "Pas de CV joint, juste une offre.",
+        "reasonCompare": "Vous avez un CV et une offre.",
+        "switchTo": "Passer à {mode}"
+      },
+      "slots": {
+        "jobLabel": "L'offre d'emploi",
+        "savedUse": "Sauvegardé, cliquer pour utiliser",
+        "uploadDifferent": "Uploader un autre fichier",
+        "cvDropPrompt": "Déposez votre CV ou cliquez pour parcourir.",
+        "cvFormat": "PDF · DOCX · 5 Mo max",
+        "saveHint": "Sauvegardez vos CVs pour les réutiliser dans les Paramètres",
+        "jobPlaceholder": "Collez l'offre : titre, indispensables, nice-to-haves, salaire si indiqué...",
+        "pasteUrl": "Coller une URL"
+      },
+      "ghost": {
+        "addCv": "Ajouter votre CV",
+        "addCvSub": "le noter ou comparer",
+        "addJob": "Ajouter une offre",
+        "addJobSub": "comparer avec un poste précis"
+      },
+      "signals": {
+        "title": "Affiner, optionnel",
+        "subtitle": "Les signaux publics recoupent ce que le CV affirme",
+        "githubHint": "Activité et qualité des contributions",
+        "uploadDifferent": "Uploader un autre"
+      },
+      "vetChecks": {
+        "title": "Ce qu'on va analyser",
+        "subtitle": "Pas de CV impliqué",
+        "scam": "Signaux arnaque / fraude",
+        "unrealistic": "Exigences irréalistes",
+        "pay": "Salaire vs marché",
+        "ghost": "Probabilité de faux poste",
+        "pressure": "Langage sous pression",
+        "intent": "Ce qu'ils veulent vraiment"
+      },
+      "actionBar": {
+        "analysesLeft": "analyses restantes",
+        "noCard": "Pas de carte requise",
+        "comingSoon": "Bientôt disponible",
+        "analyzing": "Analyse en cours..."
+      },
+      "privacy": "Données privées, supprimées automatiquement après 30 jours, jamais utilisées pour l'entraînement"
     }
   },
   "loadingScreen": {

@@ -9,11 +9,10 @@ import { useAuth } from "../../context/auth";
 import { useJdValidation, JD_MIN_CHARS, JD_MAX_CHARS } from "../hooks/useJdValidation";
 import type { JdWarningKey } from "../hooks/useJdValidation";
 import { PdfPreviewModal } from "./PdfPreviewModal";
-import {
-  URL_PRESETS,
-  type UrlField,
-} from "../../lib/onboarding-data";
-import type { RoleType } from "../../lib/queries";
+import { URL_PRESETS, type UrlField } from "../../lib/onboarding-data";
+import { useQuota, type RoleType } from "../../lib/queries";
+
+type IntakeMode = "compare" | "audit" | "vet";
 
 type Props = {
   cvFile: File | null;
@@ -33,844 +32,173 @@ type Props = {
   onSubmit: (e: React.MouseEvent<HTMLButtonElement>) => void;
   loading: boolean;
   error: string | null;
-  step: 1 | 2 | 3;
-  onStepChange: (s: 1 | 2 | 3) => void;
   savedCvFiles?: Array<{ id: number; name: string; url: string }>;
   savedLinkedinUrl?: string;
   savedPortfolioUrl?: string;
-  /** Drives which signal cards are shown in Step 2 + their recommended pill. */
   roleType?: RoleType | null;
-  /** Localised role label, displayed in LeftStep2 as "Calibrated for {role}". */
   roleLabel?: string | null;
 };
 
-type AccuracyLevel = {
-  segments: number;
-  color: string;
+/* ── Icons ─────────────────────────────────────────────────────────────── */
+
+function IconCV({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <path d="M14 2v6h6"/>
+    </svg>
+  );
+}
+
+function IconJob({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/>
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    </svg>
+  );
+}
+
+function IconUpload() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  );
+}
+
+function IconPlus() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 5v14"/><path d="M5 12h14"/>
+    </svg>
+  );
+}
+
+function IconSwap() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3h5v5"/><path d="M21 3l-7 7"/>
+      <path d="M8 21H3v-5"/><path d="M3 21l7-7"/>
+    </svg>
+  );
+}
+
+function IconInfo() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+    </svg>
+  );
+}
+
+function IconCheck({ size = 10 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
+
+/* ── Mode card ─────────────────────────────────────────────────────────── */
+
+type ModeConfig = {
+  eyebrow: string;
+  headline: string;
+  desc: string;
+  needs: string;
+  needsCv: boolean;
+  needsJob: boolean;
+  ctaLabel: string;
+  showSignals: boolean;
+  soon?: string;
 };
 
-function getAccuracy(cvFile: File | null, jd: string, github: string, liFile: File | null): AccuracyLevel {
-  const hasCV = !!cvFile;
-  const hasJD = jd.trim().length > 0;
-  const hasGH = github.trim().length > 0;
-  const hasLI = !!liFile;
-
-  // Audit mode (no JD): max 3 signals, scale to 5
-  if (!hasJD) {
-    const score = (hasCV ? 1 : 0) + (hasGH ? 1 : 0) + (hasLI ? 1 : 0);
-    if (score <= 1) return { segments: 2, color: "bg-rc-red" };
-    if (score === 2) return { segments: 3, color: "bg-rc-amber" };
-    return { segments: 5, color: "bg-rc-green" };
-  }
-
-  // Vs-job mode: 4 signals
-  const score = (hasCV ? 1 : 0) + 1 + (hasGH ? 1 : 0) + (hasLI ? 1 : 0); // JD already confirmed
-  if (score <= 1) return { segments: 2, color: "bg-rc-red" };
-  if (score === 2) return { segments: 3, color: "bg-rc-amber" };
-  if (score === 3) return { segments: 4, color: "bg-rc-amber" };
-  return { segments: 5, color: "bg-rc-green" };
-}
-
-/* ── Left panel helpers ──────────────────────────────────────────────────── */
-
-function HintBox({ title, body }: { title: string; body: string }) {
+function ModeCard({ m, cfg, active, onClick }: { m: IntakeMode; cfg: ModeConfig; active: boolean; onClick: () => void }) {
   return (
-    <div className="mt-4 px-3 py-2.5 bg-rc-red/8 border border-rc-red/[0.18] rounded">
-      <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-rc-red mb-1">{title}</div>
-      <div className="text-[11px] text-white/50 leading-relaxed">{body}</div>
-    </div>
-  );
-}
-
-function StepList({ current }: { current: 1 | 2 | 3 }) {
-  const { t } = useLanguage();
-  const items: { n: 1 | 2 | 3; label: string }[] = [
-    { n: 1, label: t.uploadForm.steps.application },
-    { n: 2, label: t.uploadForm.steps.signals },
-    { n: 3, label: t.uploadForm.steps.launch },
-  ];
-  return (
-    <div className="flex flex-col gap-2">
-      {items.map(({ n, label }) => {
-        const state = current > n ? "done" : current === n ? "active" : "idle";
-        return (
-          <div key={n} className="flex items-center gap-2">
-            <div className={`w-4 h-4 rounded-full flex items-center justify-center font-mono text-[7px] font-bold flex-shrink-0 ${
-              state === "done" ? "bg-rc-green text-white"
-              : state === "active" ? "bg-rc-red text-white"
-              : "border border-white/10 text-white/20"
-            }`}>
-              {state === "done" ? "✓" : n}
-            </div>
-            <span className={`font-mono text-[9px] uppercase tracking-[0.08em] ${
-              state === "done" ? "text-rc-green"
-              : state === "active" ? "text-white font-semibold"
-              : "text-white/30"
-            }`}>{label}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function LeftPanel({ stepTag, title, description, hint }: {
-  stepTag: string;
-  title: React.ReactNode;
-  description: string;
-  hint: { title: string; body: string };
-}) {
-  return (
-    <div>
-      <div className="font-mono text-[8px] tracking-[0.18em] uppercase text-rc-red flex items-center gap-1.5 mb-4">
-        <div className="w-3 h-px bg-rc-red" />
-        {stepTag}
-      </div>
-      <div className="text-[20px] font-bold text-[#f7f5f2] leading-[1.2] tracking-[-0.01em]">{title}</div>
-      <p className="text-[12px] text-white/55 mt-2.5 leading-[1.65]">{description}</p>
-      <HintBox title={hint.title} body={hint.body} />
-    </div>
-  );
-}
-
-function LeftStep1() {
-  const { t, localePath } = useLanguage();
-  const { user, loading: authLoading } = useAuth();
-  return (
-    <div>
-      <LeftPanel
-        stepTag={t.uploadForm.steps.step1}
-        title={<>{t.uploadForm.leftStep1.title}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-        description={t.uploadForm.leftStep1.description}
-        hint={{ title: t.uploadForm.leftStep1.hintTitle, body: t.uploadForm.leftStep1.hintBody }}
-      />
-      {!authLoading && !user && (
-        <div className="mt-5 px-3 py-3 border border-rc-red/30 rounded bg-rc-red/[0.06]">
-          <div className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-red font-bold flex items-center gap-1.5 mb-2">
-            <span className="text-[7px]">●</span> 1 essai gratuit
-          </div>
-          <p className="text-[12px] text-white/75 leading-[1.6]">
-            Cette analyse consomme ton seul crédit invité. Crée un compte pour en avoir <strong className="text-white font-bold">5 par mois</strong>, gratuit.
-          </p>
-          <Link
-            href={localePath("/login")}
-            className="mt-3 inline-block font-mono text-[10px] tracking-[0.1em] text-rc-red underline underline-offset-2 hover:opacity-70 transition-opacity"
-          >
-            Créer un compte gratuit →
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function LeftStep2({ roleLabel }: { roleLabel?: string | null }) {
-  const { t } = useLanguage();
-  return (
-    <div>
-      <LeftPanel
-        stepTag={t.uploadForm.steps.step2}
-        title={<>{t.uploadForm.steps.signals}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em></>}
-        description={t.uploadForm.leftStep2.description}
-        hint={{ title: t.uploadForm.leftStep2.hintTitle, body: t.uploadForm.leftStep2.hintBody }}
-      />
-      {roleLabel && (
-        <p className="mt-3 font-mono text-[8px] uppercase tracking-[0.18em] text-rc-red/70">
-          {t.uploadForm.leftStep2.calibratedFor.replace("{role}", roleLabel)}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function LeftStep3({ cvFile, jobDescription, githubUsername, portfolioUrl, liFile, mlFile, mlText }: {
-  cvFile: File | null; jobDescription: string; githubUsername: string; portfolioUrl: string;
-  liFile: File | null; mlFile: File | null; mlText: string;
-}) {
-  const { t } = useLanguage();
-  const recap = [
-    cvFile ? { icon: "CV", name: cvFile.name, val: `${(cvFile.size / 1024).toFixed(0)} KB · PDF` } : null,
-    jobDescription.trim() ? { icon: "JD", name: t.uploadForm.recap.jobListing, val: `${jobDescription.trim().split(/\s+/).length} ${t.uploadForm.recap.words}` } : null,
-    githubUsername.trim() ? { icon: "GH", name: `github.com/${githubUsername}`, val: t.uploadForm.recap.activeSignal } : null,
-    liFile ? { icon: "in", name: liFile.name, val: t.uploadForm.recap.linkedinPdf } : null,
-    portfolioUrl.trim() ? { icon: "P", name: portfolioUrl.trim(), val: t.uploadForm.recap.portfolioProvided } : null,
-    (mlFile || mlText.trim()) ? { icon: "✉", name: mlFile ? mlFile.name : t.uploadForm.coverLetter.label, val: mlFile ? "PDF" : t.uploadForm.recap.coverLetterPasted } : null,
-  ].filter((x): x is { icon: string; name: string; val: string } => x !== null);
-
-  return (
-    <div>
-      <div className="font-mono text-[8px] tracking-[0.18em] uppercase text-rc-red flex items-center gap-1.5 mb-4">
-        <div className="w-3 h-px bg-rc-red" />
-        {t.uploadForm.steps.step3}
-      </div>
-      <div className="text-[20px] font-bold text-[#f7f5f2] leading-[1.2] tracking-[-0.01em]">
-        {t.uploadForm.leftStep3.title}<em className="text-rc-red not-italic" style={{ fontFamily: "Georgia, serif" }}>.</em>
-      </div>
-      <p className="text-[12px] text-white/55 mt-2.5 leading-[1.65]">
-        {t.uploadForm.leftStep3.description}
-      </p>
-      <div className="mt-5">
-        <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-white/40 mb-2">{t.uploadForm.leftStep3.summary}</div>
-        <div className="flex flex-col gap-1.5">
-          {recap.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 px-2.5 py-2 bg-white/[0.04] border border-white/[0.06] rounded">
-              <div className="w-5 h-5 rounded flex items-center justify-center font-mono text-[7px] font-bold bg-white/10 text-[#f7f5f2] shrink-0">{item.icon}</div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[11px] font-medium text-[#f7f5f2] truncate">{item.name}</div>
-                <div className="font-mono text-[9px] text-white/40">{item.val}</div>
-              </div>
-              <span className="text-rc-green text-[11px]">✓</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Right panel helpers ─────────────────────────────────────────────────── */
-
-function RightStep1({ cvFile, setCvFile, fileRef, jobDescription, setJobDescription, savedCvFiles }: {
-  cvFile: File | null; setCvFile: (f: File | null) => void;
-  fileRef: React.RefObject<HTMLInputElement | null>;
-  jobDescription: string; setJobDescription: (v: string) => void;
-  savedCvFiles?: Array<{ id: number; name: string; url: string }>;
-}) {
-  const { t, localePath } = useLanguage();
-  const [loadingCvId, setLoadingCvId] = useState<number | null>(null);
-  const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
-  const warningKey = useJdValidation(jobDescription);
-  const warningText = warningKey
-    ? (t.uploadForm.jobListing.warnings as Record<JdWarningKey, string>)[warningKey]
-    : null;
-
-  return (
-    <>
-    {previewPdf && <PdfPreviewModal url={previewPdf.url} name={previewPdf.name} onClose={() => setPreviewPdf(null)} />}
-    <div className="flex flex-col flex-1 gap-0">
-      {!savedCvFiles?.length && (
-        <div className="flex items-center gap-1.5 mb-3">
-          <span className="text-[10px] text-rc-hint/50">↑</span>
-          <p className="font-mono text-[9px] text-rc-hint/50 leading-relaxed">
-            Save your CV, LinkedIn & GitHub in{" "}
-            <a href={localePath("/settings")} className="underline underline-offset-2 hover:text-rc-hint transition-colors">
-              Settings
-            </a>
-            {" "}to autofill future analyses.
-          </p>
-        </div>
-      )}
-    <div className="grid gap-6 flex-1 grid-cols-2">
-
-      {/* CV Upload - left column */}
-      <div className="flex flex-col">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.cv.label}</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">{t.common.required}</span>
-        </div>
-        {!cvFile ? (
-          savedCvFiles && savedCvFiles.length > 0 ? (
-            <div className="flex flex-col gap-1.5 flex-1">
-              <div className="space-y-1.5 flex-1">
-                {savedCvFiles.map(cv => (
-                  <div
-                    key={cv.id}
-                    className={`group flex items-center gap-3 px-3.5 py-3 bg-rc-red/[0.03] border border-rc-red/25 hover:border-rc-red/50 rounded transition-all duration-200 ${loadingCvId === cv.id ? "opacity-60" : ""}`}
-                  >
-                    <button
-                      type="button"
-                      disabled={loadingCvId === cv.id}
-                      onClick={async () => {
-                        setLoadingCvId(cv.id);
-                        try {
-                          const blob = await fetch(cv.url).then(r => r.blob());
-                          setCvFile(new File([blob], cv.name, { type: 'application/pdf' }));
-                        } finally {
-                          setLoadingCvId(null);
-                        }
-                      }}
-                      className="flex items-center gap-3 flex-1 min-w-0 text-left hover:bg-rc-red/[0.04] -mx-1 px-1 rounded transition-all disabled:cursor-not-allowed"
-                    >
-                      <div className="w-8 h-8 rounded bg-rc-red/8 border border-rc-red/20 flex items-center justify-center shrink-0">
-                        {loadingCvId === cv.id ? (
-                          <span className="w-3.5 h-3.5 border-2 border-rc-red/60 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
-                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                          </svg>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-rc-text truncate">{cv.name}</p>
-                        <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
-                      </div>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })}
-                      className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-rc-border hover:border-rc-red/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-red transition-all"
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Upload a different file
-              </button>
-            </div>
-          ) : (
-          <div
-            onClick={() => fileRef.current?.click()}
-            className="group border border-dashed border-rc-red/40 bg-rc-red/[0.025] hover:bg-rc-red/[0.05] hover:border-rc-red/60 rounded cursor-pointer transition-all duration-200 flex flex-col items-center justify-center flex-1 gap-2.5"
-          >
-            <div className="w-9 h-9 rounded bg-rc-red/8 border border-rc-red/20 group-hover:bg-rc-red/12 flex items-center justify-center transition-all">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="18" x2="12" y2="12"/>
-                <line x1="9" y1="15" x2="15" y2="15"/>
-              </svg>
-            </div>
-            <div className="text-center">
-              <p className="text-[13px] text-rc-muted group-hover:text-rc-text transition-colors font-medium">
-                {t.uploadForm.cv.dropPrompt} <span className="text-rc-red underline decoration-dotted underline-offset-2">{t.uploadForm.cv.browse}</span>
-              </p>
-              <p className="font-mono text-[10px] text-rc-hint mt-0.5">{t.uploadForm.cv.format}</p>
-            </div>
-          </div>
-          )
-        ) : (
-          <div className="flex items-center gap-2.5 px-3.5 py-3 bg-rc-surface border border-rc-green/30 rounded">
-            <div className="w-8 h-8 rounded bg-rc-green/10 border border-rc-green/20 flex items-center justify-center shrink-0">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] text-rc-text font-medium truncate">{cvFile.name}</p>
-              <p className="font-mono text-[9px] text-rc-hint mt-0.5">{(cvFile.size / 1024).toFixed(0)} KB · PDF</p>
-            </div>
-            <button type="button" onClick={() => { if (fileRef.current) fileRef.current.value = ""; setCvFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors p-1 rounded hover:bg-rc-red/8">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-        )}
-        <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
-      </div>
-
-      {/* Job listing - right column (optional — unlocks targeted analysis) */}
-      <div className="flex flex-col">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[9px] tracking-[0.14em] uppercase text-rc-hint">{t.uploadForm.jobListing.label}</span>
-          <span className="font-mono text-[8px] uppercase tracking-[0.1em] text-rc-hint border border-rc-border px-1.5 py-0.5 rounded">{t.common.optional}</span>
-        </div>
-        <textarea
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-          placeholder={"Senior Full Stack Developer - React / Node.js\n\nRequired: TypeScript, AWS, 5 yrs XP…\nNice-to-have: Kubernetes, OS contributions…"}
-          className="flex-1 min-h-[140px] w-full bg-rc-bg border border-rc-border hover:border-rc-border/70 focus:border-rc-red/20 rounded px-4 py-3 text-rc-text text-[13px] resize-none outline-none transition-colors placeholder:text-rc-hint leading-[1.65]"
-        />
-        <div className="flex items-center justify-between gap-2 mt-1.5">
-          {warningText ? (
-            <p className="font-mono text-[9px] text-rc-amber">{warningText}</p>
-          ) : jobDescription.trim().length === 0 ? (
-            <p className="font-mono text-[9px] text-rc-hint/80 leading-relaxed">
-              Remplis pour débloquer ATS sim · gap radar · script de négo · projet pour combler les manques
-            </p>
-          ) : (
-            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.jobListing.hint}</p>
-          )}
-          {jobDescription.trim().length > 0 && (() => {
-            const len = jobDescription.trim().length;
-            const outOfRange = len < JD_MIN_CHARS || len > JD_MAX_CHARS;
-            return (
-              <p
-                className={`font-mono text-[9px] tabular-nums shrink-0 ${
-                  outOfRange ? "text-rc-amber" : "text-rc-hint"
-                }`}
-              >
-                {len < JD_MIN_CHARS ? `${len} / ${JD_MIN_CHARS}` : `${len} / ${JD_MAX_CHARS}`}
-              </p>
-            );
-          })()}
-        </div>
-      </div>
-
-    </div>
-    </div>
-    </>
-  );
-}
-
-function PillBadge({
-  label,
-  recommended,
-}: {
-  label: string;
-  recommended: boolean;
-}) {
-  if (recommended) {
-    return (
-      <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">
-        {label}
-      </span>
-    );
-  }
-  return (
-    <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-hint border border-rc-border px-1.5 py-0.5 rounded">
-      {label}
-    </span>
-  );
-}
-
-function GithubCard({
-  githubUsername,
-  setGithubUsername,
-  recommended,
-}: {
-  githubUsername: string;
-  setGithubUsername: (v: string) => void;
-  recommended: boolean;
-}) {
-  const { t } = useLanguage();
-  return (
-    <div className="border border-rc-border rounded overflow-hidden">
-      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
-        <div className="w-6 h-6 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
-          <img src="/icons/github.svg" alt="GitHub" width="12" height="12" className="invert" />
-        </div>
-        <div className="flex-1">
-          <div className="text-[12px] font-medium text-rc-text">GitHub</div>
-          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.github.hint}</p>
-        </div>
-        <PillBadge
-          label={recommended ? t.uploadForm.pills.recommended : t.uploadForm.pills.optional}
-          recommended={recommended}
-        />
-      </div>
-      <div className="px-3 py-2.5">
-        <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none select-none">github.com/</span>
-          <input
-            type="text"
-            placeholder="username"
-            value={githubUsername}
-            onChange={(e) => setGithubUsername(e.target.value)}
-            className="w-full bg-rc-bg border border-rc-border rounded py-2 pr-3 pl-[74px] text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type PingStatus = 'idle' | 'checking' | 'ok' | 'error';
-
-function PortfolioCard({
-  portfolioUrl,
-  setPortfolioUrl,
-  recommended,
-}: {
-  portfolioUrl: string;
-  setPortfolioUrl: (v: string) => void;
-  recommended: boolean;
-}) {
-  const { t } = useLanguage();
-  const [pingStatus, setPingStatus] = useState<PingStatus>('idle');
-
-  // Reset indicator when URL changes
-  const handleChange = (v: string) => {
-    setPortfolioUrl(v);
-    setPingStatus('idle');
-  };
-
-  async function handleCheck() {
-    const url = portfolioUrl.trim();
-    if (!url) return;
-    setPingStatus('checking');
-    try {
-      await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: AbortSignal.timeout(5000) });
-      setPingStatus('ok');
-    } catch {
-      setPingStatus('error');
-    }
-  }
-
-  return (
-    <div className="border border-rc-border rounded overflow-hidden">
-      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
-        <div className="w-6 h-6 rounded bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.6">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-          </svg>
-        </div>
-        <div className="flex-1">
-          <div className="text-[12px] font-medium text-rc-text">{t.uploadForm.portfolio.label}</div>
-          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.portfolio.hint}</p>
-        </div>
-        <PillBadge
-          label={recommended ? t.uploadForm.pills.recommended : t.uploadForm.pills.optional}
-          recommended={recommended}
-        />
-      </div>
-      <div className="px-3 py-2.5 flex items-center gap-2">
-        <input
-          type="url"
-          placeholder={t.uploadForm.portfolio.placeholder}
-          value={portfolioUrl}
-          onChange={(e) => handleChange(e.target.value)}
-          className="flex-1 bg-rc-bg border border-rc-border rounded py-2 px-3 text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/20 transition-colors placeholder:text-rc-hint/50"
-        />
-        {pingStatus === 'ok' && (
-          <Tooltip text="URL accessible — le site répond correctement.">
-            <CheckCircle2 size={15} className="text-rc-green shrink-0 cursor-help" />
-          </Tooltip>
-        )}
-        {pingStatus === 'error' && (
-          <Tooltip text="URL inaccessible — vérifiez l'adresse ou si le site est en ligne.">
-            <XCircle size={15} className="text-rc-red shrink-0 cursor-help" />
-          </Tooltip>
-        )}
-        <button
-          type="button"
-          onClick={handleCheck}
-          disabled={!portfolioUrl.trim() || pingStatus === 'checking'}
-          className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1.5 border border-rc-border text-rc-hint hover:text-rc-text hover:border-rc-text/30 transition-colors disabled:opacity-40 shrink-0"
-        >
-          {pingStatus === 'checking' ? '…' : 'Check'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function RightStep2({
-  githubUsername, setGithubUsername,
-  liFile, setLiFile, liRef,
-  portfolioUrl, setPortfolioUrl,
-  mlFile, setMlFile, mlRef,
-  mlText, setMlText,
-  mlMode, setMlMode,
-  hasJd,
-  savedLinkedinUrl,
-  roleType,
-}: {
-  githubUsername: string; setGithubUsername: (v: string) => void;
-  liFile: File | null; setLiFile: (f: File | null) => void;
-  liRef: React.RefObject<HTMLInputElement | null>;
-  portfolioUrl: string; setPortfolioUrl: (v: string) => void;
-  mlFile: File | null; setMlFile: (f: File | null) => void;
-  mlRef: React.RefObject<HTMLInputElement | null>;
-  savedLinkedinUrl?: string;
-  mlText: string; setMlText: (v: string) => void;
-  mlMode: "file" | "text"; setMlMode: (m: "file" | "text") => void;
-  roleType?: RoleType | null;
-  hasJd: boolean;
-}) {
-  const { t } = useLanguage();
-  const [loadingLi, setLoadingLi] = useState(false);
-  const [previewLi, setPreviewLi] = useState(false);
-
-  // URL_PRESETS drives both the order and the recommended pill per role.
-  // Anonymous / legacy users (roleType == null) fall back to the inclusive
-  // software preset so they keep the historical behaviour.
-  const preset = URL_PRESETS[roleType ?? "software"];
-  const isRecommended = (f: UrlField) => preset.recommended.includes(f);
-
-  const linkedinCard = (
-    <div className="border border-rc-border rounded overflow-hidden">
-      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
-        <div className="w-6 h-6 rounded bg-[#0A66C2] flex items-center justify-center shrink-0">
-          <span className="font-mono text-[9px] font-bold text-white">in</span>
-        </div>
-        <div className="flex-1">
-          <div className="text-[12px] font-medium text-rc-text">LinkedIn</div>
-          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.hint}</p>
-        </div>
-        <PillBadge
-          label={isRecommended("linkedin") ? t.uploadForm.pills.recommended : t.uploadForm.pills.optional}
-          recommended={isRecommended("linkedin")}
-        />
-      </div>
-      <div className="px-3 py-2.5">
-        {!liFile ? (
-          savedLinkedinUrl ? (
-            <div className="flex flex-col gap-1.5">
-              <div className={`group flex items-center gap-3 px-3.5 py-3 bg-[#0a66c2]/[0.03] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded transition-all duration-200 ${loadingLi ? "opacity-60" : ""}`}>
-                <button
-                  type="button"
-                  disabled={loadingLi}
-                  onClick={async () => {
-                    setLoadingLi(true);
-                    try {
-                      const blob = await fetch(savedLinkedinUrl).then(r => r.blob());
-                      setLiFile(new File([blob], 'linkedin.pdf', { type: 'application/pdf' }));
-                    } finally {
-                      setLoadingLi(false);
-                    }
-                  }}
-                  className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-not-allowed"
-                >
-                  <div className="w-8 h-8 rounded bg-[#0a66c2]/8 border border-[#0a66c2]/20 flex items-center justify-center shrink-0">
-                    {loadingLi ? (
-                      <span className="w-3.5 h-3.5 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <span className="font-mono text-[9px] font-bold text-[#5ba3d9]">in</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-rc-text">linkedin.pdf</p>
-                    <p className="font-mono text-[9px] text-rc-hint mt-0.5">Saved · click to use</p>
-                  </div>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(91,163,217,0.5)" strokeWidth="2" className="shrink-0 group-hover:translate-x-0.5 transition-transform">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewLi(true)}
-                  className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={() => liRef.current?.click()}
-                className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-rc-border hover:border-[#0a66c2]/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-[#5ba3d9] transition-all"
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Upload a different file
-              </button>
-            </div>
-          ) : (
-          <div
-            onClick={() => liRef.current?.click()}
-            className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.05] hover:bg-[#0a66c2]/[0.09]"
-          >
-            <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
-            <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
-          </div>
-          )
-        ) : (
-          <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            <span className="text-[11px] text-rc-text flex-1 truncate">{liFile.name}</span>
-            <button type="button" onClick={() => { if (liRef.current) liRef.current.value = ""; setLiFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-        )}
-        <input type="file" ref={liRef} accept=".pdf" className="hidden" onChange={(e) => setLiFile(e.target.files?.[0] || null)} />
-      </div>
-    </div>
-  );
-
-  function renderField(field: UrlField) {
-    if (field === "github") {
-      return (
-        <GithubCard
-          key="github"
-          githubUsername={githubUsername}
-          setGithubUsername={setGithubUsername}
-          recommended={isRecommended("github")}
-        />
-      );
-    }
-    if (field === "linkedin") {
-      return <div key="linkedin">{linkedinCard}</div>;
-    }
-    return (
-      <PortfolioCard
-        key="portfolio"
-        portfolioUrl={portfolioUrl}
-        setPortfolioUrl={setPortfolioUrl}
-        recommended={isRecommended("portfolio")}
-      />
-    );
-  }
-
-  return (
-    <>
-    {previewLi && savedLinkedinUrl && (
-      <PdfPreviewModal url={savedLinkedinUrl} name="linkedin.pdf" onClose={() => setPreviewLi(false)} />
-    )}
-    <div className="flex flex-col gap-3 flex-1">
-
-      {/* Adaptive URL fields per role */}
-      {preset.fields.map((f) => renderField(f))}
-
-      {/* Motivation Letter — only meaningful if a JD is provided */}
-      {hasJd && <div className="border border-rc-border rounded overflow-hidden">
-        <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`relative text-left bg-rc-surface border rounded-md p-[22px] cursor-pointer transition-all duration-150 flex flex-col min-h-[200px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 ${
+        active
+          ? "border-rc-red shadow-[0_0_0_1px_var(--color-rc-red),0_4px_16px_rgba(192,57,43,0.12)]"
+          : "border-rc-border hover:border-[#b8b3ad] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className={`w-[38px] h-[38px] rounded flex items-center justify-center transition-all duration-150 ${active ? "bg-rc-red/10 text-rc-red" : "bg-rc-bg text-rc-muted"}`}>
+          {m === "compare" && (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h6"/><path d="M14 2v6h6"/>
+              <rect x="14" y="13" width="8" height="8" rx="1"/><path d="M18 13v-2"/>
             </svg>
-          </div>
-          <div className="flex-1">
-            <div className="text-[12px] font-medium text-rc-text">{t.uploadForm.coverLetter.label}</div>
-            <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.coverLetter.hint}</p>
-          </div>
-          <div className="flex bg-rc-surface border border-rc-border rounded p-0.5">
-            <button onClick={() => setMlMode("file")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "file" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>PDF</button>
-            <button onClick={() => setMlMode("text")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "text" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>Text</button>
-          </div>
-        </div>
-        <div className="px-3 py-2.5">
-          {mlMode === "file" ? (
-            <>
-              {!mlFile ? (
-                <div
-                  onClick={() => mlRef.current?.click()}
-                  className="border border-rc-border border-dashed hover:border-rc-red/30 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-rc-bg hover:bg-rc-red/[0.025]"
-                >
-                  <p className="text-[12px] text-rc-muted font-medium">{t.uploadForm.coverLetter.dropPrompt}</p>
-                  <span className="font-mono text-[9px] text-rc-hint">or <span className="text-rc-red decoration-dotted underline">{t.uploadForm.coverLetter.browse}</span></span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-2.5 py-2 bg-rc-bg border border-rc-green/30 rounded">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                  <span className="text-[11px] text-rc-text flex-1 truncate">{mlFile.name}</span>
-                  <button type="button" onClick={() => { if (mlRef.current) mlRef.current.value = ""; setMlFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </button>
-                </div>
-              )}
-              <input type="file" ref={mlRef} accept=".pdf" className="hidden" onChange={(e) => { setMlFile(e.target.files?.[0] || null); setMlText(""); }} />
-            </>
-          ) : (
-            <textarea
-              value={mlText}
-              onChange={(e) => { setMlText(e.target.value); setMlFile(null); }}
-              onBlur={() => { if (mlText.trim()) setMlFile(null); }}
-              placeholder={t.uploadForm.coverLetter.paste}
-              className="w-full bg-rc-bg border border-rc-border focus:border-rc-red/20 rounded px-3 py-2.5 text-rc-text text-[12px] min-h-[80px] resize-y outline-none transition-colors placeholder:text-rc-hint/50"
-            />
+          )}
+          {m === "audit" && (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6"/><path d="M8 13h2.5"/><path d="M8 17h5"/>
+              <circle cx="16" cy="15.5" r="3"/><path d="m20.5 20-1.8-1.8"/>
+            </svg>
+          )}
+          {m === "vet" && (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9.5 12l1.8 1.8 3.4-3.6"/>
+            </svg>
           )}
         </div>
-      </div>}
-
-    </div>
-    </>
-  );
-}
-
-function RightStep3({ accuracy, onSubmit, loading, error, hasRequired }: {
-  accuracy: AccuracyLevel;
-  onSubmit: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  loading: boolean; error: string | null; hasRequired: boolean;
-}) {
-  const { t } = useLanguage();
-  const accuracyLabel = accuracy.segments <= 2
-    ? t.uploadForm.accuracy.basic
-    : accuracy.segments === 3
-    ? t.uploadForm.accuracy.enhanced
-    : t.uploadForm.accuracy.full;
-
-  return (
-    <div className="flex flex-col flex-1">
-      <div className="flex-1">
-        {/* Accuracy */}
-        <div className="mb-5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-rc-hint mb-2">{t.uploadForm.accuracy.label}</div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className={`h-[3px] w-7 rounded-full transition-all duration-300 ${i <= accuracy.segments ? accuracy.color : "bg-rc-border"}`} />
-              ))}
-            </div>
-            <span className="font-mono text-[9px] text-rc-hint">{accuracyLabel}</span>
-          </div>
-        </div>
-
-        {/* What you'll get */}
-        <div className="p-4 bg-rc-bg border border-rc-border rounded mb-5">
-          <div className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint mb-3">{t.uploadForm.whatYouReceive.title}</div>
-          <div className="flex flex-col gap-2">
-            {(t.uploadForm.whatYouReceive.items as string[]).map((item) => (
-              <div key={item} className="flex items-center gap-2 text-[12px] text-rc-muted">
-                <span className="text-rc-red font-bold text-[10px]">✦</span>
-                {item}
-              </div>
-            ))}
-          </div>
+        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-150 ${active ? "bg-rc-red border-rc-red text-white" : "bg-rc-bg border-rc-border"}`}>
+          {active && <IconCheck size={10} />}
         </div>
       </div>
 
-      {/* CTA */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-rc-hint">{t.uploadForm.cost.label}</span>
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-rc-green/8 border border-rc-green/20 rounded">
-            <span className="text-[10px] text-rc-green">✦</span>
-            <span className="font-mono text-[9px] text-rc-green font-medium uppercase tracking-tight">{t.uploadForm.cost.freeCredit}</span>
-          </div>
-        </div>
-
-        <button
-          onClick={onSubmit}
-          disabled={loading || !hasRequired}
-          className="w-full relative group font-mono text-[11px] tracking-[0.14em] uppercase font-medium text-white/90 bg-rc-red rounded py-3.5 border-none cursor-pointer transition-all duration-200 hover:bg-[#c93a39] hover:shadow-[0_6px_24px_rgba(226,75,74,0.2)] active:scale-[0.99] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none overflow-hidden"
-        >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            {loading ? (
-              <>
-                <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
-                  <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-                {t.uploadForm.submit.analyzing}
-              </>
-            ) : (
-              <>
-                {t.uploadForm.submit.runAnalysis}
-                <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </>
-            )}
-          </span>
-          {!loading && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
-          )}
-        </button>
-
-        <div className="flex items-center justify-center gap-4 mt-2.5">
-          {[
-            { icon: "⏱", text: t.uploadForm.submit.duration },
-            { icon: "🔒", text: t.uploadForm.submit.dataNotStored },
-            { icon: "✦", text: t.uploadForm.submit.credit },
-          ].map(({ icon, text }) => (
-            <span key={text} className="font-mono text-[8px] text-rc-hint flex items-center gap-1">
-              <span className="opacity-50">{icon}</span>{text}
-            </span>
-          ))}
-        </div>
-
-        {error && (
-          <div className="mt-3 p-2.5 bg-rc-red/5 border border-rc-red/20 rounded text-[11px] text-rc-red text-center font-mono">
-            {error}
-          </div>
+      <div className={`font-mono text-[10px] tracking-[0.14em] uppercase mb-1.5 flex items-center gap-2 ${active ? "text-rc-red" : "text-rc-hint"}`}>
+        {cfg.eyebrow}
+        {cfg.soon && (
+          <span className="text-[9px] tracking-[0.06em] text-rc-amber border border-rc-amber/40 px-1.5 py-0.5 rounded">{cfg.soon}</span>
         )}
       </div>
+      <h2 className="font-sans font-semibold text-[15px] leading-[1.25] tracking-[-0.015em] text-rc-text mb-1.5">{cfg.headline}</h2>
+      <p className="text-[12.5px] text-rc-muted leading-[1.5] flex-1 mb-4">{cfg.desc}</p>
+      <div className="font-mono text-[9.5px] tracking-[0.08em] uppercase text-rc-hint border-t border-rc-border pt-3">
+        {cfg.needs}
+      </div>
+    </button>
+  );
+}
+
+/* ── Slot label ────────────────────────────────────────────────────────── */
+
+function SlotLabel({ icon, label, required, requiredText, optionalText }: {
+  icon: React.ReactNode; label: string; required: boolean;
+  requiredText: string; optionalText: string;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-2.5">
+      <span className="font-mono text-[11px] tracking-[0.12em] uppercase text-rc-muted font-semibold flex items-center gap-2">
+        {icon}{label}
+      </span>
+      {required
+        ? <span className="font-mono text-[9px] font-bold tracking-[0.1em] uppercase text-rc-red border border-rc-red/30 bg-rc-red/5 px-1.5 py-0.5 rounded">{requiredText}</span>
+        : <span className="font-mono text-[9px] tracking-[0.1em] uppercase text-rc-hint border border-rc-border px-1.5 py-0.5 rounded">{optionalText}</span>
+      }
     </div>
   );
 }
 
-/* ── Main component ──────────────────────────────────────────────────────── */
+/* ── Signal badge ──────────────────────────────────────────────────────── */
+
+function SignalBadge({ recommended, recommendedText, optionalText }: {
+  recommended: boolean; recommendedText: string; optionalText: string;
+}) {
+  return recommended
+    ? <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-red border border-rc-red/30 px-1.5 py-0.5 rounded">{recommendedText}</span>
+    : <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-rc-hint border border-rc-border px-1.5 py-0.5 rounded">{optionalText}</span>;
+}
+
+/* ── Main component ─────────────────────────────────────────────────────── */
 
 export function UploadForm({
   cvFile, setCvFile,
@@ -881,154 +209,608 @@ export function UploadForm({
   mlFile, setMlFile,
   mlText, setMlText,
   onSubmit, loading, error,
-  step, onStepChange,
   savedCvFiles, savedLinkedinUrl, savedPortfolioUrl,
-  roleType, roleLabel,
+  roleType,
 }: Props) {
-  const { t } = useLanguage();
+  const { t, localePath } = useLanguage();
+  const { user } = useAuth();
+  const { data: quota } = useQuota();
+
+  const i = t.uploadForm.intake;
+
+  const MODES: Record<IntakeMode, ModeConfig> = {
+    compare: {
+      eyebrow: i.modes.compare.eyebrow,
+      headline: i.modes.compare.headline,
+      desc: i.modes.compare.desc,
+      needs: i.modes.compare.needs,
+      needsCv: true,
+      needsJob: true,
+      ctaLabel: t.uploadForm.submit.runAnalysis,
+      showSignals: true,
+    },
+    audit: {
+      eyebrow: i.modes.audit.eyebrow,
+      headline: i.modes.audit.headline,
+      desc: i.modes.audit.desc,
+      needs: i.modes.audit.needs,
+      needsCv: true,
+      needsJob: false,
+      ctaLabel: t.uploadForm.submit.runAnalysis,
+      showSignals: true,
+    },
+    vet: {
+      eyebrow: i.modes.vet.eyebrow,
+      headline: i.modes.vet.headline,
+      desc: i.modes.vet.desc,
+      needs: i.modes.vet.needs,
+      needsCv: false,
+      needsJob: true,
+      ctaLabel: i.actionBar.comingSoon,
+      showSignals: false,
+      soon: i.modes.vet.soon,
+    },
+  };
+
+  const [mode, setMode] = useState<IntakeMode>("compare");
+  const [suppressNudge, setSuppressNudge] = useState(false);
+  const [cvAdded, setCvAdded] = useState(false);
+  const [jobAdded, setJobAdded] = useState(false);
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
+  const [loadingCvId, setLoadingCvId] = useState<number | null>(null);
+  const [loadingLi, setLoadingLi] = useState(false);
+  const [pingStatus, setPingStatus] = useState<"idle" | "checking" | "ok" | "error">("idle");
+  const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
+  const [previewLi, setPreviewLi] = useState(false);
+
   const fileRef = useRef<HTMLInputElement>(null);
   const liRef = useRef<HTMLInputElement>(null);
   const mlRef = useRef<HTMLInputElement>(null);
   const portfolioHydrated = useRef(false);
 
-  // Pre-fill portfolio URL once from the saved profile value, and only if the
-  // user hasn't already typed something. Mirrors the GitHub username pattern.
   useEffect(() => {
     if (portfolioHydrated.current) return;
-    if (savedPortfolioUrl && !portfolioUrl.trim()) {
-      setPortfolioUrl(savedPortfolioUrl);
-    }
+    if (savedPortfolioUrl && !portfolioUrl.trim()) setPortfolioUrl(savedPortfolioUrl);
     portfolioHydrated.current = true;
   }, [savedPortfolioUrl, portfolioUrl, setPortfolioUrl]);
 
+  const hasCv = !!cvFile;
+  const hasJob = jobDescription.trim().length > 0;
+  const cfg = MODES[mode];
+
+  const effectiveMode: IntakeMode | null = (() => {
+    if (hasCv && hasJob) return "compare";
+    if (hasCv && !hasJob) return "audit";
+    if (!hasCv && hasJob) return "vet";
+    return null;
+  })();
+
+  const showNudge = !suppressNudge && effectiveMode !== null && effectiveMode !== mode;
+  const showCvSlot = cfg.needsCv || hasCv || cvAdded;
+  const showJobSlot = cfg.needsJob || hasJob || jobAdded;
+
+  const warningKey = useJdValidation(jobDescription);
+  const warningText = warningKey
+    ? (t.uploadForm.jobListing.warnings as Record<JdWarningKey, string>)[warningKey]
+    : null;
   const jdLen = jobDescription.trim().length;
-  // CV is the only hard requirement. If a JD is provided, it must be within
-  // bounds — otherwise the targeted analysis is skipped and we fall back to
-  // a general CV audit.
   const jdValid = jdLen === 0 || (jdLen >= JD_MIN_CHARS && jdLen <= JD_MAX_CHARS);
-  const hasRequired = !!cvFile && jdValid;
-  const hasStep1 = hasRequired;
-  const accuracy = getAccuracy(cvFile, jobDescription, githubUsername, liFile);
+
+  const canRun = (() => {
+    if (mode === "vet") return false;
+    if (mode === "compare") return hasCv && hasJob && jdValid;
+    if (mode === "audit") return hasCv;
+    return false;
+  })();
+
+  const ctaLabel = (() => {
+    if (mode === "vet") return i.actionBar.comingSoon;
+    if (mode === "compare") {
+      if (!hasCv && !hasJob) return `${i.ghost.addCv} + ${i.ghost.addJob}`;
+      if (!hasCv) return i.ghost.addCv;
+      if (!hasJob) return i.ghost.addJob;
+    }
+    if (mode === "audit" && !hasCv) return i.ghost.addCv;
+    return cfg.ctaLabel;
+  })();
+
+  function selectMode(m: IntakeMode) {
+    setMode(m);
+    setCvAdded(false);
+    setJobAdded(false);
+    setSuppressNudge(true);
+  }
+
+  function switchToMode(m: IntakeMode) {
+    setMode(m);
+    setSuppressNudge(false);
+  }
+
+  const preset = URL_PRESETS[roleType ?? "software"];
+  const isRecommended = (f: UrlField) => preset.recommended.includes(f);
+  const quotaLeft = quota ? Math.max(0, quota.monthlyCap - quota.monthlyUsed) + quota.creditsBalance : null;
+
+  const nudgeLabel = (m: IntakeMode) =>
+    m === "compare" ? i.nudge.looksLikeCompare
+    : m === "audit" ? i.nudge.looksLikeAudit
+    : i.nudge.looksLikeVet;
+
+  const nudgeReason = (m: IntakeMode) =>
+    m === "audit" ? i.nudge.reasonAudit
+    : m === "vet" ? i.nudge.reasonVet
+    : i.nudge.reasonCompare;
+
+  const switchLabel = (m: IntakeMode) =>
+    i.nudge.switchTo.replace("{mode}", MODES[m].eyebrow);
+
+  const requiredText = t.common.required;
+  const optionalText = t.common.optional;
 
   return (
-    <div className="bg-rc-surface border border-rc-border overflow-hidden flex-1 flex flex-col">
+    <>
+      {previewPdf && <PdfPreviewModal url={previewPdf.url} name={previewPdf.name} onClose={() => setPreviewPdf(null)} />}
+      {previewLi && savedLinkedinUrl && <PdfPreviewModal url={savedLinkedinUrl} name="linkedin.pdf" onClose={() => setPreviewLi(false)} />}
 
-      {/* ── Body ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-[28%_1fr] grid-rows-[1fr] flex-1">
+      <div className="w-full flex-1 overflow-y-auto">
+        <div className="max-w-[1120px] mx-auto px-8 py-12 pb-24">
 
-        {/* LEFT DARK PANEL */}
-        <div className="bg-[#1a1917] px-6 py-7 flex flex-col justify-between">
-          {step === 1 && <LeftStep1 />}
-          {step === 2 && <LeftStep2 roleLabel={roleLabel} />}
-          {step === 3 && (
-            <LeftStep3
-              cvFile={cvFile}
-              jobDescription={jobDescription}
-              githubUsername={githubUsername}
-              portfolioUrl={portfolioUrl}
-              liFile={liFile}
-              mlFile={mlFile}
-              mlText={mlText}
-            />
-          )}
+          {/* ── Header ─────────────────────────────────────────────── */}
+          <div className="text-center flex flex-col items-center mb-10">
+            <span className="inline-flex items-center gap-2.5 font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red px-3 py-1.5 bg-rc-red/[0.07] border border-rc-red/20 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-rc-red animate-pulse" />
+              {i.eyebrow}
+            </span>
+            <h1 className="mt-5 font-sans font-medium leading-[1.02] tracking-[-0.03em] text-rc-text" style={{ fontSize: "clamp(32px, 4vw, 48px)" }}>
+              {i.headline.split("?")[0]}
+              <em style={{ fontFamily: "Georgia, serif" }} className="not-italic text-rc-red">?</em>
+            </h1>
+            <p className="mt-4 text-[16px] text-rc-muted leading-[1.55] max-w-[560px]">
+              {i.lead}
+            </p>
+          </div>
 
-          <div className="flex flex-col gap-1.5 mt-6">
-            {([
-              { n: 1 as const, label: t.analyzeNav.steps.application },
-              { n: 2 as const, label: t.analyzeNav.steps.signals },
-              { n: 3 as const, label: t.analyzeNav.steps.launch },
-            ]).map(({ n, label }, i) => {
-              const state = step > n ? "done" : step === n ? "active" : "idle";
-              return (
-                <div key={n} className="flex flex-col gap-1.5">
-                  {i > 0 && (
-                    <div className={`h-3 w-px ml-[8.5px] ${step > n ? "bg-rc-green" : "bg-rc-border"}`} />
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <div className={`w-[18px] h-[18px] rounded-full flex items-center justify-center font-mono text-[8px] font-bold ${
-                      state === "done" ? "bg-rc-green text-white"
-                      : state === "active" ? "bg-rc-red text-white"
-                      : "bg-white border border-rc-border text-rc-hint"
-                    }`}>
-                      {state === "done" ? "✓" : n}
+          {/* ── Mode picker ────────────────────────────────────────── */}
+          <div className="grid grid-cols-3 gap-3.5 mb-7">
+            {(["compare", "audit", "vet"] as IntakeMode[]).map((m) => (
+              <ModeCard key={m} m={m} cfg={MODES[m]} active={mode === m} onClick={() => selectMode(m)} />
+            ))}
+          </div>
+
+          {/* ── Form area ──────────────────────────────────────────── */}
+          <div>
+
+            {/* Context bar */}
+            <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-[var(--rc-surface-hero)] border border-rc-border rounded-r-md" style={{ borderLeft: "3px solid var(--color-rc-red)" }}>
+              <span className="text-rc-red flex-shrink-0"><IconInfo /></span>
+              <p className="text-[13.5px] text-rc-text leading-[1.5]">
+                <strong className="font-semibold">{cfg.eyebrow}.</strong>{" "}
+                {i.ctx[mode]}
+              </p>
+            </div>
+
+            {/* Smart nudge */}
+            {showNudge && effectiveMode && (
+              <div className="flex items-center gap-3.5 mb-4 px-4 py-3 bg-[var(--rc-amber-bg)] border border-[var(--rc-amber-border)] rounded-r-md" style={{ borderLeft: "3px solid var(--color-rc-amber)" }}>
+                <span className="text-rc-amber flex-shrink-0"><IconSwap /></span>
+                <div className="flex-1 text-[13px] text-rc-text leading-[1.45]">
+                  <strong className="font-semibold">{nudgeLabel(effectiveMode)}</strong>{" "}
+                  <span className="text-rc-muted">{nudgeReason(effectiveMode)}</span>
+                </div>
+                {effectiveMode !== "vet" && (
+                  <button
+                    type="button"
+                    onClick={() => switchToMode(effectiveMode)}
+                    className="flex-shrink-0 font-mono text-[10px] font-bold tracking-[0.08em] uppercase whitespace-nowrap px-3 py-2 rounded bg-rc-amber text-white flex items-center gap-1.5 hover:brightness-110 transition-[filter]"
+                  >
+                    <IconSwap />
+                    {switchLabel(effectiveMode)}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Input slots */}
+            <div className={`grid gap-[18px] ${showCvSlot && showJobSlot ? "grid-cols-2" : "grid-cols-1"}`}>
+
+              {/* CV slot */}
+              {showCvSlot && (
+                <div>
+                  <SlotLabel icon={<IconCV />} label={t.uploadForm.cv.label} required={cfg.needsCv} requiredText={requiredText} optionalText={optionalText} />
+                  {!cvFile ? (
+                    savedCvFiles && savedCvFiles.length > 0 ? (
+                      <div className="flex flex-col gap-1.5">
+                        {savedCvFiles.map((cv) => (
+                          <div key={cv.id} className={`group flex items-center gap-3 px-3.5 py-3 bg-rc-red/[0.03] border border-rc-red/25 hover:border-rc-red/50 rounded transition-all ${loadingCvId === cv.id ? "opacity-60" : ""}`}>
+                            <button
+                              type="button"
+                              disabled={loadingCvId === cv.id}
+                              onClick={async () => {
+                                setLoadingCvId(cv.id);
+                                try { const blob = await fetch(cv.url).then((r) => r.blob()); setCvFile(new File([blob], cv.name, { type: "application/pdf" })); }
+                                finally { setLoadingCvId(null); }
+                              }}
+                              className="flex items-center gap-3 flex-1 min-w-0 text-left disabled:cursor-not-allowed"
+                            >
+                              <div className="w-8 h-8 rounded bg-rc-red/8 border border-rc-red/20 flex items-center justify-center shrink-0">
+                                {loadingCvId === cv.id
+                                  ? <span className="w-3.5 h-3.5 border-2 border-rc-red/60 border-t-transparent rounded-full animate-spin" />
+                                  : <IconCV size={13} />
+                                }
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[12px] font-medium text-rc-text truncate">{cv.name}</p>
+                                <p className="font-mono text-[9px] text-rc-hint mt-0.5">{i.slots.savedUse}</p>
+                              </div>
+                            </button>
+                            <button type="button" onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })} className="shrink-0 text-rc-hint/40 hover:text-rc-hint transition-colors p-1">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => fileRef.current?.click()} className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-rc-border hover:border-rc-red/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-red transition-all">
+                          {i.slots.uploadDifferent}
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => fileRef.current?.click()}
+                        className="group border border-dashed border-rc-border hover:border-rc-red bg-rc-surface hover:bg-rc-red/[0.025] rounded-md p-7 text-center cursor-pointer transition-all flex flex-col items-center gap-3"
+                      >
+                        <span className="text-rc-hint group-hover:text-rc-red transition-colors"><IconUpload /></span>
+                        <p className="font-sans font-semibold text-[15px] text-rc-muted group-hover:text-rc-text transition-colors">
+                          {i.slots.cvDropPrompt.split(" or ")[0]}
+                          {" "}<em style={{ fontFamily: "Georgia, serif" }} className="text-rc-red font-normal">
+                            {i.slots.cvDropPrompt.includes(" or ") ? `or ${i.slots.cvDropPrompt.split(" or ")[1]}` : ""}
+                          </em>
+                        </p>
+                        <p className="font-mono text-[11px] text-rc-hint">{i.slots.cvFormat}</p>
+                        {user && (
+                          <p className="font-mono text-[9px] text-rc-hint/60 mt-1">
+                            <Link href={localePath("/settings")} className="underline underline-offset-2 hover:text-rc-hint transition-colors">{i.slots.saveHint}</Link>
+                          </p>
+                        )}
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex items-center gap-3.5 px-4 py-3 bg-[var(--rc-surface-hero)] border border-rc-border rounded-md">
+                      <div className="w-10 h-10 rounded bg-rc-surface border border-rc-border flex items-center justify-center shrink-0 text-rc-red">
+                        <IconCV size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-sans font-semibold text-[14px] text-rc-text truncate">{cvFile.name}</p>
+                        <p className="font-mono text-[11px] text-rc-hint mt-0.5">{(cvFile.size / 1024).toFixed(0)} KB · PDF</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { if (fileRef.current) fileRef.current.value = ""; setCvFile(null); setSuppressNudge(false); }}
+                        className="font-mono text-[18px] leading-none text-rc-hint hover:text-rc-red transition-colors p-1"
+                      >
+                        ×
+                      </button>
                     </div>
-                    <span className={`font-mono text-[9px] uppercase tracking-[0.1em] ${
-                      state === "done" ? "text-rc-green"
-                      : state === "active" ? "text-rc-red font-bold"
-                      : "text-rc-hint"
-                    }`}>{label}</span>
+                  )}
+                  <input type="file" ref={fileRef} accept=".pdf" className="hidden" onChange={(e) => { setCvFile(e.target.files?.[0] || null); setSuppressNudge(false); }} />
+                </div>
+              )}
+
+              {/* Job slot */}
+              {showJobSlot && (
+                <div>
+                  <SlotLabel icon={<IconJob />} label={i.slots.jobLabel} required={cfg.needsJob} requiredText={requiredText} optionalText={optionalText} />
+                  <div className="bg-rc-surface border border-rc-border focus-within:border-rc-red rounded-md overflow-hidden transition-colors">
+                    <textarea
+                      value={jobDescription}
+                      onChange={(e) => { setJobDescription(e.target.value); setSuppressNudge(false); }}
+                      placeholder={i.slots.jobPlaceholder}
+                      className="w-full bg-transparent border-0 outline-none resize-none px-4 py-3.5 text-[14px] text-rc-text leading-[1.55] placeholder:text-rc-hint"
+                      style={{ minHeight: "104px" }}
+                    />
+                    <div className="px-4 py-2 border-t border-rc-border bg-rc-bg flex justify-between items-center font-mono text-[10px] tracking-[0.06em] text-rc-hint">
+                      <span>
+                        {warningText
+                          ? <span className="text-rc-amber">{warningText}</span>
+                          : <span className={jdLen > 0 && !jdValid ? "text-rc-amber" : ""}>{jdLen} / 5000</span>
+                        }
+                      </span>
+                      <button type="button" className="text-rc-red hover:underline bg-transparent border-0 font-mono text-[10px] tracking-[0.06em]">
+                        {i.slots.pasteUrl}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              )}
+            </div>
 
-        {/* RIGHT WHITE PANEL */}
-        <div className="bg-rc-surface border-l border-rc-border px-7 py-7 flex flex-col">
-          {step === 1 && (
-            <RightStep1
-              cvFile={cvFile} setCvFile={setCvFile} fileRef={fileRef}
-              jobDescription={jobDescription} setJobDescription={setJobDescription}
-              savedCvFiles={savedCvFiles}
-            />
-          )}
-          {step === 2 && (
-            <RightStep2
-              githubUsername={githubUsername} setGithubUsername={setGithubUsername}
-              liFile={liFile} setLiFile={setLiFile} liRef={liRef}
-              portfolioUrl={portfolioUrl} setPortfolioUrl={setPortfolioUrl}
-              mlFile={mlFile} setMlFile={setMlFile} mlRef={mlRef}
-              mlText={mlText} setMlText={setMlText}
-              mlMode={mlMode} setMlMode={setMlMode}
-              savedLinkedinUrl={savedLinkedinUrl}
-              roleType={roleType}
-              hasJd={jdLen > 0}
-            />
-          )}
-          {step === 3 && (
-            <RightStep3
-              accuracy={accuracy}
-              onSubmit={onSubmit}
-              loading={loading}
-              error={error}
-              hasRequired={hasRequired}
-            />
-          )}
-
-          {/* Nav row */}
-          <div className="flex items-center justify-between pt-4 mt-4 border-t border-rc-border">
-            {step > 1 ? (
-              <button
-                type="button"
-                onClick={() => onStepChange((step - 1) as 1 | 2 | 3)}
-                className="font-mono text-[9px] uppercase tracking-[0.1em] text-rc-hint hover:text-rc-text transition-colors flex items-center gap-1.5"
-              >
-                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                  <path d="M12 7H2M6.5 3L2 7l4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                {t.common.back}
-              </button>
-            ) : <div />}
-
-            {step < 3 && (
-              <button
-                type="button"
-                onClick={() => onStepChange((step + 1) as 2 | 3)}
-                disabled={step === 1 && !hasStep1}
-                className="bg-rc-red text-white font-mono text-[10px] tracking-[0.14em] uppercase px-5 py-2.5 rounded flex items-center gap-2 transition-all hover:bg-[#c93a39] hover:shadow-[0_4px_16px_rgba(201,58,57,0.25)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:bg-rc-red"
-              >
-                {t.common.continue}
-                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7h10M7.5 3l4 4-4 4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+            {/* Ghost buttons */}
+            {(!showCvSlot || !showJobSlot) && (
+              <div className="flex gap-2.5 mt-3.5">
+                {!showCvSlot && (
+                  <button
+                    type="button"
+                    onClick={() => { setCvAdded(true); setSuppressNudge(false); }}
+                    className="flex-1 flex items-center justify-center gap-2.5 py-3 border border-dashed border-rc-border hover:border-rc-red hover:text-rc-red hover:bg-rc-red/[0.025] text-rc-muted rounded-md font-mono text-[11px] tracking-[0.06em] uppercase font-semibold transition-all"
+                  >
+                    <IconPlus />
+                    {i.ghost.addCv}
+                    <small className="font-sans text-[11px] text-rc-hint font-normal normal-case tracking-normal">· {i.ghost.addCvSub}</small>
+                  </button>
+                )}
+                {!showJobSlot && (
+                  <button
+                    type="button"
+                    onClick={() => { setJobAdded(true); setSuppressNudge(false); }}
+                    className="flex-1 flex items-center justify-center gap-2.5 py-3 border border-dashed border-rc-border hover:border-rc-red hover:text-rc-red hover:bg-rc-red/[0.025] text-rc-muted rounded-md font-mono text-[11px] tracking-[0.06em] uppercase font-semibold transition-all"
+                  >
+                    <IconPlus />
+                    {i.ghost.addJob}
+                    <small className="font-sans text-[11px] text-rc-hint font-normal normal-case tracking-normal">· {i.ghost.addJobSub}</small>
+                  </button>
+                )}
+              </div>
             )}
+
+            {/* Signals */}
+            {cfg.showSignals && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-mono text-[11px] tracking-[0.12em] uppercase text-rc-muted font-semibold">{i.signals.title}</h3>
+                  <span className="font-mono text-[10px] text-rc-hint">{i.signals.subtitle}</span>
+                </div>
+                <div className={`grid gap-2.5 ${mode === "compare" ? "grid-cols-2" : "grid-cols-3"}`}>
+
+                  {/* GitHub */}
+                  <div className="border border-rc-border rounded-md overflow-hidden">
+                    <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
+                        <img src="/icons/github.svg" alt="GitHub" width="12" height="12" className="invert" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[12px] font-medium text-rc-text">GitHub</div>
+                        <p className="font-mono text-[9px] text-rc-hint">{i.signals.githubHint}</p>
+                      </div>
+                      <SignalBadge recommended={isRecommended("github")} recommendedText={t.uploadForm.pills.recommended} optionalText={optionalText} />
+                    </div>
+                    <div className="px-3 py-2.5">
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none select-none">github.com/</span>
+                        <input
+                          type="text"
+                          placeholder="username"
+                          value={githubUsername}
+                          onChange={(e) => setGithubUsername(e.target.value)}
+                          className="w-full bg-rc-bg border border-rc-border rounded py-2 pr-3 pl-[74px] text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/30 transition-colors placeholder:text-rc-hint/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* LinkedIn */}
+                  <div className="border border-rc-border rounded-md overflow-hidden">
+                    <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-[#0A66C2] flex items-center justify-center shrink-0">
+                        <span className="font-mono text-[9px] font-bold text-white">in</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[12px] font-medium text-rc-text">LinkedIn</div>
+                        <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.hint}</p>
+                      </div>
+                      <SignalBadge recommended={isRecommended("linkedin")} recommendedText={t.uploadForm.pills.recommended} optionalText={optionalText} />
+                    </div>
+                    <div className="px-3 py-2.5">
+                      {!liFile ? (
+                        savedLinkedinUrl ? (
+                          <div className="flex flex-col gap-1.5">
+                            <div className={`group flex items-center gap-2 px-2.5 py-2 bg-[#0a66c2]/[0.03] border border-[#0a66c2]/25 hover:border-[#0a66c2]/50 rounded transition-all ${loadingLi ? "opacity-60" : ""}`}>
+                              <button
+                                type="button"
+                                disabled={loadingLi}
+                                onClick={async () => {
+                                  setLoadingLi(true);
+                                  try { const blob = await fetch(savedLinkedinUrl).then((r) => r.blob()); setLiFile(new File([blob], "linkedin.pdf", { type: "application/pdf" })); }
+                                  finally { setLoadingLi(false); }
+                                }}
+                                className="flex items-center gap-2 flex-1 text-left disabled:cursor-not-allowed"
+                              >
+                                <div className="w-6 h-6 rounded bg-[#0a66c2]/8 border border-[#0a66c2]/20 flex items-center justify-center shrink-0">
+                                  {loadingLi
+                                    ? <span className="w-3 h-3 border-2 border-[#0a66c2]/60 border-t-transparent rounded-full animate-spin" />
+                                    : <span className="font-mono text-[8px] font-bold text-[#5ba3d9]">in</span>
+                                  }
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[11px] font-medium text-rc-text">linkedin.pdf</p>
+                                  <p className="font-mono text-[9px] text-rc-hint">{i.slots.savedUse}</p>
+                                </div>
+                              </button>
+                              <button type="button" onClick={() => setPreviewLi(true)} className="text-rc-hint/40 hover:text-rc-hint p-0.5 transition-colors">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                              </button>
+                            </div>
+                            <button type="button" onClick={() => liRef.current?.click()} className="w-full flex items-center justify-center gap-1 py-1.5 rounded border border-rc-border font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-text transition-all">
+                              {i.signals.uploadDifferent}
+                            </button>
+                          </div>
+                        ) : (
+                          <div onClick={() => liRef.current?.click()} className="border border-[#0a66c2]/30 hover:border-[#0a66c2]/55 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-[#0a66c2]/[0.04] hover:bg-[#0a66c2]/[0.08]">
+                            <p className="text-[12px] text-[#5ba3d9] font-medium">{t.uploadForm.linkedin.dropPrompt}</p>
+                            <span className="font-mono text-[9px] text-rc-hint">{t.uploadForm.linkedin.exportHint}</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="flex items-center gap-2 px-2.5 py-2 bg-[var(--rc-green-bg)] border border-[var(--rc-green-border)] rounded">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-rc-green shrink-0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          <span className="text-[11px] text-rc-text flex-1 truncate">{liFile.name}</span>
+                          <button type="button" onClick={() => { if (liRef.current) liRef.current.value = ""; setLiFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                          </button>
+                        </div>
+                      )}
+                      <input type="file" ref={liRef} accept=".pdf" className="hidden" onChange={(e) => setLiFile(e.target.files?.[0] || null)} />
+                    </div>
+                  </div>
+
+                  {/* Portfolio */}
+                  <div className="border border-rc-border rounded-md overflow-hidden">
+                    <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.6"><circle cx="12" cy="12" r="9"/><path d="M2 12h20M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-[12px] font-medium text-rc-text">{t.uploadForm.portfolio.label}</div>
+                        <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.portfolio.hint}</p>
+                      </div>
+                      <SignalBadge recommended={isRecommended("portfolio")} recommendedText={t.uploadForm.pills.recommended} optionalText={optionalText} />
+                    </div>
+                    <div className="px-3 py-2.5 flex items-center gap-2">
+                      <input
+                        type="url"
+                        placeholder={t.uploadForm.portfolio.placeholder}
+                        value={portfolioUrl}
+                        onChange={(e) => { setPortfolioUrl(e.target.value); setPingStatus("idle"); }}
+                        className="flex-1 bg-rc-bg border border-rc-border rounded py-2 px-3 text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/30 transition-colors placeholder:text-rc-hint/50"
+                      />
+                      {pingStatus === "ok" && <Tooltip text="URL accessible — le site répond correctement."><CheckCircle2 size={14} className="text-rc-green shrink-0 cursor-help" /></Tooltip>}
+                      {pingStatus === "error" && <Tooltip text="URL inaccessible — vérifiez l'adresse."><XCircle size={14} className="text-rc-red shrink-0 cursor-help" /></Tooltip>}
+                      <button
+                        type="button"
+                        disabled={!portfolioUrl.trim() || pingStatus === "checking"}
+                        onClick={async () => {
+                          const url = portfolioUrl.trim(); if (!url) return;
+                          setPingStatus("checking");
+                          try { await fetch(url, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) }); setPingStatus("ok"); }
+                          catch { setPingStatus("error"); }
+                        }}
+                        className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1.5 border border-rc-border text-rc-hint hover:text-rc-text hover:border-rc-text/30 transition-colors disabled:opacity-40 shrink-0"
+                      >
+                        {pingStatus === "checking" ? "..." : "Check"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Cover letter — Compare mode only */}
+                  {mode === "compare" && (
+                    <div className="border border-rc-border rounded-md overflow-hidden">
+                      <div className="px-3 py-2.5 bg-rc-bg border-b border-rc-border flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-rc-red/5 border border-rc-red/20 flex items-center justify-center shrink-0">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(201,58,57,0.8)" strokeWidth="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[12px] font-medium text-rc-text">{t.uploadForm.coverLetter.label}</div>
+                          <p className="font-mono text-[9px] text-rc-hint">{t.uploadForm.coverLetter.hint}</p>
+                        </div>
+                        <div className="flex bg-rc-surface border border-rc-border rounded p-0.5">
+                          <button onClick={() => setMlMode("file")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "file" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>PDF</button>
+                          <button onClick={() => setMlMode("text")} className={`px-2 py-0.5 font-mono text-[8px] uppercase rounded transition-all ${mlMode === "text" ? "bg-rc-red text-white" : "text-rc-hint hover:text-rc-muted"}`}>Text</button>
+                        </div>
+                      </div>
+                      <div className="px-3 py-2.5">
+                        {mlMode === "file" ? (
+                          <>
+                            {!mlFile ? (
+                              <div onClick={() => mlRef.current?.click()} className="border border-dashed border-rc-border hover:border-rc-red/30 rounded py-2.5 px-3 text-center cursor-pointer transition-all bg-rc-bg hover:bg-rc-red/[0.025]">
+                                <p className="text-[12px] text-rc-muted font-medium">{t.uploadForm.coverLetter.dropPrompt}</p>
+                                <span className="font-mono text-[9px] text-rc-hint">or <span className="text-rc-red decoration-dotted underline">{t.uploadForm.coverLetter.browse}</span></span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 px-2.5 py-2 bg-[var(--rc-green-bg)] border border-[var(--rc-green-border)] rounded">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-rc-green"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                <span className="text-[11px] text-rc-text flex-1 truncate">{mlFile.name}</span>
+                                <button type="button" onClick={() => { if (mlRef.current) mlRef.current.value = ""; setMlFile(null); }} className="text-rc-hint hover:text-rc-red transition-colors">
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                </button>
+                              </div>
+                            )}
+                            <input type="file" ref={mlRef} accept=".pdf" className="hidden" onChange={(e) => { setMlFile(e.target.files?.[0] || null); setMlText(""); }} />
+                          </>
+                        ) : (
+                          <textarea
+                            value={mlText}
+                            onChange={(e) => { setMlText(e.target.value); setMlFile(null); }}
+                            onBlur={() => { if (mlText.trim()) setMlFile(null); }}
+                            placeholder={t.uploadForm.coverLetter.paste}
+                            className="w-full bg-rc-bg border border-rc-border focus:border-rc-red/30 rounded px-3 py-2.5 text-rc-text text-[12px] min-h-[72px] resize-y outline-none transition-colors placeholder:text-rc-hint/50"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Vet checks */}
+            {mode === "vet" && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-mono text-[11px] tracking-[0.12em] uppercase text-rc-muted font-semibold">{i.vetChecks.title}</h3>
+                  <span className="font-mono text-[10px] text-rc-hint">{i.vetChecks.subtitle}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7z"/></svg>, label: i.vetChecks.scam },
+                    { svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>, label: i.vetChecks.unrealistic },
+                    { svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.8 1.8 0 0 1 0 3.6h-3a1.8 1.8 0 0 0 0 3.6h4"/></svg>, label: i.vetChecks.pay },
+                    { svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19a2.5 2.5 0 0 0 0-5H6.5a2.5 2.5 0 0 1 0-5H19"/><circle cx="5" cy="9" r="1"/></svg>, label: i.vetChecks.ghost },
+                    { svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-5v12L3 14z"/><path d="M11.6 16.8a3 3 0 0 1-5.8-1.6"/></svg>, label: i.vetChecks.pressure },
+                    { svg: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>, label: i.vetChecks.intent },
+                  ] as { svg: React.ReactNode; label: string }[]).map(({ svg, label }) => (
+                    <div key={label} className="flex items-center gap-2 p-2.5 bg-rc-surface border border-rc-border rounded text-[12px] text-rc-muted">
+                      <span className="text-rc-red shrink-0">{svg}</span>
+                      {label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action bar */}
+            <div className="flex items-center justify-between mt-7 pt-6 border-t border-rc-border gap-4">
+              <div className="flex items-center gap-4 font-mono text-[11px] text-rc-hint tracking-[0.05em]">
+                {quotaLeft !== null && (
+                  <>
+                    <span><b className="text-rc-text font-semibold">{quotaLeft}</b> {i.actionBar.analysesLeft}</span>
+                    <span className="w-px h-3 bg-rc-border" />
+                  </>
+                )}
+                <span><b className="text-rc-text font-semibold">{i.actionBar.noCard.split(" ").slice(0, -1).join(" ")}</b> {i.actionBar.noCard.split(" ").slice(-1)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={canRun ? onSubmit : undefined}
+                disabled={!canRun || loading}
+                className="font-sans font-medium text-[14px] px-5 py-3 rounded-md transition-all duration-150 flex items-center gap-2 whitespace-nowrap disabled:cursor-not-allowed"
+                style={
+                  canRun && !loading
+                    ? { background: "linear-gradient(180deg, #C0392B, #A93226)", color: "#fff", boxShadow: "0 10px 30px rgba(192,57,43,0.30)" }
+                    : { background: "var(--rc-bg)", color: "var(--rc-hint)", border: "1px solid var(--rc-border)" }
+                }
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="2"/>
+                      <path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    {i.actionBar.analyzing}
+                  </>
+                ) : (
+                  <>{ctaLabel}{canRun && " →"}</>
+                )}
+              </button>
+            </div>
+
+            {error && (
+              <div className="mt-3 p-3 bg-rc-red/5 border border-rc-red/20 rounded text-[12px] text-rc-red font-mono text-center">
+                {error}
+              </div>
+            )}
+
+            <p className="text-center font-mono text-[11px] text-rc-hint tracking-[0.05em] mt-6">
+              {i.privacy}
+            </p>
           </div>
         </div>
-
       </div>
-    </div>
+    </>
   );
 }

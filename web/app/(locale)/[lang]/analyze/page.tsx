@@ -99,7 +99,6 @@ function AnalyzeContent() {
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const shareToastShownRef = useRef<number | null>(null);
-  const [formStep, setFormStep] = useState<1 | 2 | 3>(1);
   // Deep-pass status: 'pending' while we're still streaming the first run,
   // 'failed' if the SSE flow ended without a deep_done event, 'ready' once
   // we've merged a deep payload into the result. Drives skeletons + the
@@ -168,7 +167,6 @@ function AnalyzeContent() {
     if (pending) {
       setCvFile(pending.file);
       if (pending.jd) setJobDescription(pending.jd);
-      setFormStep(pending.jd ? 2 : 2);
     }
 
     try {
@@ -632,7 +630,6 @@ function AnalyzeContent() {
     setVisualLoadingDone(false);
     setAnalysisId(null);
     setReconstructedCv(null);
-    setFormStep(1);
     router.replace(localePath('/analyze'), { scroll: false });
   }
 
@@ -874,7 +871,6 @@ function AnalyzeContent() {
                     return useReviewMode ? handleCvReviewSubmit(e) : handleSubmit(e);
                   }}
                   loading={false} error={error}
-                  step={formStep} onStepChange={setFormStep}
                   savedCvFiles={savedCvs}
                   savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
                   savedPortfolioUrl={profile?.portfolioUrl ?? undefined}
