@@ -377,7 +377,7 @@ export function UploadForm({
           </div>
 
           {/* ── Form area ──────────────────────────────────────────── */}
-          <div>
+          <div className={mode === "vet" ? "hidden" : ""}>
 
             {/* Context bar */}
             <div className="flex items-center gap-3 mb-4 px-4 py-3 bg-[var(--rc-surface-hero)] border border-rc-border rounded-r-md" style={{ borderLeft: "3px solid var(--color-rc-red)" }}>
