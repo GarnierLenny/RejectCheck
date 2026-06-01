@@ -48,6 +48,7 @@ function hl(text: string) {
 
 /* ─── DiagCard — hero animated diagnosis card ────────────────────────── */
 function scoreColor(n: number): string {
+  if (!Number.isFinite(n)) return "rgb(59,130,246)";
   // blue #3b82f6 → green #16a34a → orange #ea580c → red #C0392B
   const stops = [
     [0x3b, 0x82, 0xf6],
@@ -156,7 +157,7 @@ function DiagCard() {
   }
 
   useEffect(() => {
-    let fromScore: number, fromExp: number;
+    let fromScore: number = 0, fromExp: number = 0;
     setScore(prev => { fromScore = prev; return prev; });
     setExpCount(prev => { fromExp = prev; return prev; });
 
