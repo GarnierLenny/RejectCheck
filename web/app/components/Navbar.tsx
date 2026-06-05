@@ -6,7 +6,7 @@ import { AuthNavLink } from "./AuthNavLink";
 import { LangSwitcher } from "./LangSwitcher";
 import { useAuth } from "../../context/auth";
 import { useLanguage } from "../../context/language";
-type NavPage = "analyze" | "dashboard" | "pricing" | "leaderboard" | "challenge";
+type NavPage = "analyze" | "dashboard" | "pricing" | "leaderboard";
 
 interface NavbarProps {
   center?: React.ReactNode;

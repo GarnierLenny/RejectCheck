@@ -27,7 +27,8 @@ import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
 import { ReviewComposer, type ReviewComposerHandle } from "./components/ReviewComposer";
 import { LevelUpModal } from "../../../components/LevelUpModal";
 import { useUserXp } from "../../../../lib/queries";
-import { RANK_REWARDS_ENABLED } from "../../../../lib/features";
+import { RANK_REWARDS_ENABLED, DAILY_CHALLENGE_ENABLED } from "../../../../lib/features";
+import { notFound } from "next/navigation";
 import posthog from "posthog-js";
 
 type Stage = "idle" | "challenged" | "completed";
@@ -447,9 +448,10 @@ function humanizeRewardKey(key: string): string {
 }
 
 export default function ChallengePage() {
+  if (!DAILY_CHALLENGE_ENABLED) notFound();
   return (
     <>
-      <Navbar activePage="challenge" />
+      <Navbar />
       <Suspense fallback={<div className="py-12 text-center text-rc-muted">Loading…</div>}>
         <ChallengeContent />
       </Suspense>
