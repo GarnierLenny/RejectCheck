@@ -3,6 +3,7 @@
 import { useLanguage } from "../../../../../context/language";
 import type { Streak } from "../../../../../lib/challenge";
 import { useUserXp } from "../../../../../lib/queries";
+import { RANK_REWARDS_ENABLED } from "../../../../../lib/features";
 
 type Props = {
   streak: Streak | undefined;
@@ -26,14 +27,16 @@ export function ChallengeStatsStrip({ streak, completions }: Props) {
 
   return (
     <section className="ch-stats-strip" aria-label={ui.currentStreakLabel}>
-      <div className="ch-stat">
-        <span className="ch-stat__label">{ui.currentStreakLabel}</span>
-        <span className="ch-stat__value ch-stat__value--red">
-          {current}
-          <span className="ch-stat__value-unit">{ui.days}</span>
-        </span>
-        {best > 0 && <span className="ch-stat__sub">{personalBest}</span>}
-      </div>
+      {RANK_REWARDS_ENABLED && (
+        <div className="ch-stat">
+          <span className="ch-stat__label">{ui.currentStreakLabel}</span>
+          <span className="ch-stat__value ch-stat__value--red">
+            {current}
+            <span className="ch-stat__value-unit">{ui.days}</span>
+          </span>
+          {best > 0 && <span className="ch-stat__sub">{personalBest}</span>}
+        </div>
+      )}
       <div className="ch-stat">
         <span className="ch-stat__label">{ui.devsToday}</span>
         <span className="ch-stat__value">{completions ?? "—"}</span>
@@ -41,36 +44,40 @@ export function ChallengeStatsStrip({ streak, completions }: Props) {
           <span className="ch-stat__sub">{ui.noCompletionsYet}</span>
         )}
       </div>
-      <div className="ch-stat">
-        <span className="ch-stat__label">{ui.yourRankLabel}</span>
-        <span className="ch-stat__value">
-          {xp && xp.totalUsers > 0 ? (
-            <>
-              #{xp.rank}
-              <span className="ch-stat__value-sub">
-                {" "}/ {xp.totalUsers.toLocaleString()}
-              </span>
-            </>
-          ) : (
-            "—"
-          )}
-        </span>
-        {xp && xp.totalUsers > 0 && xp.rank > 0 && (
-          <span className="ch-stat__sub">
-            {(ui.topPercent as string).replace(
-              "{n}",
-              ((xp.rank / xp.totalUsers) * 100).toFixed(1),
+      {RANK_REWARDS_ENABLED && (
+        <div className="ch-stat">
+          <span className="ch-stat__label">{ui.yourRankLabel}</span>
+          <span className="ch-stat__value">
+            {xp && xp.totalUsers > 0 ? (
+              <>
+                #{xp.rank}
+                <span className="ch-stat__value-sub">
+                  {" "}/ {xp.totalUsers.toLocaleString()}
+                </span>
+              </>
+            ) : (
+              "—"
             )}
           </span>
-        )}
-      </div>
-      <div className="ch-stat">
-        <span className="ch-stat__label">{ui.xpTotalLabel}</span>
-        <span className="ch-stat__value">
-          {xp ? xp.totalXp.toLocaleString() : "—"}
-        </span>
-        {xp && <span className="ch-stat__sub">{xpToNextLabel}</span>}
-      </div>
+          {xp && xp.totalUsers > 0 && xp.rank > 0 && (
+            <span className="ch-stat__sub">
+              {(ui.topPercent as string).replace(
+                "{n}",
+                ((xp.rank / xp.totalUsers) * 100).toFixed(1),
+              )}
+            </span>
+          )}
+        </div>
+      )}
+      {RANK_REWARDS_ENABLED && (
+        <div className="ch-stat">
+          <span className="ch-stat__label">{ui.xpTotalLabel}</span>
+          <span className="ch-stat__value">
+            {xp ? xp.totalXp.toLocaleString() : "—"}
+          </span>
+          {xp && <span className="ch-stat__sub">{xpToNextLabel}</span>}
+        </div>
+      )}
     </section>
   );
 }

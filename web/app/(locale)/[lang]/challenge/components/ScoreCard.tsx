@@ -4,6 +4,7 @@ import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recha
 import { toast } from "sonner";
 import { useLanguage } from "../../../../../context/language";
 import { useChallengeStreak } from "../../../../../lib/challenge";
+import { RANK_REWARDS_ENABLED } from "../../../../../lib/features";
 import type { ChallengeIssue, DayStats, FinalResponse, PublicChallenge } from "../../../../../lib/challenge";
 
 const SEVERITY_STYLES: Record<ChallengeIssue["severity"], string> = {
@@ -79,7 +80,7 @@ export function ScoreCard({ challenge, result }: Props) {
 
   return (
     <div className="space-y-6">
-      {streakCount > 0 && (
+      {RANK_REWARDS_ENABLED && streakCount > 0 && (
         <div className="border border-rc-red/30 rounded-2xl p-5 bg-gradient-to-br from-rc-red/10 to-rc-red/[0.03]">
           <div className="flex items-center gap-4">
             <div className="text-[44px] leading-none">🔥</div>

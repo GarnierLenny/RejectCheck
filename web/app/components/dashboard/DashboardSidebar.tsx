@@ -10,6 +10,7 @@ import { useQuota, useUserXp, useSubscription, useProfile } from "../../../lib/q
 import { useLanguage } from "../../../context/language";
 import { LangSwitcher } from "../LangSwitcher";
 import { AuthNavLink } from "../AuthNavLink";
+import { COMMUNITY_FEATURES_ENABLED, RANK_REWARDS_ENABLED } from "../../../lib/features";
 
 type DashboardTab = "home" | "analyses" | "applications";
 
@@ -128,10 +129,12 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
         </NavSection>
 
         <NavSection label="Account">
-          {profile?.username && (
+          {COMMUNITY_FEATURES_ENABLED && profile?.username && (
             <LinkItem label="Profile"       icon={User}       href={localePath(`/u/${profile.username}`)} />
           )}
-          <LinkItem label="Rank & rewards" icon={Trophy}     href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
+          {RANK_REWARDS_ENABLED && (
+            <LinkItem label="Rank & rewards" icon={Trophy}     href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
+          )}
           <LinkItem label="Plan & billing" icon={CreditCard} href={localePath("/settings")} />
           <LinkItem label="Settings"       icon={Settings}   href={localePath("/settings")} />
         </NavSection>

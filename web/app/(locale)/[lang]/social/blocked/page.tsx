@@ -1,8 +1,10 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../lib/features";
 import { Ban } from "lucide-react";
 import { Navbar } from "../../../../components/Navbar";
 import { Heading, Caption, Text } from "../../../../components/typography";
@@ -126,6 +128,7 @@ function BlockedContent() {
 }
 
 export default function BlockedPage() {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   return (
     <Suspense fallback={null}>
       <BlockedContent />

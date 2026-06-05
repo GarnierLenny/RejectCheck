@@ -1,8 +1,10 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Activity } from "lucide-react";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../lib/features";
 import { Navbar } from "../../../../components/Navbar";
 import { ActivityFeed } from "../../../../components/social/ActivityFeed";
 import { Heading, Caption } from "../../../../components/typography";
@@ -53,6 +55,7 @@ function FeedContent() {
 }
 
 export default function FeedPage() {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   return (
     <Suspense fallback={null}>
       <FeedContent />

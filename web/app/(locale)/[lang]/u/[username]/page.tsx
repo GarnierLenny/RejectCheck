@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { PublicProfile, PublicActivityEntry } from "../../../../../lib/queries";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../lib/features";
 import { Navbar } from "../../../../components/Navbar";
 import { PublicHeatmap } from "../../../../components/PublicHeatmap";
 import { PublicProfileHeader } from "../../../../components/PublicProfileHeader";
@@ -36,6 +37,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ lang: string; username: string }>;
 }): Promise<Metadata> {
+  if (!COMMUNITY_FEATURES_ENABLED) return { title: "Not Found" };
   const { lang, username } = await params;
   const lower = username.toLowerCase();
   const profile = await fetchProfile(lower);
@@ -79,6 +81,7 @@ export default async function PublicProfilePage({
 }: {
   params: Promise<{ lang: string; username: string }>;
 }) {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   const { lang, username } = await params;
   const locale = (hasLocale(lang) ? lang : "en") as Locale;
   const dict = await getDictionary(locale);

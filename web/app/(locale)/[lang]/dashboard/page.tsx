@@ -14,6 +14,7 @@ import {
   useQuota,
   useUserXp,
 } from "../../../../lib/queries";
+import { RANK_REWARDS_ENABLED } from "../../../../lib/features";
 import { BuyCreditsModal } from "../../../components/BuyCreditsModal";
 import { useDeleteAnalysis, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../../lib/mutations";
 import { ApplicationsTab } from "../../../components/tabs/ApplicationsTab";
@@ -611,6 +612,7 @@ function DashboardContent() {
               </div>
 
               {/* Rank */}
+              {RANK_REWARDS_ENABLED && (
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">
                 <div className="flex items-baseline justify-between mb-3">
                   <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Your rank</p>
@@ -641,6 +643,7 @@ function DashboardContent() {
                   <p className="font-mono text-[11px] text-rc-hint">—</p>
                 )}
               </div>
+              )}
 
               {/* Skills */}
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">

@@ -27,6 +27,7 @@ import { ChallengeStreakTrack } from "./components/ChallengeStreakTrack";
 import { ReviewComposer, type ReviewComposerHandle } from "./components/ReviewComposer";
 import { LevelUpModal } from "../../../components/LevelUpModal";
 import { useUserXp } from "../../../../lib/queries";
+import { RANK_REWARDS_ENABLED } from "../../../../lib/features";
 import posthog from "posthog-js";
 
 type Stage = "idle" | "challenged" | "completed";
@@ -232,10 +233,10 @@ function ChallengeContent() {
       setFinalResult(res);
       setStage("completed");
       // XP toast + level-up modal
-      if (res.xp && res.xp.gained > 0) {
+      if (RANK_REWARDS_ENABLED && res.xp && res.xp.gained > 0) {
         toast.success(`+${res.xp.gained} XP`);
       }
-      if (res.xp && res.xp.newLevel > res.xp.oldLevel) {
+      if (RANK_REWARDS_ENABLED && res.xp && res.xp.newLevel > res.xp.oldLevel) {
         setLevelUp({
           newLevel: res.xp.newLevel,
           newRewards: res.xp.newRewards,
@@ -345,7 +346,7 @@ function ChallengeContent() {
         />
       )}
 
-      {showSidebars && <ChallengeStreakTrack />}
+      {showSidebars && RANK_REWARDS_ENABLED && <ChallengeStreakTrack />}
 
       <section className="ch-main">
         <CodeSnippet
@@ -400,10 +401,12 @@ function ChallengeContent() {
         </section>
       )}
 
-      <LevelUpModalConnected
-        levelUp={levelUp}
-        onClose={() => setLevelUp(null)}
-      />
+      {RANK_REWARDS_ENABLED && (
+        <LevelUpModalConnected
+          levelUp={levelUp}
+          onClose={() => setLevelUp(null)}
+        />
+      )}
     </main>
   );
 }

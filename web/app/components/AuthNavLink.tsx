@@ -7,6 +7,7 @@ import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useLanguage } from "../../context/language";
 import { createClient } from "../../lib/supabase";
+import { COMMUNITY_FEATURES_ENABLED } from "../../lib/features";
 
 const LOGIN_LABELS: Record<string, string> = {
   en: "Login",
@@ -89,7 +90,7 @@ export function AuthNavLink() {
             initials
           )}
         </div>
-        {(profile?.unreadFollowersCount ?? 0) > 0 && (
+        {COMMUNITY_FEATURES_ENABLED && (profile?.unreadFollowersCount ?? 0) > 0 && (
           <span
             className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-rc-red border-2 border-rc-bg"
             aria-label={t.publicProfilePage.header.newFollowers.replace(
@@ -131,7 +132,7 @@ export function AuthNavLink() {
           </div>
 
           <div className="py-1">
-            {username ? (
+            {COMMUNITY_FEATURES_ENABLED && (username ? (
               <Link
                 href={localePath(`/u/${username}`)}
                 onClick={() => setOpen(false)}
@@ -151,30 +152,34 @@ export function AuthNavLink() {
                 <UserIcon size={14} />
                 {t.navDropdown.profile}
               </span>
+            ))}
+            {COMMUNITY_FEATURES_ENABLED && (
+              <Link
+                href={localePath("/social/feed")}
+                onClick={() => setOpen(false)}
+                role="menuitem"
+                className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-rc-text hover:bg-rc-bg no-underline"
+              >
+                <Activity size={14} className="text-rc-muted" />
+                {t.social.feed.title}
+              </Link>
             )}
-            <Link
-              href={localePath("/social/feed")}
-              onClick={() => setOpen(false)}
-              role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-rc-text hover:bg-rc-bg no-underline"
-            >
-              <Activity size={14} className="text-rc-muted" />
-              {t.social.feed.title}
-            </Link>
-            <Link
-              href={localePath("/social/followers")}
-              onClick={() => setOpen(false)}
-              role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-rc-text hover:bg-rc-bg no-underline"
-            >
-              <Users size={14} className="text-rc-muted" />
-              <span className="flex-1">{t.publicProfilePage.lists.myFollowers}</span>
-              {(profile?.unreadFollowersCount ?? 0) > 0 && (
-                <span className="font-sans text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rc-red text-white">
-                  {profile?.unreadFollowersCount}
-                </span>
-              )}
-            </Link>
+            {COMMUNITY_FEATURES_ENABLED && (
+              <Link
+                href={localePath("/social/followers")}
+                onClick={() => setOpen(false)}
+                role="menuitem"
+                className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-rc-text hover:bg-rc-bg no-underline"
+              >
+                <Users size={14} className="text-rc-muted" />
+                <span className="flex-1">{t.publicProfilePage.lists.myFollowers}</span>
+                {(profile?.unreadFollowersCount ?? 0) > 0 && (
+                  <span className="font-sans text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rc-red text-white">
+                    {profile?.unreadFollowersCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <Link
               href={localePath("/settings")}
               onClick={() => setOpen(false)}

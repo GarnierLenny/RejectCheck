@@ -1,8 +1,10 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "../../../../components/Navbar";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../lib/features";
 import { FollowList } from "../../../../components/social/FollowList";
 import { Heading, Caption } from "../../../../components/typography";
 import { useAuth } from "../../../../../context/auth";
@@ -54,6 +56,7 @@ function MyFollowersContent() {
 }
 
 export default function MyFollowersPage() {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   return (
     <Suspense fallback={null}>
       <MyFollowersContent />

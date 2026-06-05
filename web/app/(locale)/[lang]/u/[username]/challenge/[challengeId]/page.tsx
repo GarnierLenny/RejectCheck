@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../../../lib/features";
 import { Trophy } from "lucide-react";
 import { Navbar } from "../../../../../../components/Navbar";
 import { Heading, Caption, Text } from "../../../../../../components/typography";
@@ -50,6 +51,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ lang: string; username: string; challengeId: string }>;
 }): Promise<Metadata> {
+  if (!COMMUNITY_FEATURES_ENABLED) return { title: "Not Found" };
   const { lang, username, challengeId } = await params;
   const lower = username.toLowerCase();
   const challengeIdNum = Number(challengeId);
@@ -89,6 +91,7 @@ export default async function PublicAttemptPage({
 }: {
   params: Promise<{ lang: string; username: string; challengeId: string }>;
 }) {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   const { lang, username, challengeId } = await params;
   const locale = (hasLocale(lang) ? lang : "en") as Locale;
   const dict = await getDictionary(locale);

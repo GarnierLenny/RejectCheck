@@ -1,7 +1,9 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { use } from "react";
 import { Navbar } from "../../../../../components/Navbar";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../../lib/features";
 import { FollowList } from "../../../../../components/social/FollowList";
 import { Heading } from "../../../../../components/typography";
 import { useLanguage } from "../../../../../../context/language";
@@ -12,6 +14,7 @@ export default function PublicFollowersPage({
 }: {
   params: Promise<{ lang: string; username: string }>;
 }) {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   const { username } = use(params);
   const lower = username.toLowerCase();
   const { t } = useLanguage();

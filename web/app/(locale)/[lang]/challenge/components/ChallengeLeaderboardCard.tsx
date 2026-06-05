@@ -10,6 +10,7 @@ import { useChallengeLeaderboard, useProfile } from "../../../../../lib/queries"
 import { useAuth } from "../../../../../context/auth";
 import { useLanguage } from "../../../../../context/language";
 import type { LeaderboardScope } from "../../../../../lib/queries";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../../lib/features";
 
 type Props = {
   challengeId: number;
@@ -26,7 +27,9 @@ export function ChallengeLeaderboardCard({
   const { data: profile } = useProfile();
   const { localePath, t } = useLanguage();
   const [scope, setScope] = useState<LeaderboardScope>("global");
-  const query = useChallengeLeaderboard(challengeId, scope, 10);
+  const query = useChallengeLeaderboard(challengeId, scope, COMMUNITY_FEATURES_ENABLED ? 10 : 0);
+
+  if (!COMMUNITY_FEATURES_ENABLED) return null;
 
   const canShare =
     user && profile?.username && score !== undefined && challengeTitle;

@@ -1,5 +1,6 @@
 "use client";
 
+import { notFound } from "next/navigation";
 import { useState } from "react";
 import { Trophy, Calendar, Flame } from "lucide-react";
 import { Navbar } from "../../../components/Navbar";
@@ -13,10 +14,12 @@ import {
   useStreakLeaderboard,
   type LeaderboardScope,
 } from "../../../../lib/queries";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../../lib/features";
 
 type Tab = "alltime" | "week" | "streaks";
 
 export default function LeaderboardPage() {
+  if (!COMMUNITY_FEATURES_ENABLED) notFound();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("alltime");

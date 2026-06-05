@@ -15,6 +15,7 @@ import { AccountSettings } from "../settings/AccountSettings";
 import { TargetingSettings } from "../settings/TargetingSettings";
 import { useLanguage } from "../../../context/language";
 import type { Profile, Subscription } from "../../../lib/queries";
+import { COMMUNITY_FEATURES_ENABLED } from "../../../lib/features";
 
 type Section = "public-profile" | "autofill" | "targeting" | "account";
 
@@ -35,10 +36,10 @@ export function SettingsTab({
   lang,
 }: SettingsTabProps) {
   const { t } = useLanguage();
-  const [section, setSection] = useState<Section>("public-profile");
+  const [section, setSection] = useState<Section>("account");
 
   const sections: { id: Section; label: string; icon: typeof UserIcon }[] = [
-    { id: "public-profile", label: t.settingsTab.sections.publicProfile, icon: UserIcon },
+    ...(COMMUNITY_FEATURES_ENABLED ? [{ id: "public-profile" as Section, label: t.settingsTab.sections.publicProfile, icon: UserIcon }] : []),
     { id: "autofill", label: t.settingsTab.sections.autofill, icon: Wand2 },
     { id: "targeting", label: t.settingsTab.sections.targeting, icon: Crosshair },
     { id: "account", label: t.settingsTab.sections.account, icon: SettingsIcon },
