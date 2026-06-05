@@ -27,6 +27,7 @@ import { ConsistencyTab } from "../../../components/tabs/ConsistencyTab";
 import { TECH_ROLES } from "../../../../lib/onboarding-data";
 import { ImproveTab } from "../../../components/tabs/ImproveTab";
 import { InterviewTab } from "../../../components/tabs/InterviewTab";
+import { AI_INTERVIEW_ENABLED } from "../../../../lib/features";
 import { CoverLetterTab } from "../../../components/tabs/CoverLetterTab";
 import { NegotiationTab } from "../../../components/tabs/NegotiationTab";
 import { TechnicalRadarChart } from "../../../components/TechnicalRadarChart";
@@ -74,7 +75,7 @@ function AnalyzeContent() {
   const [analyzeMode, setAnalyzeMode] = useState<'vs-job' | 'cv-review'>('vs-job');
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     const t = searchParams.get("tab");
-    const validTabs: Tab[] = ["cv-review","overview","ats","cv-analysis","signals","flags","consistency","negotiation","roadmap","project","improve","interview","cover-letter"];
+    const validTabs: Tab[] = ["cv-review","overview","ats","cv-analysis","signals","flags","consistency","negotiation","roadmap","project","improve",...(AI_INTERVIEW_ENABLED ? ["interview" as Tab] : []),"cover-letter"];
     return validTabs.includes(t as Tab) ? (t as Tab) : "overview";
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
@@ -789,7 +790,7 @@ function AnalyzeContent() {
     { id: "roadmap",      label: t.tabs.roadmap,     badge: null, badgeClass: "" },
     { id: "project",      label: t.tabs.project,     badge: null, badgeClass: "" },
     { id: "improve",      label: t.tabs.improveCv,   badge: "✦", badgeClass: "text-rc-red" },
-    { id: "interview",    label: t.tabs.aiInterview, badge: "✦", badgeClass: "text-rc-red" },
+    ...(AI_INTERVIEW_ENABLED ? [{ id: "interview" as const, label: t.tabs.aiInterview, badge: "✦", badgeClass: "text-rc-red" }] : []),
     { id: "cover-letter", label: t.tabs.coverLetter, badge: "✦", badgeClass: "text-rc-red" },
   ] as const) : [];
 

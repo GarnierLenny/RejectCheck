@@ -10,6 +10,7 @@ import Image from "next/image";
 import { ImproveTab } from "./tabs/ImproveTab";
 import { CoverLetterTab } from "./tabs/CoverLetterTab";
 import { InterviewTab } from "./tabs/InterviewTab";
+import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -945,7 +946,7 @@ export function CvAuditResult({
           )}
 
           {/* ── §10 AI mock interview (hired) ── */}
-          {hasHired && (
+          {AI_INTERVIEW_ENABLED && hasHired && (
             <section data-ca-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 10 · AI mock interview</div>
               <InterviewTab
@@ -958,14 +959,14 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §08–10 Paywall (free / partial) ── */}
-          {userPlan !== "hired" && (() => {
+          {/* ── §08–09 Paywall (free / partial) ── */}
+          {userPlan !== "hired" && (!hasShortlisted || AI_INTERVIEW_ENABLED) && (() => {
             type ProFeature = { num: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>; name: string; desc: string };
             const shortlistedFeatures: ProFeature[] = [
               { num: "§ 08", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
               { num: "§ 09", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on — ready to tailor for any role." },
             ];
-            const hiredFeature: ProFeature = { num: "§ 10", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots — scored debrief at the end." };
+            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "§ 10", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots — scored debrief at the end." } : null;
             const isExpanded = hasShortlisted ? true : proTier === "hired";
 
             const featureCard = (f: ProFeature, borderRight = false, borderTop = false) => (
@@ -991,12 +992,12 @@ export function CvAuditResult({
 
                 <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
                   <div>
-                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 10 · Hired feature" : "§ 08–10 · Pro features"}</div>
+                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 10 · Hired feature" : AI_INTERVIEW_ENABLED ? "§ 08–10 · Pro features" : "§ 08–09 · Pro features"}</div>
                     <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(26px,2.8vw,36px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.05 }}>
                       Your audit is done. <span style={DISPLAY_ITALIC}>Now fix it.</span>
                     </h2>
                   </div>
-                  {!hasShortlisted && (
+                  {!hasShortlisted && AI_INTERVIEW_ENABLED && (
                     <div style={{ display: "flex", flexShrink: 0, border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
                       {(["shortlisted", "hired"] as const).map((tier) => {
                         const active = proTier === tier;
@@ -1019,13 +1020,13 @@ export function CvAuditResult({
                         <div style={{ gridColumn: "span 2", display: "grid", gridTemplateRows: isExpanded ? "1fr" : "0fr", transition: "grid-template-rows 380ms ease" }}>
                           <div style={{ overflow: "hidden" }}>
                             <div style={{ opacity: isExpanded ? 1 : 0, transform: isExpanded ? "translateY(0)" : "translateY(-8px)", transition: "opacity 280ms ease 80ms, transform 280ms ease 80ms" }}>
-                              {featureCard(hiredFeature, false, true)}
+                              {hiredFeature && featureCard(hiredFeature, false, true)}
                             </div>
                           </div>
                         </div>
                       </>
                     )}
-                    {hasShortlisted && featureCard(hiredFeature, false)}
+                    {hasShortlisted && hiredFeature && featureCard(hiredFeature, false)}
                   </div>
                   <div style={{ background: "var(--rc-bg)", borderTop: "1px solid var(--rc-border)", padding: "20px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
                     <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.06em", color: "var(--rc-hint)" }}>Cancel anytime · no commitment</span>

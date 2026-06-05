@@ -10,7 +10,7 @@ import { useQuota, useUserXp, useSubscription, useProfile } from "../../../lib/q
 import { useLanguage } from "../../../context/language";
 import { LangSwitcher } from "../LangSwitcher";
 import { AuthNavLink } from "../AuthNavLink";
-import { COMMUNITY_FEATURES_ENABLED, RANK_REWARDS_ENABLED } from "../../../lib/features";
+import { COMMUNITY_FEATURES_ENABLED, RANK_REWARDS_ENABLED, APPLICATIONS_TAB_ENABLED, AI_INTERVIEW_ENABLED } from "../../../lib/features";
 
 type DashboardTab = "home" | "analyses" | "applications";
 
@@ -120,12 +120,12 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
         <NavSection label="Dashboard">
           <TabItem label="Overview"     icon={LayoutDashboard} active={activeTab === "home"}         onClick={() => onTabChange("home")} />
           <TabItem label="Analyses"     icon={FileSearch}      active={activeTab === "analyses"}     onClick={() => onTabChange("analyses")} />
-          <TabItem label="Applications" icon={Briefcase}       active={activeTab === "applications"} onClick={() => onTabChange("applications")} />
+          {APPLICATIONS_TAB_ENABLED && <TabItem label="Applications" icon={Briefcase} active={activeTab === "applications"} onClick={() => onTabChange("applications")} />}
         </NavSection>
 
         <NavSection label="Tools">
           <LinkItem label="Analyze CV"     icon={FileText} href={localePath("/analyze")} />
-          <LinkItem label="Mock interview" icon={Mic}      href={`${localePath("/analyze")}?tab=interview`} />
+          {AI_INTERVIEW_ENABLED && <LinkItem label="Mock interview" icon={Mic} href={`${localePath("/analyze")}?tab=interview`} />}
         </NavSection>
 
         <NavSection label="Account">

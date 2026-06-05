@@ -14,7 +14,7 @@ import {
   useQuota,
   useUserXp,
 } from "../../../../lib/queries";
-import { RANK_REWARDS_ENABLED } from "../../../../lib/features";
+import { RANK_REWARDS_ENABLED, APPLICATIONS_TAB_ENABLED, AI_INTERVIEW_ENABLED } from "../../../../lib/features";
 import { BuyCreditsModal } from "../../../components/BuyCreditsModal";
 import { useDeleteAnalysis, useCreateApplication, useUpdateApplication, useDeleteApplication } from "../../../../lib/mutations";
 import { ApplicationsTab } from "../../../components/tabs/ApplicationsTab";
@@ -47,7 +47,9 @@ type HistoryItem = {
 
 type DashboardTab = "home" | "analyses" | "applications";
 
-const VALID_DASHBOARD_TABS: DashboardTab[] = ["home", "analyses", "applications"];
+const VALID_DASHBOARD_TABS: DashboardTab[] = APPLICATIONS_TAB_ENABLED
+  ? ["home", "analyses", "applications"]
+  : ["home", "analyses"];
 
 const EVO_PALETTE = ["#D94040", "#4a7c1f", "#b86800", "#185FA5", "#888780"] as const;
 
@@ -415,7 +417,7 @@ function DashboardContent() {
             <div className="flex flex-col gap-4">
 
               {/* KPI strip */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className={`grid ${AI_INTERVIEW_ENABLED ? "grid-cols-4" : "grid-cols-3"} gap-3`}>
                 {[
                   {
                     label: t.account.home.avgScore,
@@ -437,12 +439,12 @@ function DashboardContent() {
                     sub: `${repliedApps.length} of ${applications.length} replied`,
                     subColor: "text-rc-hint",
                   },
-                  {
+                  ...(AI_INTERVIEW_ENABLED ? [{
                     label: t.account.home.aiInterviews,
                     value: String(totalInterviews),
                     sub: totalInterviews === 0 ? "None yet" : undefined,
                     subColor: "text-rc-hint",
-                  },
+                  }] : []),
                 ].map(({ label, value, sub, subColor }) => (
                   <div key={label} className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-4 space-y-1">
                     <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint">{label}</p>
@@ -956,7 +958,7 @@ function DashboardContent() {
         )}
 
         {/* ── APPLICATIONS ─────────────────────────────────────────────── */}
-        {activeTab === "applications" && (
+        {APPLICATIONS_TAB_ENABLED && activeTab === "applications" && (
           <ApplicationsTab
             applications={applications}
             applicationsLoading={applicationsLoading}

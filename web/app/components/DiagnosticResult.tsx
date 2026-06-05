@@ -13,6 +13,7 @@ import { BridgeTab } from "./tabs/BridgeTab";
 import { ProjectRecommendationSkeleton } from "./skeletons/ProjectRecommendationSkeleton";
 import { CoverLetterTab } from "./tabs/CoverLetterTab";
 import { InterviewTab } from "./tabs/InterviewTab";
+import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -547,8 +548,8 @@ export function DiagnosticResult({
                 {tocItem(hasShortlisted ? "s9"  : "s-pro", "09", "Bridge project", hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
                 {tocItem(hasShortlisted ? "s10" : "s-pro", "10", "CV rewrite",     hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
                 {tocItem(hasShortlisted ? "s11" : "s-pro", "11", "Cover letter",   hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
-                {tocItem(hasHired ? "s12" : "s-pro", "12", "AI interview",  hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
-                {tocItem(hasHired ? "s13" : "s-pro", "13", "Negotiation",   hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
+                {AI_INTERVIEW_ENABLED && tocItem(hasHired ? "s12" : "s-pro", "12", "AI interview",  hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
+                {tocItem(hasHired ? "s13" : "s-pro", AI_INTERVIEW_ENABLED ? "13" : "12", "Negotiation", hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
               </>);
             })()}
           </div>
@@ -1194,7 +1195,7 @@ export function DiagnosticResult({
               )}
 
               {/* §12 AI mock interview */}
-              {hasHired && (
+              {AI_INTERVIEW_ENABLED && hasHired && (
                 <section data-dr-sec="s12" id="s12" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
                   <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 12 · AI mock interview</div>
                   <InterviewTab
@@ -1210,7 +1211,7 @@ export function DiagnosticResult({
               {/* §13 Negotiation */}
               {hasHired && (
                 <section data-dr-sec="s13" id="s13" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-                  <div style={SEC_NUM}><SecNumLine />§ 13 · Negotiation</div>
+                  <div style={SEC_NUM}><SecNumLine />§ {AI_INTERVIEW_ENABLED ? "13" : "12"} · Negotiation</div>
                   {result.negotiation_analysis ? (() => {
                     const n = result.negotiation_analysis!;
                     const glyph = n.market_range.currency === "USD" ? "$" : n.market_range.currency === "GBP" ? "£" : "€";
@@ -1262,14 +1263,14 @@ export function DiagnosticResult({
                   { num: "§ 09", Icon: GitBranch,  name: "Bridge project",    desc: "Ship a working repo in 5 days. Built around the exact stack and keywords this JD expects." },
                   { num: "§ 10", Icon: PenLine,    name: "CV rewrite",        desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
                   { num: "§ 11", Icon: Mail,       name: "Cover letter",      desc: "Addresses the JD point by point. Sounds like you wrote it — because the analysis did." },
-                  { num: "§ 12", Icon: Mic,        name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots — scored debrief at the end." },
-                  { num: "§ 13", Icon: TrendingUp, name: "Negotiation",       desc: "Counter-offer email, market chart, leverage points. Ready to send before the offer call." },
+                  ...(AI_INTERVIEW_ENABLED ? [{ num: "§ 12", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots — scored debrief at the end." }] : []),
+                  { num: AI_INTERVIEW_ENABLED ? "§ 13" : "§ 12", Icon: TrendingUp, name: "Negotiation", desc: "Counter-offer email, market chart, leverage points. Ready to send before the offer call." },
                 ];
                 // shortlisted users only see hired-only features in upsell
                 const upsellFeatures = hasShortlisted ? ALL_FEATURES.slice(3) : ALL_FEATURES;
                 const isHired = hasShortlisted ? true : proTier === "hired";
                 const cols = upsellFeatures.length;
-                const gridCols = cols === 2 ? "repeat(2, 1fr)" : cols === 3 ? "repeat(3, 1fr)" : "repeat(6, 1fr)";
+                const gridCols = cols === 1 ? "1fr" : cols === 2 ? "repeat(2, 1fr)" : cols === 3 ? "repeat(3, 1fr)" : cols === 4 ? "repeat(4, 1fr)" : "repeat(6, 1fr)";
 
                 const featureCard = (f: ProFeature, i: number, total: number, topBorder = false) => (
                   <div key={f.num} style={{
