@@ -2304,4 +2304,74 @@ body {
   transition: background .15s;
   position: relative; z-index: 1;
 }
+
+/* ── Split-panel analysis layout (AnalysisLayout.tsx) ── */
+
+.rp-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--rc-border);
+  background: var(--rc-surface);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rp-tab-bar::-webkit-scrollbar { display: none; }
+
+.rp-tab {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rc-hint);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+  transition: color .15s, border-color .15s;
+}
+.rp-tab:hover { color: var(--rc-text); }
+.rp-tab.active {
+  color: var(--rc-red);
+  border-bottom-color: var(--rc-red);
+  font-weight: 600;
+}
+
+.rp-tab-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--rc-red-bg);
+  color: var(--rc-red);
+  border: 1px solid var(--rc-red-border);
+}
+.rp-tab-badge.amber {
+  background: var(--rc-amber-bg);
+  color: var(--rc-amber);
+  border-color: var(--rc-amber-border);
+}
+
+.plan-subnav-btn {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  border: 1px solid var(--rc-border);
+  background: none;
+  color: var(--rc-hint);
+  cursor: pointer;
+  transition: all .15s;
+}
+.plan-subnav-btn.active {
+  background: var(--rc-text);
+  color: var(--rc-bg);
+  border-color: var(--rc-text);
+}
 .xp-modal__cta:hover { background: var(--rc-red-hover); }
