@@ -12,6 +12,8 @@ type Props = {
   result: AnalysisResult;
   analysisId: number | null;
   cvBlobUrl: string | null;
+  liBlobUrl?: string | null;
+  mlBlobUrl?: string | null;
   deepStatus: "pending" | "failed" | "ready";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
@@ -35,6 +37,8 @@ export function DiagnosticResult({
   result,
   analysisId,
   cvBlobUrl,
+  liBlobUrl = null,
+  mlBlobUrl = null,
   deepStatus,
   isPremium,
   userPlan = "free",
@@ -114,6 +118,8 @@ export function DiagnosticResult({
         result={result}
         analysisId={analysisId}
         cvBlobUrl={cvBlobUrl}
+        liBlobUrl={liBlobUrl}
+        mlBlobUrl={mlBlobUrl}
         deepStatus={deepStatus}
         isPremium={isPremium}
         userPlan={userPlan}

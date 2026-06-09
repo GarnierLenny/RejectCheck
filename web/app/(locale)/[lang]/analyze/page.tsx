@@ -110,12 +110,29 @@ function AnalyzeContent() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
+  const [liBlobUrl, setLiBlobUrl] = useState<string | null>(null);
+  const [mlBlobUrl, setMlBlobUrl] = useState<string | null>(null);
+
   useEffect(() => {
     if (!cvFile) return;
     const url = URL.createObjectURL(cvFile);
     setCvBlobUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [cvFile]);
+
+  useEffect(() => {
+    if (!liFile) { setLiBlobUrl(null); return; }
+    const url = URL.createObjectURL(liFile);
+    setLiBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [liFile]);
+
+  useEffect(() => {
+    if (!mlFile) { setMlBlobUrl(null); return; }
+    const url = URL.createObjectURL(mlFile);
+    setMlBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [mlFile]);
 
   // True between `handleSubmit` and the SSE `done` event. While streaming, we
   // ignore inbound state from useAnalysis (URL just got primed at
@@ -825,6 +842,8 @@ function AnalyzeContent() {
           result={result!}
           analysisId={analysisId}
           cvBlobUrl={cvBlobUrl}
+          liBlobUrl={liBlobUrl}
+          mlBlobUrl={mlBlobUrl}
           deepStatus={deepStatus}
           isPremium={!!activeSubscription}
           userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
