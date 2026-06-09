@@ -743,6 +743,7 @@ export function AnalysisLayout({
   const [activePlan, setActivePlan] = useState<PlanPane>("roadmap");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
   const [cvPanelOpen, setCvPanelOpen] = useState(true);
+  const [heroOpen, setHeroOpen] = useState(true);
   const [docTab, setDocTab] = useState<DocTab>("cv");
   const [parsedMode, setParsedMode] = useState(false);
   const [scoreDisplay, setScoreDisplay] = useState(0);
@@ -899,65 +900,94 @@ export function AnalysisLayout({
       {/* ── Right panel — Analysis ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
 
-        {/* ── Hero ── */}
+        {/* ── Hero (animated collapsible) ── */}
         <div style={{ flexShrink: 0, borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface)" }}>
-          <div style={{ display: "flex" }}>
-            {/* Score column */}
-            <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid var(--rc-border)", padding: "20px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <Eyebrow style={{ marginBottom: 10 }}>Rejection risk</Eyebrow>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 2, marginBottom: 12 }}>
-                <Mono style={{ fontSize: 68, fontWeight: 700, lineHeight: 0.88, color, letterSpacing: "-0.03em" }}>{scoreDisplay}</Mono>
-                <Mono style={{ fontSize: 24, fontWeight: 700, color, opacity: 0.45 }}>%</Mono>
-              </div>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start", fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "5px 10px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
-                <span style={{ width: 6, height: 6, borderRadius: 9999, background: color }} />
-                {verdictLabel(result.score)}
-              </span>
-              {result.confidence && (
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--rc-border)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-                    <Eyebrow style={{ fontSize: 9 }}>Confidence</Eyebrow>
-                    <Mono style={{ fontSize: 11, fontWeight: 700, color: "var(--rc-text)" }}>{result.confidence.score}%</Mono>
-                  </div>
-                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.5 }}>{result.confidence.reason}</div>
-                </div>
-              )}
-            </div>
 
-            {/* Verdict + breakdown column */}
-            <div style={{ flex: 1, padding: "20px 26px", minWidth: 0 }}>
-              <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, lineHeight: 1.25, letterSpacing: "-0.015em", color: "var(--rc-text)", marginBottom: 8 }}>
-                {heroHeadline(result.score)}
+          {/* Slim bar — always rendered, slides in when collapsed */}
+          <div style={{ display: "grid", gridTemplateRows: heroOpen ? "0fr" : "1fr", transition: "grid-template-rows 0.28s ease" }}>
+            <div style={{ overflow: "hidden" }}>
+              <div onClick={() => setHeroOpen(true)} style={{ display: "flex", alignItems: "center", gap: 16, padding: "10px 26px", cursor: "pointer" }}>
+                <Mono style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1, letterSpacing: "-0.02em" }}>
+                  {scoreDisplay}<span style={{ fontSize: 12, opacity: 0.5 }}>%</span>
+                </Mono>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "4px 9px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
+                  <span style={{ width: 5, height: 5, borderRadius: 9999, background: color }} />
+                  {verdictLabel(result.score)}
+                </span>
+                {jd && <Mono style={{ fontSize: 12, color: "var(--rc-hint)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{jd.pay}{jdMeta ? `  ·  ${jdMeta}` : ""}</Mono>}
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--rc-hint)" strokeWidth="1.5" strokeLinecap="round" style={{ flexShrink: 0, transition: "transform 0.28s ease", transform: heroOpen ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M2 8l4-4 4 4"/></svg>
               </div>
-              {result.technical_analysis?.reasoning && (
-                <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginBottom: 16, maxWidth: 480 }}>
-                  <MD>{result.technical_analysis.reasoning}</MD>
-                </div>
-              )}
-              {result.breakdown && (
-                <div style={{ borderTop: "1px solid var(--rc-border)", marginTop: result.technical_analysis?.reasoning ? 0 : 8, paddingTop: 16 }}>
-                  <Eyebrow style={{ display: "block", marginBottom: 12 }}>Compatibility breakdown · higher is better</Eyebrow>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
-                    <StatBarRow label="Keywords"   value={result.breakdown.keyword_match}    threshold={65} />
-                    <StatBarRow label="Tech stack" value={result.breakdown.tech_stack_fit}   threshold={70} />
-                    <StatBarRow label="Experience" value={result.breakdown.experience_level} threshold={60} />
-                    <StatBarRow label="GitHub"     value={result.breakdown.github_signal}    threshold={70} />
-                    <StatBarRow label="LinkedIn"   value={result.breakdown.linkedin_signal}  threshold={70} />
+            </div>
+          </div>
+
+          {/* Full hero — slides in when open */}
+          <div style={{ display: "grid", gridTemplateRows: heroOpen ? "1fr" : "0fr", transition: "grid-template-rows 0.28s ease" }}>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ display: "flex" }}>
+                {/* Score column */}
+                <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid var(--rc-border)", padding: "20px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  <Eyebrow style={{ marginBottom: 10 }}>Rejection risk</Eyebrow>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 2, marginBottom: 12 }}>
+                    <Mono style={{ fontSize: 68, fontWeight: 700, lineHeight: 0.88, color, letterSpacing: "-0.03em" }}>{scoreDisplay}</Mono>
+                    <Mono style={{ fontSize: 24, fontWeight: 700, color, opacity: 0.45 }}>%</Mono>
                   </div>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start", fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "5px 10px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 9999, background: color }} />
+                    {verdictLabel(result.score)}
+                  </span>
+                  {result.confidence && (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--rc-border)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+                        <Eyebrow style={{ fontSize: 9 }}>Confidence</Eyebrow>
+                        <Mono style={{ fontSize: 11, fontWeight: 700, color: "var(--rc-text)" }}>{result.confidence.score}%</Mono>
+                      </div>
+                      <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.5 }}>{result.confidence.reason}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Verdict + breakdown column */}
+                <div style={{ flex: 1, padding: "20px 26px", minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, lineHeight: 1.25, letterSpacing: "-0.015em", color: "var(--rc-text)", marginBottom: 8 }}>
+                      {heroHeadline(result.score)}
+                    </div>
+                    <button onClick={() => setHeroOpen(false)} title="Collapse summary" style={{ flexShrink: 0, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", cursor: "pointer", color: "var(--rc-hint)" }}>
+                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 4l4 4 4-4"/></svg>
+                    </button>
+                  </div>
+                  {result.technical_analysis?.reasoning && (
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginBottom: 16, maxWidth: 480 }}>
+                      <MD>{result.technical_analysis.reasoning}</MD>
+                    </div>
+                  )}
+                  {result.breakdown && (
+                    <div style={{ borderTop: "1px solid var(--rc-border)", marginTop: result.technical_analysis?.reasoning ? 0 : 8, paddingTop: 16 }}>
+                      <Eyebrow style={{ display: "block", marginBottom: 12 }}>Compatibility breakdown · higher is better</Eyebrow>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
+                        <StatBarRow label="Keywords"   value={result.breakdown.keyword_match}    threshold={65} />
+                        <StatBarRow label="Tech stack" value={result.breakdown.tech_stack_fit}   threshold={70} />
+                        <StatBarRow label="Experience" value={result.breakdown.experience_level} threshold={60} />
+                        <StatBarRow label="GitHub"     value={result.breakdown.github_signal}    threshold={70} />
+                        <StatBarRow label="LinkedIn"   value={result.breakdown.linkedin_signal}  threshold={70} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Role dossier */}
+              {jd && (
+                <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: 6, padding: "11px 26px", borderTop: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
+                  <Eyebrow style={{ marginRight: 16, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>Target role</Eyebrow>
+                  <Mono style={{ fontSize: 14, fontWeight: 700, color: "var(--rc-text)", whiteSpace: "nowrap" }}>{jd.pay}</Mono>
+                  {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
                 </div>
               )}
             </div>
           </div>
+
         </div>
-
-        {/* ── Role dossier ── */}
-        {jd && (
-          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: 6, padding: "12px 26px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
-            <Eyebrow style={{ marginRight: 16, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>Target role</Eyebrow>
-            <Mono style={{ fontSize: 14, fontWeight: 700, color: "var(--rc-text)", whiteSpace: "nowrap" }}>{jd.pay}</Mono>
-            {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
-          </div>
-        )}
 
         {/* ── Tab bar ── */}
         <div style={{ flexShrink: 0, display: "flex", gap: 2, padding: "0 26px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface)" }}>
