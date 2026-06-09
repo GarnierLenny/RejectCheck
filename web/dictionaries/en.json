@@ -70,7 +70,7 @@
       "platformLabel": "All-in-one platform",
       "platformTitle": "Six tools. One subscription.",
       "platformSubtitle": "Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.",
-      "founderLabel": "Founder · Built it for himself",
+      "founderLabel": "Co-Founder",
       "cancelAnytime": "Cancel anytime",
       "hiredRefund": "Hired? We refund your last month. No form. Just tell us."
     },
@@ -467,7 +467,8 @@
       "smallLabel": "In closing",
       "quotePart1": "The rejection arrives in silence. Or it doesn't arrive at all.",
       "quoteRed": "We just thought you'd want to know first.",
-      "attribution": "Made in Paris · by"
+      "attribution": "Made in Paris · by",
+      "coFounders": "Co-Founders"
     },
     "footerBrand": {
       "tagline": "The CV coach that tells you why you'd be rejected, before you apply. Built for developers, useful for any role."
