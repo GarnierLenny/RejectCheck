@@ -289,38 +289,38 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {/* Radar + priority */}
-            <Sheet>
+            <Sheet style={{ overflow: "hidden" }}>
               <div style={{ padding: "14px 24px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
                 <Eyebrow>Skill coverage · you vs the role</Eyebrow>
               </div>
-              <div style={{ display: "flex", gap: 28, padding: "24px 28px", alignItems: "flex-start", flexWrap: "wrap" }}>
-                <div style={{ flexShrink: 0 }}>
-                  <RadarChart
-                    axes={ta.skills.map((s) => ({ label: s.name, score: s.current, expected: s.expected, evidence: s.evidence }))}
-                    scale={10}
-                    size={340}
-                    legend={{ current: "You", expected: "Target (JD)" }}
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: 240 }}>
-                  <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 10 }}>Job priority · skills ranked by gap</Eyebrow>
-                  <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
-                    {(ta.skill_priority ?? []).map((name, i) => {
-                      const sk = ta.skills.find((s) => s.name === name);
-                      const gap = sk ? sk.expected - sk.current : 0;
-                      const ok = gap <= 0;
-                      const rankColors = ["var(--rc-red)", "var(--rc-amber)", "var(--rc-muted)", "var(--rc-hint)", "var(--rc-hint)", "var(--rc-hint)"];
-                      const rank = rankColors[i] ?? "var(--rc-hint)";
-                      return (
-                        <li key={name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: R_SM, background: "var(--rc-bg)", border: "1px solid var(--rc-border)" }}>
-                          <Mono style={{ fontSize: 11, fontWeight: 700, width: 18, textAlign: "center", color: rank, flexShrink: 0 }}>{i + 1}</Mono>
-                          <Mono style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--rc-text)", flex: 1 }}>{name}</Mono>
-                          <Mono style={{ fontSize: 10, color: ok ? "var(--rc-green)" : "var(--rc-hint)" }}>{ok ? "✓ target met" : `-${gap} pts gap`}</Mono>
-                        </li>
-                      );
-                    })}
-                  </ol>
-                </div>
+              {/* Radar full-width (fluid) */}
+              <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--rc-border)" }}>
+                <RadarChart
+                  axes={ta.skills.map((s) => ({ label: s.name, score: s.current, expected: s.expected, evidence: s.evidence }))}
+                  scale={10}
+                  fluid
+                  legend={{ current: "You", expected: "Target (JD)" }}
+                />
+              </div>
+              {/* Priority list below */}
+              <div style={{ padding: "18px 28px" }}>
+                <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12 }}>Job priority · skills ranked by gap</Eyebrow>
+                <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {(ta.skill_priority ?? []).map((name, i) => {
+                    const sk = ta.skills.find((s) => s.name === name);
+                    const gap = sk ? sk.expected - sk.current : 0;
+                    const ok = gap <= 0;
+                    const rankColors = ["var(--rc-red)", "var(--rc-amber)", "var(--rc-muted)", "var(--rc-hint)", "var(--rc-hint)", "var(--rc-hint)"];
+                    const rank = rankColors[i] ?? "var(--rc-hint)";
+                    return (
+                      <li key={name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 11px", borderRadius: R_SM, background: "var(--rc-bg)", border: "1px solid var(--rc-border)", minWidth: 0 }}>
+                        <Mono style={{ fontSize: 11, fontWeight: 700, width: 16, textAlign: "center", color: rank, flexShrink: 0 }}>{i + 1}</Mono>
+                        <Mono style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--rc-text)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</Mono>
+                        <Mono style={{ fontSize: 10, color: ok ? "var(--rc-green)" : "var(--rc-hint)", flexShrink: 0 }}>{ok ? "✓" : `-${gap}`}</Mono>
+                      </li>
+                    );
+                  })}
+                </ol>
               </div>
             </Sheet>
 
