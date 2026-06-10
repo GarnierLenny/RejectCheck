@@ -136,6 +136,43 @@ export const TechnicalAnalysisSchema = z.object({
   seniority_signals: z.array(z.string()),
 });
 
+// Claude sometimes returns plain strings instead of { term, tooltip } objects.
+// Coerce strings to { term, tooltip: "" } so the analysis never crashes.
+const HighlightTermEntrySchema = z
+  .union([
+    z.object({ term: z.string(), tooltip: z.string() }),
+    z.string().transform((s) => ({ term: s, tooltip: '' })),
+  ])
+  .transform((v) => (typeof v === 'string' ? { term: v, tooltip: '' } : v));
+
+// Reusable per-source schema (cv / linkedin)
+const HighlightSourceSchema = z.object({
+  flags:   z.array(HighlightTermEntrySchema).catch([]),
+  issues:  z.array(HighlightTermEntrySchema).catch([]),
+  skills:  z.array(z.string()).catch([]),
+  weak:    z.array(HighlightTermEntrySchema).catch([]),
+  metrics: z.array(HighlightTermEntrySchema).catch([]),
+});
+
+// Cover letter omits skills
+const CoverLetterHighlightSchema = z.object({
+  flags:  z.array(HighlightTermEntrySchema).catch([]),
+  issues: z.array(HighlightTermEntrySchema).catch([]),
+  weak:   z.array(HighlightTermEntrySchema).catch([]),
+});
+
+export const HighlightTermsSchema = z.object({
+  // New per-source format
+  cv:           HighlightSourceSchema.optional(),
+  linkedin:     HighlightSourceSchema.optional(),
+  cover_letter: CoverLetterHighlightSchema.optional(),
+  // Flat format — kept for backward compat with old DB rows
+  flags:  z.array(HighlightTermEntrySchema).catch([]).optional(),
+  issues: z.array(HighlightTermEntrySchema).catch([]).optional(),
+  skills: z.array(z.string()).catch([]).optional(),
+  weak:   z.array(HighlightTermEntrySchema).catch([]).optional(),
+});
+
 export const AtsCriticalMissingKeywordSchema = z.object({
   keyword: z.string(),
   jd_frequency: z.number(),
@@ -389,6 +426,7 @@ export const AnalyzeResponseSchema = z.object({
    * "Consistency check" section without re-fetching the digest.
    * Empty / undefined for anonymous users (no digest).
    */
+  highlight_terms: HighlightTermsSchema.optional(),
   cross_profile_inconsistencies: z
     .array(CrossProfileInconsistencySchema)
     .optional(),

@@ -2,10 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth';
 import { apiFetch, authHeaders } from './api';
 import type { Profile, Application, PublicProfile } from './queries';
-import type {
-  DeepAnalysisPayload,
-  NegotiationAnalysis,
-} from '../app/components/types';
+import type { NegotiationAnalysis } from '../app/components/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -507,22 +504,6 @@ export function useRefreshProfileDigest() {
             ...authHeaders(token!),
           },
           body: JSON.stringify(body),
-        },
-      ),
-  });
-}
-
-export function useRegenerateDeep() {
-  const { session } = useAuth();
-  const token = session?.access_token;
-
-  return useMutation({
-    mutationFn: (analysisId: number) =>
-      apiFetch<{ deep: DeepAnalysisPayload }>(
-        `/api/analyze/${analysisId}/regenerate-deep`,
-        {
-          method: 'POST',
-          headers: authHeaders(token!),
         },
       ),
   });

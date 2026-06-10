@@ -12,6 +12,7 @@ import { CoverLetterTab } from "./tabs/CoverLetterTab";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
+import { AnalysisShell } from "./AnalysisShell";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -119,6 +120,8 @@ type Props = {
   result: AnalysisResult;
   analysisId: number | null;
   cvBlobUrl: string | null;
+  liBlobUrl?: string | null;
+  mlBlobUrl?: string | null;
   onReset: () => void;
   onExportMd: () => void;
   onShare?: () => void;
@@ -137,6 +140,8 @@ export function CvAuditResult({
   result,
   analysisId: _analysisId,
   cvBlobUrl,
+  liBlobUrl = null,
+  mlBlobUrl = null,
   onReset,
   onExportMd,
   onShare,
@@ -148,7 +153,6 @@ export function CvAuditResult({
   email = null,
   accessToken = null,
 }: Props) {
-  const [cvOpen, setCvOpen] = useState(false);
   const [barGo, setBarGo] = useState(false);
   const [activeSection, setActiveSection] = useState("s1");
   const [now] = useState(() => new Date());
@@ -370,14 +374,6 @@ export function CvAuditResult({
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {cvBlobUrl && (
-            <button style={iconBtn(cvOpen)} onClick={() => setCvOpen((v) => !v)}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="4" y="2" width="16" height="20" rx="1" /><path d="M8 6h8M8 10h8M8 14h5" />
-              </svg>
-              {cvOpen ? "Hide CV" : "View CV"}
-            </button>
-          )}
           <button style={iconBtn()} onClick={onExportMd}>↓ .md</button>
           {onShare && (
             <button style={iconBtn()} onClick={onShare} disabled={isSharing}>
@@ -388,18 +384,16 @@ export function CvAuditResult({
         </div>
       </nav>
 
-      {/* ── Page grid ── */}
-      <div style={{
-        flex: 1,
-        overflow: "hidden",
-        display: "grid",
-        gridTemplateColumns: cvOpen ? "240px 1fr 420px" : "240px 1fr",
-        maxWidth: 1380,
-        margin: "0 auto",
-        width: "100%",
-      }}>
+      {/* ── Split layout ── */}
+      <AnalysisShell
+        cvBlobUrl={cvBlobUrl}
+        liBlobUrl={liBlobUrl}
+        mlBlobUrl={mlBlobUrl}
+        reconstructedCv={reconstructedCv}
+        renderRight={() => (
+          <div style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "240px 1fr", maxWidth: 1380, margin: "0 auto", width: "100%" }}>
 
-        {/* ── TOC sidebar ── */}
+            {/* ── TOC sidebar ── */}
         <aside style={{
           height: "100%",
           padding: "48px 16px 0 24px",
@@ -1041,24 +1035,9 @@ export function CvAuditResult({
 
         </main>
 
-        {/* ── CV pane ── */}
-        {cvOpen && cvBlobUrl && (
-          <aside style={{
-            height: "100%", overflowY: "auto",
-            padding: "32px 24px",
-            borderLeft: "1px solid var(--rc-border)",
-            background: "var(--rc-bg)",
-            scrollbarWidth: "thin",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>Your CV</span>
-              <button style={{ background: "none", border: 0, color: "var(--rc-hint)", ...MONO, fontSize: 14, cursor: "pointer" }} onClick={() => setCvOpen(false)}>close ×</button>
-            </div>
-            <iframe src={cvBlobUrl} style={{ width: "100%", height: "calc(100% - 48px)", border: "none", borderRadius: 4 }} title="CV preview" />
-          </aside>
+          </div>
         )}
-
-      </div>
+      />
     </div>
   );
 }

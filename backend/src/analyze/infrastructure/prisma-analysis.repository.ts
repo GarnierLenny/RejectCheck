@@ -25,7 +25,12 @@ type AnalysisRow = {
   company: string | null;
   jdLanguage: string | null;
   cvText: string | null;
+  cvTextFormatted: string | null;
   linkedinText: string | null;
+  linkedinTextFormatted: string | null;
+  cvFileUrl: string | null;
+  liFileUrl: string | null;
+  mlFileUrl: string | null;
   githubInfo: string | null;
   motivationLetter: string | null;
   coverLetter: string | null;
@@ -73,7 +78,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         company: input.company,
         jdLanguage: input.jdLanguage,
         cvText: input.cvText,
+        cvTextFormatted: input.cvTextFormatted ?? null,
         linkedinText: input.linkedinText,
+        linkedinTextFormatted: input.linkedinTextFormatted ?? null,
         githubInfo: input.githubInfo,
         motivationLetter: input.motivationLetter,
         creditCost: input.creditCost,
@@ -143,8 +150,16 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         jobLabel: true,
         company: true,
         jobDescription: true,
+        cvText: true,
+        cvTextFormatted: true,
+        linkedinText: true,
+        linkedinTextFormatted: true,
+        cvFileUrl: true,
+        liFileUrl: true,
+        mlFileUrl: true,
         result: true,
         deepAnalysis: true,
+        motivationLetter: true,
         coverLetter: true,
         negotiationAnalysis: true,
         completedSteps: true,
@@ -158,6 +173,14 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       jobLabel: row.jobLabel,
       company: row.company,
       jobDescription: row.jobDescription,
+      cvText: row.cvText,
+      cvTextFormatted: row.cvTextFormatted,
+      linkedinText: row.linkedinText,
+      linkedinTextFormatted: row.linkedinTextFormatted,
+      cvFileUrl: row.cvFileUrl,
+      liFileUrl: row.liFileUrl,
+      mlFileUrl: row.mlFileUrl,
+      motivationLetter: row.motivationLetter,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
@@ -213,6 +236,21 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     await this.prisma.analysis.update({
       where: { id },
       data: { result: merged as unknown as Prisma.InputJsonValue },
+    });
+  }
+
+  async attachFileUrls(
+    id: number,
+    email: string,
+    urls: { cvFileUrl?: string; liFileUrl?: string; mlFileUrl?: string },
+  ): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: {
+        ...(urls.cvFileUrl !== undefined && { cvFileUrl: urls.cvFileUrl }),
+        ...(urls.liFileUrl !== undefined && { liFileUrl: urls.liFileUrl }),
+        ...(urls.mlFileUrl !== undefined && { mlFileUrl: urls.mlFileUrl }),
+      },
     });
   }
 
@@ -302,8 +340,16 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         jobLabel: true,
         company: true,
         jobDescription: true,
+        cvText: true,
+        cvTextFormatted: true,
+        linkedinText: true,
+        linkedinTextFormatted: true,
+        cvFileUrl: true,
+        liFileUrl: true,
+        mlFileUrl: true,
         result: true,
         deepAnalysis: true,
+        motivationLetter: true,
         coverLetter: true,
         negotiationAnalysis: true,
         completedSteps: true,
@@ -318,6 +364,14 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       jobLabel: row.jobLabel,
       company: row.company,
       jobDescription: row.jobDescription,
+      cvText: row.cvText,
+      cvTextFormatted: row.cvTextFormatted,
+      linkedinText: row.linkedinText,
+      linkedinTextFormatted: row.linkedinTextFormatted,
+      cvFileUrl: row.cvFileUrl,
+      liFileUrl: row.liFileUrl,
+      mlFileUrl: row.mlFileUrl,
+      motivationLetter: row.motivationLetter,
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
@@ -338,7 +392,12 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       company: row.company,
       jdLanguage: row.jdLanguage,
       cvText: row.cvText,
+      cvTextFormatted: row.cvTextFormatted ?? null,
       linkedinText: row.linkedinText,
+      linkedinTextFormatted: row.linkedinTextFormatted ?? null,
+      cvFileUrl: row.cvFileUrl ?? null,
+      liFileUrl: row.liFileUrl ?? null,
+      mlFileUrl: row.mlFileUrl ?? null,
       githubInfo: row.githubInfo,
       motivationLetter: row.motivationLetter,
       coverLetter: row.coverLetter,

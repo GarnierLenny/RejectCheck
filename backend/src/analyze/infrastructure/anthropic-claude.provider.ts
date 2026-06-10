@@ -8,6 +8,7 @@ import * as Sentry from '@sentry/nestjs';
 import Anthropic from '@anthropic-ai/sdk';
 import {
   AnalyzeResponse,
+  AnalyzeResponseSchema,
   DeepAnalyzeResponse,
   DeepAnalyzeResponseSchema,
   HotAnalyzeResponse,
@@ -32,6 +33,7 @@ import {
 import type {
   AnalyzeApplicationDeepInput,
   AnalyzeApplicationInput,
+  AnalyzeApplicationSingleInput,
   ClaudeProvider,
   GenerateCoverLetterInput,
   GenerateNegotiationInput,
@@ -40,6 +42,7 @@ import type {
   RewriteCvInput,
 } from '../ports/claude.provider';
 import {
+  buildAnalysisTool,
   buildDeepAnalysisTool,
   SUBMIT_ANALYSIS_HOT_TOOL,
 } from './schemas/claude-analysis.schema';
@@ -286,6 +289,115 @@ Formatting rules:
 - Use **markdown** in all text fields (narrative, issue descriptions, seniority strength).
 - Be specific: reference actual content from the CV (company names, technologies, dates) rather than generic observations.
 - For audit_github and audit_linkedin: set score=null and issues=[] when those sources were not provided.`;
+  }
+
+  async analyzeApplication(
+    input: AnalyzeApplicationSingleInput,
+  ): Promise<AnalyzeResponse> {
+    const technicalPrompt = this.resolveTechnicalPrompt(input.userRoleType);
+    this.logger.log(
+      `Requesting single-pass analysis from Claude (role=${input.userRoleType ?? 'default'})`,
+    );
+
+    const requestStartedAt = Date.now();
+    let firstDeltaAt: number | null = null;
+    const MAX_TOKENS = 16000;
+    const tool = buildAnalysisTool(input.generateBridgeProject ?? true);
+
+    try {
+      const msg = await this.withSentry('analyze', async () => {
+        const stream = this.anthropic.messages.stream({
+          model: MODEL,
+          max_tokens: MAX_TOKENS,
+          temperature: 0.1,
+          system: [
+            {
+              type: 'text',
+              text: technicalPrompt,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tools: [
+            {
+              ...tool,
+              cache_control: { type: 'ephemeral', ttl: '1h' },
+            },
+          ],
+          tool_choice: { type: 'tool', name: 'submit_analysis' },
+          messages: [
+            {
+              role: 'user',
+              content: this.buildAnalyzeUserMessage(input),
+            },
+          ],
+        });
+        stream.on('inputJson', (partialJson) => {
+          if (firstDeltaAt === null) firstDeltaAt = Date.now();
+          input.onDelta?.(partialJson);
+        });
+        return stream.finalMessage();
+      });
+
+      this.logTimingLine(
+        'analyze',
+        MAX_TOKENS,
+        requestStartedAt,
+        firstDeltaAt,
+        msg.usage,
+        { digest: !!input.digest },
+      );
+      this.logCacheUsage('analyze', msg.usage);
+
+      const toolUse = msg.content.find(
+        (block) => (block as { type?: string }).type === 'tool_use',
+      ) as ToolUseBlock | undefined;
+
+      if (!toolUse) {
+        this.logger.error(
+          `Claude returned no tool_use block (analyze): ${JSON.stringify(msg.content).slice(0, 300)}`,
+        );
+        throw new InternalServerErrorException('Analysis failed');
+      }
+
+      const i = toolUse.input as Record<string, any>;
+      const result: AnalyzeResponse = {
+        score: i.overall.score,
+        verdict: i.overall.verdict,
+        confidence: i.overall.confidence,
+        breakdown: {
+          keyword_match: i.keyword_match,
+          tech_stack_fit: i.tech_stack_fit,
+          experience_level: i.experience_level,
+          github_signal: i.github_signal,
+          linkedin_signal: i.linkedin_signal,
+        },
+        ats_simulation: {
+          ...i.ats_simulation,
+          critical_missing_keywords: i.ats_critical_missing_keywords,
+        },
+        seniority_analysis: i.seniority_analysis,
+        cv_tone: i.cv_tone,
+        audit: {
+          cv: i.audit_cv,
+          github: i.audit_github,
+          linkedin: i.audit_linkedin,
+          jd_match: i.audit_jd_match,
+        },
+        hidden_red_flags: i.hidden_red_flags,
+        job_details: i.job_details,
+        technical_analysis: i.technical_analysis,
+        challenge_analysis: i.challenge_analysis,
+        project_recommendation: i.project_recommendation,
+        highlight_terms: i.highlight_terms,
+      };
+      return AnalyzeResponseSchema.parse(result);
+    } catch (apiErr: any) {
+      this.logger.error(
+        `Claude analyzeApplication failed: ${apiErr?.message || apiErr}`,
+        apiErr?.stack,
+      );
+      throw new InternalServerErrorException('Analysis failed');
+    }
   }
 
   async analyzeApplicationHot(

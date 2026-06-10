@@ -14,7 +14,9 @@ export type SaveAnalysisInput = {
   company: string;
   jdLanguage: string;
   cvText: string | null;
+  cvTextFormatted?: string | null;
   linkedinText: string | null;
+  linkedinTextFormatted?: string | null;
   githubInfo: string | null;
   motivationLetter: string | null;
   /** Credits to deduct from the monthly allowance. See CREDIT_COSTS. */
@@ -90,6 +92,13 @@ export interface AnalysisRepository {
     id: number,
     email: string,
     coverLetter: string,
+  ): Promise<void>;
+
+  /** Persists uploaded file URLs on the analysis row (authenticated users only). */
+  attachFileUrls(
+    id: number,
+    email: string,
+    urls: { cvFileUrl?: string; liFileUrl?: string; mlFileUrl?: string },
   ): Promise<void>;
 
   /** Persists the HIRED-only negotiation playbook on the analysis row. */

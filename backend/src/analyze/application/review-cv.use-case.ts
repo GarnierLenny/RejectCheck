@@ -101,9 +101,11 @@ export class ReviewCvUseCase {
     emitStep('parsing_cv');
     if (cmd.githubUsername) emitStep('analyzing_github');
 
-    const [cvText, linkedinText, githubSnapshot] = await Promise.all([
+    const [cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubSnapshot] = await Promise.all([
       this.pdf.parse(cmd.cvBuffer),
+      this.pdf.parseFormatted(cmd.cvBuffer),
       this.tryParse(cmd.linkedinBuffer),
+      this.tryParseFormatted(cmd.linkedinBuffer),
       cmd.githubUsername
         ? this.github.fetchProfile(cmd.githubUsername).catch(() => null)
         : Promise.resolve(null),
@@ -152,7 +154,7 @@ export class ReviewCvUseCase {
       onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });
 
-    const analysisId = await this.persist({ cmd, result, cvText, linkedinText, githubInfo });
+    const analysisId = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
 
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
       await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.review });
@@ -225,11 +227,22 @@ export class ReviewCvUseCase {
     }
   }
 
+  private async tryParseFormatted(buffer?: Buffer): Promise<string> {
+    if (!buffer) return '';
+    try {
+      return await this.pdf.parseFormatted(buffer);
+    } catch {
+      return '';
+    }
+  }
+
   private async persist(args: {
     cmd: ReviewCvCommand;
     result: CvReviewResponse;
     cvText: string;
+    cvTextFormatted: string;
     linkedinText: string;
+    linkedinTextFormatted: string;
     githubInfo: string;
   }): Promise<number | null> {
     const { cmd, result } = args;
@@ -247,7 +260,9 @@ export class ReviewCvUseCase {
       company: 'CV Review',
       jdLanguage: 'en',
       cvText: args.cvText || null,
+      cvTextFormatted: args.cvTextFormatted || null,
       linkedinText: args.linkedinText || null,
+      linkedinTextFormatted: args.linkedinTextFormatted || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: null,
       creditCost: CREDIT_COSTS.review,

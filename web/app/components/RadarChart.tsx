@@ -208,7 +208,7 @@ export function RadarChart({
       </div>
 
       {/* Evidence list */}
-      {showEvidence && <div className={fluid ? "flex-[6] min-w-0 space-y-3 pt-1" : "flex-1 space-y-3 pt-1"}>
+      {showEvidence && <div className={fluid ? "flex-[6] min-w-0 space-y-3 pt-1" : "flex-1 min-w-0 space-y-3 pt-1"}>
         {evidenceHeader && (
           <div className="mb-4">
             <h4 className="font-mono text-[11px] uppercase tracking-wider text-rc-text font-bold flex items-center gap-1.5 mb-0.5">
@@ -275,7 +275,7 @@ export function RadarChart({
                 />
               </div>
             )}
-            <p className="font-mono text-[10px] text-rc-hint leading-relaxed">
+            <p className="font-mono text-[10px] text-rc-hint leading-relaxed break-words">
               {ax.evidence}
             </p>
           </div>
