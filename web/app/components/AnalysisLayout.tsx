@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { AnalysisResult, Fix } from "./types";
+import { AnalysisShell } from "./AnalysisShell";
 import { RadarChart } from "./RadarChart";
 import { SignalsTab } from "./tabs/SignalsTab";
 import { ConsistencyTab } from "./tabs/ConsistencyTab";
@@ -504,54 +505,6 @@ const ACTION_RE = /^(led|built|designed|developed|created|implemented|launched|d
 const METRIC_RE = /\d+%?|[€$][\d,.]+|[\d,]+\s*(users|customers|ms|req|requests|engineers|teams?)/i;
 const phraseGood = (p: string) => METRIC_RE.test(p) || ACTION_RE.test(p.trim());
 
-// ── Parsed CV renderer ────────────────────────────────────────────────────────
-
-const SECTION_RE = /^[A-ZÀÂÄÉÈÊËÎÏÔÙÛÜÇ\s]{3,}$|^[A-Z][^a-z]{2,}:?\s*$/;
-const ROLE_LINE_RE = /^[A-Z].*—|^[A-Z][^.]{5,}(?:\s—\s|\s[-–]\s)/;
-
-function ParsedCvView({ text }: { text: string }) {
-  const lines = text.split("\n");
-  let first = true;
-  return (
-    <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.7, color: "var(--rc-muted)" }}>
-      {lines.map((line, i) => {
-        const trimmed = line.trim();
-        if (!trimmed) return <div key={i} style={{ height: 10 }} />;
-        if (first && i < 5) {
-          // First non-empty lines are the candidate header block
-          if (i === 0) { first = false; return <div key={i} style={{ fontFamily: "var(--font-sans)", fontSize: 21, fontWeight: 700, color: "var(--rc-text)", letterSpacing: "-0.01em", marginBottom: 2 }}>{trimmed}</div>; }
-          return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--rc-hint)", marginBottom: i === 1 ? 20 : 4 }}>{trimmed}</div>;
-        }
-        if (SECTION_RE.test(trimmed)) {
-          return (
-            <div key={i} style={{ marginTop: 22, marginBottom: 8 }}>
-              <Eyebrow style={{ letterSpacing: "0.14em" }}>{trimmed.replace(/:$/, "")}</Eyebrow>
-              <div style={{ height: 1, background: "var(--rc-border)", marginTop: 7 }} />
-            </div>
-          );
-        }
-        if (ROLE_LINE_RE.test(trimmed)) {
-          return <div key={i} style={{ fontFamily: "var(--font-sans)", fontSize: 14.5, fontWeight: 600, color: "var(--rc-text)", marginTop: 16, marginBottom: 2 }}>{trimmed}</div>;
-        }
-        if (/^\d{4}/.test(trimmed) || /^[A-Za-z]+\s\d{4}/.test(trimmed)) {
-          return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)", marginBottom: 8 }}>{trimmed}</div>;
-        }
-        if (trimmed.startsWith("•") || trimmed.startsWith("-") || trimmed.startsWith("·")) {
-          return (
-            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6 }}>
-              <span style={{ color: "var(--rc-border)", flexShrink: 0, marginTop: 2 }}>·</span>
-              <span>{trimmed.replace(/^[•\-·]\s*/, "")}</span>
-            </div>
-          );
-        }
-        return <div key={i} style={{ marginBottom: 4 }}>{trimmed}</div>;
-      })}
-    </div>
-  );
-}
-
-// ── CV tab body ────────────────────────────────────────────────────────────────
-
 function CVBody({ result }: { result: AnalysisResult }) {
   const { seniority_analysis: sen, cv_tone: tone, correlation, audit, hidden_red_flags: flags } = result;
   const cv = audit.cv;
@@ -742,10 +695,7 @@ export function AnalysisLayout({
   const [activeTab, setActiveTab] = useState<MainTab>("match");
   const [activePlan, setActivePlan] = useState<PlanPane>("roadmap");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
-  const [cvPanelOpen, setCvPanelOpen] = useState(true);
   const [heroOpen, setHeroOpen] = useState(true);
-  const [docTab, setDocTab] = useState<DocTab>("cv");
-  const [parsedMode, setParsedMode] = useState(false);
   const [scoreDisplay, setScoreDisplay] = useState(0);
 
   useEffect(() => {
@@ -794,111 +744,14 @@ export function AnalysisLayout({
   // Role dossier meta string
   const jdMeta = jd ? [jd.seniority, jd.years_of_experience ? `${jd.years_of_experience} exp` : null, jd.office_location, jd.contract_type, jd.company_stage].filter(Boolean).join("   ·   ") : null;
 
-  // All doc tabs always shown; blobUrl null = not provided for this analysis
-  const allDocs: { id: DocTab; label: string; blobUrl: string | null; hasParsed: boolean; missingMsg: string }[] = [
-    { id: "cv",       label: "CV",           blobUrl: cvBlobUrl,  hasParsed: !!reconstructedCv, missingMsg: "No CV was provided for this analysis." },
-    { id: "cover",    label: "Cover letter", blobUrl: mlBlobUrl,  hasParsed: false, missingMsg: "No cover letter was provided for this analysis." },
-    { id: "linkedin", label: "LinkedIn",     blobUrl: liBlobUrl,  hasParsed: false, missingMsg: "No LinkedIn PDF was provided for this analysis." },
-  ];
-
-  const currentDoc = allDocs.find((d) => d.id === docTab) ?? allDocs[0];
-  // Parsed is always toggleable; if not available, show an info state instead of content
-  const activeParsed = parsedMode;
-
   return (
-    <div className="flex-1 flex overflow-hidden">
-
-      {/* ── Left panel — Source documents ── */}
-      <div style={{ width: cvPanelOpen ? 520 : 40, flexShrink: 0, borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "var(--rc-surface)", transition: "width 0.22s ease", overflow: "hidden" }}>
-        {cvPanelOpen ? (
-          <>
-            {/* Panel header — row 1: label + collapse */}
-            <div style={{ flexShrink: 0, borderBottom: "1px solid var(--rc-border)", padding: "14px 20px 0", display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <Eyebrow>Source document</Eyebrow>
-                <button onClick={() => setCvPanelOpen(false)} title="Collapse panel" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", cursor: "pointer", color: "var(--rc-hint)", flexShrink: 0 }}>
-                  <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M8 2L3 6.5L8 11"/></svg>
-                </button>
-              </div>
-
-              {/* Row 2: doc switcher + raw/parsed toggle */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, paddingBottom: 14, flexWrap: "wrap" }}>
-                {/* Doc tabs — always all 3 */}
-                <div style={{ display: "flex", border: "1px solid var(--rc-border)", borderRadius: R_SM, overflow: "hidden", background: "var(--rc-bg)", flexShrink: 0 }}>
-                  {allDocs.map((d, i) => {
-                    const active = d.id === docTab;
-                    return (
-                      <button key={d.id} onClick={() => setDocTab(d.id)} style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, padding: "7px 13px", color: active ? "var(--rc-surface)" : d.blobUrl ? "var(--rc-muted)" : "var(--rc-border)", background: active ? "var(--rc-text)" : "transparent", borderLeft: i > 0 ? "1px solid var(--rc-border)" : "none", cursor: "pointer" }}>
-                        {d.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Raw / Parsed toggle — always visible */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: activeParsed ? "var(--rc-hint)" : "var(--rc-text)" }}>Raw</span>
-                  <div onClick={() => setParsedMode((v) => !v)} style={{ width: 42, height: 22, borderRadius: 99, background: activeParsed ? "var(--rc-text)" : "var(--rc-border)", position: "relative", cursor: "pointer", transition: "background 0.15s" }}>
-                    <div style={{ position: "absolute", top: 2, left: activeParsed ? 22 : 2, width: 18, height: 18, borderRadius: 99, background: "#fff", transition: "left 0.15s", boxShadow: "0 1px 2px rgba(0,0,0,0.18)" }} />
-                  </div>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: activeParsed ? "var(--rc-text)" : "var(--rc-hint)" }}>Parsed</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Panel content */}
-            {(() => {
-              // Parsed mode but no parsed text for this doc
-              if (activeParsed && !(currentDoc.id === "cv" && reconstructedCv)) {
-                const msg = currentDoc.id === "cv"
-                  ? "Parsed text is not available for this analysis. Re-run the analysis to get it."
-                  : `Parsed view is only available for the CV document.`;
-                return (
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "0 40px", textAlign: "center" }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--rc-border)" strokeWidth="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-hint)", lineHeight: 1.6 }}>{msg}</div>
-                  </div>
-                );
-              }
-              // Parsed CV
-              if (activeParsed && currentDoc.id === "cv" && reconstructedCv) {
-                return (
-                  <div style={{ flex: 1, overflow: "auto", padding: "28px 34px", background: "var(--rc-surface-raised)", scrollbarWidth: "thin" }}>
-                    <ParsedCvView text={reconstructedCv} />
-                    <div style={{ marginTop: 26, paddingTop: 16, borderTop: "1px solid var(--rc-border)" }}>
-                      <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Parsed from your uploaded document</Mono>
-                    </div>
-                  </div>
-                );
-              }
-              // Raw mode with a blob
-              if (currentDoc.blobUrl) {
-                return <iframe src={currentDoc.blobUrl} className="flex-1 border-0 w-full" title={`${currentDoc.label} preview`} style={{ minWidth: 519 }} />;
-              }
-              // Raw mode but doc was not provided
-              return (
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "0 40px", textAlign: "center" }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--rc-border)" strokeWidth="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-hint)", lineHeight: 1.6 }}>{currentDoc.missingMsg}</div>
-                </div>
-              );
-            })()}
-          </>
-        ) : (
-          /* Collapsed strip */
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 14, gap: 12 }}>
-            <button onClick={() => setCvPanelOpen(true)} title="Expand panel" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", cursor: "pointer", color: "var(--rc-hint)" }}>
-              <svg width="12" height="12" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 2l10 4.5L5 11"/></svg>
-            </button>
-            <div style={{ writingMode: "vertical-rl", fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", transform: "rotate(180deg)", marginTop: 6 }}>
-              Docs
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Right panel — Analysis ── */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+    <AnalysisShell
+      cvBlobUrl={cvBlobUrl}
+      liBlobUrl={liBlobUrl}
+      mlBlobUrl={mlBlobUrl}
+      reconstructedCv={reconstructedCv}
+      renderRight={() => (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
 
         {/* ── Hero (animated collapsible) ── */}
         <div style={{ flexShrink: 0, borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface)" }}>
@@ -915,7 +768,9 @@ export function AnalysisLayout({
                   {verdictLabel(result.score)}
                 </span>
                 {jd && <Mono style={{ fontSize: 12, color: "var(--rc-hint)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{jd.pay}{jdMeta ? `  ·  ${jdMeta}` : ""}</Mono>}
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="var(--rc-hint)" strokeWidth="1.5" strokeLinecap="round" style={{ flexShrink: 0, transition: "transform 0.28s ease", transform: heroOpen ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M2 8l4-4 4 4"/></svg>
+                <span style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", color: "var(--rc-hint)" }}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 8l4-4 4 4"/></svg>
+                </span>
               </div>
             </div>
           </div>
@@ -940,6 +795,12 @@ export function AnalysisLayout({
                       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
                         <Eyebrow style={{ fontSize: 9 }}>Confidence</Eyebrow>
                         <Mono style={{ fontSize: 11, fontWeight: 700, color: "var(--rc-text)" }}>{result.confidence.score}%</Mono>
+                        <div className="relative group" style={{ display: "inline-flex" }}>
+                          <span style={{ width: 14, height: 14, borderRadius: 99, border: "1px solid var(--rc-border)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)", cursor: "default", flexShrink: 0 }}>?</span>
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150" style={{ width: 210, background: "var(--rc-text)", color: "var(--rc-bg)", fontFamily: "var(--font-sans)", fontSize: 11, lineHeight: 1.55, padding: "9px 12px", borderRadius: 6, zIndex: 50 }}>
+                            How certain the model is in this analysis. Higher when signals from multiple sources align; lower when data is thin or contradictory.
+                          </div>
+                        </div>
                       </div>
                       <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.5 }}>{result.confidence.reason}</div>
                     </div>
@@ -957,7 +818,7 @@ export function AnalysisLayout({
                     </button>
                   </div>
                   {result.technical_analysis?.reasoning && (
-                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginBottom: 16, maxWidth: 480 }}>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginBottom: 16 }}>
                       <MD>{result.technical_analysis.reasoning}</MD>
                     </div>
                   )}
@@ -1122,6 +983,7 @@ export function AnalysisLayout({
           )}
         </div>
       </div>
-    </div>
+      )}
+    />
   );
 }
