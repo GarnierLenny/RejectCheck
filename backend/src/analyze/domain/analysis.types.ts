@@ -25,10 +25,15 @@ export type StoredAnalysis = {
   company: string | null;
   jdLanguage: string | null;
   cvText: string | null;
+  cvTextFormatted: string | null;
   linkedinText: string | null;
+  linkedinTextFormatted: string | null;
   githubInfo: string | null;
   motivationLetter: string | null;
   coverLetter: string | null;
+  cvFileUrl: string | null;
+  liFileUrl: string | null;
+  mlFileUrl: string | null;
   result: AnalyzeResponse | null;
   deepAnalysis: DeepAnalyzeResponse | null;
   negotiationAnalysis: NegotiationAnalysis | null;
@@ -46,8 +51,16 @@ export type AnalysisDetail = Pick<
   | 'jobLabel'
   | 'company'
   | 'jobDescription'
+  | 'cvText'
+  | 'cvTextFormatted'
+  | 'linkedinText'
+  | 'linkedinTextFormatted'
+  | 'cvFileUrl'
+  | 'liFileUrl'
+  | 'mlFileUrl'
   | 'result'
   | 'deepAnalysis'
+  | 'motivationLetter'
   | 'coverLetter'
   | 'negotiationAnalysis'
   | 'createdAt'

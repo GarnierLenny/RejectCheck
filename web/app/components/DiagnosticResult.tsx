@@ -24,6 +24,8 @@ type Props = {
   onShare?: () => void;
   isSharing: boolean;
   reconstructedCv?: string | null;
+  liText?: string | null;
+  coverLetterText?: string | null;
   isRewriting?: boolean;
   onRewrite?: () => void;
   email?: string | null;
@@ -49,16 +51,29 @@ export function DiagnosticResult({
   onShare,
   isSharing,
   reconstructedCv = null,
+  liText = null,
+  coverLetterText = null,
   isRewriting = false,
   onRewrite,
   email = null,
   accessToken = null,
   completedSteps,
 }: Props) {
-  const { localePath } = useLanguage();
+  const { t, localePath } = useLanguage();
 
   const role = result.job_details?.title ?? "";
   const company = result.job_details?.company ?? "";
+
+  const btn = (primary = false): React.CSSProperties => ({
+    fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em",
+    textTransform: "uppercase", padding: "7px 12px",
+    border: `1px solid ${primary ? "var(--rc-text)" : "var(--rc-border)"}`,
+    borderRadius: 4, cursor: "pointer",
+    background: primary ? "var(--rc-text)" : "var(--rc-surface)",
+    color: primary ? "#fff" : "var(--rc-hint)",
+    display: "inline-flex", alignItems: "center", gap: 6,
+    whiteSpace: "nowrap" as const, transition: "all 150ms ease",
+  });
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-rc-bg text-rc-text">
@@ -72,7 +87,7 @@ export function DiagnosticResult({
           </Link>
           {(role || company) && (
             <div className="flex items-center gap-2 pl-4 border-l border-rc-border">
-              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-rc-hint">Diagnosis</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-rc-hint">{t.analysisLayout.diagnosis}</span>
               <span className="text-rc-border select-none">·</span>
               <span className="font-sans text-[13px] font-semibold text-rc-text max-w-[280px] truncate">
                 {role}{company ? ` · ${company}` : ""}
@@ -81,35 +96,17 @@ export function DiagnosticResult({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            className="font-mono text-[10px] uppercase tracking-[0.08em] font-semibold px-3 py-[6px] border border-rc-border bg-rc-surface text-rc-hint cursor-pointer hover:text-rc-text hover:border-rc-border/80 transition-colors"
-            onClick={onExportMd}
-          >
-            ↓ MD
-          </button>
-          <button
-            className="font-mono text-[10px] uppercase tracking-[0.08em] font-semibold px-3 py-[6px] border border-rc-border bg-rc-surface text-rc-hint cursor-pointer hover:text-rc-text hover:border-rc-border/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            onClick={onExportPdf}
-            disabled={isExportingPdf}
-          >
-            {isExportingPdf ? "Exporting…" : "↓ PDF"}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button style={btn()} onClick={onExportMd}>{t.analysisLayout.exportMd}</button>
+          <button style={{ ...btn(), opacity: isExportingPdf ? 0.4 : 1, cursor: isExportingPdf ? "not-allowed" : "pointer" }} onClick={onExportPdf} disabled={isExportingPdf}>
+            {isExportingPdf ? t.analysisLayout.exportingPdf : t.analysisLayout.exportPdf}
           </button>
           {onShare && (
-            <button
-              className="font-mono text-[10px] uppercase tracking-[0.08em] font-semibold px-3 py-[6px] border border-rc-border bg-rc-surface text-rc-hint cursor-pointer hover:text-rc-text hover:border-rc-border/80 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={onShare}
-              disabled={isSharing}
-            >
-              {isSharing ? "…" : "↗ Share"}
+            <button style={{ ...btn(), opacity: isSharing ? 0.4 : 1, cursor: isSharing ? "not-allowed" : "pointer" }} onClick={onShare} disabled={isSharing}>
+              {isSharing ? t.analysisLayout.sharing : t.analysisLayout.share}
             </button>
           )}
-          <button
-            className="font-mono text-[10px] uppercase tracking-[0.08em] font-semibold px-3 py-[6px] border border-rc-text bg-rc-text text-white cursor-pointer hover:bg-rc-muted hover:border-rc-muted transition-colors"
-            onClick={onReset}
-          >
-            ↻ New
-          </button>
+          <button style={btn(true)} onClick={onReset}>{t.analysisLayout.newAnalysis}</button>
         </div>
       </nav>
 
@@ -125,6 +122,8 @@ export function DiagnosticResult({
         userPlan={userPlan}
         onReset={onReset}
         reconstructedCv={reconstructedCv}
+        liText={liText}
+        coverLetterText={coverLetterText}
         isRewriting={isRewriting}
         onRewrite={onRewrite}
         email={email}

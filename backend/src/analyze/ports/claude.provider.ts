@@ -52,6 +52,14 @@ export type AnalyzeApplicationDeepInput = AnalyzeApplicationInput & {
   generateBridgeProject?: boolean;
 };
 
+export type AnalyzeApplicationSingleInput = AnalyzeApplicationInput & {
+  /**
+   * When false, Claude skips generating project_recommendation. Defaults to
+   * true. Set to false for free-tier users who cannot see §09 Bridge Project.
+   */
+  generateBridgeProject?: boolean;
+};
+
 export type RewriteCvInput = {
   cvText: string;
   result: AnalyzeResponse;
@@ -113,6 +121,7 @@ export type GenerateProfileDigestInput = {
 
 export interface ClaudeProvider {
   reviewCv(input: ReviewCvInput): Promise<CvReviewResponse>;
+  analyzeApplication(input: AnalyzeApplicationSingleInput): Promise<AnalyzeResponse>;
   analyzeApplicationHot(
     input: AnalyzeApplicationInput,
   ): Promise<HotAnalyzeResponse>;

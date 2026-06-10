@@ -14,12 +14,12 @@
   --rc-red-bg: rgba(201,58,57,0.07);
   --rc-red-border: rgba(201,58,57,0.22);
   --rc-red-glow: rgba(201,58,57,0.28);
-  --rc-green: #3d6114;
-  --rc-green-bg: rgba(77,122,26,0.08);
-  --rc-green-border: rgba(77,122,26,0.25);
-  --rc-amber: #8a5700;
-  --rc-amber-bg: rgba(154,98,0,0.06);
-  --rc-amber-border: rgba(154,98,0,0.3);
+  --rc-green: #22a350;
+  --rc-green-bg: rgba(34,163,80,0.08);
+  --rc-green-border: rgba(34,163,80,0.25);
+  --rc-amber: #e07b00;
+  --rc-amber-bg: rgba(224,123,0,0.07);
+  --rc-amber-border: rgba(224,123,0,0.28);
   --font-serif: var(--font-sans);
 }
 

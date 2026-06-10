@@ -1,140 +1,246 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
 import { Github, Linkedin } from "react-bootstrap-icons";
 import type { AnalysisResult } from "../types";
-import { IssueItem } from "../IssueItem";
-import { SectionHeader } from "../SectionHeader";
+import type { Fix } from "../types";
 import { useLanguage } from "../../../context/language";
 
-type SignalData = AnalysisResult["audit"]["github"] | AnalysisResult["audit"]["linkedin"];
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const R_SM = "4px";
+const R_MD = "8px";
+
+const sevColor = (s: string) =>
+  s === "critical" ? "var(--rc-red)" : s === "major" ? "var(--rc-amber)" : "var(--rc-hint)";
+
+const scoreColor = (n: number | null) =>
+  n === null ? "var(--rc-hint)" : n >= 70 ? "var(--rc-green)" : n >= 50 ? "var(--rc-amber)" : "var(--rc-red)";
+
+function MD({ children }: { children: string }) {
+  const parts = children.split(/\*\*(.+?)\*\*/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? <strong key={i} style={{ fontWeight: 700 }}>{p}</strong> : <span key={i}>{p}</span>
+      )}
+    </>
+  );
+}
+
+function Eyebrow({ children, color, style }: { children: React.ReactNode; color?: string; style?: React.CSSProperties }) {
+  return (
+    <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: color ?? "var(--rc-hint)", ...style }}>
+      {children}
+    </span>
+  );
+}
+
+function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return <span style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", ...style }}>{children}</span>;
+}
+
+function SevTag({ sev }: { sev: string }) {
+  const c = sevColor(sev);
+  return (
+    <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", padding: "2px 7px", borderRadius: R_SM, color: c, background: `color-mix(in srgb, ${c} 8%, transparent)`, border: `1px solid color-mix(in srgb, ${c} 30%, transparent)` }}>
+      {sev}
+    </span>
+  );
+}
+
+function FixBlock({ fix }: { fix: Fix | null | undefined }) {
+  const { t } = useLanguage();
+  if (!fix) return null;
+  return (
+    <div style={{ marginTop: 16, paddingLeft: 18, borderLeft: "2px solid var(--rc-green)" }}>
+      <Eyebrow color="var(--rc-green)" style={{ display: "block", marginBottom: 8 }}>{t.analysisLayout.diffRow.label} · <Mono style={{ fontSize: 10 }}>◷ {fix.time_required}</Mono></Eyebrow>
+      <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 600, color: "var(--rc-text)", lineHeight: 1.5, marginBottom: 10 }}>
+        <MD>{fix.summary}</MD>
+      </div>
+      {fix.steps.map((s, i) => (
+        <div key={i} style={{ display: "flex", gap: 10, fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-muted)", lineHeight: 1.55, marginBottom: 6 }}>
+          <Mono style={{ color: "var(--rc-green)", flexShrink: 0, fontWeight: 700, fontSize: 11 }}>{i + 1}</Mono>
+          <MD>{s}</MD>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Source card ───────────────────────────────────────────────────────────────
+
+type SignalSource = AnalysisResult["audit"]["github"] | AnalysisResult["audit"]["linkedin"];
+
+function SourceCard({
+  icon, label, source, hasData, emptyMsg,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  source: SignalSource;
+  hasData: boolean;
+  emptyMsg: string;
+}) {
+  const { t } = useLanguage();
+  const issues    = source.issues    ?? [];
+  const strengths = source.strengths ?? [];
+  const col = scoreColor(source.score);
+  const critical = issues.filter((i) => i.severity === "critical").length;
+  const major    = issues.filter((i) => i.severity === "major").length;
+  const minor    = issues.filter((i) => i.severity === "minor").length;
+
+  return (
+    <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: R_MD, padding: 24 }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ color: "var(--rc-hint)" }}>{icon}</span>
+          <Eyebrow>{label}</Eyebrow>
+        </div>
+        {source.score !== null ? (
+          <Mono style={{ fontWeight: 700, fontSize: 22, color: col, lineHeight: 1 }}>
+            {source.score}<span style={{ fontSize: 11, opacity: 0.5 }}>/100</span>
+          </Mono>
+        ) : (
+          <Mono style={{ fontSize: 11, color: "var(--rc-hint)" }}>N/A</Mono>
+        )}
+      </div>
+
+      {!hasData ? (
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-hint)", lineHeight: 1.6, margin: 0 }}>{emptyMsg}</p>
+      ) : (
+        <>
+          {/* Stat rows */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: strengths.length > 0 ? 16 : 0 }}>
+            {[
+              { label: t.signalsTabNew.statCritical, val: critical, color: critical > 0 ? "var(--rc-red)"   : "var(--rc-green)", text: critical > 0 ? `${critical}` : t.signalsTabNew.statNone },
+              { label: t.signalsTabNew.statMajor,    val: major,    color: major    > 0 ? "var(--rc-amber)"  : "var(--rc-green)", text: major    > 0 ? `${major}`    : t.signalsTabNew.statNone },
+              { label: t.signalsTabNew.statMinor,    val: minor,    color: minor    > 0 ? "var(--rc-hint)"   : "var(--rc-green)", text: minor    > 0 ? `${minor}`    : t.signalsTabNew.statNone },
+            ].map((row) => (
+              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)" }}>{row.label}</span>
+                <Mono style={{ fontSize: 11, color: row.color, fontWeight: 600 }}>{row.text}</Mono>
+              </div>
+            ))}
+          </div>
+
+          {/* Strengths */}
+          {strengths.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, paddingTop: 14, borderTop: "1px solid var(--rc-border)" }}>
+              {strengths.map((s, i) => (
+                <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.04em", padding: "4px 9px", borderRadius: R_SM, color: "var(--rc-green)", background: "var(--rc-green-bg)", border: "1px solid var(--rc-green-border)" }}>
+                  <span style={{ width: 5, height: 5, borderRadius: 9999, background: "var(--rc-green)", flexShrink: 0 }} />
+                  {s}
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── Issues list ───────────────────────────────────────────────────────────────
+
+function IssuesList({ issues, label, onHighlightClick }: { issues: SignalSource["issues"]; label: string; onHighlightClick?: (idx: number) => void }) {
+  const { t } = useLanguage();
+  const safe = issues ?? [];
+  if (safe.length === 0) return null;
+  issues = safe;
+  return (
+    <div>
+      <Eyebrow style={{ display: "block", marginBottom: 14 }}>{label} · {issues.length} {issues.length !== 1 ? t.signalsTabNew.findings : t.signalsTabNew.finding}</Eyebrow>
+      <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: R_MD, overflow: "hidden" }}>
+        {issues.map((issue, i) => {
+          const c = sevColor(issue.severity);
+          return (
+            <div
+              key={i}
+              onClick={() => onHighlightClick?.(i)}
+              style={{ padding: "22px 26px", borderBottom: i === issues.length - 1 ? "none" : "1px solid var(--rc-border)", cursor: onHighlightClick ? "pointer" : undefined, transition: "background 0.1s" }}
+              onMouseEnter={e => { if (onHighlightClick) (e.currentTarget as HTMLElement).style.background = "var(--rc-surface-raised)"; }}
+              onMouseLeave={e => { if (onHighlightClick) (e.currentTarget as HTMLElement).style.background = ""; }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ width: 3, height: 12, background: c, flexShrink: 0 }} />
+                <SevTag sev={issue.severity} />
+                <Eyebrow>{issue.category}</Eyebrow>
+              </div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 600, color: "var(--rc-text)", lineHeight: 1.35, marginBottom: 8, letterSpacing: "-0.01em" }}>
+                <MD>{issue.what}</MD>
+              </div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-muted)", lineHeight: 1.65 }}>
+                <MD>{issue.why}</MD>
+              </div>
+              <FixBlock fix={issue.fix as Fix} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 type Props = {
   github: AnalysisResult["audit"]["github"];
   linkedin: AnalysisResult["audit"]["linkedin"];
   hasGithub: boolean;
   hasLinkedin: boolean;
+  onHighlightClick?: (id: string) => void;
 };
 
-function SignalSection({
-  title, score, strengths, issues, hasData, emptyMessage, ctaText,
-}: {
-  title: React.ReactNode;
-  score: number | null;
-  strengths: string[];
-  issues: SignalData["issues"];
-  hasData: boolean;
-  emptyMessage: string;
-  ctaText: string;
-}) {
+export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin, onHighlightClick }: Props) {
   const { t } = useLanguage();
-  const criticalCount = issues.filter(i => i.severity === "critical").length;
-  const majorCount    = issues.filter(i => i.severity === "major").length;
-  const minorCount    = issues.filter(i => i.severity === "minor").length;
+  const githubHasData  = hasGithub  || github.score  !== null || (github.issues?.length   ?? 0) > 0 || (github.strengths?.length   ?? 0) > 0;
+  const linkedinHasData = hasLinkedin || linkedin.score !== null || (linkedin.issues?.length ?? 0) > 0 || (linkedin.strengths?.length ?? 0) > 0;
 
   return (
-    <div>
-      <SectionHeader
-        label={t.signalsTab.signalAnalysis}
-        title={title}
-        subtitle={hasData ? t.signalsTab.issuesDetected.replace('{count}', String(issues.length)).replace(/\{plural\}/g, issues.length !== 1 ? 's' : '') : t.signalsTab.notProvided}
-        meta={
-          <div className="text-right">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">{t.signalsTab.signalScore}</span>
-            <span className={`font-mono text-[26px] font-medium ${score === null ? 'text-rc-hint' : score >= 70 ? 'text-rc-green' : score >= 50 ? 'text-rc-amber' : 'text-rc-red'}`}>
-              {score !== null ? `${score}%` : "N/A"}
-            </span>
-          </div>
-        }
-      />
+    <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
 
-      <div className="bg-rc-surface border border-rc-border overflow-hidden">
-      {!hasData ? (
-        <div className="p-10 text-center">
-          <p className="text-[17px] text-rc-muted mb-4 leading-relaxed">{emptyMessage}</p>
-          <p className="font-mono text-[12px] text-rc-hint bg-rc-bg border border-dashed border-rc-border/40 px-5 py-3 inline-block">
-            {ctaText}
-          </p>
+      {/* §06 headline */}
+      <div>
+        <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 10, letterSpacing: "0.16em" }}>{t.signalsTabNew.eyebrow}</Eyebrow>
+        <div style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--rc-text)", lineHeight: 1.18 }}>
+          {t.signalsTabNew.titlePrefix} <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" }}>{t.signalsTabNew.titleItalic}</span> {t.signalsTabNew.titleSuffix}
         </div>
-      ) : (
-        <div>
-          {/* Severity breakdown + Strengths */}
-          {(issues.length > 0 || strengths.length > 0) && (
-            <div className="p-5 border-b border-rc-border flex flex-wrap gap-4 items-start justify-between">
-              <div className="flex items-center gap-2 flex-wrap">
-                {criticalCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-red/5 border border-rc-red/20 text-rc-red">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />{criticalCount} {t.signalsTab.critical}
-                  </span>
-                )}
-                {majorCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-amber/5 border border-rc-amber/20 text-rc-amber">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />{majorCount} {t.signalsTab.major}
-                  </span>
-                )}
-                {minorCount > 0 && (
-                  <span className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-surface/10 border border-rc-border/30 text-rc-hint">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rc-hint" />{minorCount} {t.signalsTab.minor}
-                  </span>
-                )}
-              </div>
-              {strengths && strengths.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {strengths.map((s, i) => (
-                    <span key={i} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase px-2.5 py-1 bg-rc-green/5 text-rc-green border border-rc-green/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rc-green" />
-                      <ReactMarkdown components={{ p: ({ children }) => <>{children}</> }}>{s}</ReactMarkdown>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {issues.length > 0 ? (
-            <div className="divide-y divide-rc-border/20">
-              {issues.map((issue, idx) => (
-                <IssueItem key={idx} issue={issue} />
-              ))}
-            </div>
-          ) : (
-            <p className="font-mono text-[12px] text-rc-hint italic text-center py-10 uppercase tracking-wider">
-              {t.signalsTab.noIssuesDetected}
-            </p>
-          )}
-        </div>
-      )}
       </div>
-    </div>
-  );
-}
 
-export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin }: Props) {
-  const { t } = useLanguage();
-  // Derive hasData from actual content - handles history-loaded results where state vars are empty
-  const githubHasData = hasGithub || github.score !== null || github.issues.length > 0 || github.strengths.length > 0;
-  const linkedinHasData = hasLinkedin || linkedin.score !== null || linkedin.issues.length > 0 || linkedin.strengths.length > 0;
+      {/* Two-column source cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <SourceCard
+          icon={<Github size={14} />}
+          label="GitHub"
+          source={github}
+          hasData={githubHasData}
+          emptyMsg={t.signalsTabNew.githubEmpty}
+        />
+        <SourceCard
+          icon={<Linkedin size={14} />}
+          label="LinkedIn"
+          source={linkedin}
+          hasData={linkedinHasData}
+          emptyMsg={t.signalsTabNew.linkedinEmpty}
+        />
+      </div>
 
-  return (
-    <div className="space-y-12">
-      <SignalSection
-        title={<span className="flex items-center gap-2.5"><Github size={20} className="text-rc-text" />GitHub Signal</span>}
-        score={github.score}
-        strengths={github.strengths}
-        issues={github.issues}
-        hasData={githubHasData}
-        emptyMessage={t.signalsTab.githubEmpty}
-        ctaText={t.signalsTab.githubCta}
-      />
-      <SignalSection
-        title={<span className="flex items-center gap-2.5"><Linkedin size={20} className="text-rc-text" />LinkedIn Signal</span>}
-        score={linkedin.score}
-        strengths={linkedin.strengths}
-        issues={linkedin.issues}
-        hasData={linkedinHasData}
-        emptyMessage={t.signalsTab.linkedinEmpty}
-        ctaText={t.signalsTab.linkedinCta}
-      />
+      {/* Issues per source */}
+      {githubHasData && (
+        <IssuesList
+          issues={github.issues ?? []}
+          label={t.signalsTabNew.githubFindings}
+          onHighlightClick={onHighlightClick ? (i) => onHighlightClick(`github-${i}`) : undefined}
+        />
+      )}
+      {linkedinHasData && (
+        <IssuesList
+          issues={linkedin.issues ?? []}
+          label={t.signalsTabNew.linkedinFindings}
+          onHighlightClick={onHighlightClick ? (i) => onHighlightClick(`linkedin-${i}`) : undefined}
+        />
+      )}
+
     </div>
   );
 }

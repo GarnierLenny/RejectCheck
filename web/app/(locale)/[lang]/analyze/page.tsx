@@ -6,11 +6,7 @@ import { consumePendingCv } from "../../../../lib/pending-cv";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import type {
-  AnalysisResult,
-  DeepAnalysisPayload,
-} from "../../../components/types";
-import { mergeDeepIntoResult } from "../../../components/types";
+import type { AnalysisResult } from "../../../components/types";
 
 import { UploadForm } from "../../../components/UploadForm";
 import { Navbar } from "../../../components/Navbar";
@@ -38,8 +34,8 @@ const CvPdfViewer = dynamic(
 );
 import { generateMarkdown, generatePdf, triggerDownload, getExportFilenames } from "../../../utils/export";
 import { useAuth } from "../../../../context/auth";
+import { createClient } from "../../../../lib/supabase";
 import { useSubscription, useAnalysis, useProfile, useSavedCvs, useQuota } from "../../../../lib/queries";
-import { useRegenerateDeep } from "../../../../lib/mutations";
 import { consumeSSE } from "../../../../lib/sse";
 import { useLanguage } from "../../../../context/language";
 import { toast } from "sonner";
@@ -95,18 +91,13 @@ function AnalyzeContent() {
   const [visualLoadingDone, setVisualLoadingDone] = useState(false);
   const [analysisId, setAnalysisId] = useState<number | null>(null);
   const [reconstructedCv, setReconstructedCv] = useState<string | null>(null);
+  const [liText, setLiText] = useState<string | null>(null);
+  const [coverLetterText, setCoverLetterText] = useState<string | null>(null);
   const [isRewriting, setIsRewriting] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const shareToastShownRef = useRef<number | null>(null);
-  // Deep-pass status: 'pending' while we're still streaming the first run,
-  // 'failed' if the SSE flow ended without a deep_done event, 'ready' once
-  // we've merged a deep payload into the result. Drives skeletons + the
-  // inline "Regenerate" buttons.
-  const [deepStatus, setDeepStatus] = useState<'pending' | 'failed' | 'ready'>(
-    'ready',
-  );
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
 
@@ -147,35 +138,13 @@ function AnalyzeContent() {
   const { data: profile } = useProfile();
   const { data: savedCvs } = useSavedCvs();
 
-  // Poll the analysis endpoint while we're waiting for background jobs
-  // (deep/negotiation passes that the backend offloaded to BullMQ or
-  // setImmediate). Stop polling once the expected fields have landed.
   const isHiredTier = subscriptionData?.plan === 'hired';
-  const needsDeep = deepStatus === 'pending';
-  const needsNegotiation =
-    isHiredTier && !!result && !result.negotiation_analysis;
-  const shouldPoll = needsDeep || needsNegotiation;
+  const shouldPoll = isHiredTier && !!result && !result.negotiation_analysis;
 
   const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(
     urlId,
     { pollIntervalMs: shouldPoll ? 5000 : undefined },
   );
-  const regenerateDeep = useRegenerateDeep();
-
-  function handleRegenerateDeep() {
-    if (!analysisId) return;
-    posthog.capture("deep_analysis_regenerated", { analysis_id: analysisId });
-    regenerateDeep.mutate(analysisId, {
-      onSuccess: ({ deep }) => {
-        setResult((prev) => (prev ? mergeDeepIntoResult(prev, deep) : prev));
-        setDeepStatus('ready');
-      },
-      onError: () => {
-        toast.error('Could not regenerate the deep analysis. Try again.');
-      },
-    });
-  }
-
   const bootstrappedRef = useRef(false);
   useEffect(() => {
     if (bootstrappedRef.current) return;
@@ -225,22 +194,19 @@ function AnalyzeContent() {
     setResult(savedAnalysis.result);
     setJobDescription(savedAnalysis.jobDescription || '');
     if (urlId) setAnalysisId(urlId);
-    if (savedAnalysis.rewrite) {
-      setReconstructedCv(savedAnalysis.rewrite.reconstructed_cv ?? null);
-    }
-    // Loaded analyses come pre-merged from the backend. Three cases:
-    //  - deep present OR cv-review (no deep pass) → 'ready'
-    //  - deep absent + we're actively polling for a background job ('pending')
-    //    → stay 'pending' until the timeout or the next poll resolves it
-    //  - deep absent + not polling (stale row opened via URL nav) → 'failed'
+    setReconstructedCv(
+      savedAnalysis.rewrite?.reconstructed_cv
+        ?? savedAnalysis.cvTextFormatted
+        ?? savedAnalysis.cvText
+        ?? null,
+    );
+    setLiText(savedAnalysis.linkedinTextFormatted ?? savedAnalysis.linkedinText ?? null);
+    setCoverLetterText(savedAnalysis.motivationLetter ?? savedAnalysis.coverLetter ?? null);
+    if (savedAnalysis.cvFileUrl) setCvBlobUrl(savedAnalysis.cvFileUrl);
+    if (savedAnalysis.liFileUrl) setLiBlobUrl(savedAnalysis.liFileUrl);
+    if (savedAnalysis.mlFileUrl) setMlBlobUrl(savedAnalysis.mlFileUrl);
     const isCvReviewResult = !!savedAnalysis.result?.cv_quality;
     if (isCvReviewResult) setAnalyzeMode('cv-review');
-    const hasDeep = isCvReviewResult || !!savedAnalysis.result?.project_recommendation;
-    setDeepStatus((prev) => {
-      if (hasDeep) return 'ready';
-      if (prev === 'pending') return 'pending';
-      return 'failed';
-    });
     setVisualLoadingDone(true);
     setLoading(false);
   }, [savedAnalysis]);
@@ -283,15 +249,6 @@ function AnalyzeContent() {
     return () => clearTimeout(timer);
   }, [result, visualLoadingDone, analysisId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Safety net: if the background deep pass never lands (worker crash, Redis
-  // outage), flip 'pending' → 'failed' after 5 minutes so the user sees the
-  // inline regenerate UI instead of an indefinite skeleton.
-  useEffect(() => {
-    if (deepStatus !== 'pending') return;
-    const timer = setTimeout(() => setDeepStatus('failed'), 5 * 60 * 1000);
-    return () => clearTimeout(timer);
-  }, [deepStatus]);
-
   async function handleCvReviewSubmit(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     if (!cvFile) return;
@@ -316,8 +273,6 @@ function AnalyzeContent() {
     setError(null);
     setCurrentStep(null);
     setStreamText("");
-    // cv-review has no deep pass — skip 'pending' entirely
-    setDeepStatus('ready');
     streamingRef.current = true;
 
     try {
@@ -454,10 +409,7 @@ function AnalyzeContent() {
     setError(null);
     setCurrentStep(null);
     setStreamText("");
-    setDeepStatus('pending');
     streamingRef.current = true;
-
-    let deepArrived = false;
 
     try {
       const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
@@ -484,8 +436,10 @@ function AnalyzeContent() {
         delta?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
-        deep?: DeepAnalysisPayload;
         negotiation?: AnalysisResult["negotiation_analysis"];
+        cvTextFormatted?: string | null;
+        linkedinTextFormatted?: string | null;
+        motivationLetterText?: string | null;
         message?: string;
         code?: string;
         details?: { plan?: 'free' | 'shortlisted' | 'hired'; monthlyCap?: number };
@@ -497,11 +451,21 @@ function AnalyzeContent() {
       let latestResult: AnalysisResult | null = null;
       let latestAnalysisId: number | null = null;
 
+      let latestCvTextFormatted: string | null = null;
+      let latestLinkedinTextFormatted: string | null = null;
+      let latestMotivationLetterText: string | null = null;
+
       const primeQueryCache = () => {
         if (latestAnalysisId && latestResult && user?.id) {
           queryClient.setQueryData(
             ['analysis', latestAnalysisId, user.id],
-            { result: latestResult, jobDescription },
+            {
+              result: latestResult,
+              jobDescription,
+              cvTextFormatted: latestCvTextFormatted,
+              linkedinTextFormatted: latestLinkedinTextFormatted,
+              motivationLetter: latestMotivationLetterText,
+            },
           );
         }
       };
@@ -525,6 +489,9 @@ function AnalyzeContent() {
               analysis_id: payload.analysisId ?? null,
             });
           }
+          if (payload.cvTextFormatted) { setReconstructedCv(payload.cvTextFormatted); latestCvTextFormatted = payload.cvTextFormatted; }
+          if (payload.linkedinTextFormatted) { setLiText(payload.linkedinTextFormatted); latestLinkedinTextFormatted = payload.linkedinTextFormatted; }
+          if (payload.motivationLetterText) { setCoverLetterText(payload.motivationLetterText); latestMotivationLetterText = payload.motivationLetterText; }
           if (payload.analysisId) {
             latestAnalysisId = payload.analysisId;
             setAnalysisId(payload.analysisId);
@@ -535,26 +502,12 @@ function AnalyzeContent() {
               `${localePath('/analyze')}?id=${payload.analysisId}`,
               { scroll: false },
             );
+            // Persist uploaded files to Supabase Storage for authenticated users.
+            if (user?.id && session?.access_token) {
+              uploadAnalysisFiles(payload.analysisId, user.id, session.access_token).catch(() => {});
+            }
           }
-          // Transition out of the loading screen as soon as the hot pass is
-          // done — the user sees the score immediately while deep + nego
-          // continue streaming into skeletons.
           setVisualLoadingDone(true);
-        } else if (payload.step === "deep_delta") {
-          setStreamText((prev) => prev + (payload.delta ?? ""));
-        } else if (payload.step === "deep_done") {
-          if (payload.deep) {
-            deepArrived = true;
-            const deep = payload.deep;
-            setResult((prev) => {
-              if (!prev) return prev;
-              const merged = mergeDeepIntoResult(prev, deep);
-              latestResult = merged;
-              primeQueryCache();
-              return merged;
-            });
-            setDeepStatus('ready');
-          }
         } else if (payload.step === "negotiation_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "negotiation_done") {
@@ -587,17 +540,6 @@ function AnalyzeContent() {
             );
           }
           setLoading(false);
-          // Registered users get deep + negotiation off-thread (BullMQ or
-          // setImmediate). Keep deepStatus 'pending' so the polling effect
-          // picks up the result; a useEffect timeout below flips to 'failed'
-          // if nothing has landed after 5 minutes.
-          //
-          // Anonymous users still get deep inline over this SSE — if no
-          // deep_done arrived, the pass actually failed (legacy behavior).
-          if (!deepArrived) {
-            const isRegistered = !!user && !!latestAnalysisId;
-            setDeepStatus(isRegistered ? 'pending' : 'failed');
-          }
         } else if (payload.step === "error") {
           // Quota errors render the right paywall variant instead of bubbling
           // up as a generic "Analysis failed" toast. We pick the mode based
@@ -630,7 +572,6 @@ function AnalyzeContent() {
       setError(message);
       setLoading(false);
       setCurrentStep(null);
-      if (!deepArrived) setDeepStatus('failed');
       posthog.capture("cv_analysis_failed", { error: message, analysis_id: analysisId });
       posthog.captureException(err);
     } finally {
@@ -734,6 +675,30 @@ function AnalyzeContent() {
     } finally {
       setIsRewriting(false);
     }
+  }
+
+  async function uploadAnalysisFiles(id: number, userId: string, token: string) {
+    const supabase = createClient();
+    const uploads: { key: "cvFileUrl" | "liFileUrl" | "mlFileUrl"; file: File; path: string }[] = [];
+    if (cvFile)  uploads.push({ key: "cvFileUrl",  file: cvFile,  path: `${userId}/analyses/${id}/cv.pdf` });
+    if (liFile)  uploads.push({ key: "liFileUrl",  file: liFile,  path: `${userId}/analyses/${id}/linkedin.pdf` });
+    if (mlFile)  uploads.push({ key: "mlFileUrl",  file: mlFile,  path: `${userId}/analyses/${id}/cover.pdf` });
+    if (!uploads.length) return;
+
+    const urls: Partial<Record<"cvFileUrl" | "liFileUrl" | "mlFileUrl", string>> = {};
+    await Promise.all(uploads.map(async ({ key, file, path }) => {
+      const { error } = await supabase.storage.from("user-profiles").upload(path, file, { upsert: true, cacheControl: "3600" });
+      if (error) { console.error(`[upload] ${key}:`, error.message); return; }
+      const { data: { publicUrl } } = supabase.storage.from("user-profiles").getPublicUrl(path);
+      urls[key] = publicUrl;
+    }));
+
+    if (!Object.keys(urls).length) return;
+    await fetch(`${apiUrl}/api/analyze/${id}/files`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(urls),
+    });
   }
 
   function toggleKeyword(keyword: string) {
@@ -844,7 +809,7 @@ function AnalyzeContent() {
           cvBlobUrl={cvBlobUrl}
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
-          deepStatus={deepStatus}
+          deepStatus="ready"
           isPremium={!!activeSubscription}
           userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
           onReset={handleReset}
@@ -854,6 +819,8 @@ function AnalyzeContent() {
           onShare={analysisId && user ? shareAnalysis : undefined}
           isSharing={isSharing}
           reconstructedCv={reconstructedCv}
+          liText={liText}
+          coverLetterText={coverLetterText}
           isRewriting={isRewriting}
           onRewrite={handleRewrite}
           email={activeSubscription?.email || user?.email || null}
@@ -902,25 +869,6 @@ function AnalyzeContent() {
           ) : (
             /* Only cv-review results reach this branch (vs-job is handled by DiagnosticResult above) */
             <div>
-              {deepStatus === 'failed' && (
-                <div className="mb-6 p-4 bg-rc-amber/10 border border-rc-amber/30 flex items-center justify-between gap-4">
-                  <div className="text-[13px] text-rc-text leading-snug">
-                    <span className="font-semibold uppercase tracking-wider text-rc-amber font-mono text-[11px] block mb-1">
-                      Some content didn&apos;t load
-                    </span>
-                    Fixes, the Bridge-the-Gap project, and technical analysis
-                    couldn&apos;t be generated. Regenerate to fill them in.
-                  </div>
-                  <button
-                    onClick={handleRegenerateDeep}
-                    disabled={regenerateDeep.isPending}
-                    className="shrink-0 font-mono text-[12px] uppercase tracking-[0.12em] px-4 py-2 border border-rc-amber/50 text-rc-amber hover:bg-rc-amber/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {regenerateDeep.isPending ? 'Regenerating…' : 'Regenerate'}
-                  </button>
-                </div>
-              )}
-
               <CvReviewTab
                 result={result}
                 actions={<>

@@ -77,11 +77,16 @@ model Analysis {
   jobLabel            String? // User-defined label for easy identification
   company             String? // AI-extracted company name
   jdLanguage          String? // ISO 639-1 language code of job description
-  cvText              String? // Registered users only
-  linkedinText        String? // Registered users only
+  cvText              String? // Registered users only — whitespace-collapsed for LLM prompts
+  cvTextFormatted     String? // Registered users only — newlines preserved for display/highlighting
+  linkedinText        String? // Registered users only — whitespace-collapsed for LLM prompts
+  linkedinTextFormatted String? // Registered users only — newlines preserved for display/highlighting
   githubInfo          String? // Registered users only
   motivationLetter    String? // Registered users only
   coverLetter         String? // Saved after HIRED-plan generation
+  cvFileUrl           String? // Supabase Storage URL of the uploaded CV PDF (authenticated users only)
+  liFileUrl           String? // Supabase Storage URL of the uploaded LinkedIn PDF
+  mlFileUrl           String? // Supabase Storage URL of the uploaded motivation letter PDF
   shareToken          String?            @unique // Public share link token (generated on demand)
   result              Json? // Registered users only — hot pass fields (scores, audits without fixes, red flag titles, etc.)
   deepAnalysis        Json? // Cold path generated post-analysis_done (fixes, project_recommendation, technical_analysis, ats critical_missing_keywords). Null for legacy analyses where `result` already contains everything.

@@ -138,10 +138,8 @@ export type JobDetails = {
 };
 
 // =============================================================================
-// Fix-related shapes — `fix` is optional everywhere because the backend now
-// generates fixes in a 2nd async pass (`deep_done` SSE event). Tabs render
-// skeleton placeholders when fix is undefined; the real content streams in
-// once the deep pass finishes.
+// Fix-related shapes — `fix` is always present on new analyses (single-pass).
+// Kept optional for backward compat with old DB rows (pre-single-pass).
 // =============================================================================
 
 export type Fix = {
@@ -207,9 +205,6 @@ export type AtsSimulation = {
   score: number;
   threshold: number;
   reason: string;
-  /**
-   * Filled by the deep pass. May be empty (or absent) until `deep_done` arrives.
-   */
   critical_missing_keywords?: AtsCriticalMissingKeyword[];
 };
 
@@ -358,7 +353,6 @@ export type AnalysisResult = {
   projected_profile?: ProjectedProfile;
   /** CV-review ATS structural audit. Present only on CV-review analyses. */
   ats_audit?: CvReviewAts;
-  /** Filled by the deep pass. May be undefined until `deep_done` arrives. */
   technical_analysis?: {
     skills: TechnicalSkill[];
     skill_priority: string[];
@@ -367,7 +361,6 @@ export type AnalysisResult = {
     market_context: string;
     seniority_signals: string[];
   };
-  /** Filled by the deep pass. May be undefined until `deep_done` arrives. */
   project_recommendation?: ProjectRecommendation;
   challenge_analysis?: ChallengeAnalysis | null;
   negotiation_analysis?: NegotiationAnalysis | null;
@@ -384,38 +377,35 @@ export type AnalysisResult = {
    * with their own dates (which the UI renders as parallel bars).
    */
   timeline_entries?: TimelineEntry[];
+  highlight_terms?: {
+    // New per-source format (new analyses)
+    cv?: {
+      flags: Array<{ term: string; tooltip: string }>;
+      issues: Array<{ term: string; tooltip: string }>;
+      skills: string[];
+      weak: Array<{ term: string; tooltip: string }>;
+      metrics: Array<{ term: string; tooltip: string }>;
+    };
+    linkedin?: {
+      flags: Array<{ term: string; tooltip: string }>;
+      issues: Array<{ term: string; tooltip: string }>;
+      skills: string[];
+      weak: Array<{ term: string; tooltip: string }>;
+      metrics: Array<{ term: string; tooltip: string }>;
+    };
+    cover_letter?: {
+      flags: Array<{ term: string; tooltip: string }>;
+      issues: Array<{ term: string; tooltip: string }>;
+      weak: Array<{ term: string; tooltip: string }>;
+    };
+    // Flat format — backward compat with old DB rows
+    flags?: Array<{ term: string; tooltip: string }>;
+    issues?: Array<{ term: string; tooltip: string }>;
+    skills?: string[];
+    weak?: Array<{ term: string; tooltip: string }>;
+  };
 };
 
-/**
- * Shape of the `deep` payload pushed to the frontend on the `deep_done` SSE
- * event. The frontend re-merges this into the local `AnalysisResult` by index.
- *
- * `technical_analysis` is generated in the HOT pass (it powers the Skill Gap
- * radar that lands as the default tab), so it's not part of the deep payload.
- * The field stays optional on mid-format analyses that pre-date the move —
- * see `mergeDeepIntoResult` for the backward-compat fallback.
- */
-export type DeepAnalysisPayload = {
-  /** Backward-compat only: present on mid-format DB rows. New analyses don't have this. */
-  technical_analysis?: {
-    skills: TechnicalSkill[];
-    skill_priority: string[];
-    recommendation: string;
-    reasoning: string;
-    market_context: string;
-    seniority_signals: string[];
-  };
-  project_recommendation: ProjectRecommendation;
-  ats_critical_missing_keywords: AtsCriticalMissingKeyword[];
-  fixes: {
-    seniority_analysis: Fix;
-    cv_tone: Fix;
-    audit_cv_issues: Fix[];
-    audit_github_issues: Fix[];
-    audit_linkedin_issues: Fix[];
-    hidden_red_flags: Fix[];
-  };
-};
 
 export const getSeverityStyles = (severity: string) => {
   switch (severity) {
@@ -426,63 +416,3 @@ export const getSeverityStyles = (severity: string) => {
   }
 };
 
-/**
- * Re-merges a deep payload into a hot-only AnalysisResult. Used when the
- * frontend receives the `deep_done` event and needs to inject the deep content
- * into its local state (which currently has skeleton placeholders).
- *
- * Mirrors the backend `mergeHotAndDeep` helper.
- */
-export function mergeDeepIntoResult(
-  result: AnalysisResult,
-  deep: DeepAnalysisPayload,
-): AnalysisResult {
-  return {
-    ...result,
-    ats_simulation: result.ats_simulation ? {
-      ...result.ats_simulation,
-      critical_missing_keywords: deep.ats_critical_missing_keywords,
-    } : undefined,
-    seniority_analysis: {
-      ...result.seniority_analysis,
-      fix: deep.fixes.seniority_analysis,
-    },
-    cv_tone: {
-      ...result.cv_tone,
-      fix: deep.fixes.cv_tone,
-    },
-    audit: {
-      ...result.audit,
-      cv: {
-        ...result.audit.cv,
-        issues: result.audit.cv.issues.map((issue, i) => ({
-          ...issue,
-          fix: deep.fixes.audit_cv_issues[i] ?? issue.fix,
-        })),
-      },
-      github: {
-        ...result.audit.github,
-        issues: result.audit.github.issues.map((issue, i) => ({
-          ...issue,
-          fix: deep.fixes.audit_github_issues[i] ?? issue.fix,
-        })),
-      },
-      linkedin: {
-        ...result.audit.linkedin,
-        issues: result.audit.linkedin.issues.map((issue, i) => ({
-          ...issue,
-          fix: deep.fixes.audit_linkedin_issues[i] ?? issue.fix,
-        })),
-      },
-    },
-    hidden_red_flags: result.hidden_red_flags.map((flag, i) => ({
-      ...flag,
-      fix: deep.fixes.hidden_red_flags[i] ?? flag.fix,
-    })),
-    // technical_analysis lives in the hot result for new analyses, so it's
-    // already on `result`. For mid-format analyses replayed via getAnalysis,
-    // the deep payload may still carry it — keep it as a fallback.
-    technical_analysis: result.technical_analysis ?? deep.technical_analysis,
-    project_recommendation: deep.project_recommendation,
-  };
-}

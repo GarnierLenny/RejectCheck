@@ -1,15 +1,13 @@
 /**
  * JSON schemas Claude must conform to via tool_use.
  *
- * The analysis is split into two passes for latency optimization:
+ * SUBMIT_ANALYSIS_TOOL (primary): single-pass full analysis — scores, audits
+ * with inline fix blocks, seniority/tone with fixes, ATS keywords, and
+ * optionally project_recommendation. Replaces the old hot+deep two-pass flow.
  *
- * - SUBMIT_ANALYSIS_HOT_TOOL: scores, audits without fixes, red flag titles,
- *   seniority/tone without their .fix. Output ~2k tokens. Streams in ~25-40s.
- *
- * - SUBMIT_ANALYSIS_DEEP_TOOL: technical_analysis, project_recommendation,
- *   ATS critical missing keywords, and all fix blocks indexed by their owner
- *   in the hot result. Output ~6-8k tokens. Streams in ~80-110s after
- *   analysis_done.
+ * Legacy tools kept for backward compat (old DB rows):
+ * - SUBMIT_ANALYSIS_HOT_TOOL: fast pass without fixes
+ * - SUBMIT_ANALYSIS_DEEP_TOOL: fix blocks indexed to the hot result
  *
  * Any change here directly impacts the structured output Claude returns, so
  * keep edits minimal and re-test against the Zod schemas on the consumer side.
@@ -873,6 +871,260 @@ export function buildDeepAnalysisTool(generateBridgeProject: boolean) {
       ...SUBMIT_ANALYSIS_DEEP_TOOL.input_schema,
       properties: propertiesWithout,
       required: ['ats_critical_missing_keywords', 'fixes'],
+    },
+  };
+}
+
+// =============================================================================
+// SUBMIT_ANALYSIS_TOOL — single-pass combined analysis (replaces hot + deep)
+// =============================================================================
+
+const ISSUE_WITH_FIX_SCHEMA = {
+  type: 'object' as const,
+  properties: {
+    ...ISSUE_HOT_SCHEMA.properties,
+    fix: {
+      ...FIX_SCHEMA,
+      description:
+        'Actionable fix. Set project_idea to null except on audit_cv and hidden_red_flags items.',
+    },
+  },
+  required: [...ISSUE_HOT_SCHEMA.required, 'fix'],
+};
+
+const auditWithFixSchema = (description: string) => ({
+  type: 'object' as const,
+  description,
+  properties: {
+    score: {
+      type: ['number', 'null'] as ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+    },
+    issues: {
+      type: 'array' as const,
+      items: ISSUE_WITH_FIX_SCHEMA,
+      maxItems: 3,
+      description:
+        'At most 3 issues ordered by severity. Include an inline fix for each.',
+    },
+  },
+  required: ['score', 'issues'],
+});
+
+/**
+ * Returns the single-pass combined analysis tool.
+ * When `generateBridgeProject` is false, `project_recommendation` is omitted
+ * so Claude skips it (saves ~2-3k tokens for free users who can't see §09).
+ */
+export function buildAnalysisTool(generateBridgeProject: boolean) {
+  const properties: Record<string, unknown> = {
+    challenge_analysis: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.challenge_analysis,
+    overall: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.overall,
+    keyword_match: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.keyword_match,
+    experience_level: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.experience_level,
+    tech_stack_fit: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.tech_stack_fit,
+    github_signal: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.github_signal,
+    linkedin_signal: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.linkedin_signal,
+    ats_simulation: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.ats_simulation,
+    seniority_analysis: {
+      type: 'object' as const,
+      description: 'Seniority diagnostic with actionable fix.',
+      properties: {
+        ...SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.seniority_analysis.properties,
+        fix: { ...FIX_SCHEMA, description: 'Fix for the seniority gap. Set project_idea to null.' },
+      },
+      required: [
+        ...SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.seniority_analysis.required,
+        'fix',
+      ],
+    },
+    cv_tone: {
+      type: 'object' as const,
+      description: 'Tone diagnostic. Include a fix only when the tone clearly needs an actionable change (skip otherwise).',
+      properties: {
+        ...SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.cv_tone.properties,
+        fix: { ...FIX_SCHEMA, description: 'Optional tone fix. Set project_idea to null.' },
+      },
+      required: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.cv_tone.required,
+    },
+    audit_cv: auditWithFixSchema(
+      'CV structure, content and positioning audit. Each issue includes an inline fix (project_idea allowed).',
+    ),
+    audit_github: auditWithFixSchema(
+      'GitHub profile audit. score=null and empty arrays if GitHub not provided. Each issue includes an inline fix (set project_idea to null).',
+    ),
+    audit_linkedin: auditWithFixSchema(
+      'LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided. Each issue includes an inline fix (set project_idea to null).',
+    ),
+    audit_jd_match: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.audit_jd_match,
+    hidden_red_flags: {
+      type: 'array' as const,
+      description:
+        'At most 2 subtle signals that would concern a senior recruiter. Each entry includes its flag, perception, and actionable fix (project_idea allowed).',
+      maxItems: 2,
+      items: {
+        type: 'object' as const,
+        properties: {
+          flag: {
+            type: 'string' as const,
+            description: 'Short label of the red flag. ≤ 10 words.',
+          },
+          perception: {
+            type: 'string' as const,
+            description: 'How a senior recruiter reads it. ≤ 30 words.',
+          },
+          fix: FIX_SCHEMA,
+        },
+        required: ['flag', 'perception', 'fix'],
+      },
+    },
+    technical_analysis: TECHNICAL_ANALYSIS_SCHEMA,
+    job_details: SUBMIT_ANALYSIS_HOT_TOOL.input_schema.properties.job_details,
+    ats_critical_missing_keywords: {
+      type: 'array' as const,
+      description:
+        'At most 5 keywords from the JD that are absent or under-represented in the CV. Order by score_impact desc.',
+      maxItems: 5,
+      items: ATS_CRITICAL_MISSING_KEYWORD_SCHEMA,
+    },
+    highlight_terms: (() => {
+      const termEntry = (docHint: string) => ({
+        type: 'object' as const,
+        properties: {
+          term: { type: 'string' as const, description: `Verbatim excerpt copy-pasted from the ${docHint}. 2-8 words. Must exist character-for-character in the document.` },
+          tooltip: { type: 'string' as const, description: 'One sentence shown on hover. ≤ 20 words.' },
+        },
+        required: ['term', 'tooltip'],
+      });
+      const sourceSchema = (doc: string, flagDesc: string, issueDesc: string, skillDesc: string | null, weakDesc: string, metricsDesc: string | null) => ({
+        type: 'object' as const,
+        properties: {
+          flags: {
+            type: 'array' as const,
+            description: flagDesc,
+            maxItems: 6,
+            items: termEntry(doc),
+          },
+          issues: {
+            type: 'array' as const,
+            description: issueDesc,
+            maxItems: 10,
+            items: termEntry(doc),
+          },
+          ...(skillDesc ? {
+            skills: {
+              type: 'array' as const,
+              description: skillDesc,
+              maxItems: 12,
+              items: { type: 'string' as const },
+            },
+          } : {}),
+          weak: {
+            type: 'array' as const,
+            description: weakDesc,
+            maxItems: 8,
+            items: termEntry(doc),
+          },
+          ...(metricsDesc ? {
+            metrics: {
+              type: 'array' as const,
+              description: metricsDesc,
+              maxItems: 8,
+              items: termEntry(doc),
+            },
+          } : {}),
+        },
+        required: [
+          'flags', 'issues', 'weak',
+          ...(skillDesc ? ['skills'] : []),
+          ...(metricsDesc ? ['metrics'] : []),
+        ],
+      });
+      return {
+        type: 'object' as const,
+        description:
+          'Verbatim phrases to underline per source document. The matching engine is a case-insensitive regex — one wrong character = no underline. Every term MUST be copy-pasteable from the source document. Omit rather than approximate. Keep excerpts 2-8 words.',
+        properties: {
+          cv: sourceSchema(
+            'CV text',
+            'Verbatim CV phrases showing ambiguous ownership or weak agency: "participated in", "helped with", "involved in", "contributed to" — phrases where the candidate\'s individual contribution is unclear. One excerpt per occurrence.',
+            'Verbatim CV phrases that expose an audit_cv issue. One or two excerpts per issue.',
+            'Exact skill/technology names as written in the CV that match required JD skills (found=true in audit_jd_match). Use exact CV casing.',
+            'Passive or nominalized phrases from CV bullets that illustrate cv_tone findings.',
+            'Verbatim CV phrases containing a number, percentage, or measurable result that demonstrate real impact (e.g. "réduit la latence de 40%", "géré une équipe de 8"). These are positive signals.',
+          ),
+          linkedin: sourceSchema(
+            'LinkedIn text',
+            'Verbatim LinkedIn phrases showing ambiguous ownership or weak agency (same logic as CV flags: "participated in", "helped", "involved in").',
+            'Verbatim LinkedIn phrases with weak positioning — vague titles, generic descriptions, or soft phrasing that undersells the candidate.',
+            'Skill/technology names as written in the LinkedIn profile that match required JD skills. Use exact LinkedIn casing.',
+            'Passive or weak phrasing copied directly from the LinkedIn bio or experience descriptions.',
+            'Verbatim LinkedIn phrases containing a measurable result or quantified achievement.',
+          ),
+          cover_letter: {
+            type: 'object' as const,
+            description: 'Highlights for the motivation/cover letter. Only populate if a cover letter was provided.',
+            properties: {
+              flags: {
+                type: 'array' as const,
+                description: 'Generic opening formulas or hollow clichés copied from the letter (e.g. "I am writing to apply for", "Je me permets de vous contacter", "passionné(e) par", "team player"). These make the letter blend in rather than stand out.',
+                maxItems: 6,
+                items: termEntry('cover letter text'),
+              },
+              issues: {
+                type: 'array' as const,
+                description: 'Verbatim repeated words/phrases or weak arguments copied from the cover letter.',
+                maxItems: 10,
+                items: termEntry('cover letter text'),
+              },
+              weak: {
+                type: 'array' as const,
+                description: 'Passive or conditional phrasing copied from the cover letter (e.g. "je souhaiterais", "I would be interested in", "I hope to").',
+                maxItems: 8,
+                items: termEntry('cover letter text'),
+              },
+            },
+            required: ['flags', 'issues', 'weak'],
+          },
+        },
+        required: ['cv', 'linkedin', 'cover_letter'],
+      };
+    })(),
+  };
+
+  if (generateBridgeProject) {
+    properties.project_recommendation =
+      SUBMIT_ANALYSIS_DEEP_TOOL.input_schema.properties.project_recommendation;
+  }
+
+  return {
+    name: 'submit_analysis',
+    description:
+      'Submit the complete CV-vs-JD analysis in a single pass: overall scores, per-section audits with inline fix blocks, seniority and tone diagnostics with fixes, ATS critical keywords, technical skill analysis, highlight terms, and optionally a bridge-the-gap project recommendation for premium users.',
+    input_schema: {
+      type: 'object' as const,
+      properties,
+      required: [
+        'overall',
+        'keyword_match',
+        'experience_level',
+        'tech_stack_fit',
+        'github_signal',
+        'linkedin_signal',
+        'ats_simulation',
+        'seniority_analysis',
+        'cv_tone',
+        'audit_cv',
+        'audit_github',
+        'audit_linkedin',
+        'audit_jd_match',
+        'hidden_red_flags',
+        'technical_analysis',
+        'job_details',
+        'ats_critical_missing_keywords',
+        'highlight_terms',
+      ],
     },
   };
 }

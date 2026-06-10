@@ -28,11 +28,7 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
-import type {
-  AnalyzeResponse,
-  DeepAnalyzeResponse,
-} from '../dto/analyze-response.dto';
-import { mergeHotAndDeep } from '../dto/analyze-response.dto';
+import type { AnalyzeResponse } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type {
   DigestSourceHashes,
@@ -80,15 +76,12 @@ export type AnalyzeEvent =
   | { type: 'analysis_delta'; delta: string }
   | {
       type: 'analysis_done';
-      /**
-       * Merged response with deep fields undefined — the frontend renders
-       * skeletons for those sections until `deep_done` arrives.
-       */
       result: AnalyzeResponse;
       analysisId: number | null;
+      cvTextFormatted: string;
+      linkedinTextFormatted: string;
+      motivationLetterText: string;
     }
-  | { type: 'deep_delta'; delta: string }
-  | { type: 'deep_done'; deep: DeepAnalyzeResponse }
   | { type: 'negotiation_delta'; delta: string }
   | { type: 'negotiation_done'; negotiation: NegotiationAnalysis };
 
@@ -137,8 +130,7 @@ export class AnalyzeCvUseCase {
       parse_inputs_ms: 0,
       profile_ctx_ms: 0,
       digest_ms: 0,
-      claude_hot_ms: 0,
-      claude_deep_ms: 0,
+      claude_ms: 0,
       persist_ms: 0,
       negotiation_ms: 0,
     };
@@ -165,10 +157,12 @@ export class AnalyzeCvUseCase {
     const jobText = cmd.jobDescription.trim().slice(0, 8000);
 
     const parseStart = Date.now();
-    const [cvText, linkedinText, motivationLetterText, githubSnapshot] =
+    const [cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, motivationLetterText, githubSnapshot] =
       await Promise.all([
         this.pdf.parse(cmd.cvBuffer),
+        this.pdf.parseFormatted(cmd.cvBuffer),
         this.tryParse(cmd.linkedinBuffer),
+        this.tryParseFormatted(cmd.linkedinBuffer),
         this.resolveMotivationLetter(
           cmd.motivationLetterText,
           cmd.motivationLetterBuffer,
@@ -242,29 +236,21 @@ export class AnalyzeCvUseCase {
     };
 
     emitStep('dual_ai_analysis');
-    const hotStart = Date.now();
-    const hot = await this.claude.analyzeApplicationHot({
+    const claudeStart = Date.now();
+    const generateBridgeProject = subscriptionState.plan !== 'rejected';
+    const result = await this.claude.analyzeApplication({
       ...claudeInput,
+      generateBridgeProject,
       onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });
-    timings.claude_hot_ms = Date.now() - hotStart;
-
-    // Merged result — deep fields are undefined until the deep pass completes.
-    // The frontend renders skeletons for those sections in the meantime.
-    const result = mergeHotAndDeep(hot, null);
+    timings.claude_ms = Date.now() - claudeStart;
 
     // Surface the digest's pre-computed cross-profile inconsistencies on the
-    // result so the frontend can render the "Consistency check" section as
-    // soon as analysis_done fires. The Claude analyzer also sees these in
-    // the user message and can react in audit/red_flags — this is the
-    // *display* copy of the same data.
+    // result so the frontend can render the "Consistency check" section.
     if (digest && digest.cross_profile_inconsistencies.length > 0) {
       result.cross_profile_inconsistencies =
         digest.cross_profile_inconsistencies;
     }
-    // Same passthrough for the per-source timeline_entries — drives the
-    // Consistency tab chronology visualization. Optional on the digest
-    // (older digests generated before this field was added won't have it).
     if (
       digest &&
       digest.timeline_entries &&
@@ -273,41 +259,27 @@ export class AnalyzeCvUseCase {
       result.timeline_entries = digest.timeline_entries;
     }
 
-    // Persist before announcing analysis_done so the frontend gets a real
-    // analysisId for downstream actions (rewrite, history, negotiation tab).
     const persistStart = Date.now();
     const analysisId = await this.persist({
       cmd,
       result,
       cvText,
+      cvTextFormatted,
       linkedinText,
+      linkedinTextFormatted,
       githubInfo,
       motivationLetterText,
     });
     timings.persist_ms = Date.now() - persistStart;
 
-    // Debit one-time credits only if the user actually overflowed their
-    // monthly cap. Idempotent on analysisId so a retry can't double-debit.
-    // A crash between persist() and consume() leaves the row counted as
-    // monthly use rather than a credit consume — a benign under-debit we
-    // accept to keep the flow non-transactional.
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
       await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.analyze });
     }
 
-    emit({ type: 'analysis_done', result, analysisId });
+    emit({ type: 'analysis_done', result, analysisId, cvTextFormatted, linkedinTextFormatted, motivationLetterText });
 
-    // From this point on, the SSE response is allowed to close. Registered
-    // users get deep + negotiation passes off the HTTP request thread (via
-    // BullMQ when REDIS_URL is set, or setImmediate fallback otherwise); the
-    // frontend polls GET /api/analyze/:id to pick up the persisted results.
-    //
-    // Anonymous users have no row to update, so we keep the deep pass inline
-    // — they still receive deep_done over the SSE stream before the response
-    // ends. Negotiation is hired-only and therefore registered-only.
+    // Negotiation pass for hired users — still async via BullMQ or setImmediate.
     if (cmd.email && cmd.isRegistered && analysisId !== null) {
-      const generateBridgeProject = subscriptionState.plan !== 'rejected';
-      await this.llmJobs.enqueueDeep({ analysisId, email: cmd.email, generateBridgeProject });
       if (subscriptionState.plan === 'hired') {
         await this.llmJobs.enqueueNegotiation({
           analysisId,
@@ -315,26 +287,6 @@ export class AnalyzeCvUseCase {
           locale: cmd.locale ?? 'en',
         });
       }
-    } else {
-      // Anonymous fallback: keep deep inline so the SSE stream still emits
-      // deep_delta / deep_done before closing.
-      emitStep('deep_analysis');
-      const deepStart = Date.now();
-      try {
-        const deep = await this.claude.analyzeApplicationDeep({
-          ...claudeInput,
-          hot,
-          generateBridgeProject: false,
-          onDelta: (delta) => emit({ type: 'deep_delta', delta }),
-        });
-        Object.assign(result, mergeHotAndDeep(hot, deep));
-        emit({ type: 'deep_done', deep });
-      } catch (err: any) {
-        this.logger.warn(
-          `Inline deep pass failed (anonymous user, no retry path): ${err?.message || err}`,
-        );
-      }
-      timings.claude_deep_ms = Date.now() - deepStart;
     }
 
     const totalMs = Date.now() - executeStartedAt;
@@ -343,8 +295,7 @@ export class AnalyzeCvUseCase {
         `parse_inputs_ms=${timings.parse_inputs_ms} ` +
         `profile_ctx_ms=${timings.profile_ctx_ms} ` +
         `digest_ms=${timings.digest_ms} ` +
-        `claude_hot_ms=${timings.claude_hot_ms} ` +
-        `claude_deep_ms=${timings.claude_deep_ms} ` +
+        `claude_ms=${timings.claude_ms} ` +
         `persist_ms=${timings.persist_ms} ` +
         `negotiation_ms=${timings.negotiation_ms} ` +
         `tier=${subscriptionState.tier} plan=${subscriptionState.plan} ` +
@@ -436,7 +387,15 @@ export class AnalyzeCvUseCase {
     try {
       return await this.pdf.parse(buffer);
     } catch {
-      // The legacy behavior swallowed PDF parse errors for optional inputs.
+      return '';
+    }
+  }
+
+  private async tryParseFormatted(buffer?: Buffer): Promise<string> {
+    if (!buffer) return '';
+    try {
+      return await this.pdf.parseFormatted(buffer);
+    } catch {
       return '';
     }
   }
@@ -454,7 +413,9 @@ export class AnalyzeCvUseCase {
     cmd: AnalyzeCvCommand;
     result: AnalyzeResponse;
     cvText: string;
+    cvTextFormatted: string;
     linkedinText: string;
+    linkedinTextFormatted: string;
     githubInfo: string;
     motivationLetterText: string;
   }): Promise<number | null> {
@@ -479,7 +440,9 @@ export class AnalyzeCvUseCase {
       company: resolvedCompany,
       jdLanguage: result.job_details?.jd_language ?? 'en',
       cvText: args.cvText || null,
+      cvTextFormatted: args.cvTextFormatted || null,
       linkedinText: args.linkedinText || null,
+      linkedinTextFormatted: args.linkedinTextFormatted || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: args.motivationLetterText || null,
       creditCost: CREDIT_COSTS.analyze,

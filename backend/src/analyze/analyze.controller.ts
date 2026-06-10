@@ -193,11 +193,10 @@ export class AnalyzeController {
               step: 'analysis_done',
               result: e.result,
               analysisId: e.analysisId,
+              cvTextFormatted: e.cvTextFormatted || null,
+              linkedinTextFormatted: e.linkedinTextFormatted || null,
+              motivationLetterText: e.motivationLetterText || null,
             });
-          else if (e.type === 'deep_delta')
-            write({ step: 'deep_delta', delta: e.delta });
-          else if (e.type === 'deep_done')
-            write({ step: 'deep_done', deep: e.deep });
           else if (e.type === 'negotiation_delta')
             write({ step: 'negotiation_delta', delta: e.delta });
           else if (e.type === 'negotiation_done')
@@ -499,6 +498,27 @@ export class AnalyzeController {
     const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     return this.getAnalysisUc.execute(id, email);
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Patch(':id/files')
+  @ApiOperation({ summary: 'Attach persisted file URLs (Supabase Storage) to an analysis' })
+  async attachFileUrls(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Body() body: unknown,
+  ) {
+    const id = parseInt(rawId as string, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const urlSchema = z.string().url().optional();
+    const parsed = z.object({
+      cvFileUrl: urlSchema,
+      liFileUrl: urlSchema,
+      mlFileUrl: urlSchema,
+    }).safeParse(body);
+    if (!parsed.success) throw new BadRequestException('Invalid payload');
+    await this.analysisRepo.attachFileUrls(id, email, parsed.data);
+    return { ok: true };
   }
 
   @UseGuards(SupabaseGuard)

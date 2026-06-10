@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { AnalysisResult, Fix } from "./types";
-import { AnalysisShell } from "./AnalysisShell";
+import { AnalysisShell, type HighlightMap, type HighlightEntry } from "./AnalysisShell";
 import { RadarChart } from "./RadarChart";
 import { SignalsTab } from "./tabs/SignalsTab";
 import { ConsistencyTab } from "./tabs/ConsistencyTab";
@@ -10,16 +10,16 @@ import { RoadmapTab } from "./tabs/RoadmapTab";
 import { BridgeTab } from "./tabs/BridgeTab";
 import { ProjectTab } from "./tabs/ProjectTab";
 import { NegotiationTab } from "./tabs/NegotiationTab";
-import { ImproveTab } from "./tabs/ImproveTab";
-import { CoverLetterTab } from "./tabs/CoverLetterTab";
+import { RewriteTab } from "./tabs/RewriteTab";
 import { ProjectRecommendationSkeleton } from "./skeletons/ProjectRecommendationSkeleton";
 import { TechnicalAnalysisSkeleton } from "./skeletons/TechnicalAnalysisSkeleton";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { InterviewTab } from "./tabs/InterviewTab";
+import { useLanguage } from "../../context/language";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type MainTab = "match" | "cv" | "signals" | "timeline" | "plan";
+type MainTab = "match" | "cv" | "rewrite" | "signals" | "timeline" | "plan";
 type PlanPane = "roadmap" | "bridge" | "negotiate";
 
 export type AnalysisLayoutProps = {
@@ -33,6 +33,8 @@ export type AnalysisLayoutProps = {
   userPlan?: "free" | "shortlisted" | "hired";
   onReset: () => void;
   reconstructedCv?: string | null;
+  liText?: string | null;
+  coverLetterText?: string | null;
   isRewriting?: boolean;
   onRewrite?: () => void;
   email?: string | null;
@@ -52,8 +54,8 @@ const SHADOW_SM = "0 1px 3px rgba(26,22,18,0.08), 0 1px 2px rgba(26,22,18,0.04)"
 const scoreColor = (n: number) =>
   n >= 70 ? "var(--rc-red)" : n >= 50 ? "var(--rc-amber)" : "var(--rc-green)";
 
-const verdictLabel = (n: number) =>
-  n >= 70 ? "Critical risk" : n >= 50 ? "High risk" : n >= 35 ? "Moderate risk" : n >= 15 ? "Low risk" : "Excellent match";
+const verdictKey = (n: number): "critical" | "high" | "moderate" | "low" | "excellent" =>
+  n >= 70 ? "critical" : n >= 50 ? "high" : n >= 35 ? "moderate" : n >= 15 ? "low" : "excellent";
 
 const heroHeadline = (n: number) =>
   n >= 50 ? "You're below the line for this one." : n >= 35 ? "Competitive — with a few gaps to close." : "Strong match. Polish and apply.";
@@ -158,11 +160,12 @@ function StatBarRow({ label, value, threshold }: { label: string; value: number 
 // ── FixBlock ───────────────────────────────────────────────────────────────────
 
 function FixBlock({ fix }: { fix: Fix | null | undefined }) {
+  const { t } = useLanguage();
   if (!fix) return null;
   return (
     <div style={{ marginTop: 18, paddingLeft: 20, borderLeft: "2px solid var(--rc-green)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 11 }}>
-        <Eyebrow color="var(--rc-green)">The fix</Eyebrow>
+        <Eyebrow color="var(--rc-green)">{t.analysisLayout.diffRow.label}</Eyebrow>
         <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.04em" }}>◷ {fix.time_required}</Mono>
       </div>
       <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, fontWeight: 600, color: "var(--rc-text)", lineHeight: 1.5, marginBottom: 14 }}>
@@ -179,13 +182,13 @@ function FixBlock({ fix }: { fix: Fix | null | undefined }) {
       {fix.example && (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
-            <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-red)", textTransform: "uppercase", letterSpacing: "0.1em", width: 38, flexShrink: 0 }}>was</Mono>
+            <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-red)", textTransform: "uppercase", letterSpacing: "0.1em", width: 38, flexShrink: 0 }}>{t.analysisLayout.diffRow.was}</Mono>
             <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontStyle: "italic", color: "var(--rc-hint)", lineHeight: 1.5, textDecoration: "line-through", textDecorationColor: "rgba(201,58,57,0.45)" }}>
               {fix.example.before}
             </span>
           </div>
           <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
-            <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-green)", textTransform: "uppercase", letterSpacing: "0.1em", width: 38, flexShrink: 0 }}>now</Mono>
+            <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-green)", textTransform: "uppercase", letterSpacing: "0.1em", width: 38, flexShrink: 0 }}>{t.analysisLayout.diffRow.now}</Mono>
             <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 500, color: "var(--rc-text)", lineHeight: 1.5 }}>{fix.example.after}</span>
           </div>
         </div>
@@ -196,13 +199,19 @@ function FixBlock({ fix }: { fix: Fix | null | undefined }) {
 
 // ── IssueItem ─────────────────────────────────────────────────────────────────
 
-function IssueItem({ issue, last }: {
+function IssueItem({ issue, last, onHighlight }: {
   issue: { severity: string; category: string; what: string; why: string; fix?: Fix | null };
   last: boolean;
+  onHighlight?: () => void;
 }) {
   const c = sevColor(issue.severity);
   return (
-    <div style={{ padding: "24px 28px", borderBottom: last ? "none" : "1px solid var(--rc-border)" }}>
+    <div
+      onClick={onHighlight}
+      style={{ padding: "24px 28px", borderBottom: last ? "none" : "1px solid var(--rc-border)", cursor: onHighlight ? "pointer" : undefined, transition: "background 0.1s" }}
+      onMouseEnter={e => { if (onHighlight) (e.currentTarget as HTMLElement).style.background = "var(--rc-surface-raised)"; }}
+      onMouseLeave={e => { if (onHighlight) (e.currentTarget as HTMLElement).style.background = ""; }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
         <span style={{ width: 3, height: 13, background: c, flexShrink: 0 }} />
         <SevTag sev={issue.severity} />
@@ -270,6 +279,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
   checkedKeywords: Set<string>;
   toggleKeyword: (kw: string) => void;
 }) {
+  const { t } = useLanguage();
   const ta = result.technical_analysis;
   const ats = result.ats_simulation;
   const atsCritical = ats?.critical_missing_keywords ?? [];
@@ -280,9 +290,8 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
       {/* 01 — Skill coverage */}
       <section>
         <SecHead
-          eyebrow="01 — Skill coverage"
-          title="Where you cover the role — and where you don't"
-          sub="The filled shape is you; the dashed outline is the role's target. The ranked list shows what to close first."
+          title={t.analysisLayout.match.title}
+          sub={t.analysisLayout.match.subtitle}
           rule
         />
         {!ta || deepStatus !== "ready" ? (
@@ -292,7 +301,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
             {/* Radar + priority */}
             <Sheet style={{ overflow: "hidden" }}>
               <div style={{ padding: "14px 24px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
-                <Eyebrow>Skill coverage · you vs the role</Eyebrow>
+                <Eyebrow>{t.analysisLayout.match.chartLabel}</Eyebrow>
               </div>
               {/* Radar full-width (fluid) */}
               <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--rc-border)" }}>
@@ -300,12 +309,12 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
                   axes={ta.skills.map((s) => ({ label: s.name, score: s.current, expected: s.expected, evidence: s.evidence }))}
                   scale={10}
                   fluid
-                  legend={{ current: "You", expected: "Target (JD)" }}
+                  legend={{ current: t.analysisLayout.match.legendYou, expected: t.analysisLayout.match.legendTarget }}
                 />
               </div>
               {/* Priority list below */}
               <div style={{ padding: "18px 28px" }}>
-                <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12 }}>Job priority · skills ranked by gap</Eyebrow>
+                <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.match.priorityTitle}</Eyebrow>
                 <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {(ta.skill_priority ?? []).map((name, i) => {
                     const sk = ta.skills.find((s) => s.name === name);
@@ -327,7 +336,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
 
             {/* Strategic recommendation */}
             <Sheet style={{ padding: "20px 26px" }}>
-              <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12, letterSpacing: "0.18em" }}>Strategic recommendation</Eyebrow>
+              <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12, letterSpacing: "0.18em" }}>{t.analysisLayout.match.recommendationTitle}</Eyebrow>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontStyle: "italic", color: "var(--rc-text)", lineHeight: 1.6 }}>
                 <MD>{ta.recommendation}</MD>
               </div>
@@ -364,13 +373,13 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {ta.market_context && (
                   <Sheet style={{ padding: "18px 20px" }}>
-                    <Eyebrow color="var(--rc-amber)" style={{ display: "block", marginBottom: 10 }}>● Market context</Eyebrow>
+                    <Eyebrow color="var(--rc-amber)" style={{ display: "block", marginBottom: 10 }}>{t.analysisLayout.match.marketContext}</Eyebrow>
                     <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-text)", lineHeight: 1.6 }}><MD>{ta.market_context}</MD></div>
                   </Sheet>
                 )}
                 {ta.seniority_signals?.length ? (
                   <Sheet style={{ padding: "18px 20px" }}>
-                    <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 10 }}>● Seniority signals</Eyebrow>
+                    <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 10 }}>{t.analysisLayout.match.senioritySignals}</Eyebrow>
                     <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
                       {ta.seniority_signals.map((sig, i) => (
                         <li key={i} style={{ display: "flex", gap: 8, fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-muted)", lineHeight: 1.55 }}>
@@ -390,9 +399,17 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
       {ats && (
         <section>
           <SecHead
-            eyebrow="02 — ATS filter"
-            eyebrowColor={ats.would_pass ? "var(--rc-green)" : "var(--rc-red)"}
-            title={ats.would_pass ? "ATS pass likely" : "ATS rejection likely"}
+            title={
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                {ats.would_pass ? t.analysisLayout.ats.passLikely : t.analysisLayout.ats.rejectionLikely}
+                <div className="relative group" style={{ display: "inline-flex" }}>
+                  <span style={{ width: 14, height: 14, borderRadius: 99, border: "1px solid var(--rc-border)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)", cursor: "default", flexShrink: 0 }}>?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150" style={{ width: 220, background: "var(--rc-text)", color: "var(--rc-bg)", fontFamily: "var(--font-sans)", fontSize: 11, lineHeight: 1.55, padding: "9px 12px", borderRadius: 6, zIndex: 50 }}>
+                    {t.analysisLayout.ats.cutoffTooltip}
+                  </div>
+                </div>
+              </span>
+            }
             sub={ats.reason}
             rule
             meta={
@@ -400,14 +417,16 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
                 <Mono style={{ fontSize: 38, fontWeight: 500, color: "var(--rc-text)", lineHeight: 1 }}>
                   {ats.score}<span style={{ fontSize: 15, color: "var(--rc-hint)" }}>/100</span>
                 </Mono>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, color: "var(--rc-red)", marginTop: 3 }}>
-                  {ats.threshold - ats.score} pts below cutoff
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, color: ats.score >= ats.threshold ? "var(--rc-green)" : "var(--rc-red)", marginTop: 3 }}>
+                  {ats.score >= ats.threshold
+                    ? `+${ats.score - ats.threshold} ${t.analysisLayout.ats.ptsAboveCutoff}`
+                    : `${ats.threshold - ats.score} ${t.analysisLayout.ats.ptsBelowCutoff}`}
                 </div>
               </div>
             }
           />
           {/* ATS meter */}
-          <div style={{ padding: "22px 24px", border: "1px solid var(--rc-red-border)", borderRadius: R_MD, background: "var(--rc-red-bg)", marginBottom: 24 }}>
+          <div style={{ padding: "22px 24px", border: "1px solid var(--rc-border)", borderRadius: R_MD, background: "var(--rc-surface)", marginBottom: 24 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", marginBottom: 12 }}>
               <span>0</span><span>100</span>
             </div>
@@ -419,15 +438,15 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
               <div style={{ position: "absolute", left: `${ats.threshold}%`, top: -6, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
                 <div style={{ width: 3, height: 24, background: "var(--rc-amber)" }} />
                 <div style={{ marginTop: 4, fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "var(--rc-amber)", whiteSpace: "nowrap", background: "var(--rc-amber-bg)", border: "1px solid var(--rc-amber-border)", padding: "2px 6px" }}>
-                  cutoff {ats.threshold}
+                  {t.analysisLayout.ats.cutoffLabel.replace("{threshold}", String(ats.threshold))}
                 </div>
               </div>
             </div>
             {sim !== ats.score && (
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontFamily: "var(--font-mono)", fontSize: 11 }}>
-                <span style={{ color: "var(--rc-hint)" }}>current {ats.score}</span>
+                <span style={{ color: "var(--rc-hint)" }}>{t.analysisLayout.ats.current} {ats.score}</span>
                 <span style={{ color: sim >= ats.threshold ? "var(--rc-green)" : "var(--rc-amber)", fontWeight: 700 }}>
-                  simulated {sim}{sim >= ats.threshold ? " · would pass ✓" : ` · still ${ats.threshold - sim} below`}
+                  {t.analysisLayout.ats.simulated} {sim}{sim >= ats.threshold ? ` · ${t.analysisLayout.ats.wouldPass}` : ` · ${t.analysisLayout.ats.stillBelow.replace("{n}", String(ats.threshold - sim))}`}
                 </span>
               </div>
             )}
@@ -438,7 +457,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
             const kws = atsCritical;
             const req = [...kws].filter((k) => k.required).sort((a, b) => b.score_impact - a.score_impact);
             const pref = [...kws].filter((k) => !k.required).sort((a, b) => b.score_impact - a.score_impact);
-            const maxImpact = 8;
+            const maxImpact = Math.max(8, ...kws.map((k) => k.score_impact));
             const KwRow = ({ k, accent }: { k: typeof kws[0]; accent: string }) => (
               <div onClick={() => toggleKeyword(k.keyword)} style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer" }}>
                 <div style={{ marginTop: 2, width: 16, height: 16, flexShrink: 0, borderRadius: R_SM, border: `1px solid ${checkedKeywords.has(k.keyword) ? "var(--rc-green)" : "var(--rc-border)"}`, background: checkedKeywords.has(k.keyword) ? "var(--rc-green)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -450,7 +469,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
                     <Mono style={{ fontSize: 10, color: accent, background: `color-mix(in srgb, ${accent} 10%, transparent)`, borderRadius: R_SM, padding: "2px 6px" }}>{k.jd_frequency}× in JD</Mono>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{ flex: 1, height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999 }}>
+                    <div style={{ flex: 1, height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${(k.score_impact / maxImpact) * 100}%`, borderRadius: 9999, background: checkedKeywords.has(k.keyword) ? "color-mix(in srgb, var(--rc-green) 40%, transparent)" : "var(--rc-green)" }} />
                     </div>
                     <Mono style={{ fontSize: 11, color: "var(--rc-green)", flexShrink: 0, fontWeight: 600 }}>+{k.score_impact} pts</Mono>
@@ -465,13 +484,13 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
             );
             return (
               <div>
-                <SecHead eyebrow="Simulator" title="Add these, watch the score climb" sub="Each is a keyword the JD weights and your CV is missing. Tick to preview the lift — it's reversible." />
+                <SecHead eyebrow={t.analysisLayout.ats.simulatorTitle} title={t.analysisLayout.ats.simulatorSubtitle} sub={t.analysisLayout.ats.simulatorDesc} />
                 <Sheet style={{ overflow: "hidden" }}>
                   {req.length > 0 && (
                     <div style={{ padding: "22px 24px", borderBottom: pref.length > 0 ? "1px solid var(--rc-border)" : "none" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
                         <span style={{ width: 6, height: 6, borderRadius: 9999, background: "var(--rc-red)" }} />
-                        <Eyebrow color="var(--rc-red)" style={{ fontSize: 11 }}>Required</Eyebrow>
+                        <Eyebrow color="var(--rc-red)" style={{ fontSize: 11 }}>{t.analysisLayout.ats.required}</Eyebrow>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                         {req.map((k) => <KwRow key={k.keyword} k={k} accent="var(--rc-red)" />)}
@@ -482,7 +501,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
                     <div style={{ padding: "22px 24px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
                         <span style={{ width: 6, height: 6, borderRadius: 9999, background: "var(--rc-amber)" }} />
-                        <Eyebrow color="var(--rc-amber)" style={{ fontSize: 11 }}>Preferred</Eyebrow>
+                        <Eyebrow color="var(--rc-amber)" style={{ fontSize: 11 }}>{t.analysisLayout.ats.preferred}</Eyebrow>
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                         {pref.map((k) => <KwRow key={k.keyword} k={k} accent="var(--rc-amber)" />)}
@@ -505,7 +524,8 @@ const ACTION_RE = /^(led|built|designed|developed|created|implemented|launched|d
 const METRIC_RE = /\d+%?|[€$][\d,.]+|[\d,]+\s*(users|customers|ms|req|requests|engineers|teams?)/i;
 const phraseGood = (p: string) => METRIC_RE.test(p) || ACTION_RE.test(p.trim());
 
-function CVBody({ result }: { result: AnalysisResult }) {
+function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick?: () => void }) {
+  const { t } = useLanguage();
   const { seniority_analysis: sen, cv_tone: tone, correlation, audit, hidden_red_flags: flags } = result;
   const cv = audit.cv;
   const jd = audit.jd_match;
@@ -525,17 +545,17 @@ function CVBody({ result }: { result: AnalysisResult }) {
 
       {/* 01 — Positioning */}
       <section>
-        <SecHead eyebrow="01 — Positioning" title="How your CV reads at a glance"
+        <SecHead title={t.analysisLayout.cv.positioningTitle}
           sub="Before a single bullet is read, two things set the first impression: the level you project, and the voice you write in." rule />
 
         {/* a · Seniority */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
-          <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>a · Seniority signal</Eyebrow>
+          <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.cv.seniorityLabel}</Eyebrow>
           {sen.strength && <StrengthPill>Strength · {sen.strength}</StrengthPill>}
         </div>
-        <Compare leftLabel="Role expects" left={sen.expected} rightLabel="Your CV signals" right={sen.detected} rightColor="var(--rc-red)" />
+        <Compare leftLabel={t.analysisLayout.cv.roleExpects} left={sen.expected} rightLabel={t.analysisLayout.cv.cvSignals} right={sen.detected} rightColor="var(--rc-red)" />
         <div style={{ marginTop: 18 }}>
-          <Eyebrow style={{ display: "block", marginBottom: 7 }}>What this signals</Eyebrow>
+          <Eyebrow style={{ display: "block", marginBottom: 7 }}>{t.analysisLayout.cv.whatSignals}</Eyebrow>
           <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, fontStyle: "italic", color: "var(--rc-muted)", lineHeight: 1.65, maxWidth: 640 }}>
             <MD>{sen.gap}</MD>
           </div>
@@ -548,7 +568,7 @@ function CVBody({ result }: { result: AnalysisResult }) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, gap: 16, flexWrap: "wrap" }}>
           <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>b · Writing tone</Eyebrow>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", padding: "4px 11px", borderRadius: R_SM, color: toneColor, background: `color-mix(in srgb, ${toneColor} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${toneColor} 25%, transparent)` }}>
-            {tone.detected} voice
+            {tone.detected} {t.analysisLayout.cv.toneVoice}
           </span>
         </div>
         <Sheet style={{ padding: "4px 22px" }}>
@@ -558,7 +578,7 @@ function CVBody({ result }: { result: AnalysisResult }) {
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, padding: "15px 0", borderBottom: i === (tone.examples?.length ?? 0) - 1 ? "none" : "1px solid var(--rc-border)" }}>
                 <span style={{ flexShrink: 0, width: 18, height: 18, borderRadius: 9999, background: good ? "var(--rc-green-bg)" : "var(--rc-red-bg)", color: good ? "var(--rc-green)" : "var(--rc-red)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700 }}>{good ? "✓" : "✗"}</span>
                 <span style={{ flex: 1, fontFamily: "var(--font-sans)", fontSize: 15, fontStyle: "italic", color: good ? "var(--rc-muted)" : "var(--rc-text)", lineHeight: 1.5 }}>"{ex}"</span>
-                <Mono style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: good ? "var(--rc-green)" : "var(--rc-red)" }}>{good ? "strong" : "weak"}</Mono>
+                <Mono style={{ flexShrink: 0, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: good ? "var(--rc-green)" : "var(--rc-red)" }}>{good ? t.analysisLayout.cv.strong : t.analysisLayout.cv.weak}</Mono>
               </div>
             );
           })}
@@ -583,11 +603,11 @@ function CVBody({ result }: { result: AnalysisResult }) {
 
       {/* 02 — Forensic audit */}
       <section>
-        <SecHead eyebrow="02 — Forensic audit" title="Every issue, ranked by what it costs you"
+        <SecHead title="Every issue, ranked by what it costs you"
           sub={`${cv.issues.length} finding${cv.issues.length !== 1 ? "s" : ""} across the document. Each opens with the fix and the time it takes.`}
           meta={
             <div style={{ textAlign: "right" }}>
-              <Eyebrow style={{ display: "block", marginBottom: 6 }}>CV health</Eyebrow>
+              <Eyebrow style={{ display: "block", marginBottom: 6 }}>{t.analysisLayout.cv.auditHealthLabel}</Eyebrow>
               <Mono style={{ fontSize: 30, fontWeight: 500, color: healthColor, lineHeight: 1 }}>
                 {cv.score}<span style={{ fontSize: 15, color: "var(--rc-hint)" }}>/100</span>
               </Mono>
@@ -607,25 +627,30 @@ function CVBody({ result }: { result: AnalysisResult }) {
           </div>
         </div>
         <Sheet>
-          {cv.issues.map((it, i) => <IssueItem key={i} issue={it} last={i === cv.issues.length - 1} />)}
+          {cv.issues.map((it, i) => <IssueItem key={i} issue={it} last={i === cv.issues.length - 1} onHighlight={onIssueClick} />)}
         </Sheet>
       </section>
 
       {/* 03 — Recruiter intuition */}
       {flags?.length > 0 && (
         <section>
-          <SecHead eyebrow="03 — Recruiter intuition" title="What a human pauses on"
+          <SecHead title={t.analysisLayout.flags.redFlagsTitle}
             sub={`${flags.length} pattern${flags.length !== 1 ? "s" : ""} a reviewer spots in the first 8 seconds — before reading a single bullet.`} rule />
           <Sheet>
             {flags.map((f, i) => (
-              <div key={i} style={{ padding: "26px 28px", borderBottom: i === flags.length - 1 ? "none" : "1px solid var(--rc-border)" }}>
+              <div key={i}
+                onClick={() => onIssueClick?.()}
+                style={{ padding: "26px 28px", borderBottom: i === flags.length - 1 ? "none" : "1px solid var(--rc-border)", cursor: "pointer", transition: "background 0.1s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--rc-surface-raised)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; }}
+              >
                 <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
                   <span style={{ width: 3, height: 13, background: "var(--rc-red)", flexShrink: 0 }} />
-                  <Eyebrow color="var(--rc-red)">Red flag</Eyebrow>
+                  <Eyebrow color="var(--rc-red)">{t.analysisLayout.flags.redFlag}</Eyebrow>
                 </div>
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 17, fontWeight: 600, color: "var(--rc-text)", marginBottom: 12, lineHeight: 1.35, letterSpacing: "-0.01em" }}><MD>{f.flag}</MD></div>
                 <div style={{ display: "flex", gap: 12 }}>
-                  <Mono style={{ fontSize: 9, color: "var(--rc-amber)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, width: 88, paddingTop: 3 }}>Recruiter sees</Mono>
+                  <Mono style={{ fontSize: 9, color: "var(--rc-amber)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", flexShrink: 0, width: 88, paddingTop: 3 }}>{t.analysisLayout.flags.recruiterSees}</Mono>
                   <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.65 }}><MD>{f.perception}</MD></div>
                 </div>
                 <FixBlock fix={f.fix as Fix} />
@@ -638,31 +663,33 @@ function CVBody({ result }: { result: AnalysisResult }) {
       {/* 04 — Requirements */}
       {jd && sortedSkills.length > 0 && (
         <section>
-          <SecHead eyebrow="04 — Requirements" title="JD skills, matched to your CV"
+          <SecHead title={t.analysisLayout.flags.requirementsTitle}
             sub="Every required skill from the job description, checked against what your CV actually demonstrates."
             meta={
               <div style={{ textAlign: "right" }}>
                 <Mono style={{ fontSize: 26, fontWeight: 600, color: found === total ? "var(--rc-green)" : found >= total * 0.7 ? "var(--rc-amber)" : "var(--rc-red)" }}>
                   {found}<span style={{ color: "var(--rc-hint)", fontWeight: 400 }}>/{total}</span>
                 </Mono>
-                <Eyebrow style={{ display: "block", marginTop: 2 }}>matched</Eyebrow>
+                <Eyebrow style={{ display: "block", marginTop: 2 }}>{t.analysisLayout.flags.matched}</Eyebrow>
               </div>
             } rule />
           <Sheet style={{ padding: "8px 28px 24px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 36 }}>
               {sortedSkills.map((s, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "13px 0", borderBottom: "1px solid var(--rc-border)" }}>
-                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: s.found ? "var(--rc-text)" : "var(--rc-muted)" }}>{s.skill}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                    {s.evidence && <Mono style={{ fontSize: 10, color: "var(--rc-hint)" }}>{s.evidence}</Mono>}
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: s.found ? "var(--rc-green)" : "var(--rc-red)", width: 12, textAlign: "center" }}>{s.found ? "✓" : "✗"}</span>
+                <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "13px 0", borderBottom: "1px solid var(--rc-border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: s.found ? "var(--rc-text)" : "var(--rc-muted)", minWidth: 0 }}>{s.skill}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: s.found ? "var(--rc-green)" : "var(--rc-red)", flexShrink: 0 }}>{s.found ? "✓" : "✗"}</span>
                   </div>
+                  {s.evidence && (
+                    <Mono style={{ fontSize: 10, color: "var(--rc-hint)", lineHeight: 1.5 }}>{s.evidence}</Mono>
+                  )}
                 </div>
               ))}
             </div>
             {jd.experience_gap && (
               <div style={{ marginTop: 20, paddingLeft: 18, borderLeft: "2px solid var(--rc-red)" }}>
-                <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 7 }}>Crucial experience gap</Eyebrow>
+                <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 7 }}>{t.analysisLayout.flags.experienceGap}</Eyebrow>
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontStyle: "italic", color: "var(--rc-muted)", lineHeight: 1.6 }}><MD>{jd.experience_gap}</MD></div>
               </div>
             )}
@@ -675,6 +702,34 @@ function CVBody({ result }: { result: AnalysisResult }) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
+const STOP_WORDS = new Set([
+  // function words
+  'the','a','an','is','in','of','for','to','and','or','on','at','by','with','from','that','this',
+  'your','you','not','no','it','its','are','has','have','been','be','as','was','were','will',
+  'would','could','should','may','can','do','does','did','any','all','more','less','very',
+  'also','just','such','both','each','than','then','them','they','their','there','these',
+  'those','when','what','where','which','while','about','above','after','before','between',
+  // issue-description verbs / meta words
+  'missing','lacks','lack','absent','shows','listed','found','appear','appears','include',
+  'includes','using','through','based','suggest','suggests','consider','avoid','ensure',
+  'rather','instead','however','although','although','therefore','because',
+  // common job/CV nouns that appear in issue descriptions but not meaningfully in the CV text
+  'engineer','developer','manager','designer','analyst','senior','junior','intern','director',
+  'leader','officer','architect','consultant','specialist','coordinator','engineer',
+  'experience','skills','position','company','sector','industry','field','domain',
+  'profile','summary','section','title','role','level','years','team','work','job',
+  'resume','linkedin','github','portfolio','career','background','history',
+]);
+
+function extractHighlightTerms(what: string): string[] {
+  return what
+    .replace(/[*_`#]/g, '')
+    .split(/\s+/)
+    .map(w => w.replace(/[^a-zA-ZÀ-ÿ]/g, '').toLowerCase())
+    .filter(w => w.length > 5 && !STOP_WORDS.has(w))
+    .slice(0, 6);
+}
+
 export function AnalysisLayout({
   result,
   analysisId,
@@ -686,17 +741,87 @@ export function AnalysisLayout({
   userPlan = "free",
   onReset,
   reconstructedCv,
+  liText = null,
+  coverLetterText = null,
   isRewriting = false,
   onRewrite,
   email,
   accessToken,
   completedSteps,
 }: AnalysisLayoutProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<MainTab>("match");
   const [activePlan, setActivePlan] = useState<PlanPane>("roadmap");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
   const [heroOpen, setHeroOpen] = useState(true);
   const [scoreDisplay, setScoreDisplay] = useState(0);
+  const highlightsByDoc = useMemo((): Partial<Record<"cv" | "linkedin" | "cover", HighlightMap>> => {
+    const dedup = (entries: HighlightEntry[]): HighlightEntry[] => {
+      const seen = new Set<string>();
+      return entries.filter(e => seen.has(e.term) ? false : (seen.add(e.term), true));
+    };
+    const fromEntries = (arr: Array<{ term: string; tooltip: string }>) =>
+      dedup(arr.map(e => ({ term: e.term, tooltip: e.tooltip })));
+    const EMPTY_MAP: HighlightMap = { flags: [], issues: [], skills: [], weak: [], metrics: [] };
+
+    // ── Heuristic fallbacks for CV (old analyses or empty Claude arrays) ──────
+    const hFlags = dedup(
+      (result.hidden_red_flags ?? []).flatMap(f =>
+        extractHighlightTerms(f.flag).map(term => ({ term, tooltip: f.perception }))
+      )
+    ).slice(0, 10);
+    const hIssues = dedup([
+      ...(result.audit.cv.issues ?? []),
+      ...(result.audit.github?.issues ?? []),
+      ...(result.audit.linkedin?.issues ?? []),
+    ].flatMap(i => extractHighlightTerms(i.what).map(term => ({ term, tooltip: i.what })))).slice(0, 15);
+    const hSkills = (result.audit.jd_match?.required_skills ?? [])
+      .filter(s => s.found).map(s => ({ term: s.skill })).slice(0, 15);
+    const hWeak = dedup(
+      (result.cv_tone?.examples ?? []).flatMap(e =>
+        extractHighlightTerms(e).map(term => ({ term, tooltip: e }))
+      )
+    ).slice(0, 10);
+
+    const ht = result.highlight_terms;
+    if (!ht) return { cv: { flags: hFlags, issues: hIssues, skills: hSkills, weak: hWeak, metrics: [] } };
+
+    // ── New per-source format ─────────────────────────────────────────────────
+    if (ht.cv) {
+      const cvMap: HighlightMap = {
+        flags:   ht.cv.flags.length   > 0 ? fromEntries(ht.cv.flags)               : hFlags,
+        issues:  ht.cv.issues.length  > 0 ? fromEntries(ht.cv.issues)              : hIssues,
+        skills:  ht.cv.skills.length  > 0 ? dedup(ht.cv.skills.map(s => ({ term: s }))) : hSkills,
+        weak:    ht.cv.weak.length    > 0 ? fromEntries(ht.cv.weak)                : hWeak,
+        metrics: ht.cv.metrics.length > 0 ? fromEntries(ht.cv.metrics)             : [],
+      };
+      const liMap: HighlightMap = ht.linkedin ? {
+        flags:   fromEntries(ht.linkedin.flags),
+        issues:  fromEntries(ht.linkedin.issues),
+        skills:  ht.linkedin.skills.length > 0 ? dedup(ht.linkedin.skills.map(s => ({ term: s }))) : hSkills,
+        weak:    fromEntries(ht.linkedin.weak),
+        metrics: fromEntries(ht.linkedin.metrics),
+      } : { ...EMPTY_MAP, skills: hSkills };
+      const coverMap: HighlightMap = ht.cover_letter ? {
+        flags:   fromEntries(ht.cover_letter.flags),
+        issues:  fromEntries(ht.cover_letter.issues),
+        skills:  [],
+        weak:    fromEntries(ht.cover_letter.weak),
+        metrics: [],
+      } : EMPTY_MAP;
+      return { cv: cvMap, linkedin: liMap, cover: coverMap };
+    }
+
+    // ── Old flat format (backward compat) ────────────────────────────────────
+    const flatMap: HighlightMap = {
+      flags:   ht.flags?.length  ? fromEntries(ht.flags)                      : hFlags,
+      issues:  ht.issues?.length ? fromEntries(ht.issues)                     : hIssues,
+      skills:  ht.skills?.length ? dedup(ht.skills.map(s => ({ term: s })))  : hSkills,
+      weak:    ht.weak?.length   ? fromEntries(ht.weak)                       : hWeak,
+      metrics: [],
+    };
+    return { cv: flatMap };
+  }, [result]);
 
   useEffect(() => {
     const target = result.score;
@@ -727,18 +852,19 @@ export function AnalysisLayout({
   const signalsBadge = (result.audit.github?.issues.length ?? 0) + (result.audit.linkedin?.issues.length ?? 0);
   const timelineBadge = result.cross_profile_inconsistencies?.filter((i) => i.severity === "critical").length ?? 0;
 
-  const TABS: { id: MainTab; label: string; badge: number; tone?: string }[] = [
-    { id: "match",    label: "Match",    badge: matchBadge },
-    { id: "cv",       label: "CV",       badge: cvBadge },
-    { id: "signals",  label: "Signals",  badge: signalsBadge, tone: "amber" },
-    { id: "timeline", label: "Timeline", badge: timelineBadge },
-    { id: "plan",     label: "Plan",     badge: 0 },
+  const TABS: { id: MainTab; label: string; badge: number; tone?: string; premium?: boolean }[] = [
+    { id: "match",    label: t.analysisLayout.tabs.match,    badge: matchBadge },
+    { id: "cv",       label: t.analysisLayout.tabs.cv,       badge: cvBadge },
+    { id: "rewrite",  label: t.analysisLayout.tabs.rewrite,  badge: 0, premium: true },
+    { id: "signals",  label: t.analysisLayout.tabs.signals,  badge: signalsBadge, tone: "amber" },
+    { id: "timeline", label: t.analysisLayout.tabs.timeline, badge: timelineBadge },
+    { id: "plan",     label: t.analysisLayout.tabs.plan,     badge: 0 },
   ];
 
   const PLAN_PANES: { id: PlanPane; label: string }[] = [
-    { id: "roadmap",   label: "Roadmap" },
-    { id: "bridge",    label: "Bridge ✦" },
-    { id: "negotiate", label: "Negotiate" },
+    { id: "roadmap",   label: t.analysisLayout.tabs.roadmap },
+    { id: "bridge",    label: t.analysisLayout.tabs.bridge },
+    { id: "negotiate", label: t.analysisLayout.tabs.negotiate },
   ];
 
   // Role dossier meta string
@@ -750,7 +876,13 @@ export function AnalysisLayout({
       liBlobUrl={liBlobUrl}
       mlBlobUrl={mlBlobUrl}
       reconstructedCv={reconstructedCv}
-      renderRight={() => (
+      liText={liText}
+      coverLetterText={coverLetterText}
+      highlightsByDoc={highlightsByDoc}
+      onHighlightTypeClick={(type) => {
+        if (type === "skills") setActiveTab("match");
+      }}
+      renderRight={({ focusDoc }) => (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
 
         {/* ── Hero (animated collapsible) ── */}
@@ -765,7 +897,7 @@ export function AnalysisLayout({
                 </Mono>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "4px 9px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
                   <span style={{ width: 5, height: 5, borderRadius: 9999, background: color }} />
-                  {verdictLabel(result.score)}
+                  {t.analysisLayout.verdicts[verdictKey(result.score)]}
                 </span>
                 {jd && <Mono style={{ fontSize: 12, color: "var(--rc-hint)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{jd.pay}{jdMeta ? `  ·  ${jdMeta}` : ""}</Mono>}
                 <span style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", color: "var(--rc-hint)" }}>
@@ -781,24 +913,24 @@ export function AnalysisLayout({
               <div style={{ display: "flex" }}>
                 {/* Score column */}
                 <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid var(--rc-border)", padding: "20px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <Eyebrow style={{ marginBottom: 10 }}>Rejection risk</Eyebrow>
+                  <Eyebrow style={{ marginBottom: 10 }}>{t.analysisLayout.hero.rejectionRisk}</Eyebrow>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 2, marginBottom: 12 }}>
                     <Mono style={{ fontSize: 68, fontWeight: 700, lineHeight: 0.88, color, letterSpacing: "-0.03em" }}>{scoreDisplay}</Mono>
                     <Mono style={{ fontSize: 24, fontWeight: 700, color, opacity: 0.45 }}>%</Mono>
                   </div>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start", fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "5px 10px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
                     <span style={{ width: 6, height: 6, borderRadius: 9999, background: color }} />
-                    {verdictLabel(result.score)}
+                    {t.analysisLayout.verdicts[verdictKey(result.score)]}
                   </span>
                   {result.confidence && (
                     <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--rc-border)" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-                        <Eyebrow style={{ fontSize: 9 }}>Confidence</Eyebrow>
+                        <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.hero.confidence}</Eyebrow>
                         <Mono style={{ fontSize: 11, fontWeight: 700, color: "var(--rc-text)" }}>{result.confidence.score}%</Mono>
                         <div className="relative group" style={{ display: "inline-flex" }}>
                           <span style={{ width: 14, height: 14, borderRadius: 99, border: "1px solid var(--rc-border)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)", cursor: "default", flexShrink: 0 }}>?</span>
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150" style={{ width: 210, background: "var(--rc-text)", color: "var(--rc-bg)", fontFamily: "var(--font-sans)", fontSize: 11, lineHeight: 1.55, padding: "9px 12px", borderRadius: 6, zIndex: 50 }}>
-                            How certain the model is in this analysis. Higher when signals from multiple sources align; lower when data is thin or contradictory.
+                            {t.analysisLayout.hero.confidenceTooltip}
                           </div>
                         </div>
                       </div>
@@ -822,15 +954,33 @@ export function AnalysisLayout({
                       <MD>{result.technical_analysis.reasoning}</MD>
                     </div>
                   )}
+                  {/* START HERE callout — top fix derived from first critical/major CV issue or seniority */}
+                  {(() => {
+                    const topFix =
+                      result.audit.cv.issues.find(i => i.severity === "critical" && i.fix)?.fix ??
+                      result.audit.cv.issues.find(i => i.severity === "major" && i.fix)?.fix ??
+                      result.seniority_analysis?.fix ??
+                      null;
+                    if (!topFix) return null;
+                    return (
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 16, padding: "10px 14px", borderRadius: R_SM, background: "color-mix(in srgb, var(--rc-green) 6%, transparent)", border: "1px solid color-mix(in srgb, var(--rc-green) 20%, transparent)" }}>
+                        <Eyebrow color="var(--rc-green)" style={{ flexShrink: 0, letterSpacing: "0.14em" }}>{t.analysisLayout.hero.startHere}</Eyebrow>
+                        <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-text)", lineHeight: 1.5 }}>
+                          <MD>{topFix.summary}</MD>
+                          {" "}<Mono style={{ color: "var(--rc-hint)", fontSize: 12 }}>{t.analysisLayout.diffRow.startHereIn} {topFix.time_required}</Mono>
+                        </span>
+                      </div>
+                    );
+                  })()}
                   {result.breakdown && (
                     <div style={{ borderTop: "1px solid var(--rc-border)", marginTop: result.technical_analysis?.reasoning ? 0 : 8, paddingTop: 16 }}>
-                      <Eyebrow style={{ display: "block", marginBottom: 12 }}>Compatibility breakdown · higher is better</Eyebrow>
+                      <Eyebrow style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.hero.breakdownTitle}</Eyebrow>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
-                        <StatBarRow label="Keywords"   value={result.breakdown.keyword_match}    threshold={65} />
-                        <StatBarRow label="Tech stack" value={result.breakdown.tech_stack_fit}   threshold={70} />
-                        <StatBarRow label="Experience" value={result.breakdown.experience_level} threshold={60} />
-                        <StatBarRow label="GitHub"     value={result.breakdown.github_signal}    threshold={70} />
-                        <StatBarRow label="LinkedIn"   value={result.breakdown.linkedin_signal}  threshold={70} />
+                        <StatBarRow label={t.analysisLayout.breakdownLabels.keywords}   value={result.breakdown.keyword_match}    threshold={65} />
+                        <StatBarRow label={t.analysisLayout.breakdownLabels.techStack} value={result.breakdown.tech_stack_fit}   threshold={70} />
+                        <StatBarRow label={t.analysisLayout.breakdownLabels.experience} value={result.breakdown.experience_level} threshold={60} />
+                        <StatBarRow label={t.analysisLayout.breakdownLabels.github}     value={result.breakdown.github_signal}    threshold={70} />
+                        <StatBarRow label={t.analysisLayout.breakdownLabels.linkedin}   value={result.breakdown.linkedin_signal}  threshold={70} />
                       </div>
                     </div>
                   )}
@@ -840,7 +990,7 @@ export function AnalysisLayout({
               {/* Role dossier */}
               {jd && (
                 <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: 6, padding: "11px 26px", borderTop: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
-                  <Eyebrow style={{ marginRight: 16, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>Target role</Eyebrow>
+                  <Eyebrow style={{ marginRight: 16, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.hero.targetRole}</Eyebrow>
                   <Mono style={{ fontSize: 14, fontWeight: 700, color: "var(--rc-text)", whiteSpace: "nowrap" }}>{jd.pay}</Mono>
                   {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
                 </div>
@@ -858,6 +1008,9 @@ export function AnalysisLayout({
             return (
               <div key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 14px", fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: on ? 600 : 500, color: on ? "var(--rc-red)" : "var(--rc-hint)", borderBottom: `2px solid ${on ? "var(--rc-red)" : "transparent"}`, cursor: "pointer", userSelect: "none" }}>
                 {t.label}
+                {t.premium && (
+                  <Mono style={{ fontSize: 9, fontWeight: 700, color: on ? "var(--rc-red)" : "var(--rc-hint)", letterSpacing: "0.04em" }}>✦</Mono>
+                )}
                 {t.badge > 0 && (
                   <Mono style={{ fontSize: 10, fontWeight: 700, color: badgeColor, background: "var(--rc-bg)", border: "1px solid var(--rc-border)", borderRadius: R_SM, padding: "1px 5px" }}>
                     {t.badge}
@@ -881,30 +1034,37 @@ export function AnalysisLayout({
           {/* CV */}
           {activeTab === "cv" && (
             <div style={{ padding: "28px 30px" }}>
-              <CVBody result={result} />
-              {hasShortlisted && (
-                <div style={{ marginTop: 48 }}>
-                  <ImproveTab
-                    reconstructedCv={reconstructedCv ?? null}
-                    isLoading={isRewriting}
-                    isPremium={true}
-                    hasAnalysisId={!!analysisId}
-                    onRewrite={onRewrite ?? (() => {})}
-                  />
-                </div>
-              )}
-              {hasShortlisted && (
-                <div style={{ marginTop: 32 }}>
-                  <CoverLetterTab
-                    analysisId={analysisId}
-                    isPremium={true}
-                    company={result.job_details?.company ?? null}
-                    candidateName={null}
-                    savedCoverLetter={null}
-                  />
-                </div>
-              )}
+              <CVBody result={result} onIssueClick={() => focusDoc("cv", true)} />
             </div>
+          )}
+
+          {/* Rewrite */}
+          {activeTab === "rewrite" && (
+            hasShortlisted ? (
+              <RewriteTab
+                result={result}
+                reconstructedCv={reconstructedCv ?? null}
+                isRewriting={isRewriting ?? false}
+                onRewrite={onRewrite ?? (() => {})}
+                analysisId={analysisId}
+              />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 40px", textAlign: "center", gap: 20 }}>
+                <Mono style={{ fontSize: 28, color: "var(--rc-border)" }}>✦</Mono>
+                <div>
+                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "var(--rc-text)", letterSpacing: "-0.015em", marginBottom: 10 }}>
+                    {t.analysisLayout.rewritePaywall.title}
+                  </div>
+                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.65, maxWidth: 400 }}>
+                    {t.analysisLayout.rewritePaywall.desc}
+                  </div>
+                </div>
+                <a href="/pricing" style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", textDecoration: "none", boxShadow: "0 6px 20px rgba(201,58,57,0.28)" }}>
+                  {t.analysisLayout.rewritePaywall.cta}
+                </a>
+                <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.rewritePaywall.note}</Eyebrow>
+              </div>
+            )
           )}
 
           {/* Signals */}
@@ -914,7 +1074,11 @@ export function AnalysisLayout({
                 github={result.audit.github}
                 linkedin={result.audit.linkedin}
                 hasGithub={result.audit.github.score !== null || result.audit.github.issues.length > 0}
-                hasLinkedin={result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0}
+                hasLinkedin={result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0 || !!liBlobUrl || !!liText}
+                onHighlightClick={(id) => {
+                  const src = id.split("-")[0];
+                  focusDoc(src === "linkedin" ? "linkedin" : "cv", true);
+                }}
               />
             </div>
           )}
@@ -958,7 +1122,7 @@ export function AnalysisLayout({
                     <ProjectRecommendationSkeleton />
                   ) : (
                     <div style={{ padding: "48px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
-                      Bridge project not available.
+                      {t.analysisLayout.plan.bridgeNotAvailable}
                     </div>
                   )
                 )}
@@ -968,7 +1132,7 @@ export function AnalysisLayout({
                     <NegotiationTab result={result} analysisId={analysisId} isPremium={true} />
                   ) : (
                     <div style={{ padding: "48px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
-                      Negotiation analysis available on the Hired plan.
+                      {t.analysisLayout.plan.negotiationPremium}
                     </div>
                   )
                 )}
