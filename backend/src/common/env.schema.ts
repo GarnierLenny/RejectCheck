@@ -49,18 +49,6 @@ export const envSchema = z.object({
   // through Stripe Checkout as line_items[0].quantity.
   STRIPE_CREDIT_PRICE_ID: nonEmpty,
 
-  // Default prompt — used when user has no roleType (legacy accounts) or roleType=software.
-  SYSTEM_TECHNICAL_PROMPT: z.string().optional(),
-  // Role-specific prompts. Selected based on Profile.roleType post-onboarding.
-  // Falls back to SYSTEM_TECHNICAL_PROMPT_GENERIC, then SYSTEM_TECHNICAL_PROMPT.
-  SYSTEM_TECHNICAL_PROMPT_PRODUCT: z.string().optional(),
-  SYSTEM_TECHNICAL_PROMPT_DESIGN: z.string().optional(),
-  SYSTEM_TECHNICAL_PROMPT_DATA: z.string().optional(),
-  SYSTEM_TECHNICAL_PROMPT_MARKETING: z.string().optional(),
-  SYSTEM_TECHNICAL_PROMPT_OPS: z.string().optional(),
-  SYSTEM_TECHNICAL_PROMPT_SALES: z.string().optional(),
-  SYSTEM_TECHNICAL_PROMPT_GENERIC: z.string().optional(),
-  CHALLENGE_GENERATION_PROMPT: z.string().optional(),
 
   SENTRY_DSN: z.string().optional(),
 });

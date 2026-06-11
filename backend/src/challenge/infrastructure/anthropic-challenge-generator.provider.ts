@@ -32,13 +32,6 @@ export class AnthropicChallengeGenerator implements ChallengeGenerator {
     if (key) {
       this.client = new Anthropic({ apiKey: key });
     }
-    if (
-      !this.configService.get<string>('CHALLENGE_GENERATION_PROMPT')?.trim()
-    ) {
-      this.logger.warn(
-        'CHALLENGE_GENERATION_PROMPT is not set — falling back to the minimal stub. Production must override this env var.',
-      );
-    }
   }
 
   async generate(
@@ -52,15 +45,7 @@ export class AnthropicChallengeGenerator implements ChallengeGenerator {
       );
     }
 
-    const override = this.configService.get<string>(
-      'CHALLENGE_GENERATION_PROMPT',
-    );
-    const prompt = buildChallengePrompt(
-      language,
-      focusTag,
-      difficulty,
-      override,
-    );
+    const prompt = buildChallengePrompt(language, focusTag, difficulty);
 
     const response = await this.client.messages.create({
       model: MODEL_NAME,

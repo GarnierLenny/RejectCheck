@@ -52,6 +52,16 @@ import {
   PROFILE_DIGEST_SYSTEM_PROMPT,
   SUBMIT_PROFILE_DIGEST_TOOL,
 } from './schemas/claude-profile-digest.schema';
+import {
+  TECHNICAL_PROMPT_SOFTWARE,
+  TECHNICAL_PROMPT_PRODUCT,
+  TECHNICAL_PROMPT_DESIGN,
+  TECHNICAL_PROMPT_DATA,
+  TECHNICAL_PROMPT_MARKETING,
+  TECHNICAL_PROMPT_OPS,
+  TECHNICAL_PROMPT_SALES,
+  TECHNICAL_PROMPT_GENERIC,
+} from './system-technical-prompts';
 
 const MODEL = 'claude-sonnet-4-6';
 // We previously tried Haiku 4.5 on the hot pass for cost savings (~$0.035
@@ -842,13 +852,16 @@ Language: ${langName}`;
   }
 
   private resolveTechnicalPrompt(roleType?: string | null): string {
-    const fallback = this.config.get<string>('SYSTEM_TECHNICAL_PROMPT')!;
-    if (!roleType || roleType === 'software') return fallback;
-    const specificKey = `SYSTEM_TECHNICAL_PROMPT_${roleType.toUpperCase()}`;
-    const specific = this.config.get<string>(specificKey);
-    if (specific) return specific;
-    const generic = this.config.get<string>('SYSTEM_TECHNICAL_PROMPT_GENERIC');
-    return generic ?? fallback;
+    const map: Record<string, string> = {
+      product: TECHNICAL_PROMPT_PRODUCT,
+      design: TECHNICAL_PROMPT_DESIGN,
+      data: TECHNICAL_PROMPT_DATA,
+      marketing: TECHNICAL_PROMPT_MARKETING,
+      ops: TECHNICAL_PROMPT_OPS,
+      sales: TECHNICAL_PROMPT_SALES,
+    };
+    if (!roleType || roleType === 'software') return TECHNICAL_PROMPT_SOFTWARE;
+    return map[roleType] ?? TECHNICAL_PROMPT_GENERIC;
   }
 
   private buildAnalyzeUserMessage(input: AnalyzeApplicationInput): string {

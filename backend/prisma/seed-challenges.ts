@@ -63,12 +63,7 @@ async function generate(
   focusTag: FocusTag,
   difficulty: Difficulty,
 ) {
-  const prompt = buildChallengePrompt(
-    language,
-    focusTag,
-    difficulty,
-    process.env.CHALLENGE_GENERATION_PROMPT,
-  );
+  const prompt = buildChallengePrompt(language, focusTag, difficulty);
 
   const response = await client.messages.create({
     model: MODEL_NAME,

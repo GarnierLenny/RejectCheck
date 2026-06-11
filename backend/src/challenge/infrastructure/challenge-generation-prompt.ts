@@ -11,11 +11,6 @@ import {
   LANGUAGE_HINTS,
 } from '../domain/focus-tags';
 
-/**
- * Minimal fallback prompt. It works but produces generic output.
- * Production must override via `CHALLENGE_GENERATION_PROMPT` in the environment.
- * The real prompt is a private asset and does not live in this repo.
- */
 const DEFAULT_CHALLENGE_GENERATION_PROMPT = `Generate a {language} code review challenge focused on "{focus_tag}" at {difficulty} difficulty.
 
 Return JSON only:
@@ -35,13 +30,8 @@ export function buildChallengePrompt(
   language: ChallengeLanguage,
   focusTag: FocusTag,
   difficulty: Difficulty,
-  overrideTemplate?: string | null,
 ): string {
-  const template =
-    overrideTemplate && overrideTemplate.trim().length > 0
-      ? overrideTemplate
-      : DEFAULT_CHALLENGE_GENERATION_PROMPT;
-  return template
+  return DEFAULT_CHALLENGE_GENERATION_PROMPT
     .replaceAll('{language}', language)
     .replaceAll('{language_hint}', LANGUAGE_HINTS[language])
     .replaceAll('{focus_tag}', focusTag)
