@@ -128,6 +128,7 @@ type Props = {
   isSharing: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
   reconstructedCv?: string | null;
+  liText?: string | null;
   isRewriting?: boolean;
   onRewrite?: () => void;
   email?: string | null;
@@ -148,6 +149,7 @@ export function CvAuditResult({
   isSharing,
   userPlan = "free",
   reconstructedCv = null,
+  liText = null,
   isRewriting = false,
   onRewrite,
   email = null,
@@ -390,6 +392,7 @@ export function CvAuditResult({
         liBlobUrl={liBlobUrl}
         mlBlobUrl={mlBlobUrl}
         reconstructedCv={reconstructedCv}
+        liText={liText}
         renderRight={() => (
           <div style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "240px 1fr", maxWidth: 1380, margin: "0 auto", width: "100%" }}>
 

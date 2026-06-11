@@ -28,6 +28,7 @@ export type AnalysisLayoutProps = {
   cvBlobUrl: string | null;
   liBlobUrl?: string | null;
   mlBlobUrl?: string | null;
+  hasLinkedin?: boolean;
   deepStatus: "pending" | "failed" | "ready";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
@@ -736,6 +737,7 @@ export function AnalysisLayout({
   cvBlobUrl,
   liBlobUrl = null,
   mlBlobUrl = null,
+  hasLinkedin,
   deepStatus,
   isPremium,
   userPlan = "free",
@@ -1074,7 +1076,7 @@ export function AnalysisLayout({
                 github={result.audit.github}
                 linkedin={result.audit.linkedin}
                 hasGithub={result.audit.github.score !== null || result.audit.github.issues.length > 0}
-                hasLinkedin={result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0 || !!liBlobUrl || !!liText}
+                hasLinkedin={hasLinkedin ?? (result.audit.linkedin.score !== null || result.audit.linkedin.issues.length > 0 || !!liBlobUrl || !!liText)}
                 onHighlightClick={(id) => {
                   const src = id.split("-")[0];
                   focusDoc(src === "linkedin" ? "linkedin" : "cv", true);

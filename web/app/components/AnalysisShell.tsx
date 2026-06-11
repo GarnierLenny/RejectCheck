@@ -304,7 +304,7 @@ export function AnalysisShell({
   }, [reconstructedCv, liText, coverLetterText]);
   const [focusedIssueId, setFocusedIssueId] = useState<string | null>(null);
 
-  const allDocs: { id: DocTab; label: string; blobUrl: string | null; missingMsg: string }[] = [
+const allDocs: { id: DocTab; label: string; blobUrl: string | null; missingMsg: string }[] = [
     { id: "cv",       label: t.analysisShell.labelCv,      blobUrl: cvBlobUrl,  missingMsg: t.analysisShell.missingCv },
     { id: "cover",    label: t.analysisShell.labelCover,   blobUrl: mlBlobUrl,  missingMsg: t.analysisShell.missingCover },
     { id: "linkedin", label: t.analysisShell.labelLinkedin, blobUrl: liBlobUrl, missingMsg: t.analysisShell.missingLinkedin },

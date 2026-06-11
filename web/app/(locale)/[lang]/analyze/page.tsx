@@ -133,6 +133,13 @@ function AnalyzeContent() {
 
   const urlId = searchParams.get('id') ? parseInt(searchParams.get('id')!) : null;
 
+  // If the cache was primed by an old primeQueryCache (only result+jobDescription),
+  // it won't have text fields. Detect and purge so useAnalysis re-fetches fresh.
+  useEffect(() => {
+    if (!urlId || !user?.id || streamingRef.current) return;
+    queryClient.removeQueries({ queryKey: ['analysis', urlId] });
+  }, [urlId, user?.id]);
+
   const { data: subscriptionData } = useSubscription();
   const { data: quota } = useQuota();
   const { data: profile } = useProfile();
@@ -302,7 +309,7 @@ function AnalyzeContent() {
         if (latestAnalysisId && latestResult && user?.id) {
           queryClient.setQueryData(
             ['analysis', latestAnalysisId, user.id],
-            { result: latestResult, jobDescription: '' },
+            { _primed: true, result: latestResult, jobDescription: '' },
           );
         }
       };
@@ -460,6 +467,7 @@ function AnalyzeContent() {
           queryClient.setQueryData(
             ['analysis', latestAnalysisId, user.id],
             {
+              _primed: true,
               result: latestResult,
               jobDescription,
               cvTextFormatted: latestCvTextFormatted,
@@ -791,6 +799,8 @@ function AnalyzeContent() {
           result={result!}
           analysisId={analysisId}
           cvBlobUrl={cvBlobUrl}
+          liBlobUrl={liBlobUrl}
+          liText={liText}
           onReset={handleReset}
           onExportMd={exportToMd}
           onShare={analysisId && user ? shareAnalysis : undefined}
@@ -809,6 +819,7 @@ function AnalyzeContent() {
           cvBlobUrl={cvBlobUrl}
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
+          hasLinkedin={!!(liFile || liBlobUrl || liText)}
           deepStatus="ready"
           isPremium={!!activeSubscription}
           userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
