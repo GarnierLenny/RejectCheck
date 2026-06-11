@@ -158,7 +158,11 @@ export function UploadForm({
 
   const preset = URL_PRESETS[roleType ?? "software"];
   const isRecommended = (f: UrlField) => preset.recommended.includes(f);
-  const quotaLeft = quota ? Math.max(0, quota.monthlyCap - quota.monthlyUsed) + quota.creditsBalance : null;
+
+  // Credits per analysis: audit costs 50, compare costs 100 (matches backend CREDIT_COSTS)
+  const analysisCost = armedMode === "audit" ? 50 : 100;
+  const creditsLeft = quota ? Math.max(0, quota.monthlyCap - quota.monthlyUsed) + quota.creditsBalance : null;
+  const quotaLeft = creditsLeft !== null ? Math.floor(creditsLeft / analysisCost) : null;
 
   const signalCount = [
     githubUsername.trim().length > 0,
