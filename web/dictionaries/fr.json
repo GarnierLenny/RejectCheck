@@ -70,7 +70,7 @@
       "platformLabel": "Plateforme tout-en-un",
       "platformTitle": "Six outils. Un seul abonnement.",
       "platformSubtitle": "Tout ce qu'il faut pour passer de candidat ignoré à embauché : CV, LinkedIn, GitHub, suivi des candidatures, lettre de motivation et entretiens simulés.",
-      "founderLabel": "Fondateur · Construit pour lui-même",
+      "founderLabel": "Co-Fondateur",
       "cancelAnytime": "Résiliation possible à tout moment",
       "hiredRefund": "Embauché ? On rembourse ton dernier mois. Sans formulaire. Dis-le nous."
     },
@@ -467,7 +467,8 @@
       "smallLabel": "En guise de conclusion",
       "quotePart1": "Le refus arrive dans le silence. Ou il n'arrive pas du tout.",
       "quoteRed": "On a juste pensé que vous voudriez le savoir avant.",
-      "attribution": "Fait à Paris · par"
+      "attribution": "Fait à Paris · par",
+      "coFounders": "Co-Fondateurs"
     },
     "footerBrand": {
       "tagline": "Le coach CV qui vous dit pourquoi vous seriez rejeté, avant de postuler. Conçu pour les devs, utile pour tous les métiers."

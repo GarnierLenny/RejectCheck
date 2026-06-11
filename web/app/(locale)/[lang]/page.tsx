@@ -423,7 +423,7 @@ export default function Home() {
 
   const testimonials = [
     { quote: "Best job search tool I've ever used. Went from 0 callbacks to 3 in a week.", name: "Raphael", role: "Fullstack Engineer", img: "/testimonials/raphael.png" },
-    { quote: "Actual game changer. 3 interviews in 2 weeks after fixing the gaps it flagged.", name: "Arshiyaa", role: "Product Manager", img: "/testimonials/arshiyaa.jpeg" },
+    { quote: "Actual game changer. 3 interviews in 2 weeks after fixing the gaps it flagged.", name: "Arshiyaa Rai", role: "Co-Founder, RejectCheck", img: "/testimonials/arshiyaa.jpeg" },
     { quote: "The advice is really good.", name: "Sheryll", role: "Software Eng. Student", initials: "S" },
     { quote: "This is a really great tool!", name: "Yasbira", role: "ISE Student", initials: "Y" },
   ] as const;
@@ -968,6 +968,7 @@ export default function Home() {
                 <a href="https://www.linkedin.com/in/lenny-garnier-2ab689199/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--rc-text)", fontWeight: 600, textDecoration: "none" }}>Lenny Garnier</a>
                 {" "}&amp;{" "}
                 <a href="https://www.linkedin.com/in/arshiyaa-rai-56aa342b5/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--rc-text)", fontWeight: 600, textDecoration: "none" }}>Arshiyaa Rai</a>
+                {" "}· {t.landing.s07.coFounders}
               </p>
             </div>
           </div>

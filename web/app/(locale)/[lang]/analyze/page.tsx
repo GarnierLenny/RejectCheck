@@ -467,7 +467,6 @@ function AnalyzeContent() {
           queryClient.setQueryData(
             ['analysis', latestAnalysisId, user.id],
             {
-              _primed: true,
               result: latestResult,
               jobDescription,
               cvTextFormatted: latestCvTextFormatted,
@@ -819,7 +818,6 @@ function AnalyzeContent() {
           cvBlobUrl={cvBlobUrl}
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
-          hasLinkedin={!!(liFile || liBlobUrl || liText)}
           deepStatus="ready"
           isPremium={!!activeSubscription}
           userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
