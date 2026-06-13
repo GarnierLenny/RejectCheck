@@ -41,7 +41,7 @@ export async function generateMetadata({
   const position = [data.jobLabel, data.company].filter(Boolean).join(" @ ");
   const isCvReview = !!data.result.cv_quality;
   const score = isCvReview ? data.result.cv_quality!.overall : data.result.score;
-  const ogImageUrl = `https://www.rejectcheck.com/og/share/${token}`;
+  const ogImageUrl = `https://rejectcheck.com/og/share/${token}`;
 
   const title = isCvReview
     ? `${name} · ${score}% CV Score · RejectCheck`

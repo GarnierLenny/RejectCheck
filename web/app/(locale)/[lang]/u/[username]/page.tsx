@@ -60,7 +60,7 @@ export async function generateMetadata({
       siteName: "RejectCheck",
       images: [
         {
-          url: `https://www.rejectcheck.com/${lang}/opengraph-image/main`,
+          url: `https://rejectcheck.com/${lang}/opengraph-image/main`,
           width: 1200,
           height: 630,
           alt: name,

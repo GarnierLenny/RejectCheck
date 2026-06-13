@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 
-const BASE_URL = 'https://www.rejectcheck.com'
+const BASE_URL = 'https://rejectcheck.com'
 
 type RoutePath = {
   path: string

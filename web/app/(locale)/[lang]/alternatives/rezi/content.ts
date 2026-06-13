@@ -5,7 +5,7 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       'Dual-AI CV diagnosis tool - not a builder. Tells you what is wrong with the CV you already have.',
-    website: 'https://www.rejectcheck.com',
+    website: 'https://rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month',
     topFeatures: [
@@ -160,7 +160,7 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       "Outil de diagnostic de CV dual-IA - pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
-    website: 'https://www.rejectcheck.com',
+    website: 'https://rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois',
     topFeatures: [

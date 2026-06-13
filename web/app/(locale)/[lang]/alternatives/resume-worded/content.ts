@@ -5,7 +5,7 @@ const COMPETITORS_EN: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       'Dual-AI CV diagnosis with skill gap radar, GitHub commit audit, LinkedIn cross-reference, and voice-based AI mock interview.',
-    website: 'https://www.rejectcheck.com',
+    website: 'https://rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month (transparent pricing, published publicly)',
     topFeatures: [
@@ -309,7 +309,7 @@ const COMPETITORS_FR: Competitor[] = [
     name: 'RejectCheck',
     tagline:
       'Diagnostic de CV dual-IA avec radar des lacunes, audit commits GitHub, recoupement LinkedIn, et entretien simulé IA vocal.',
-    website: 'https://www.rejectcheck.com',
+    website: 'https://rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois (prix transparent, publié publiquement)',
     topFeatures: [
