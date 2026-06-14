@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import type { AnalysisResult, Fix } from "./types";
+import { Eyebrow, Mono } from "./resultAtoms";
 import { AnalysisShell, type HighlightMap, type HighlightEntry } from "./AnalysisShell";
 import { RadarChart } from "./RadarChart";
 import { SignalsTab } from "./tabs/SignalsTab";
@@ -81,17 +82,7 @@ function MD({ children }: { children: string }) {
 
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 
-function Eyebrow({ children, color, style }: { children: React.ReactNode; color?: string; style?: React.CSSProperties }) {
-  return (
-    <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: color ?? "var(--rc-hint)", ...style }}>
-      {children}
-    </span>
-  );
-}
-
-function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <span style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", ...style }}>{children}</span>;
-}
+// Eyebrow + Mono are imported from ./resultAtoms (shared with AnalysisShell).
 
 function SevTag({ sev }: { sev: string }) {
   const c = sevColor(sev);

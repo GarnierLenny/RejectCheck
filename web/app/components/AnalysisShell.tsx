@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "../../context/language";
+import { Eyebrow } from "./resultAtoms";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -44,17 +45,7 @@ const R_SM = "4px";
 const R_MD = "8px";
 const SHADOW_XS = "0 1px 3px rgba(0,0,0,0.10)";
 
-function Eyebrow({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", ...style }}>
-      {children}
-    </span>
-  );
-}
-
-function Mono({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <span style={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", ...style }}>{children}</span>;
-}
+// Eyebrow is imported from ./resultAtoms (Mono was unused here and removed).
 
 // ── ParsedCvView ──────────────────────────────────────────────────────────────
 
