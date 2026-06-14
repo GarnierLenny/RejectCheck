@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import type { FileFilterCallback } from 'multer';
 import { Throttle } from '@nestjs/throttler';
 import {
   ApiBody,
@@ -83,6 +84,24 @@ type SseResponse = {
   json: (body: unknown) => SseResponse;
 };
 
+/**
+ * Shared upload guardrails for the public analyze endpoints: cap each file at
+ * 10 MB and at most 3 files, and reject anything that isn't a PDF before it
+ * reaches pdf-parse / Claude. Prevents memory exhaustion and cost-bleed from
+ * oversized or junk uploads on the unauthenticated path.
+ */
+const PDF_UPLOAD_OPTIONS = {
+  limits: { fileSize: 10 * 1024 * 1024, files: 3 },
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: FileFilterCallback,
+  ) => {
+    if (file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new BadRequestException('Only PDF files are accepted'));
+  },
+};
+
 @ApiTags('Analyze')
 @Controller('api/analyze')
 export class AnalyzeController {
@@ -122,11 +141,14 @@ export class AnalyzeController {
   @ApiBody({ type: AnalyzeRequestDto })
   @ApiOkResponse({ type: AnalyzeResponseDto })
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'cv', maxCount: 1 },
-      { name: 'linkedin', maxCount: 1 },
-      { name: 'motivationLetter', maxCount: 1 },
-    ]),
+    FileFieldsInterceptor(
+      [
+        { name: 'cv', maxCount: 1 },
+        { name: 'linkedin', maxCount: 1 },
+        { name: 'motivationLetter', maxCount: 1 },
+      ],
+      PDF_UPLOAD_OPTIONS,
+    ),
   )
   async analyze(
     @UploadedFiles()
@@ -227,10 +249,13 @@ export class AnalyzeController {
   @ApiOperation({ summary: 'Audit a CV standalone (no job description)' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'cv', maxCount: 1 },
-      { name: 'linkedin', maxCount: 1 },
-    ]),
+    FileFieldsInterceptor(
+      [
+        { name: 'cv', maxCount: 1 },
+        { name: 'linkedin', maxCount: 1 },
+      ],
+      PDF_UPLOAD_OPTIONS,
+    ),
   )
   async reviewCv(
     @UploadedFiles()

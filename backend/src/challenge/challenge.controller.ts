@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { SubmitFinalSchema, SubmitFirstSchema } from './dto/challenge.dto';
 import {
   ChallengeLeaderboardQuerySchema,
@@ -66,6 +67,8 @@ export class ChallengeController {
     return this.getDayStats.execute(id);
   }
 
+  // Costly: Gemini Socratic coach call per submission.
+  @Throttle({ default: { limit: 12, ttl: 60_000 } })
   @UseGuards(SupabaseGuard)
   @Post('submit/first')
   @ApiOperation({
@@ -83,6 +86,8 @@ export class ChallengeController {
     );
   }
 
+  // Costly: Gemini scoring call per submission.
+  @Throttle({ default: { limit: 12, ttl: 60_000 } })
   @UseGuards(SupabaseGuard)
   @Post('submit/final')
   @ApiOperation({ summary: 'Submit the final answer and get the score' })

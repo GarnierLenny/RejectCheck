@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { InterviewService } from './interview.service';
 import {
   StartInterviewSchema,
@@ -26,6 +27,8 @@ import { AuthEmail } from '../auth/auth-email.decorator';
 export class InterviewController {
   constructor(private readonly interviewService: InterviewService) {}
 
+  // Costly: generates interview questions (Claude) + first-question TTS (OpenAI).
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('start')
   @ApiOperation({ summary: 'Start a new AI interview session (premium)' })
   async start(@AuthEmail() email: string, @Body() body: unknown) {
@@ -35,6 +38,8 @@ export class InterviewController {
     return this.interviewService.start(parsed.data.analysisId, email);
   }
 
+  // Costly: Whisper transcription + Claude turn + OpenAI TTS on every call.
+  @Throttle({ default: { limit: 12, ttl: 60_000 } })
   @Post('answer')
   @ApiOperation({ summary: 'Submit an audio answer and get the next question' })
   @ApiConsumes('multipart/form-data')
@@ -58,6 +63,8 @@ export class InterviewController {
     );
   }
 
+  // Costly: full Sonnet post-interview evaluation.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('complete')
   @ApiOperation({ summary: 'Complete the interview and generate analysis' })
   async complete(@AuthEmail() email: string, @Body() body: unknown) {

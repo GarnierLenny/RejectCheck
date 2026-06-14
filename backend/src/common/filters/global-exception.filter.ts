@@ -10,6 +10,7 @@ import * as Sentry from '@sentry/nestjs';
 import type { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import { DomainException } from '../exceptions/domain.exception';
 
 type ErrorBody = {
@@ -73,6 +74,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
     }
 
+    if (exception instanceof MulterError) {
+      const tooLarge = exception.code === 'LIMIT_FILE_SIZE';
+      return {
+        status: tooLarge
+          ? HttpStatus.PAYLOAD_TOO_LARGE
+          : HttpStatus.BAD_REQUEST,
+        body: {
+          code: tooLarge ? 'PAYLOAD_TOO_LARGE' : 'BAD_REQUEST',
+          message: tooLarge
+            ? 'File too large. Each file must be 10 MB or less.'
+            : `Upload rejected: ${exception.message}`,
+          requestId,
+        },
+      };
+    }
+
     if (exception instanceof ZodError) {
       return {
         status: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -123,6 +140,7 @@ function codeFromHttpStatus(status: number): string {
     403: 'FORBIDDEN',
     404: 'NOT_FOUND',
     409: 'CONFLICT',
+    413: 'PAYLOAD_TOO_LARGE',
     422: 'UNPROCESSABLE_ENTITY',
     429: 'TOO_MANY_REQUESTS',
     500: 'INTERNAL_ERROR',
