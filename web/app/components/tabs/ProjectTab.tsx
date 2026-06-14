@@ -2,8 +2,10 @@
 
 import { CheckCircle2, Zap, Target, Gauge, ArrowRight, Layers, ShieldCheck, Lightbulb, ListChecks } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import Link from "next/link";
 import type { AnalysisResult } from "../types";
 import { SectionHeader } from "../SectionHeader";
+import { useLanguage } from "../../../context/language";
 
 type Props = {
   project: AnalysisResult["project_recommendation"];
@@ -16,6 +18,7 @@ function stripMd(text: string): string {
 const mdClass = "[&_strong]:font-semibold [&_strong]:text-rc-text [&_ul]:mt-2 [&_ul]:space-y-1 [&_li]:ml-4 [&_li]:list-disc [&_p]:leading-[1.7]";
 
 export function ProjectTab({ project }: Props) {
+  const { localePath } = useLanguage();
   if (!project) {
     return (
       <div className="p-12 text-center bg-rc-surface border border-rc-border border-dashed">
@@ -175,6 +178,25 @@ export function ProjectTab({ project }: Props) {
         <p className="font-mono text-[12px] text-rc-hint leading-relaxed">
           Deploy to production and document the trade-offs you made. That&apos;s what seniors do.
         </p>
+      </div>
+
+      {/* Upsell — free users get the full spec above; the interactive build
+          plan (phase tracking, milestones, starter repo) is premium. */}
+      <div className="bg-rc-red/5 border border-rc-red/20 p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex-1">
+          <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5 mb-2">
+            <ListChecks className="w-3.5 h-3.5" /> Build it, don&apos;t just read it
+          </h4>
+          <p className="text-[14px] text-rc-muted leading-relaxed">
+            Unlock the interactive build plan: track each phase, tick off milestones, and download a ready-to-code starter repo.
+          </p>
+        </div>
+        <Link
+          href={localePath("/pricing")}
+          className="shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 bg-rc-red text-white font-mono text-[11px] font-bold uppercase tracking-[0.14em] no-underline transition-colors hover:bg-[var(--rc-red-hover)]"
+        >
+          Unlock build plan <ArrowRight className="w-3.5 h-3.5" />
+        </Link>
       </div>
     </div>
   );

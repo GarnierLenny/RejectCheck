@@ -237,7 +237,12 @@ export class AnalyzeCvUseCase {
 
     emitStep('dual_ai_analysis');
     const claudeStart = Date.now();
-    const generateBridgeProject = subscriptionState.plan !== 'rejected';
+    // The bridge project SPEC is part of the free core analysis (rendered
+    // read-only in ProjectTab). The INTERACTIVE bridge (step tracking,
+    // completion, starter-repo) stays premium — gated in the UI and by the
+    // @RequiresPremium('shortlisted') starter-repo endpoint. Generating it for
+    // everyone also stabilises the prompt-cache prefix (always bridge-ON).
+    const generateBridgeProject = true;
     const result = await this.claude.analyzeApplication({
       ...claudeInput,
       generateBridgeProject,
