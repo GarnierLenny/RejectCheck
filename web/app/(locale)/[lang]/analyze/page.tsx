@@ -80,6 +80,9 @@ function AnalyzeContent() {
   const [streamText, setStreamText] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // True only on a runtime analysis failure (stream/network) — drives the
+  // LoadingScreen error card + retry. Validation errors stay in the upload form.
+  const [analysisFailed, setAnalysisFailed] = useState(false);
   // Paywall state — `null` when the form/result is visible, otherwise the
   // mode (drives PaywallScreen variant) + optional cap rendered into the copy.
   const [paywallState, setPaywallState] = useState<
@@ -254,8 +257,8 @@ function AnalyzeContent() {
     return () => clearTimeout(timer);
   }, [result, visualLoadingDone, analysisId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleCvReviewSubmit(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
+  async function handleCvReviewSubmit(e?: React.MouseEvent<HTMLButtonElement>) {
+    e?.preventDefault();
     if (!cvFile) return;
 
     const formData = new FormData();
@@ -274,6 +277,7 @@ function AnalyzeContent() {
 
     setLoading(true);
     setError(null);
+    setAnalysisFailed(false);
     setCurrentStep(null);
     setStreamText("");
     streamingRef.current = true;
@@ -383,6 +387,7 @@ function AnalyzeContent() {
       setError(message);
       setLoading(false);
       setCurrentStep(null);
+      setAnalysisFailed(true);
       posthog.capture("cv_review_failed", { error: message });
       posthog.captureException(err);
     } finally {
@@ -390,8 +395,8 @@ function AnalyzeContent() {
     }
   }
 
-  async function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.MouseEvent<HTMLButtonElement>) {
+    e?.preventDefault();
     if (!cvFile || !jobDescription.trim()) return;
 
     const formData = new FormData();
@@ -414,6 +419,7 @@ function AnalyzeContent() {
 
     setLoading(true);
     setError(null);
+    setAnalysisFailed(false);
     setCurrentStep(null);
     setStreamText("");
     streamingRef.current = true;
@@ -585,6 +591,7 @@ function AnalyzeContent() {
       setError(message);
       setLoading(false);
       setCurrentStep(null);
+      setAnalysisFailed(true);
       posthog.capture("cv_analysis_failed", { error: message, analysis_id: analysisId });
       posthog.captureException(err);
     } finally {
@@ -595,6 +602,7 @@ function AnalyzeContent() {
   function handleReset() {
     setResult(null);
     setError(null);
+    setAnalysisFailed(false);
     setCurrentStep(null);
     setJobDescription("");
     setActiveTab("overview");
@@ -856,6 +864,17 @@ function AnalyzeContent() {
                 hasML={mlFile !== null || mlText.trim().length > 0}
                 isHired={activeSubscription?.plan === 'hired'}
                 onFinished={() => setVisualLoadingDone(true)}
+              />
+            ) : analysisFailed ? (
+              <LoadingScreen
+                currentStep={currentStep}
+                streamText={streamText}
+                hasGithub={githubUsername.trim().length > 0}
+                hasLinkedin={liFile !== null}
+                hasML={mlFile !== null || mlText.trim().length > 0}
+                isHired={activeSubscription?.plan === 'hired'}
+                errored
+                onRetry={() => { (analyzeMode === 'cv-review' ? handleCvReviewSubmit : handleSubmit)(); }}
               />
             ) : (
               <div className="flex-1 flex flex-col min-h-0">

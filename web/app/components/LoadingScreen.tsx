@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
-import { Zap, Cpu, Search, FileText } from "lucide-react";
-import { Anthropic, Github, Linkedin } from "react-bootstrap-icons";
+import { useState, useEffect, useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { FileText, Search, Zap, ChevronRight, Lock } from "lucide-react";
+import { Github, Linkedin } from "react-bootstrap-icons";
 import { useLanguage } from "../../context/language";
 
 type Props = {
@@ -14,463 +14,347 @@ type Props = {
   hasML: boolean;
   isHired?: boolean;
   onFinished?: () => void;
+  /** Optional: parent can flag a hard failure to show the error treatment. */
+  errored?: boolean;
+  /** Optional: wired to the retry button in the error state. */
+  onRetry?: () => void;
 };
 
 type StepStatus = "pending" | "running" | "done" | "skipped";
 
-// The loading screen now only covers the HOT phase. As soon as the SSE flow
-// emits `analysis_done`, the page swaps in the result view (with skeletons for
-// deep + nego content). The post-hot steps (negotiation_coaching, finalizing)
-// happen invisibly in the background while the user reads their score.
-const STEPS_CONFIG_BASE = [
-  { id: "parsing_cv"           as const, Icon: FileText,  lane: "center" as const },
-  { id: "matching_skills"      as const, Icon: Search,    lane: "center" as const },
-  { id: "analyzing_linkedin"   as const, Icon: Linkedin,  lane: "center" as const },
-  { id: "analyzing_github"     as const, Icon: Github,    lane: "center" as const },
-  { id: "dual_ai_analysis"     as const, Icon: Zap,       lane: "split"  as const },
+// The visible pipeline = the 5 hot-pass phases. Negotiation + finalizing run
+// invisibly after the user is already on the result view (skeletons there).
+const STEP_DEFS = [
+  { id: "parsing_cv" as const, Icon: FileText },
+  { id: "matching_skills" as const, Icon: Search },
+  { id: "analyzing_linkedin" as const, Icon: Linkedin, needs: "linkedin" as const },
+  { id: "analyzing_github" as const, Icon: Github, needs: "github" as const },
+  { id: "dual_ai_analysis" as const, Icon: Zap, deep: true as const },
 ];
 
+// Claude sub-task JSON keys emitted in the hot tool_use stream. Order matters
+// for the reasoning panel + the deep-step sub-progress.
+const SUBTASK_KEYS = [
+  "audit_cv",
+  "audit_jd_match",
+  "ats_simulation",
+  "cv_tone",
+  "hidden_red_flags",
+] as const;
 
-/**
- * Formats Claude's partial tool_use JSON into something readable by humans.
- * Strips structural tokens (braces, brackets, commas, quotes) and replaces
- * them with newlines + indentation so the output reads like a structured doc:
- *
- *   technical_analysis:
- *     reasoning: The JD is for **RejectCheck**…
- *     skill_priority:
- *       TypeScript
- *       LLM/AI Integration
- *
- * String contents are preserved verbatim. Operates on a partial JSON stream,
- * so the output may end mid-sentence — that's fine, it just keeps rendering.
- */
-function prettifyPartialJSON(raw: string): string {
-  let out = '';
-  let inString = false;
-  let escape = false;
-  let depth = 0;
+const WATCHDOG_MS = 45_000;
 
-  const isLineBlank = () => {
-    const lastNl = out.lastIndexOf('\n');
-    return /^\s*$/.test(out.slice(lastNl + 1));
-  };
-  const newline = () => {
-    // Replace any trailing whitespace (spaces or stale indent) with the
-    // current depth's indent on a fresh line. Avoids blank lines when
-    // structural tokens stack (e.g. `[` immediately followed by `{`).
-    out = out.replace(/[ \t]+$/, '');
-    if (!out.endsWith('\n')) out += '\n';
-    out += '  '.repeat(Math.max(0, depth));
-  };
-
-  for (let i = 0; i < raw.length; i++) {
-    const ch = raw[i];
-
-    if (escape) {
-      // Decode the standard JSON escape sequences. Without this, `\n` (two
-      // characters: backslash + 'n') would be emitted as two literal chars
-      // instead of an actual newline.
-      switch (ch) {
-        case 'n': out += '\n'; break;
-        case 't': out += '\t'; break;
-        case 'r': out += '\r'; break;
-        case '"': out += '"'; break;
-        case '\\': out += '\\'; break;
-        case '/': out += '/'; break;
-        case 'b': out += '\b'; break;
-        case 'f': out += '\f'; break;
-        default: out += ch; // unknown escape — pass through
-      }
-      escape = false;
-      continue;
-    }
-    if (inString) {
-      if (ch === '\\') { escape = true; continue; }
-      if (ch === '"') { inString = false; continue; }
-      out += ch;
-      continue;
-    }
-
-    if (ch === '"') { inString = true; continue; }
-    if (ch === '{' || ch === '[') { depth++; newline(); continue; }
-    if (ch === '}' || ch === ']') { depth = Math.max(0, depth - 1); continue; }
-    if (ch === ',') { newline(); continue; }
-    if (ch === ':') {
-      out = out.replace(/[ \t]+$/, '');
-      out += ': ';
-      continue;
-    }
-    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
-      if (isLineBlank()) continue;
-      if (out.endsWith(' ')) continue;
-      out += ' ';
-      continue;
-    }
-    out += ch;
-  }
-  return out.replace(/^\n+/, '').replace(/\n{3,}/g, '\n\n');
+/** Maps a backend SSE `currentStep` to a main-step index (skips share idx). */
+function backendIndexOf(currentStep: string | null, total: number): number {
+  if (!currentStep) return -1;
+  if (currentStep === "done") return total;
+  // Motivation-letter parsing + ATS run within the deep phase.
+  if (currentStep === "parsing_motivation_letter" || currentStep === "running_ats") return 4;
+  return STEP_DEFS.findIndex((s) => s.id === currentStep);
 }
 
-/**
- * Renders inline markdown from streamed prose into React nodes:
- *   **bold**   → <strong className="text-rc-red font-semibold">
- *   *italic*   → <em className="italic">
- *   `code`     → backticks stripped (the panel is already monospace)
- *   ~~ __ #    → markers stripped, content preserved
- *
- * Handles partial streaming gracefully: closed pairs render styled, any
- * trailing unclosed marker is dropped so we don't flash raw `**` at the end.
- */
-function renderMarkdown(text: string): React.ReactNode[] {
-  // Drop noise that we don't visually distinguish in this panel.
-  text = text
-    .replace(/`+/g, '')
-    .replace(/__/g, '')
-    .replace(/~~/g, '')
-    .replace(/^#+\s+/gm, '');
-
-  const out: React.ReactNode[] = [];
-  // Bold first (greedy on `**...**`), italics second (`*...*`).
-  const tokenRegex = /(\*\*[\s\S]+?\*\*)|(\*[^*\n]+?\*)/g;
-  let lastIndex = 0;
-  let key = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = tokenRegex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      out.push(text.slice(lastIndex, match.index));
-    }
-    if (match[1]) {
-      out.push(
-        <strong key={key++} className="text-rc-red font-semibold">
-          {match[1].slice(2, -2)}
-        </strong>,
-      );
-    } else if (match[2]) {
-      out.push(
-        <em key={key++} className="italic">
-          {match[2].slice(1, -1)}
-        </em>,
-      );
-    }
-    lastIndex = tokenRegex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    // Strip unclosed trailing markers so a mid-stream `**hello` shows as `hello`
-    // until the closing `**` arrives.
-    const trailing = text.slice(lastIndex).replace(/\*+$/, '');
-    out.push(trailing);
-  }
-  return out;
-}
-
-// ---------- Horizontal pipeline layout ----------
-const CY    = 155;  // Center Y (spine of the pipeline)
-const X0    = 50;   // Starting X
-const W     = 120;  // Width per main step
-const SUB_W = 95;   // Width per sub-node
-
-// First post-split node (idx 5). Subsequent post-split nodes step by W.
-const POST_SPLIT_X = X0 + 4 * W + 5 * SUB_W + 60;
-
-const GET_X = (idx: number) => {
-  if (idx <= 4) return X0 + idx * W;
-  return POST_SPLIT_X + (idx - 5) * W;
-};
-
-const MERGE_X = GET_X(4) + 5 * SUB_W + 30;
-
-const CLAUDE_TASKS_COUNT = 5;
-
-export function LoadingScreen({ currentStep, streamText = "", hasGithub, hasLinkedin, hasML, isHired = false, onFinished }: Props) {
+export function LoadingScreen({
+  currentStep,
+  streamText = "",
+  hasGithub,
+  hasLinkedin,
+  hasML,
+  isHired,
+  onFinished,
+  errored = false,
+  onRetry,
+}: Props) {
   const { t } = useLanguage();
-  const config = { hasGithub, hasLinkedin, hasML };
-
-  const CLAUDE_TASKS = t.loadingScreen.claudeTasks as string[];
-
-  // All users see the same 5-step pipeline (hot-pass only — negotiation +
-  // finalizing run invisibly after the user is already on the result view).
-  // `isHired` is kept in props for symmetry with the rest of the flow but
-  // no longer changes the visible pipeline length.
+  const ls = t.loadingScreen;
+  const reduce = useReducedMotion();
+  void hasML;
   void isHired;
-  const STEPS_CONFIG = STEPS_CONFIG_BASE;
-  const SVG_W = 1100;
 
-  const [internalStepIdx, setInternalStepIdx] = useState(0);
-  const [isFullyDone,     setIsFullyDone]     = useState(false);
+  const total = STEP_DEFS.length;
+  const skipped = (id: string) =>
+    (id === "analyzing_linkedin" && !hasLinkedin) ||
+    (id === "analyzing_github" && !hasGithub);
 
-  // Each Claude sub-task is detected when its top-level JSON key appears in
-  // the streamed tool_use input. Keys must match what the HOT pass actually
-  // emits (the loading screen only covers the hot phase; technical_analysis
-  // and project_recommendation are generated in the deep pass and surface as
-  // skeletons in the result view).
-  const CLAUDE_TASK_KEYS = [
-    'audit_cv',
-    'audit_jd_match',
-    'ats_simulation',
-    'cv_tone',
-    'hidden_red_flags',
-  ] as const;
+  const backendIdx = backendIndexOf(currentStep, total);
+  const backendDone = currentStep === "done" || backendIdx >= total;
 
-  const backendIdx = (() => {
-    if (!currentStep) return -1;
-    if (currentStep === "done") return STEPS_CONFIG.length;
-    if (currentStep === "parsing_motivation_letter" || currentStep === "running_ats") return 4;
-    return STEPS_CONFIG.findIndex(s => s.id === currentStep);
-  })();
+  // The currently-running main step: first non-skipped step at or after the
+  // backend signal. Driven by real signals, not a cosmetic timer.
+  let active = Math.max(0, backendIdx);
+  while (active < total && skipped(STEP_DEFS[active].id)) active++;
 
-  // 1. Step progression timer — gated by the backend signal. Holds at the
-  // split (idx 4) until either the sub-tasks are visually complete or the
-  // backend has explicitly moved past split (e.g. emitted negotiation_coaching).
-  useEffect(() => {
-    if (isFullyDone) return;
-    const timer = setInterval(() => {
-      setInternalStepIdx(prev => {
-        const next = prev + 1;
-        if (next >= STEPS_CONFIG.length) return prev;
-        if (next > backendIdx && backendIdx !== -1) return prev;
-        if (prev === 4 && backendIdx <= 4) return prev;
-        return next;
-      });
-    }, 1800);
-    return () => clearInterval(timer);
-  }, [backendIdx, isFullyDone, STEPS_CONFIG.length]);
-
-  // 2. Claude sub-task progression — each task's key is searched in
-  // streamText; once found, that task flips to done. Per-task tracking so a
-  // field generated out of order shows as done immediately (vs. a sequential
-  // counter which would mislabel earlier tasks). When the backend signals
-  // completion, force all to done.
-  const backendDone = backendIdx >= STEPS_CONFIG.length;
-  const taskDone = CLAUDE_TASK_KEYS.map(
-    (key) => backendDone || streamText.includes(`"${key}"`),
-  );
-  const firstActiveIdx = taskDone.findIndex((d) => !d);
-  const claudeP = backendDone
-    ? CLAUDE_TASKS_COUNT
-    : taskDone.filter(Boolean).length;
-
-  // 3. Finalization — fires onFinished as a fallback once the split sub-tasks
-  // are all visually done. The page transitions away from the loading screen
-  // as soon as the `analysis_done` SSE event arrives (via setVisualLoadingDone
-  // in the parent), so this timer rarely fires in practice — it just protects
-  // against an edge case where the parent never unmounts us.
-  useEffect(() => {
-    const lastIdx = STEPS_CONFIG.length - 1;
-    if (internalStepIdx === lastIdx && !isFullyDone) {
-      const t = setTimeout(() => { setIsFullyDone(true); onFinished?.(); }, 3000);
-      return () => clearTimeout(t);
-    }
-  }, [internalStepIdx, claudeP, isFullyDone, onFinished, backendDone, STEPS_CONFIG.length]);
-
-  function getVisualStatus(stepId: string, idx: number): StepStatus {
-    const step = STEPS_CONFIG[idx];
-    if (step.id === "analyzing_github"  && !config.hasGithub)   return "skipped";
-    if (step.id === "analyzing_linkedin" && !config.hasLinkedin) return "skipped";
-    if (isFullyDone) return "done";
-    if (idx < internalStepIdx) return "done";
-    if (idx === internalStepIdx) return "running";
+  const statusOf = (i: number): StepStatus => {
+    if (skipped(STEP_DEFS[i].id)) return "skipped";
+    if (backendDone) return "done";
+    if (i < active) return "done";
+    if (i === active) return "running";
     return "pending";
-  }
+  };
 
-  const virtualSplitDone = claudeP === CLAUDE_TASKS_COUNT;
-  const splitActive      = internalStepIdx >= 4 && !isFullyDone;
+  // Deep sub-task detection.
+  const subDone = SUBTASK_KEYS.map((k) => backendDone || streamText.includes(`"${k}"`));
+  const subCount = subDone.filter(Boolean).length;
+  const firstActiveSub = subDone.findIndex((d) => !d);
+  const deepRunning = STEP_DEFS[active]?.deep === true && !backendDone;
 
-  const liveRef = useRef<HTMLDivElement>(null);
+  // Progress %, derived from completed steps + deep sub-progress.
+  const nonSkippedTotal = STEP_DEFS.filter((s) => !skipped(s.id)).length;
+  const doneCount = STEP_DEFS.filter((s, i) => !skipped(s.id) && statusOf(i) === "done").length;
+  const pct = useMemo(() => {
+    if (backendDone) return 100;
+    const per = 100 / nonSkippedTotal;
+    let p = doneCount * per;
+    if (deepRunning) p += per * (subCount / SUBTASK_KEYS.length);
+    return Math.min(99, Math.round(p));
+  }, [backendDone, doneCount, deepRunning, subCount, nonSkippedTotal]);
+  const stepNo = Math.min(nonSkippedTotal, doneCount + (backendDone ? 0 : 1));
+
+  // Reasoning lines: each completed sub-task + the active one (humanized prose).
+  const reasoningRows = SUBTASK_KEYS
+    .map((k, i) => ({ key: k, i }))
+    .filter(({ i }) => subDone[i] || i === firstActiveSub)
+    .filter(() => deepRunning || backendDone || subCount > 0);
+
+  // Collapsible reasoning — open by default on desktop only (avoid SSR mismatch).
+  const [open, setOpen] = useState(false);
   useEffect(() => {
-    if (liveRef.current) liveRef.current.scrollTop = liveRef.current.scrollHeight;
-  }, [streamText]);
+    if (typeof window !== "undefined" && window.innerWidth > 640) setOpen(true);
+  }, []);
+
+  // Watchdog: soft "taking longer than expected" message, never a freeze.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (backendDone) {
+      setSlow(false);
+      return;
+    }
+    const tid = setTimeout(() => setSlow(true), WATCHDOG_MS);
+    return () => clearTimeout(tid);
+  }, [backendDone]);
+
+  // Finalize fallback — the parent normally swaps views on `analysis_done`;
+  // this only protects against the parent never unmounting us.
+  useEffect(() => {
+    if (!backendDone || !onFinished) return;
+    const tid = setTimeout(onFinished, reduce ? 0 : 1000);
+    return () => clearTimeout(tid);
+  }, [backendDone, onFinished, reduce]);
+
+  const isError = errored;
+  const title = isError ? ls.error.title : backendDone ? ls.readyTitle : ls.title;
+  const subtitle = isError
+    ? ls.error.subtitle
+    : backendDone
+      ? ls.readySubtitle
+      : slow
+        ? ls.slowSubtitle
+        : ls.subtitle;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] py-12 bg-rc-bg transition-colors duration-700">
-      <div className="relative w-full max-w-[1200px] flex justify-center">
-        <svg width={SVG_W} height="230" className="overflow-visible">
-          <defs>
-            <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
-              <feFlood floodColor="#e24b4a" floodOpacity="0.3" result="flood" />
-              <feComposite in="flood" in2="blur" operator="in" />
-              <feComposite in="SourceGraphic" operator="over" />
-            </filter>
-          </defs>
+    <div className="flex flex-1 items-center justify-center px-4 py-10">
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 14, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
+        role="status"
+        aria-live="polite"
+        className="relative w-full max-w-[480px] overflow-hidden rounded-[24px] border border-rc-border bg-rc-surface p-7 shadow-[0_30px_70px_rgba(201,58,57,0.08)] md:p-8"
+      >
+        {/* top accent rule */}
+        <div
+          className={`absolute inset-x-0 top-0 h-[2px] opacity-50 ${
+            isError ? "bg-gradient-to-r from-transparent via-rc-amber to-transparent" : "bg-gradient-to-r from-transparent via-rc-red to-transparent"
+          }`}
+        />
 
-          {/* 1. SKELETON LAYER */}
-          <g opacity="0.15">
-            {STEPS_CONFIG.map((step, i) => {
-              const x = GET_X(i);
-              if (i < 4) {
-                const nextX = GET_X(i + 1);
-                return <line key={`skel-line-${i}`} x1={x} y1={CY} x2={nextX} y2={CY} stroke="#cbd5e1" strokeWidth="2.5" />;
-              }
-              return null;
-            })}
-            {/* Claude sub-task thread */}
-            {[0,1,2,3,4].map(idx => (
-              <line key={`skel-sub-c-${idx}`}
-                x1={GET_X(4)+idx*SUB_W} y1={CY}
-                x2={GET_X(4)+(idx+1)*SUB_W} y2={CY}
-                stroke="#cbd5e1" strokeWidth="2" strokeDasharray="3 3" />
-            ))}
-            {/* Post-merge to first post-split node (negotiation if hired, else finalizing) */}
-            <line x1={MERGE_X} y1={CY} x2={GET_X(5)} y2={CY} stroke="#cbd5e1" strokeWidth="2" strokeDasharray="5 5" />
-            {/* Hired-only: line between negotiation (idx 5) and finalizing (idx 6) */}
-            {STEPS_CONFIG.length === 7 && (
-              <line x1={GET_X(5)} y1={CY} x2={GET_X(6)} y2={CY} stroke="#cbd5e1" strokeWidth="2.5" />
-            )}
-          </g>
+        {/* eyebrow */}
+        <div className="mb-5 flex items-center gap-2.5">
+          <span
+            className={`h-[7px] w-[7px] rounded-full ${isError ? "bg-rc-amber" : "bg-rc-red motion-safe:animate-pulse"}`}
+            aria-hidden
+          />
+          <span className={`font-mono text-[11px] font-bold uppercase tracking-[0.22em] ${isError ? "text-rc-amber" : "text-rc-red"}`}>
+            {ls.eyebrow}
+          </span>
+          <span className="ml-auto font-mono text-[10.5px] uppercase tracking-[0.14em] text-rc-hint">
+            {isError ? ls.error.eta : ls.eta}
+          </span>
+        </div>
 
-          {/* 2. ACTIVE PATHS LAYER */}
-          {STEPS_CONFIG.map((step, i) => {
-            const status  = getVisualStatus(step.id, i);
-            const x1      = GET_X(i);
-            if (i < 4) {
-              const x2      = GET_X(i + 1);
-              const isActive = status === "running";
-              const isDone   = status === "done";
-              const opacity  = isActive || isDone ? 1 : 0;
-              return (
-                <motion.line key={`active-line-${i}`}
-                  x1={x1} y1={CY} x2={x2} y2={CY}
-                  animate={{ stroke: "#e24b4a", opacity }} strokeWidth="2.5" />
-              );
-            }
-            return null;
-          })}
+        {/* title + subtitle */}
+        <h1 className="mb-1.5 text-[26px] font-bold leading-[1.12] tracking-tight text-rc-text md:text-[27px]">
+          {title}
+        </h1>
+        <p className="mb-5 max-w-[40ch] text-[14px] leading-relaxed text-rc-muted">{subtitle}</p>
 
-          {/* 3. CLAUDE PROGRESSION — segment lights up when its target sub-task is done */}
-          {[0,1,2,3,4].map(idx => {
-            const xStart      = GET_X(4) + idx * SUB_W;
-            const xEnd        = GET_X(4) + (idx + 1) * SUB_W;
-            const dualRunning = internalStepIdx >= 4;
-            return (
-              <motion.path key={`claude-seg-${idx}`}
-                animate={{ stroke: "#e24b4a", opacity: dualRunning && taskDone[idx] ? 1 : 0 }}
-                d={`M ${xStart},${CY} L ${xEnd},${CY}`}
-                fill="none" strokeWidth="2.5" strokeDasharray="4 4" />
-            );
-          })}
-
-          {/* Post-merge active path — lights up once we've left split */}
-          <motion.line
-            x1={MERGE_X} y1={CY} x2={GET_X(5)} y2={CY}
-            animate={{ stroke: "#e24b4a", opacity: virtualSplitDone && internalStepIdx >= 5 ? 1 : 0 }}
-            strokeWidth="2.5" strokeDasharray="5 5" />
-
-          {/* Hired-only: active path between negotiation (idx 5) and finalizing (idx 6) */}
-          {STEPS_CONFIG.length === 7 && (
-            <motion.line
-              x1={GET_X(5)} y1={CY} x2={GET_X(6)} y2={CY}
-              animate={{ stroke: "#e24b4a", opacity: internalStepIdx >= 6 ? 1 : 0 }}
-              strokeWidth="2.5" />
-          )}
-
-          {/* 4. NODES LAYER */}
-          {STEPS_CONFIG.map((step, i) => {
-            const status   = getVisualStatus(step.id, i);
-            const isActive = status === "running";
-            const isDone   = status === "done";
-            const x        = GET_X(i);
-
-            if (step.lane === "split") {
-              const dualRunning = status === "running" || status === "done";
-              return (
-                <g key="split-heads">
-                  {/* Claude head - center spine */}
-                  <g transform={`translate(${x}, ${CY})`}>
-                    <motion.circle r="18" fill={claudeP === CLAUDE_TASKS_COUNT || isDone ? "#e24b4a" : "white"}
-                      stroke={dualRunning ? "#e24b4a" : "#e5e7eb"} strokeWidth="2.5"
-                      animate={{ opacity: 1 }} />
-                    <Anthropic size={16} x="-8" y="-8"
-                      className={claudeP === CLAUDE_TASKS_COUNT || isDone ? "text-white" : dualRunning ? "text-rc-red" : "text-rc-hint"} />
-                    <text x="0" y="-26" textAnchor="middle"
-                      className={`font-mono text-[10px] font-bold uppercase ${dualRunning ? "fill-rc-red" : "fill-rc-hint"}`}>
-                      Claude Sonnet
-                    </text>
-                    {CLAUDE_TASKS.map((task, idx) => {
-                      const sx      = (idx + 1) * SUB_W;
-                      const sDone   = taskDone[idx] || isDone;
-                      const sActive = dualRunning && firstActiveIdx === idx;
-                      return (
-                        <g key={`ct-${idx}`} transform={`translate(${sx}, 0)`}>
-                          <circle r="6" fill="white" stroke="#e5e7eb" strokeWidth="2" opacity="0.3" />
-                          <motion.circle r="6" fill={sDone ? "#e24b4a" : "white"}
-                            stroke={sDone || sActive ? "#e24b4a" : "#e5e7eb"} strokeWidth="2"
-                            animate={{ opacity: 1 }} />
-                          <text x="0" y="-14" textAnchor="middle"
-                            className={`font-mono text-[8px] uppercase tracking-tight ${sDone || sActive ? "fill-rc-text font-bold" : "fill-rc-hint opacity-40"}`}>
-                            {task}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </g>
-                </g>
-              );
-            }
-
-            return (
-              <g key={`node-${step.id}`} transform={`translate(${x}, ${CY})`}>
-                <circle r="16" fill="white" stroke="#e5e7eb" strokeWidth="2.5" opacity="0.3" />
-                <motion.circle r="16" fill={isDone ? "#e24b4a" : "white"}
-                  stroke={isDone ? "#e24b4a" : isActive ? "#e24b4a" : "#e5e7eb"} strokeWidth="2.5"
-                  animate={{ opacity: 1 }} />
-                <step.Icon size={14} x="-7" y="-7"
-                  className={isDone ? "text-white" : isActive ? "text-rc-red" : "text-rc-hint"} />
-                <text x="0" y="-24" textAnchor="middle"
-                  className={`font-mono text-[10px] ${isDone || isActive ? "fill-rc-text font-bold" : "fill-rc-hint"}`}>
-                  {t.loadingScreen.steps[step.id as keyof typeof t.loadingScreen.steps]}
-                </text>
-                {isDone && (
-                  <motion.circle initial={{ scale: 0 }} animate={{ scale: 1 }}
-                    cx="12" cy="-12" r="6" fill="#e24b4a" stroke="white" strokeWidth="1" />
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-
-      {splitActive && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-6 w-full max-w-[1100px] px-4"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <Cpu size={12} className="text-rc-hint" />
-            <span className="font-mono text-[10px] uppercase tracking-wider text-rc-hint">
-              {t.loadingScreen.liveThoughtsLabel}
-            </span>
-            <span className="ml-auto font-mono text-[9px] text-rc-hint italic">
-              Claude Sonnet
-            </span>
-          </div>
-          <div
-            ref={liveRef}
-            className="relative bg-rc-surface/60 border border-rc-border rounded-lg overflow-y-auto p-4 font-mono text-[11px] leading-relaxed text-rc-text/80 whitespace-pre-wrap break-words"
-            style={{
-              height: 220,
-              maskImage:
-                "linear-gradient(to bottom, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(to bottom, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%)",
-            }}
-          >
-            {streamText.length === 0 ? (
-              <span className="italic text-rc-hint">
-                {t.loadingScreen.liveThoughtsPlaceholder}
+        {/* progress */}
+        {!isError && (
+          <>
+            <div className="mb-2 flex items-baseline justify-between">
+              <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-rc-hint">
+                {ls.stepLabel} {stepNo} / {nonSkippedTotal}
               </span>
-            ) : (
-              <>
-                {renderMarkdown(prettifyPartialJSON(streamText))}
-                <span className="inline-block w-[6px] h-[12px] bg-rc-red ml-[2px] align-middle animate-pulse" />
-              </>
-            )}
+              <span className="font-mono text-[13px] font-bold tabular-nums text-rc-text">{pct}%</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-rc-border/60">
+              <div
+                className="h-full rounded-full bg-[linear-gradient(90deg,var(--rc-red),var(--rc-red-hover))] shadow-[0_0_12px_var(--rc-red-glow)] transition-[width] duration-700 ease-out"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </>
+        )}
+
+        {/* steps */}
+        <ul className="mt-6 flex flex-col gap-0.5">
+          {STEP_DEFS.map((step, i) => {
+            const status = statusOf(i);
+            const tag =
+              status === "done"
+                ? ls.tags.done
+                : status === "running"
+                  ? ls.tags.running
+                  : status === "skipped"
+                    ? ls.tags.skipped
+                    : "";
+            return (
+              <li key={step.id}>
+                <div
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors duration-300 ${
+                    status === "running" ? "border-rc-red-border bg-rc-red-bg" : "border-transparent"
+                  }`}
+                >
+                  <span className="grid h-[22px] w-[22px] flex-none place-items-center">
+                    {status === "done" ? (
+                      <motion.span
+                        initial={reduce ? false : { scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                        className="grid h-[18px] w-[18px] place-items-center rounded-full bg-rc-red"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-2.5 w-2.5" fill="none" stroke="#fff" strokeWidth={3}>
+                          <path d="M5 13l4 4L19 7" />
+                        </svg>
+                      </motion.span>
+                    ) : status === "running" ? (
+                      <span className="h-4 w-4 rounded-full border-2 border-rc-red-border border-t-rc-red motion-safe:animate-spin" />
+                    ) : (
+                      <span className={`h-[15px] w-[15px] rounded-full border-2 border-rc-border ${status === "skipped" ? "border-dashed" : ""}`} />
+                    )}
+                  </span>
+                  <span
+                    className={`text-[14px] ${
+                      status === "running"
+                        ? "font-semibold text-rc-text"
+                        : status === "done"
+                          ? "font-medium text-rc-text"
+                          : status === "skipped"
+                            ? "font-medium text-rc-hint line-through decoration-rc-border"
+                            : "font-medium text-rc-hint"
+                    }`}
+                  >
+                    {ls.steps[step.id as keyof typeof ls.steps]}
+                  </span>
+                  {tag && (
+                    <span
+                      className={`ml-auto font-mono text-[9.5px] uppercase tracking-[0.14em] ${
+                        status === "running" ? "text-rc-red" : status === "done" ? "text-rc-green" : "text-rc-hint"
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  )}
+                </div>
+
+                {/* deep step sub-tasks */}
+                {step.deep && status === "running" && (
+                  <div className="flex flex-col gap-1 py-1 pl-[47px]">
+                    {SUBTASK_KEYS.map((k, si) => (
+                      <div
+                        key={k}
+                        className={`flex items-center gap-2 font-mono text-[10.5px] ${si <= firstActiveSub || subDone[si] ? "text-rc-muted" : "text-rc-hint"}`}
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${subDone[si] || si === firstActiveSub ? "bg-rc-red" : "bg-rc-border"}`} />
+                        {(ls.claudeTasks as string[])[si]}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        {!isError && (
+          <>
+            {/* divider */}
+            <div className="my-3 h-px bg-gradient-to-r from-transparent via-rc-border to-transparent" />
+
+            {/* reasoning */}
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls="rc-reasoning"
+              onClick={() => setOpen((o) => !o)}
+              className="flex w-full items-center gap-2.5 py-2.5"
+            >
+              <ChevronRight size={13} className={`text-rc-hint transition-transform duration-300 ${open ? "rotate-90" : ""}`} />
+              <span className="font-mono text-[10.5px] font-bold uppercase tracking-[0.16em] text-rc-hint">{ls.reasoningToggle}</span>
+              <span className="ml-auto font-mono text-[9.5px] italic text-rc-hint">{ls.reasoningWho}</span>
+            </button>
+            <div
+              id="rc-reasoning"
+              className="overflow-hidden transition-[max-height] duration-500"
+              style={{ maxHeight: open ? 200 : 0 }}
+            >
+              <div
+                className="mt-1 h-[150px] overflow-y-auto rounded-xl border border-rc-border bg-rc-surface-raised px-4 py-3.5 font-mono text-[12px] leading-[1.7] text-rc-muted"
+                style={{
+                  maskImage: "linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%)",
+                }}
+              >
+                {reasoningRows.length === 0 ? (
+                  <span className="italic text-rc-hint">{ls.liveThoughtsPlaceholder}</span>
+                ) : (
+                  reasoningRows.map(({ key, i }) => (
+                    <motion.div
+                      key={key}
+                      initial={reduce ? false : { opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                    >
+                      {ls.reasoning[key as keyof typeof ls.reasoning]}
+                      {i === firstActiveSub && !backendDone && (
+                        <span className="ml-0.5 inline-block h-3 w-[6px] translate-y-0.5 bg-rc-red motion-safe:animate-pulse" />
+                      )}
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* error retry */}
+        {isError && onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-rc-red px-[18px] py-3 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-[var(--rc-red-hover)] active:scale-[0.97]"
+          >
+            ↻ {ls.error.retry}
+          </button>
+        )}
+
+        {/* footer */}
+        {!isError && (
+          <div className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.1em] text-rc-hint">
+            <Lock size={11} />
+            <span>{ls.footer}</span>
           </div>
-        </motion.div>
-      )}
+        )}
+      </motion.div>
     </div>
   );
 }

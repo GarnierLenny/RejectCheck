@@ -686,14 +686,36 @@
     }
   },
   "loadingScreen": {
+    "eyebrow": "Diagnostic",
+    "title": "Analysis in progress",
+    "subtitle": "Claude is reading your application the way a recruiter would. Keep this page open — it's almost ready.",
+    "slowSubtitle": "This is taking a little longer than usual… almost there.",
+    "readyTitle": "Diagnostic ready",
+    "readySubtitle": "Loading your result…",
+    "eta": "~80-90 s",
+    "stepLabel": "Step",
     "steps": {
-      "parsing_cv": "CV Parsing",
-      "matching_skills": "Job Analysis",
-      "analyzing_linkedin": "LinkedIn Signal",
-      "analyzing_github": "GitHub Signal",
-      "dual_ai_analysis": "Deep Analysis",
-      "negotiation_coaching": "Negotiation Coaching",
-      "finalizing": "Final Diagnostic"
+      "parsing_cv": "CV parsing",
+      "matching_skills": "Job analysis",
+      "analyzing_linkedin": "LinkedIn signal",
+      "analyzing_github": "GitHub signal",
+      "dual_ai_analysis": "Deep analysis",
+      "negotiation_coaching": "Negotiation coaching",
+      "finalizing": "Final diagnostic"
+    },
+    "tags": {
+      "done": "Done",
+      "running": "Running",
+      "skipped": "Skipped"
+    },
+    "reasoningToggle": "See reasoning",
+    "reasoningWho": "Claude Sonnet",
+    "reasoning": {
+      "audit_cv": "Auditing your CV's structure and clarity…",
+      "audit_jd_match": "Matching your profile against the role's requirements…",
+      "ats_simulation": "Simulating the ATS pass and spotting missing keywords…",
+      "cv_tone": "Assessing your seniority and the tone of your bullet points…",
+      "hidden_red_flags": "Detecting hidden red flags (gaps, short tenures…)…"
     },
     "claudeTasks": [
       "CV Audit",
@@ -703,7 +725,14 @@
       "Red Flags"
     ],
     "liveThoughtsPlaceholder": "Claude is reasoning…",
-    "liveThoughtsLabel": "Live reasoning"
+    "liveThoughtsLabel": "Live reasoning",
+    "footer": "No data stored without your consent",
+    "error": {
+      "title": "This is taking longer than expected…",
+      "subtitle": "The analysis didn't respond in time. No credit was used — you can try again.",
+      "eta": "Timeout",
+      "retry": "Restart analysis"
+    }
   },
   "paywall": {
     "badge": "Free Scan Complete",

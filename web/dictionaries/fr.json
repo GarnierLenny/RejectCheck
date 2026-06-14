@@ -686,14 +686,36 @@
     }
   },
   "loadingScreen": {
+    "eyebrow": "Diagnostic",
+    "title": "Analyse en cours",
+    "subtitle": "Claude lit ta candidature comme un recruteur le ferait. Garde cette page ouverte, c'est presque prêt.",
+    "slowSubtitle": "Ça prend un peu plus de temps que prévu… on y est presque.",
+    "readyTitle": "Diagnostic prêt",
+    "readySubtitle": "On affiche ton résultat…",
+    "eta": "~80-90 s",
+    "stepLabel": "Étape",
     "steps": {
       "parsing_cv": "Analyse du CV",
       "matching_skills": "Analyse de l'offre",
       "analyzing_linkedin": "Signal LinkedIn",
       "analyzing_github": "Signal GitHub",
-      "dual_ai_analysis": "Analyse Approfondie",
+      "dual_ai_analysis": "Analyse approfondie",
       "negotiation_coaching": "Coach Négociation",
       "finalizing": "Diagnostic final"
+    },
+    "tags": {
+      "done": "Fait",
+      "running": "En cours",
+      "skipped": "Ignoré"
+    },
+    "reasoningToggle": "Voir le raisonnement",
+    "reasoningWho": "Claude Sonnet",
+    "reasoning": {
+      "audit_cv": "J'audite la structure et la clarté de ton CV…",
+      "audit_jd_match": "Je confronte ton profil aux exigences de l'offre…",
+      "ats_simulation": "Je simule le passage ATS et repère les mots-clés manquants…",
+      "cv_tone": "J'évalue ta séniorité et le ton de tes bullet points…",
+      "hidden_red_flags": "Je détecte les red flags cachés (trous, tenures courtes…)…"
     },
     "claudeTasks": [
       "Audit du CV",
@@ -703,7 +725,14 @@
       "Signaux d'alerte"
     ],
     "liveThoughtsPlaceholder": "Claude réfléchit…",
-    "liveThoughtsLabel": "Raisonnement en direct"
+    "liveThoughtsLabel": "Raisonnement en direct",
+    "footer": "Aucune donnée stockée sans ton accord",
+    "error": {
+      "title": "Ça prend plus de temps que prévu…",
+      "subtitle": "L'analyse n'a pas répondu à temps. Aucun crédit consommé — tu peux relancer.",
+      "eta": "Timeout",
+      "retry": "Relancer l'analyse"
+    }
   },
   "paywall": {
     "badge": "Scan Gratuit Terminé",
