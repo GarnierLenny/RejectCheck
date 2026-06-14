@@ -147,7 +147,20 @@ function AnalyzeContent() {
   const { data: profile } = useProfile();
   const { data: savedCvs } = useSavedCvs();
 
-  const isHiredTier = subscriptionData?.plan === 'hired';
+  // Server is the source of truth for entitlement. The localStorage cache
+  // (activeSubscription) only bridges the initial query-load flash, and only
+  // for signed-in users — it is never trusted on its own.
+  const liveActivePlan: 'free' | 'shortlisted' | 'hired' =
+    subscriptionData !== undefined
+      ? subscriptionData?.status === 'active'
+        ? (subscriptionData.plan as 'free' | 'shortlisted' | 'hired')
+        : 'free'
+      : user
+        ? ((activeSubscription?.plan as 'free' | 'shortlisted' | 'hired') ?? 'free')
+        : 'free';
+  const isPremium = liveActivePlan === 'shortlisted' || liveActivePlan === 'hired';
+  const userPlan = liveActivePlan;
+  const isHiredTier = liveActivePlan === 'hired';
   const shouldPoll = isHiredTier && !!result && !result.negotiation_analysis;
 
   const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(
@@ -179,8 +192,10 @@ function AnalyzeContent() {
   }, []);
 
   useEffect(() => {
-    if (!subscriptionData || !user?.email) return;
-    if (subscriptionData.status === 'active') {
+    // Keep the localStorage cache in sync with the server truth — and clear it
+    // when the server says the user is not on an active plan.
+    if (subscriptionData === undefined || !user?.email) return;
+    if (subscriptionData?.status === 'active' && subscriptionData.currentPeriodEnd) {
       const sub: StoredSubscription = {
         plan: subscriptionData.plan,
         email: user.email,
@@ -189,6 +204,9 @@ function AnalyzeContent() {
       localStorage.setItem('rc_subscription', JSON.stringify(sub));
       setActiveSubscription(sub);
       setPaywallState(null);
+    } else {
+      localStorage.removeItem('rc_subscription');
+      setActiveSubscription(null);
     }
   }, [subscriptionData, user]);
 
@@ -645,7 +663,7 @@ function AnalyzeContent() {
   }
 
   async function handleRewrite() {
-    const emailVal = activeSubscription?.email || user?.email;
+    const emailVal = user?.email;
     if (!analysisId || !emailVal || !session?.access_token) return;
 
     posthog.capture("cv_rewrite_requested", { analysis_id: analysisId });
@@ -818,11 +836,11 @@ function AnalyzeContent() {
           onExportMd={exportToMd}
           onShare={analysisId && user ? shareAnalysis : undefined}
           isSharing={isSharing}
-          userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
+          userPlan={userPlan}
           reconstructedCv={reconstructedCv}
           isRewriting={isRewriting}
           onRewrite={handleRewrite}
-          email={activeSubscription?.email || user?.email || null}
+          email={user?.email || null}
           accessToken={session?.access_token ?? null}
         />
       ) : showDiagnostic ? (
@@ -833,8 +851,8 @@ function AnalyzeContent() {
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
           deepStatus="ready"
-          isPremium={!!activeSubscription}
-          userPlan={(activeSubscription?.plan as "free" | "shortlisted" | "hired") ?? "free"}
+          isPremium={isPremium}
+          userPlan={userPlan}
           onReset={handleReset}
           onExportMd={exportToMd}
           onExportPdf={exportToPdf}
@@ -846,7 +864,7 @@ function AnalyzeContent() {
           coverLetterText={coverLetterText}
           isRewriting={isRewriting}
           onRewrite={handleRewrite}
-          email={activeSubscription?.email || user?.email || null}
+          email={user?.email || null}
           accessToken={session?.access_token ?? null}
           completedSteps={savedAnalysis?.completedSteps}
         />
@@ -862,7 +880,7 @@ function AnalyzeContent() {
                 hasGithub={githubUsername.trim().length > 0}
                 hasLinkedin={liFile !== null}
                 hasML={mlFile !== null || mlText.trim().length > 0}
-                isHired={activeSubscription?.plan === 'hired'}
+                isHired={isHiredTier}
                 onFinished={() => setVisualLoadingDone(true)}
               />
             ) : analysisFailed ? (
@@ -872,7 +890,7 @@ function AnalyzeContent() {
                 hasGithub={githubUsername.trim().length > 0}
                 hasLinkedin={liFile !== null}
                 hasML={mlFile !== null || mlText.trim().length > 0}
-                isHired={activeSubscription?.plan === 'hired'}
+                isHired={isHiredTier}
                 errored
                 onRetry={() => { (analyzeMode === 'cv-review' ? handleCvReviewSubmit : handleSubmit)(); }}
               />
