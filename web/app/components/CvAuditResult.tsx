@@ -352,7 +352,7 @@ export function CvAuditResult({
   const allFindingsBadgeVariant: "crit" | "warn" = allFindingsCritical ? "crit" : "warn";
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--rc-bg)", color: "var(--rc-text)", fontFamily: "var(--font-sans)" }}>
+    <div style={{ height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--rc-bg)", color: "var(--rc-text)", fontFamily: "var(--font-sans)" }}>
 
       {/* ── Topbar ── */}
       <nav style={{
@@ -394,10 +394,10 @@ export function CvAuditResult({
         reconstructedCv={reconstructedCv}
         liText={liText}
         renderRight={() => (
-          <div style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "240px 1fr", maxWidth: 1380, margin: "0 auto", width: "100%" }}>
+          <div className="rc-toc-grid" style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "240px 1fr", maxWidth: 1380, margin: "0 auto", width: "100%" }}>
 
             {/* ── TOC sidebar ── */}
-        <aside style={{
+        <aside className="rc-toc" style={{
           height: "100%",
           padding: "48px 16px 0 24px",
           borderRight: "1px solid var(--rc-border)",
@@ -1009,7 +1009,7 @@ export function CvAuditResult({
                 </div>
 
                 <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid var(--rc-border)" }}>
-                  <div style={{ background: "#111", display: "grid", gridTemplateColumns: hasShortlisted ? "1fr" : "repeat(2, 1fr)" }}>
+                  <div className="rc-col2-m" style={{ background: "#111", display: "grid", gridTemplateColumns: hasShortlisted ? "1fr" : "repeat(2, 1fr)" }}>
                     {!hasShortlisted && (
                       <>
                         {featureCard(shortlistedFeatures[0], true)}

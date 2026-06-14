@@ -315,7 +315,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
               {/* Priority list below */}
               <div style={{ padding: "18px 28px" }}>
                 <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.match.priorityTitle}</Eyebrow>
-                <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <ol className="rc-col2-m" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {(ta.skill_priority ?? []).map((name, i) => {
                     const sk = ta.skills.find((s) => s.name === name);
                     const gap = sk ? sk.expected - sk.current : 0;
@@ -343,7 +343,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
             </Sheet>
 
             {/* Per-skill evidence cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {ta.skills.map((s) => {
                 const gap = s.expected - s.current; const ok = gap <= 0;
                 return (
@@ -370,7 +370,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
 
             {/* Market context + seniority signals */}
             {(ta.market_context || ta.seniority_signals?.length) && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {ta.market_context && (
                   <Sheet style={{ padding: "18px 20px" }}>
                     <Eyebrow color="var(--rc-amber)" style={{ display: "block", marginBottom: 10 }}>{t.analysisLayout.match.marketContext}</Eyebrow>
@@ -674,7 +674,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
               </div>
             } rule />
           <Sheet style={{ padding: "8px 28px 24px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 36 }}>
+            <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 36 }}>
               {sortedSkills.map((s, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "13px 0", borderBottom: "1px solid var(--rc-border)" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -910,9 +910,9 @@ export function AnalysisLayout({
           {/* Full hero — slides in when open */}
           <div style={{ display: "grid", gridTemplateRows: heroOpen ? "1fr" : "0fr", transition: "grid-template-rows 0.28s ease" }}>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ display: "flex" }}>
+              <div className="rc-hero-split" style={{ display: "flex" }}>
                 {/* Score column */}
-                <div style={{ width: 220, flexShrink: 0, borderRight: "1px solid var(--rc-border)", padding: "20px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div className="rc-hero-score" style={{ width: 220, flexShrink: 0, borderRight: "1px solid var(--rc-border)", padding: "20px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                   <Eyebrow style={{ marginBottom: 10 }}>{t.analysisLayout.hero.rejectionRisk}</Eyebrow>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 2, marginBottom: 12 }}>
                     <Mono style={{ fontSize: 68, fontWeight: 700, lineHeight: 0.88, color, letterSpacing: "-0.03em" }}>{scoreDisplay}</Mono>
@@ -975,7 +975,7 @@ export function AnalysisLayout({
                   {result.breakdown && (
                     <div style={{ borderTop: "1px solid var(--rc-border)", marginTop: result.technical_analysis?.reasoning ? 0 : 8, paddingTop: 16 }}>
                       <Eyebrow style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.hero.breakdownTitle}</Eyebrow>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
+                      <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
                         <StatBarRow label={t.analysisLayout.breakdownLabels.keywords}   value={result.breakdown.keyword_match}    threshold={65} />
                         <StatBarRow label={t.analysisLayout.breakdownLabels.techStack} value={result.breakdown.tech_stack_fit}   threshold={70} />
                         <StatBarRow label={t.analysisLayout.breakdownLabels.experience} value={result.breakdown.experience_level} threshold={60} />

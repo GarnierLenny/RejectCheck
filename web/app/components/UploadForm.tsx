@@ -287,6 +287,17 @@ export function UploadForm({
         .rc-quota { display:flex; gap:16px; align-items:center; font-family:var(--font-mono); font-size:11px; color:var(--rc-hint); letter-spacing:0.05em; }
         .rc-quota__sep { width:1px; height:12px; background:var(--rc-border); }
         .rc-quota b { color:var(--rc-text); font-weight:600; }
+
+        /* ── Responsive ── the two input bays stack on tablet/phone; the mode
+           toggles stack only on small phones (they stay side-by-side above). */
+        @media (max-width: 768px) {
+          .rc-bays { grid-template-columns:1fr; gap:14px; }
+        }
+        @media (max-width: 480px) {
+          .rc-armed { grid-template-columns:1fr; }
+          .rc-arm { border-right:0; border-bottom:1px solid var(--rc-border); }
+          .rc-arm:last-child { border-bottom:0; }
+        }
       `}</style>
 
       <div className="w-full flex-1 overflow-y-auto">

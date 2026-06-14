@@ -2375,3 +2375,22 @@ body {
   border-color: var(--rc-text);
 }
 .xp-modal__cta:hover { background: var(--rc-red-hover); }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Result screens — mobile responsiveness.
+   These elements keep their desktop layout via inline styles (which win on
+   desktop); the rules below only fire on small viewports and use !important
+   to override the inline values for mobile. Pattern mirrors .diag / .ftv-*.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* Hide the side-by-side document viewer + the section TOC — both are
+     desktop reading aids; the analysis content goes full-width on mobile. */
+  .rc-shell-doc { display: none !important; }
+  .rc-toc { display: none !important; }
+  .rc-toc-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 640px) {
+  .rc-col2-m { grid-template-columns: 1fr !important; }
+  .rc-hero-split { flex-direction: column !important; }
+  .rc-hero-score { width: 100% !important; border-right: 0 !important; border-bottom: 1px solid var(--rc-border); }
+}

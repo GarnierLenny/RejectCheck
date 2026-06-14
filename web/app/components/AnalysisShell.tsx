@@ -316,8 +316,8 @@ export function AnalysisShell({
   return (
     <div className="flex-1 flex overflow-hidden">
 
-      {/* ── Left panel — Source documents ── */}
-      <div style={{ width: cvPanelOpen ? 520 : 40, flexShrink: 0, borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "var(--rc-surface)", transition: "width 0.22s ease", overflow: "hidden" }}>
+      {/* ── Left panel — Source documents (hidden on mobile via .rc-shell-doc) ── */}
+      <div className="rc-shell-doc" style={{ width: cvPanelOpen ? 520 : 40, flexShrink: 0, borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "var(--rc-surface)", transition: "width 0.22s ease", overflow: "hidden" }}>
         {cvPanelOpen ? (
           <>
             {/* Header: label + collapse button */}
