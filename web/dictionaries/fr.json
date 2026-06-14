@@ -435,8 +435,8 @@
           "sub": "Lit vos repos publics et les pèse contre l'offre."
         },
         {
-          "feat": "Entretien simulé IA",
-          "sub": "Entretien vocal de 10 minutes adapté à l'offre."
+          "feat": "Analyse double IA",
+          "sub": "GPT-4o + Claude recoupent chaque constat — pas un seul modèle."
         },
         {
           "feat": "Réécriture bullet par bullet",
@@ -1177,7 +1177,7 @@
         },
         {
           "question": "Comment RejectCheck se compare en prix à Jobscan, Rezi, et les autres ?",
-          "answer": "Shortlisted à 7,99 €/mois est en dessous de Rezi (29 $/mois), du tier mensuel Jobscan, et du Pro trimestriel d'Enhancv. Seul le tier annuel de Kickresume (équivalent 8 €/mois) est au même prix. RejectCheck est la seule option dans cette gamme de prix avec une analyse dual-IA (GPT-4o + Claude), un audit GitHub/LinkedIn, et un entretien simulé IA vocal."
+          "answer": "Shortlisted à 7,99 €/mois est en dessous de Rezi (29 $/mois), du tier mensuel Jobscan, et du Pro trimestriel d'Enhancv. Seul le tier annuel de Kickresume (équivalent 8 €/mois) est au même prix. RejectCheck est la seule option dans cette gamme de prix avec une analyse dual-IA (GPT-4o + Claude) et un audit GitHub/LinkedIn complet."
         }
       ]
     }
@@ -1704,11 +1704,7 @@
       },
       {
         "question": "RejectCheck est-il gratuit ?",
-        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent 1 500 ou 3 000 crédits/mois (≈ 15–30 analyses JD ou 30–60 audits CV), l'entretien simulé IA, la réécriture de CV, et des crédits à l'unité achetables à tout moment qui n'expirent jamais."
-      },
-      {
-        "question": "RejectCheck peut-il m'aider à préparer mes entretiens ?",
-        "answer": "Oui. Les plans Shortlisted et Hired incluent un entretien simulé IA : 10 minutes d'entretien vocal taillé pour le poste visé et tes lacunes détectées. Tu obtiens un débrief scoré sur la communication, la profondeur technique, et les signaux de leadership."
+        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent 1 500 ou 3 000 crédits/mois (≈ 15–30 analyses JD ou 30–60 audits CV), la réécriture de CV, et des crédits à l'unité achetables à tout moment qui n'expirent jamais."
       },
       {
         "question": "RejectCheck audite-t-il mes profils GitHub et LinkedIn ?",
@@ -1720,7 +1716,7 @@
       },
       {
         "question": "En quoi RejectCheck est différent des autres outils CV ?",
-        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et propose un entretien simulé IA vocal - pas un chat. Il est bilingue (anglais et français).",
+        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et te dit exactement ce qui ferait rejeter ta candidature. Il est bilingue (anglais et français).",
         "seeAlso": [
           {
             "label": "Alternatives à Jobscan",
@@ -1796,7 +1792,7 @@
         {
           "n": "03",
           "title": "Tes users lancent des analyses illimitées",
-          "text": "Chaque siège a l'expérience RejectCheck dual-IA complète : simulation ATS, radar des lacunes, audit GitHub/LinkedIn, détection de red flags, réécriture de CV, et entretien simulé IA. Mêmes features que les users Hired individuels."
+          "text": "Chaque siège a l'expérience RejectCheck dual-IA complète : simulation ATS, radar des lacunes, audit GitHub/LinkedIn, détection de red flags, et réécriture de CV. Mêmes features que les users Hired individuels."
         }
       ]
     },
@@ -1887,7 +1883,7 @@
         },
         {
           "question": "Les membres de l'équipe ont-ils les mêmes features que les users Hired individuels ?",
-          "answer": "Oui - diagnostic dual-IA complet incluant audit GitHub, recoupement LinkedIn, radar des lacunes techniques, détection de red flags, réécriture de CV, et entretien simulé IA vocal. La seule différence c'est la facturation (tu payes, pas eux) et le provisioning (on crée les comptes, pas de self-signup)."
+          "answer": "Oui - diagnostic dual-IA complet incluant audit GitHub, recoupement LinkedIn, radar des lacunes techniques, détection de red flags, et réécriture de CV. La seule différence c'est la facturation (tu payes, pas eux) et le provisioning (on crée les comptes, pas de self-signup)."
         },
         {
           "question": "Peut-on white-label les exports PDF avec notre logo ?",

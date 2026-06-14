@@ -435,8 +435,8 @@
           "sub": "Reads your public repos and weighs them against the JD."
         },
         {
-          "feat": "AI mock interview",
-          "sub": "10-minute voice interview tailored to the JD."
+          "feat": "Dual-AI analysis",
+          "sub": "GPT-4o + Claude cross-check every finding — not one model."
         },
         {
           "feat": "Bullet-by-bullet rewrite",
@@ -1176,7 +1176,7 @@
         },
         {
           "question": "How is RejectCheck priced compared to Jobscan, Rezi, and other alternatives?",
-          "answer": "Shortlisted at €7.99/month is below Rezi ($29/month), Jobscan's monthly tier, and Enhancv's Pro quarterly. Only Kickresume's annual tier (€8/month equivalent) is similarly priced. RejectCheck is the only option in this price range that includes dual-AI analysis (GPT-4o + Claude), GitHub/LinkedIn audit, and voice-based AI mock interview."
+          "answer": "Shortlisted at €7.99/month is below Rezi ($29/month), Jobscan's monthly tier, and Enhancv's Pro quarterly. Only Kickresume's annual tier (€8/month equivalent) is similarly priced. RejectCheck is the only option in this price range that includes dual-AI analysis (GPT-4o + Claude) and a full GitHub/LinkedIn audit."
         }
       ]
     }
@@ -1703,11 +1703,7 @@
       },
       {
         "question": "Is RejectCheck free?",
-        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), AI mock interview, CV rewrite, and extra credits you can buy anytime that never expire."
-      },
-      {
-        "question": "Can RejectCheck help me prepare for job interviews?",
-        "answer": "Yes. The Shortlisted and Hired plans include an AI mock interview: a 10-minute voice-based interview tailored to the specific job and your detected skill gaps. You get a scored debrief across communication, technical depth, and leadership signals."
+        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), CV rewrite, and extra credits you can buy anytime that never expire."
       },
       {
         "question": "Does RejectCheck audit my GitHub and LinkedIn profiles?",
@@ -1719,7 +1715,7 @@
       },
       {
         "question": "How is RejectCheck different from other CV tools?",
-        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and offers a voice-based AI mock interview - not a chat. It is bilingual (English and French).",
+        "answer": "Most CV tools use a single LLM and return a generic keyword list. RejectCheck runs two complementary models in parallel, visualizes skill gaps on a radar chart against the target job, audits GitHub and LinkedIn as extra signals, and tells you exactly what would get your application rejected. It is bilingual (English and French).",
         "seeAlso": [
           {
             "label": "Jobscan alternatives",
@@ -1795,7 +1791,7 @@
         {
           "n": "03",
           "title": "Your users run unlimited analyses",
-          "text": "Each seat gets the full dual-AI RejectCheck experience: ATS simulation, skill gap radar, GitHub/LinkedIn audit, red-flag detection, CV rewrite, and AI mock interview. Same features as individual Hired-tier users."
+          "text": "Each seat gets the full dual-AI RejectCheck experience: ATS simulation, skill gap radar, GitHub/LinkedIn audit, red-flag detection, and CV rewrite. Same features as individual Hired-tier users."
         }
       ]
     },
@@ -1886,7 +1882,7 @@
         },
         {
           "question": "Do team members get the same features as individual Hired-tier users?",
-          "answer": "Yes - full dual-AI diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, CV rewrite, and voice-based AI mock interview. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
+          "answer": "Yes - full dual-AI diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, and CV rewrite. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
         },
         {
           "question": "Can we white-label the PDF exports with our logo?",
