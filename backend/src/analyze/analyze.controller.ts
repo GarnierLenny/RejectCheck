@@ -34,17 +34,16 @@ import { z } from 'zod';
 
 const CvReviewRequestSchema = z.object({
   githubUsername: z.string().max(39).optional(),
-  email: z.string().email().optional(),
-  isRegistered: z
-    .preprocess((val) => val === 'true' || val === true, z.boolean())
-    .optional(),
+  // identity is derived from the JWT (OptionalSupabaseGuard), never the body.
   locale: z.enum(['en', 'fr']).optional().default('en'),
 });
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
 import { ProfileUpdateSchema } from './dto/profile-update.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
+import { OptionalSupabaseGuard } from '../auth/optional-supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { OptionalAuthEmail } from '../auth/optional-auth.decorator';
 import { RequiresPremium } from '../stripe/decorators/requires-premium.decorator';
 import { validateJobDescription } from './analyze.utils';
 
@@ -116,6 +115,7 @@ export class AnalyzeController {
   // headroom for legitimate iteration (re-uploading after CV edits) while
   // capping worst-case spend at ~$5/hour/IP.
   @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
+  @UseGuards(OptionalSupabaseGuard)
   @Post()
   @ApiOperation({ summary: 'Analyze a CV against a job description' })
   @ApiConsumes('multipart/form-data')
@@ -136,6 +136,7 @@ export class AnalyzeController {
       motivationLetter?: Express.Multer.File[];
     },
     @Body() body: unknown,
+    @OptionalAuthEmail() email: string | undefined,
     @Res() res: SseResponse,
     @Req() req: Request,
   ) {
@@ -148,10 +149,10 @@ export class AnalyzeController {
       jobLabel,
       githubUsername,
       motivationLetterText,
-      email,
-      isRegistered,
       locale,
     } = parsed.data;
+    // Identity comes from the verified JWT, not the request body.
+    const isRegistered = !!email;
 
     const ip =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
@@ -181,7 +182,7 @@ export class AnalyzeController {
           githubUsername,
           email,
           ip,
-          isRegistered: !!isRegistered,
+          isRegistered,
           locale,
         },
         (e) => {
@@ -221,6 +222,7 @@ export class AnalyzeController {
   }
 
   @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
+  @UseGuards(OptionalSupabaseGuard)
   @Post('cv-review')
   @ApiOperation({ summary: 'Audit a CV standalone (no job description)' })
   @ApiConsumes('multipart/form-data')
@@ -237,6 +239,7 @@ export class AnalyzeController {
       linkedin?: Express.Multer.File[];
     },
     @Body() body: unknown,
+    @OptionalAuthEmail() email: string | undefined,
     @Res() res: SseResponse,
     @Req() req: Request,
   ) {
@@ -244,7 +247,9 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { githubUsername, email, isRegistered, locale } = parsed.data;
+    const { githubUsername, locale } = parsed.data;
+    // Identity comes from the verified JWT, not the request body.
+    const isRegistered = !!email;
 
     if (!files.cv?.[0]) {
       return res.status(400).json({ message: 'CV is required' });
@@ -269,7 +274,7 @@ export class AnalyzeController {
           githubUsername,
           email,
           ip,
-          isRegistered: !!isRegistered,
+          isRegistered,
           locale,
         },
         (e) => {

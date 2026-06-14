@@ -716,7 +716,7 @@
       "1 500 à 3 000 crédits/mois",
       "Optimisation CV prioritaire",
       "Guide de suppression des signaux d'alerte",
-      "IA Entretien & Suivi"
+      "Mode Réécriture CV complet"
     ],
     "waitlist": {
       "label": "Ou rejoignez la liste d'attente pour les fonctionnalités en avant-première",
@@ -1120,10 +1120,8 @@
           "Crédits supplémentaires à l'unité — sans expiration",
           "Suivi d'évolution du score",
           "Historique des analyses",
-          "Entretien IA",
           "Mode Réécriture CV",
-          "Gestionnaire de versions CV",
-          "Suivi des candidatures"
+          "Gestionnaire de versions CV"
         ],
         "cta": "Être présélectionné"
       },

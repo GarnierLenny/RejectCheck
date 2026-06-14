@@ -64,7 +64,6 @@ function AnalyzeContent() {
   const [mlText, setMlText] = useState("");
   const [githubUsername, setGithubUsername] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
-  const [email, setEmail] = useState("");
   // Drives the result rendering. Auto-derived at submit time from JD presence,
   // and overridden when loading a saved analysis whose result shape implies
   // cv-review (see effect below).
@@ -169,7 +168,6 @@ function AnalyzeContent() {
         const parsed: StoredSubscription = JSON.parse(stored);
         if (parsed.expiry > Date.now()) {
           setActiveSubscription(parsed);
-          if (parsed.email) setEmail(parsed.email);
         } else {
           localStorage.removeItem('rc_subscription');
         }
@@ -264,10 +262,8 @@ function AnalyzeContent() {
     formData.append("cv", cvFile);
     if (liFile) formData.append("linkedin", liFile);
     if (githubUsername) formData.append("githubUsername", githubUsername);
-    const emailToSend = activeSubscription?.email || user?.email || email;
-    if (emailToSend) formData.append("email", emailToSend);
-    formData.append("isRegistered", String(!!user));
     formData.append("locale", locale);
+    // Identity is derived server-side from the JWT — we send the token, not email/isRegistered.
 
     posthog.capture("cv_review_submitted", {
       has_github: !!githubUsername,
@@ -283,7 +279,13 @@ function AnalyzeContent() {
     streamingRef.current = true;
 
     try {
-      const res = await fetch(`${apiUrl}/api/analyze/cv-review`, { method: "POST", body: formData });
+      const res = await fetch(`${apiUrl}/api/analyze/cv-review`, {
+        method: "POST",
+        body: formData,
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
+      });
 
       if (res.status === 402) {
         posthog.capture("paywall_shown", { reason: "global_limit" });
@@ -399,10 +401,8 @@ function AnalyzeContent() {
     if (mlText) formData.append("motivationLetterText", mlText);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
-    const emailToSend = activeSubscription?.email || user?.email || email;
-    if (emailToSend) formData.append("email", emailToSend);
-    formData.append("isRegistered", String(!!user));
     formData.append("locale", locale);
+    // Identity is derived server-side from the JWT — we send the token, not email/isRegistered.
 
     posthog.capture("cv_analysis_submitted", {
       has_github: !!githubUsername,
@@ -419,7 +419,13 @@ function AnalyzeContent() {
     streamingRef.current = true;
 
     try {
-      const res = await fetch(`${apiUrl}/api/analyze`, { method: "POST", body: formData });
+      const res = await fetch(`${apiUrl}/api/analyze`, {
+        method: "POST",
+        body: formData,
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
+      });
 
       if (res.status === 402) {
         // Legacy path — quota errors now flow through the SSE error event

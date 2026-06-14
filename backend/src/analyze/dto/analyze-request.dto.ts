@@ -12,10 +12,10 @@ export const AnalyzeRequestSchema = z.object({
     .max(20000, 'Motivation letter is too long')
     .optional(),
   jobLabel: z.string().max(60).optional(),
-  email: z.string().email().optional(),
-  isRegistered: z
-    .preprocess((val) => val === 'true' || val === true, z.boolean())
-    .optional(),
+  // NOTE: identity (email / registered) is NOT taken from the body — it is
+  // derived server-side from the verified Supabase JWT (OptionalSupabaseGuard).
+  // Accepting it from the client would let anyone impersonate any user's tier
+  // or burn another user's quota/credits.
   locale: z.enum(['en', 'fr']).optional().default('en'),
 });
 

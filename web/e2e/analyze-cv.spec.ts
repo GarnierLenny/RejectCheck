@@ -17,8 +17,8 @@ test.describe('CV analysis golden path', () => {
         jobDescription:
           'Senior TypeScript engineer. Required: 5+ years TypeScript, React, Node.js, AWS. Build scalable web applications, mentor juniors, own production systems.',
         jobLabel: 'Senior TS Engineer',
-        email: `e2e-${Date.now()}@example.com`,
-        isRegistered: 'false',
+        // No Authorization header → server treats this as anonymous (IP quota).
+        // Identity is never read from the body anymore.
       },
       timeout: 120_000,
     });
@@ -48,8 +48,6 @@ test.describe('CV analysis golden path', () => {
       multipart: {
         cv: { name: 'cv.pdf', mimeType: 'application/pdf', buffer: cv },
         jobDescription: '',
-        email: 'e2e-empty@example.com',
-        isRegistered: 'false',
       },
     });
 
