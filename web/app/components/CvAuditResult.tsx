@@ -13,6 +13,7 @@ import { InterviewTab } from "./tabs/InterviewTab";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
 import { AnalysisShell } from "./AnalysisShell";
+import { RiskMeter } from "./RiskMeter";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -429,6 +430,13 @@ export function CvAuditResult({
 
         {/* ── Main content ── */}
         <main ref={mainRef} style={{ padding: "48px 64px 120px", overflowY: "auto", height: "100%", scrollbarWidth: "none" }}>
+
+          {/* ── Rejection-risk hero (unified RiskMeter) — risk = 100 − CV quality ── */}
+          {q && (
+            <div style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
+              <RiskMeter value={100 - q.overall} mode="cv" />
+            </div>
+          )}
 
           {/* ── Hero ── */}
           <div style={{ paddingBottom: 48, borderBottom: "1px solid var(--rc-text)", marginBottom: 56 }}>

@@ -734,6 +734,18 @@
       "retry": "Relancer l'analyse"
     }
   },
+  "riskMeter": {
+    "eyebrow": "Risque de rejet",
+    "verdict": { "low": "Risque faible", "mid": "Risque modéré", "high": "Risque élevé" },
+    "bands": { "low": "Faible", "mid": "Modéré", "high": "Élevé" },
+    "lede": {
+      "low": "Peu de raisons d'être écarté.",
+      "mid": "Améliorable : quelques écarts à combler.",
+      "high": "En l'état, ce dossier serait probablement écarté."
+    },
+    "contextVsJob": "vs cette offre",
+    "contextCv": "ce CV en général"
+  },
   "paywall": {
     "badge": "Scan Gratuit Terminé",
     "title": "Boostez votre",

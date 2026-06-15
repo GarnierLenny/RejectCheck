@@ -734,6 +734,18 @@
       "retry": "Restart analysis"
     }
   },
+  "riskMeter": {
+    "eyebrow": "Rejection risk",
+    "verdict": { "low": "Low risk", "mid": "Moderate risk", "high": "High risk" },
+    "bands": { "low": "Low", "mid": "Moderate", "high": "High" },
+    "lede": {
+      "low": "Few reasons to be passed over.",
+      "mid": "Workable — a few gaps to close first.",
+      "high": "As it stands, this would likely be rejected."
+    },
+    "contextVsJob": "vs this job",
+    "contextCv": "this CV overall"
+  },
   "paywall": {
     "badge": "Free Scan Complete",
     "title": "Level up your",
