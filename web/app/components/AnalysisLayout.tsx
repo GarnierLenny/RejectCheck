@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import type { AnalysisResult, Fix } from "./types";
 import { Eyebrow, Mono } from "./resultAtoms";
+import { RiskMeter } from "./RiskMeter";
 import { AnalysisShell, type HighlightMap, type HighlightEntry } from "./AnalysisShell";
 import { RadarChart } from "./RadarChart";
 import { SignalsTab } from "./tabs/SignalsTab";
@@ -871,196 +872,110 @@ export function AnalysisLayout({
       coverLetterText={coverLetterText}
       highlightsByDoc={highlightsByDoc}
       onHighlightTypeClick={(type) => {
-        if (type === "skills") setActiveTab("match");
+        if (type === "skills") document.getElementById("sec-match")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }}
-      renderRight={({ focusDoc }) => (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
-
-        {/* ── Hero (animated collapsible) ── */}
-        <div style={{ flexShrink: 0, borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface)" }}>
-
-          {/* Slim bar — always rendered, slides in when collapsed */}
-          <div style={{ display: "grid", gridTemplateRows: heroOpen ? "0fr" : "1fr", transition: "grid-template-rows 0.28s ease" }}>
-            <div style={{ overflow: "hidden" }}>
-              <div onClick={() => setHeroOpen(true)} style={{ display: "flex", alignItems: "center", gap: 16, padding: "10px 26px", cursor: "pointer" }}>
-                <Mono style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1, letterSpacing: "-0.02em" }}>
-                  {scoreDisplay}<span style={{ fontSize: 12, opacity: 0.5 }}>%</span>
-                </Mono>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "4px 9px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
-                  <span style={{ width: 5, height: 5, borderRadius: 9999, background: color }} />
-                  {t.analysisLayout.verdicts[verdictKey(result.score)]}
-                </span>
-                {jd && <Mono style={{ fontSize: 12, color: "var(--rc-hint)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{jd.pay}{jdMeta ? `  ·  ${jdMeta}` : ""}</Mono>}
-                <span style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", color: "var(--rc-hint)" }}>
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 8l4-4 4 4"/></svg>
-                </span>
-              </div>
-            </div>
+      renderRight={({ focusDoc }) => {
+        const secHead = (n: string, title: string) => (
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 18, height: 1, background: "var(--rc-red)" }} />§ {n} · {title}
           </div>
+        );
+        const TOC: { id: string; n: string; label: string; badge: number; premium?: boolean }[] = [
+          { id: "risk",      n: "01", label: t.riskMeter.eyebrow,             badge: 0 },
+          { id: "match",     n: "02", label: t.analysisLayout.tabs.match,     badge: matchBadge },
+          { id: "cv",        n: "03", label: t.analysisLayout.tabs.cv,        badge: cvBadge },
+          { id: "signals",   n: "04", label: t.analysisLayout.tabs.signals,   badge: signalsBadge },
+          { id: "timeline",  n: "05", label: t.analysisLayout.tabs.timeline,  badge: timelineBadge },
+          { id: "roadmap",   n: "06", label: t.analysisLayout.tabs.roadmap,   badge: 0 },
+          { id: "bridge",    n: "07", label: t.analysisLayout.tabs.bridge,    badge: 0, premium: true },
+          { id: "negotiate", n: "08", label: t.analysisLayout.tabs.negotiate, badge: 0, premium: true },
+          { id: "rewrite",   n: "09", label: t.analysisLayout.tabs.rewrite,   badge: 0, premium: true },
+        ];
+        const SEC: React.CSSProperties = { scrollMarginTop: 24, padding: "44px 0", borderTop: "1px solid var(--rc-border)" };
+        return (
+        <div className="rc-toc-grid" style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "230px 1fr", minWidth: 0 }}>
 
-          {/* Full hero — slides in when open */}
-          <div style={{ display: "grid", gridTemplateRows: heroOpen ? "1fr" : "0fr", transition: "grid-template-rows 0.28s ease" }}>
-            <div style={{ overflow: "hidden" }}>
-              <div className="rc-hero-split" style={{ display: "flex" }}>
-                {/* Score column */}
-                <div className="rc-hero-score" style={{ width: 220, flexShrink: 0, borderRight: "1px solid var(--rc-border)", padding: "20px 24px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <Eyebrow style={{ marginBottom: 10 }}>{t.analysisLayout.hero.rejectionRisk}</Eyebrow>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 2, marginBottom: 12 }}>
-                    <Mono style={{ fontSize: 68, fontWeight: 700, lineHeight: 0.88, color, letterSpacing: "-0.03em" }}>{scoreDisplay}</Mono>
-                    <Mono style={{ fontSize: 24, fontWeight: 700, color, opacity: 0.45 }}>%</Mono>
-                  </div>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, alignSelf: "flex-start", fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "5px 10px", borderRadius: R_SM, color, background: `color-mix(in srgb, ${color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${color} 25%, transparent)` }}>
-                    <span style={{ width: 6, height: 6, borderRadius: 9999, background: color }} />
-                    {t.analysisLayout.verdicts[verdictKey(result.score)]}
-                  </span>
-                  {result.confidence && (
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--rc-border)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
-                        <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.hero.confidence}</Eyebrow>
-                        <Mono style={{ fontSize: 11, fontWeight: 700, color: "var(--rc-text)" }}>{result.confidence.score}%</Mono>
-                        <div className="relative group" style={{ display: "inline-flex" }}>
-                          <span style={{ width: 14, height: 14, borderRadius: 99, border: "1px solid var(--rc-border)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)", cursor: "default", flexShrink: 0 }}>?</span>
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150" style={{ width: 210, background: "var(--rc-text)", color: "var(--rc-bg)", fontFamily: "var(--font-sans)", fontSize: 11, lineHeight: 1.55, padding: "9px 12px", borderRadius: 6, zIndex: 50 }}>
-                            {t.analysisLayout.hero.confidenceTooltip}
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.5 }}>{result.confidence.reason}</div>
-                    </div>
-                  )}
+          {/* ── Section nav (vertical TOC) ── */}
+          <aside className="rc-toc" style={{ height: "100%", overflowY: "auto", padding: "40px 14px 0 26px", borderRight: "1px solid var(--rc-border)", scrollbarWidth: "none" }}>
+            <Eyebrow style={{ display: "block", marginBottom: 14, paddingLeft: 8 }}>Diagnostic</Eyebrow>
+            <nav style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {TOC.map((s) => (
+                <a key={s.id} href={`#sec-${s.id}`}
+                  onClick={(e) => { e.preventDefault(); document.getElementById(`sec-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: R_SM, textDecoration: "none", color: "var(--rc-hint)" }}>
+                  <Mono style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em" }}>{s.n}</Mono>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500, flex: 1 }}>{s.label}</span>
+                  {s.badge > 0 && <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-amber)" }}>{s.badge}</Mono>}
+                  {s.premium && <Mono style={{ fontSize: 9, color: "var(--rc-red)" }}>✦</Mono>}
+                </a>
+              ))}
+            </nav>
+          </aside>
+
+          {/* ── Scrolled report ── */}
+          <main style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
+
+            {/* §01 — Rejection risk */}
+            <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
+              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score)} sectionNo="01" />
+              {result.technical_analysis?.reasoning && (
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
+                  <MD>{result.technical_analysis.reasoning}</MD>
                 </div>
-
-                {/* Verdict + breakdown column */}
-                <div style={{ flex: 1, padding: "20px 26px", minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, lineHeight: 1.25, letterSpacing: "-0.015em", color: "var(--rc-text)", marginBottom: 8 }}>
-                      {heroHeadline(result.score)}
-                    </div>
-                    <button onClick={() => setHeroOpen(false)} title="Collapse summary" style={{ flexShrink: 0, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-bg)", cursor: "pointer", color: "var(--rc-hint)" }}>
-                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 4l4 4 4-4"/></svg>
-                    </button>
+              )}
+              {(() => {
+                const topFix =
+                  result.audit.cv.issues.find(i => i.severity === "critical" && i.fix)?.fix ??
+                  result.audit.cv.issues.find(i => i.severity === "major" && i.fix)?.fix ??
+                  result.seniority_analysis?.fix ??
+                  null;
+                if (!topFix) return null;
+                return (
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 16, padding: "10px 14px", borderRadius: R_SM, background: "color-mix(in srgb, var(--rc-green) 6%, transparent)", border: "1px solid color-mix(in srgb, var(--rc-green) 20%, transparent)" }}>
+                    <Eyebrow color="var(--rc-green)" style={{ flexShrink: 0, letterSpacing: "0.14em" }}>{t.analysisLayout.hero.startHere}</Eyebrow>
+                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-text)", lineHeight: 1.5 }}>
+                      <MD>{topFix.summary}</MD>
+                      {" "}<Mono style={{ color: "var(--rc-hint)", fontSize: 12 }}>{t.analysisLayout.diffRow.startHereIn} {topFix.time_required}</Mono>
+                    </span>
                   </div>
-                  {result.technical_analysis?.reasoning && (
-                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginBottom: 16 }}>
-                      <MD>{result.technical_analysis.reasoning}</MD>
-                    </div>
-                  )}
-                  {/* START HERE callout — top fix derived from first critical/major CV issue or seniority */}
-                  {(() => {
-                    const topFix =
-                      result.audit.cv.issues.find(i => i.severity === "critical" && i.fix)?.fix ??
-                      result.audit.cv.issues.find(i => i.severity === "major" && i.fix)?.fix ??
-                      result.seniority_analysis?.fix ??
-                      null;
-                    if (!topFix) return null;
-                    return (
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 16, padding: "10px 14px", borderRadius: R_SM, background: "color-mix(in srgb, var(--rc-green) 6%, transparent)", border: "1px solid color-mix(in srgb, var(--rc-green) 20%, transparent)" }}>
-                        <Eyebrow color="var(--rc-green)" style={{ flexShrink: 0, letterSpacing: "0.14em" }}>{t.analysisLayout.hero.startHere}</Eyebrow>
-                        <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-text)", lineHeight: 1.5 }}>
-                          <MD>{topFix.summary}</MD>
-                          {" "}<Mono style={{ color: "var(--rc-hint)", fontSize: 12 }}>{t.analysisLayout.diffRow.startHereIn} {topFix.time_required}</Mono>
-                        </span>
-                      </div>
-                    );
-                  })()}
-                  {result.breakdown && (
-                    <div style={{ borderTop: "1px solid var(--rc-border)", marginTop: result.technical_analysis?.reasoning ? 0 : 8, paddingTop: 16 }}>
-                      <Eyebrow style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.hero.breakdownTitle}</Eyebrow>
-                      <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
-                        <StatBarRow label={t.analysisLayout.breakdownLabels.keywords}   value={result.breakdown.keyword_match}    threshold={65} />
-                        <StatBarRow label={t.analysisLayout.breakdownLabels.techStack} value={result.breakdown.tech_stack_fit}   threshold={70} />
-                        <StatBarRow label={t.analysisLayout.breakdownLabels.experience} value={result.breakdown.experience_level} threshold={60} />
-                        <StatBarRow label={t.analysisLayout.breakdownLabels.github}     value={result.breakdown.github_signal}    threshold={70} />
-                        <StatBarRow label={t.analysisLayout.breakdownLabels.linkedin}   value={result.breakdown.linkedin_signal}  threshold={70} />
-                      </div>
-                    </div>
-                  )}
+                );
+              })()}
+              {result.breakdown && (
+                <div style={{ borderTop: "1px solid var(--rc-border)", marginTop: 24, paddingTop: 18 }}>
+                  <Eyebrow style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.hero.breakdownTitle}</Eyebrow>
+                  <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 28px" }}>
+                    <StatBarRow label={t.analysisLayout.breakdownLabels.keywords}   value={result.breakdown.keyword_match}    threshold={65} />
+                    <StatBarRow label={t.analysisLayout.breakdownLabels.techStack} value={result.breakdown.tech_stack_fit}   threshold={70} />
+                    <StatBarRow label={t.analysisLayout.breakdownLabels.experience} value={result.breakdown.experience_level} threshold={60} />
+                    <StatBarRow label={t.analysisLayout.breakdownLabels.github}     value={result.breakdown.github_signal}    threshold={70} />
+                    <StatBarRow label={t.analysisLayout.breakdownLabels.linkedin}   value={result.breakdown.linkedin_signal}  threshold={70} />
+                  </div>
                 </div>
-              </div>
-
-              {/* Role dossier */}
+              )}
               {jd && (
-                <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: 6, padding: "11px 26px", borderTop: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
+                <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", rowGap: 6, marginTop: 20, padding: "11px 14px", borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
                   <Eyebrow style={{ marginRight: 16, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.hero.targetRole}</Eyebrow>
                   <Mono style={{ fontSize: 14, fontWeight: 700, color: "var(--rc-text)", whiteSpace: "nowrap" }}>{jd.pay}</Mono>
                   {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
                 </div>
               )}
-            </div>
-          </div>
+            </section>
 
-        </div>
-
-        {/* ── Tab bar ── */}
-        <div style={{ flexShrink: 0, display: "flex", gap: 2, padding: "0 26px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface)" }}>
-          {TABS.map((t) => {
-            const on = t.id === activeTab;
-            const badgeColor = t.tone === "amber" ? "var(--rc-amber)" : on ? "var(--rc-red)" : "var(--rc-hint)";
-            return (
-              <div key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 14px", fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: on ? 600 : 500, color: on ? "var(--rc-red)" : "var(--rc-hint)", borderBottom: `2px solid ${on ? "var(--rc-red)" : "transparent"}`, cursor: "pointer", userSelect: "none" }}>
-                {t.label}
-                {t.premium && (
-                  <Mono style={{ fontSize: 9, fontWeight: 700, color: on ? "var(--rc-red)" : "var(--rc-hint)", letterSpacing: "0.04em" }}>✦</Mono>
-                )}
-                {t.badge > 0 && (
-                  <Mono style={{ fontSize: 10, fontWeight: 700, color: badgeColor, background: "var(--rc-bg)", border: "1px solid var(--rc-border)", borderRadius: R_SM, padding: "1px 5px" }}>
-                    {t.badge}
-                  </Mono>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ── Tab content ── */}
-        <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "thin" }}>
-
-          {/* Match */}
-          {activeTab === "match" && (
-            <div style={{ padding: "28px 30px" }}>
+            {/* §02 — Match */}
+            <section id="sec-match" style={SEC}>
+              {secHead("02", t.analysisLayout.tabs.match)}
               <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
-            </div>
-          )}
+            </section>
 
-          {/* CV */}
-          {activeTab === "cv" && (
-            <div style={{ padding: "28px 30px" }}>
+            {/* §03 — CV */}
+            <section id="sec-cv" style={SEC}>
+              {secHead("03", t.analysisLayout.tabs.cv)}
               <CVBody result={result} onIssueClick={() => focusDoc("cv", true)} />
-            </div>
-          )}
+            </section>
 
-          {/* Rewrite */}
-          {activeTab === "rewrite" && (
-            hasShortlisted ? (
-              <RewriteTab
-                result={result}
-                reconstructedCv={reconstructedCv ?? null}
-                isRewriting={isRewriting ?? false}
-                onRewrite={onRewrite ?? (() => {})}
-                analysisId={analysisId}
-              />
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 40px", textAlign: "center", gap: 20 }}>
-                <Mono style={{ fontSize: 28, color: "var(--rc-border)" }}>✦</Mono>
-                <div>
-                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "var(--rc-text)", letterSpacing: "-0.015em", marginBottom: 10 }}>
-                    {t.analysisLayout.rewritePaywall.title}
-                  </div>
-                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.65, maxWidth: 400 }}>
-                    {t.analysisLayout.rewritePaywall.desc}
-                  </div>
-                </div>
-                <a href="/pricing" style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", textDecoration: "none", boxShadow: "0 6px 20px rgba(201,58,57,0.28)" }}>
-                  {t.analysisLayout.rewritePaywall.cta}
-                </a>
-                <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.rewritePaywall.note}</Eyebrow>
-              </div>
-            )
-          )}
-
-          {/* Signals */}
-          {activeTab === "signals" && (
-            <div style={{ padding: "28px 30px" }}>
+            {/* §04 — Signals */}
+            <section id="sec-signals" style={SEC}>
+              {secHead("04", t.analysisLayout.tabs.signals)}
               <SignalsTab
                 github={result.audit.github}
                 linkedin={result.audit.linkedin}
@@ -1071,74 +986,91 @@ export function AnalysisLayout({
                   focusDoc(src === "linkedin" ? "linkedin" : "cv", true);
                 }}
               />
-            </div>
-          )}
+            </section>
 
-          {/* Timeline */}
-          {activeTab === "timeline" && (
-            <div style={{ padding: "28px 30px" }}>
+            {/* §05 — Timeline */}
+            <section id="sec-timeline" style={SEC}>
+              {secHead("05", t.analysisLayout.tabs.timeline)}
               <ConsistencyTab
                 inconsistencies={result.cross_profile_inconsistencies ?? []}
                 timelineEntries={result.timeline_entries ?? []}
               />
-            </div>
-          )}
+            </section>
 
-          {/* Plan */}
-          {activeTab === "plan" && (
-            <div>
-              {/* Sub-nav */}
-              <div style={{ display: "inline-flex", gap: 3, margin: "16px 26px 0", padding: 3, background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: R_MD }}>
-                {PLAN_PANES.map(({ id, label }) => {
-                  const on = activePlan === id;
-                  return (
-                    <button key={id} onClick={() => setActivePlan(id)} style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", padding: "7px 14px", borderRadius: R_SM, cursor: "pointer", color: on ? "var(--rc-surface)" : "var(--rc-hint)", background: on ? "var(--rc-text)" : "transparent", border: "1px solid transparent", boxShadow: on ? SHADOW_XS : "none" }}>
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* §06 — Roadmap */}
+            <section id="sec-roadmap" style={SEC}>
+              {secHead("06", t.analysisLayout.tabs.roadmap)}
+              <RoadmapTab result={result} />
+            </section>
 
-              <div style={{ padding: "24px 30px" }}>
-                {activePlan === "roadmap" && <RoadmapTab result={result} />}
+            {/* §07 — Bridge project */}
+            <section id="sec-bridge" style={SEC}>
+              {secHead("07", t.analysisLayout.tabs.bridge)}
+              {result.project_recommendation ? (
+                hasShortlisted ? (
+                  <BridgeTab result={result} analysisId={analysisId} completedSteps={completedSteps} />
+                ) : (
+                  <ProjectTab project={result.project_recommendation} />
+                )
+              ) : deepStatus === "pending" ? (
+                <ProjectRecommendationSkeleton />
+              ) : (
+                <div style={{ padding: "32px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
+                  {t.analysisLayout.plan.bridgeNotAvailable}
+                </div>
+              )}
+              {AI_INTERVIEW_ENABLED && hasHired && (
+                <div style={{ marginTop: 32 }}>
+                  <InterviewTab isPremium={true} analysisId={analysisId} email={email ?? null} accessToken={accessToken ?? null} defaultInterviewId={null} />
+                </div>
+              )}
+            </section>
 
-                {activePlan === "bridge" && (
-                  result.project_recommendation ? (
-                    hasShortlisted ? (
-                      <BridgeTab result={result} analysisId={analysisId} completedSteps={completedSteps} />
-                    ) : (
-                      <ProjectTab project={result.project_recommendation} />
-                    )
-                  ) : deepStatus === "pending" ? (
-                    <ProjectRecommendationSkeleton />
-                  ) : (
-                    <div style={{ padding: "48px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
-                      {t.analysisLayout.plan.bridgeNotAvailable}
+            {/* §08 — Negotiation */}
+            <section id="sec-negotiate" style={SEC}>
+              {secHead("08", t.analysisLayout.tabs.negotiate)}
+              {hasHired ? (
+                <NegotiationTab result={result} analysisId={analysisId} isPremium={true} />
+              ) : (
+                <div style={{ padding: "32px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
+                  {t.analysisLayout.plan.negotiationPremium}
+                </div>
+              )}
+            </section>
+
+            {/* §09 — Rewrite */}
+            <section id="sec-rewrite" style={SEC}>
+              {secHead("09", t.analysisLayout.tabs.rewrite)}
+              {hasShortlisted ? (
+                <RewriteTab
+                  result={result}
+                  reconstructedCv={reconstructedCv ?? null}
+                  isRewriting={isRewriting ?? false}
+                  onRewrite={onRewrite ?? (() => {})}
+                  analysisId={analysisId}
+                />
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 40px", textAlign: "center", gap: 20 }}>
+                  <Mono style={{ fontSize: 28, color: "var(--rc-border)" }}>✦</Mono>
+                  <div>
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "var(--rc-text)", letterSpacing: "-0.015em", marginBottom: 10 }}>
+                      {t.analysisLayout.rewritePaywall.title}
                     </div>
-                  )
-                )}
-
-                {activePlan === "negotiate" && (
-                  hasHired ? (
-                    <NegotiationTab result={result} analysisId={analysisId} isPremium={true} />
-                  ) : (
-                    <div style={{ padding: "48px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
-                      {t.analysisLayout.plan.negotiationPremium}
+                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.65, maxWidth: 400 }}>
+                      {t.analysisLayout.rewritePaywall.desc}
                     </div>
-                  )
-                )}
-
-                {activePlan === "bridge" && AI_INTERVIEW_ENABLED && hasHired && (
-                  <div style={{ marginTop: 32 }}>
-                    <InterviewTab isPremium={true} analysisId={analysisId} email={email ?? null} accessToken={accessToken ?? null} defaultInterviewId={null} />
                   </div>
-                )}
-              </div>
-            </div>
-          )}
+                  <a href="/pricing" style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", textDecoration: "none", boxShadow: "0 6px 20px rgba(201,58,57,0.28)" }}>
+                    {t.analysisLayout.rewritePaywall.cta}
+                  </a>
+                  <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.rewritePaywall.note}</Eyebrow>
+                </div>
+              )}
+            </section>
+          </main>
         </div>
-      </div>
-      )}
+        );
+      }}
     />
   );
 }
