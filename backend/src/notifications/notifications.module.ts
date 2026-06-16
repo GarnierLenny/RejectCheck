@@ -7,7 +7,11 @@ import { EmailProcessor } from './infrastructure/queue/email.processor';
 import { RenderAndSendEmailUseCase } from './application/render-and-send-email.use-case';
 import { EmailJobsService } from './application/email-jobs.service';
 import { EnqueueEmailUseCase } from './application/enqueue-email.use-case';
+import { ScheduleDripsUseCase } from './application/schedule-drips.use-case';
+import { UnsubscribeService } from './application/unsubscribe.service';
+import { DripSchedulerCron } from './infrastructure/drip-scheduler.cron';
 import { EmailDevController } from './email-dev.controller';
+import { UnsubscribeController } from './unsubscribe.controller';
 import { EMAIL_SENDER } from './ports/tokens';
 
 // Register the EMAIL_QUEUE only when Redis is wired. forRoot (the shared
@@ -38,17 +42,20 @@ const workers = QUEUE_ENABLED ? [EmailProcessor] : [];
  */
 @Module({
   imports: [...queueImports],
-  controllers: [EmailDevController],
+  controllers: [EmailDevController, UnsubscribeController],
   providers: [
     emailSenderProvider,
     EmailRenderer,
     RenderAndSendEmailUseCase,
     EmailJobsService,
     EnqueueEmailUseCase,
+    ScheduleDripsUseCase,
+    UnsubscribeService,
+    DripSchedulerCron,
     ...workers,
   ],
-  // EnqueueEmailUseCase is the public API (idempotent send). EMAIL_SENDER stays
-  // exported for tests/diagnostics; EmailJobsService is internal transport.
-  exports: [EMAIL_SENDER, EnqueueEmailUseCase],
+  // EnqueueEmailUseCase + ScheduleDripsUseCase are the public API. EMAIL_SENDER
+  // stays exported for tests/diagnostics; EmailJobsService is internal transport.
+  exports: [EMAIL_SENDER, EnqueueEmailUseCase, ScheduleDripsUseCase],
 })
 export class NotificationsModule {}

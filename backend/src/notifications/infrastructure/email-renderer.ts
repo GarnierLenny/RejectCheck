@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { UnsubscribeService } from '../application/unsubscribe.service';
 import {
   emailCategoryOf,
   type EmailJobPayload,
@@ -18,7 +19,10 @@ import {
  */
 @Injectable()
 export class EmailRenderer {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly unsubscribe: UnsubscribeService,
+  ) {}
 
   private get baseUrl(): string {
     // Emails need a PUBLIC origin for images + links (Gmail's proxy can't reach
@@ -78,7 +82,8 @@ export class EmailRenderer {
     }
 
     const subject = SUBJECTS[locale][context.type];
-    const html = wrapEmail({ base, locale, s, eyebrow, heading, body, ctaLabel, ctaUrl, subNote });
+    const unsubUrl = this.unsubscribe.unsubscribeUrl(to);
+    const html = wrapEmail({ base, locale, s, eyebrow, heading, body, ctaLabel, ctaUrl, subNote, unsubUrl });
     const text = `${heading}\n\n${stripTags(body)}\n\n${ctaLabel}: ${ctaUrl}`;
 
     return {
@@ -109,6 +114,7 @@ function wrapEmail(p: {
   ctaLabel: string;
   ctaUrl: string;
   subNote: string;
+  unsubUrl: string;
 }): string {
   const logo = `${p.base}/email/logo-mark.png`;
   const f = p.s.footer;
@@ -178,7 +184,7 @@ function wrapEmail(p: {
 ${social}
         <p style="margin:0;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.72);">
           ${f.legal}<br>
-          <a href="${prefs}" style="color:#FFFFFF;text-decoration:underline;">${f.unsubscribe}</a> &middot; <a href="${prefs}" style="color:#FFFFFF;text-decoration:underline;">${f.preferences}</a>
+          <a href="${p.unsubUrl}" style="color:#FFFFFF;text-decoration:underline;">${f.unsubscribe}</a> &middot; <a href="${prefs}" style="color:#FFFFFF;text-decoration:underline;">${f.preferences}</a>
         </p>
       </td></tr>
 

@@ -380,3 +380,44 @@ model EmailLog {
 
   @@index([email, type])
 }
+
+enum ScheduledEmailStatus {
+  pending
+  sent
+  cancelled
+}
+
+// A future email (drips D1/D3). A cron scans `pending` rows whose `sendAfter`
+// has passed, skips opted-out/converted recipients, then enqueues them. Unlike
+// BullMQ delayed jobs this is inspectable, cancellable, and survives a Redis
+// flush — and it works in dev without Redis.
+model ScheduledEmail {
+  id          Int                  @id @default(autoincrement())
+  email       String
+  type        EmailType
+  locale      String               @default("en")
+  sendAfter   DateTime
+  status      ScheduledEmailStatus @default(pending)
+  dedupeKey   String               @unique
+  createdAt   DateTime             @default(now())
+  processedAt DateTime?
+
+  @@index([status, sendAfter])
+}
+
+enum SuppressionReason {
+  unsubscribe // user opted out of marketing
+  hard_bounce // address rejected — stop ALL mail
+  complaint // marked as spam — stop ALL mail
+  manual // added by an admin
+}
+
+// Do-not-send list, checked before every send. `unsubscribe` blocks marketing
+// only; `hard_bounce`/`complaint` block everything. Populated by the unsubscribe
+// route and (later) the Resend webhook.
+model Suppression {
+  id        Int               @id @default(autoincrement())
+  email     String            @unique
+  reason    SuppressionReason
+  createdAt DateTime          @default(now())
+}

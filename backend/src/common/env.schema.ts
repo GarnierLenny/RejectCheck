@@ -66,6 +66,13 @@ export const envSchema = z.object({
   // (Gmail's image proxy) can't reach localhost, so this must be a public
   // HTTPS origin even in dev. Falls back to FRONTEND_URL when unset.
   EMAIL_BASE_URL: z.string().optional(),
+  // Public base URL of THIS backend — used to build the one-click unsubscribe
+  // link (List-Unsubscribe header). Defaults to https://api.rejectcheck.com.
+  BACKEND_PUBLIC_URL: z.string().optional(),
+  // HMAC secret for signing unsubscribe tokens. Set a strong value in prod;
+  // falls back to a dev constant otherwise (a forged token can only unsubscribe
+  // — low severity — but still set it in prod).
+  EMAIL_UNSUBSCRIBE_SECRET: z.string().optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

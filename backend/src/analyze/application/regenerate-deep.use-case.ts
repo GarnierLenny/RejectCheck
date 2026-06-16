@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   ANALYSIS_REPOSITORY,
   CLAUDE_PROVIDER,
@@ -13,6 +13,8 @@ import type {
   HotAnalyzeResponse,
 } from '../dto/analyze-response.dto';
 import { AnalysisNotFoundException } from '../../common/exceptions';
+import { EnqueueEmailUseCase } from '../../notifications/application/enqueue-email.use-case';
+import type { EmailLocale } from '../../notifications/domain/email.types';
 
 /**
  * Re-runs the deep pass for an analysis whose first deep generation failed
@@ -24,10 +26,13 @@ import { AnalysisNotFoundException } from '../../common/exceptions';
  */
 @Injectable()
 export class RegenerateDeepUseCase {
+  private readonly logger = new Logger(RegenerateDeepUseCase.name);
+
   constructor(
     @Inject(ANALYSIS_REPOSITORY) private readonly analyses: AnalysisRepository,
     @Inject(CLAUDE_PROVIDER) private readonly claude: ClaudeProvider,
     @Inject(PROFILE_REPOSITORY) private readonly profiles: ProfileRepository,
+    private readonly enqueueEmail: EnqueueEmailUseCase,
   ) {}
 
   async execute(
@@ -70,6 +75,27 @@ export class RegenerateDeepUseCase {
     });
 
     await this.analyses.attachDeepAnalysis(analysisId, email, deep);
+
+    // Fresh deep completion → notify the user. Fire-and-forget + idempotent
+    // (dedupeKey analysis_ready:email:analysisId), so it never fires twice for
+    // the same analysis and never blocks/fails the deep pass. The early return
+    // above (cached deepAnalysis) means this only runs on a real completion.
+    void this.enqueueEmail
+      .execute({
+        to: email,
+        locale: stored.jdLanguage === 'fr' ? 'fr' : ('en' as EmailLocale),
+        context: {
+          type: 'analysis_ready',
+          analysisId,
+          role: stored.result.job_details?.title ?? null,
+        },
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `analysis_ready enqueue failed (analysisId=${analysisId}): ${msg}`,
+        );
+      });
 
     return deep;
   }
