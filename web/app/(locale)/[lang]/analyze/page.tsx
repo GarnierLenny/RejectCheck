@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { consumePendingCv } from "../../../../lib/pending-cv";
+import { setPendingClaim } from "../../../../lib/pending-claim";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
@@ -99,6 +100,9 @@ function AnalyzeContent() {
   const [isSharing, setIsSharing] = useState(false);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  // claimToken of the current logged-out analysis — lets anonymous users share
+  // (and the result attach to their account if they sign up later).
+  const [anonClaimToken, setAnonClaimToken] = useState<string | null>(null);
   const shareToastShownRef = useRef<number | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
@@ -321,6 +325,7 @@ function AnalyzeContent() {
         delta?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
+        claimToken?: string | null;
         message?: string;
         code?: string;
         details?: { plan?: 'free' | 'shortlisted' | 'hired'; monthlyCap?: number };
@@ -342,6 +347,12 @@ function AnalyzeContent() {
         if (payload.step === "analysis_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "analysis_done") {
+          // Anonymous run: stash the claimToken so it attaches to the account
+          // if the user signs up from the result screen (see AuthProvider).
+          if (payload.claimToken && !user) {
+            setPendingClaim(payload.claimToken);
+            setAnonClaimToken(payload.claimToken);
+          }
           if (payload.result) {
             latestResult = payload.result;
             setResult(payload.result);
@@ -473,6 +484,7 @@ function AnalyzeContent() {
         delta?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
+        claimToken?: string | null;
         negotiation?: AnalysisResult["negotiation_analysis"];
         cvTextFormatted?: string | null;
         linkedinTextFormatted?: string | null;
@@ -511,6 +523,12 @@ function AnalyzeContent() {
         if (payload.step === "analysis_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "analysis_done") {
+          // Anonymous run: stash the claimToken so it attaches to the account
+          // if the user signs up from the result screen (see AuthProvider).
+          if (payload.claimToken && !user) {
+            setPendingClaim(payload.claimToken);
+            setAnonClaimToken(payload.claimToken);
+          }
           if (payload.result) {
             latestResult = payload.result;
             setResult(payload.result);
@@ -627,6 +645,9 @@ function AnalyzeContent() {
     setCheckedKeywords(new Set());
     setVisualLoadingDone(false);
     setAnalysisId(null);
+    setAnonClaimToken(null);
+    setShareToken(null);
+    setShareUrl(null);
     setReconstructedCv(null);
     router.replace(localePath('/analyze'), { scroll: false });
   }
@@ -655,6 +676,32 @@ function AnalyzeContent() {
       setShareToken(token);
       setShareUrl(url);
       posthog.capture("analysis_shared", { analysis_id: analysisId });
+    } catch {
+      toast.error("Impossible de générer le lien de partage.");
+    } finally {
+      setIsSharing(false);
+    }
+  }
+
+  // Logged-out share: mint the public token from the analysis's claimToken
+  // (no auth). This is the viral entry point — most first-time users are
+  // anonymous when they see their shocking risk score.
+  async function shareAnalysisAnonymous() {
+    if (!anonClaimToken) return;
+    setIsSharing(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/analyze/share-anonymous`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claimToken: anonClaimToken }),
+      });
+      if (!res.ok) throw new Error("share failed");
+      const { token } = await res.json();
+      const base = `${window.location.origin}${localePath(`/share/${token}`)}`;
+      const url = `${base}?utm_source=rejectcheck&utm_medium=share_card&utm_campaign=anon_share`;
+      setShareToken(token);
+      setShareUrl(url);
+      posthog.capture("analysis_shared", { anonymous: true });
     } catch {
       toast.error("Impossible de générer le lien de partage.");
     } finally {
@@ -834,7 +881,7 @@ function AnalyzeContent() {
           liText={liText}
           onReset={handleReset}
           onExportMd={exportToMd}
-          onShare={analysisId && user ? shareAnalysis : undefined}
+          onShare={user && analysisId ? shareAnalysis : !user && anonClaimToken ? shareAnalysisAnonymous : undefined}
           isSharing={isSharing}
           userPlan={userPlan}
           reconstructedCv={reconstructedCv}
@@ -858,7 +905,7 @@ function AnalyzeContent() {
           onExportMd={exportToMd}
           onExportPdf={exportToPdf}
           isExportingPdf={isExportingPdf}
-          onShare={analysisId && user ? shareAnalysis : undefined}
+          onShare={user && analysisId ? shareAnalysis : !user && anonClaimToken ? shareAnalysisAnonymous : undefined}
           isSharing={isSharing}
           reconstructedCv={reconstructedCv}
           liText={liText}
@@ -932,9 +979,9 @@ function AnalyzeContent() {
                     <Download size={12} />
                     .md
                   </button>
-                  {analysisId && user && (
+                  {((user && analysisId) || (!user && anonClaimToken)) && (
                     <button
-                      onClick={shareAnalysis}
+                      onClick={user ? shareAnalysis : shareAnalysisAnonymous}
                       disabled={isSharing}
                       className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
                     >

@@ -5,6 +5,10 @@ import * as Sentry from "@sentry/nextjs";
 import posthog from "posthog-js";
 import type { Session, User } from "@supabase/supabase-js";
 import { createClient } from "../lib/supabase";
+import { authHeaders } from "../lib/api";
+import { getPendingClaim, clearPendingClaim } from "../lib/pending-claim";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 
 function syncSentryUser(user: User | null | undefined): void {
   Sentry.setUser(user ? { id: user.id, email: user.email } : null);
@@ -62,6 +66,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // Claim an analysis the user ran while logged out (set just before signup).
+  // Idempotent: a 404 means it's already claimed/expired, so we clear either way
+  // and only keep the token to retry on transient/network errors.
+  useEffect(() => {
+    const token = session?.access_token;
+    if (!token) return;
+    const pending = getPendingClaim();
+    if (!pending) return;
+    fetch(`${API_URL}/api/analyze/claim`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders(token) },
+      body: JSON.stringify({ claimToken: pending }),
+    })
+      .then((res) => {
+        if (res.ok || res.status === 404) clearPendingClaim();
+      })
+      .catch(() => {
+        /* keep the token, retry on next load */
+      });
+  }, [session]);
 
   async function signOut() {
     await supabase.auth.signOut();

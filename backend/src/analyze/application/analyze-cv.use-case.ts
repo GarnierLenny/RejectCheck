@@ -78,6 +78,8 @@ export type AnalyzeEvent =
       type: 'analysis_done';
       result: AnalyzeResponse;
       analysisId: number | null;
+      /** Anonymous analyses only — lets the client claim it after signup. */
+      claimToken: string | null;
       cvTextFormatted: string;
       linkedinTextFormatted: string;
       motivationLetterText: string;
@@ -265,7 +267,7 @@ export class AnalyzeCvUseCase {
     }
 
     const persistStart = Date.now();
-    const analysisId = await this.persist({
+    const { analysisId, claimToken } = await this.persist({
       cmd,
       result,
       cvText,
@@ -281,7 +283,7 @@ export class AnalyzeCvUseCase {
       await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.analyze });
     }
 
-    emit({ type: 'analysis_done', result, analysisId, cvTextFormatted, linkedinTextFormatted, motivationLetterText });
+    emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText });
 
     // Negotiation pass for hired users — still async via BullMQ or setImmediate.
     if (cmd.email && cmd.isRegistered && analysisId !== null) {
@@ -423,23 +425,15 @@ export class AnalyzeCvUseCase {
     linkedinTextFormatted: string;
     githubInfo: string;
     motivationLetterText: string;
-  }): Promise<number | null> {
+  }): Promise<{ analysisId: number | null; claimToken: string | null }> {
     const { cmd, result } = args;
-    const isRegistered = !!cmd.isRegistered;
-
-    if (!isRegistered || !cmd.email) {
-      await this.analyses.saveAnonymous(cmd.ip);
-      return null;
-    }
 
     const resolvedLabel =
       cmd.jobLabel?.trim() || result.job_details?.title || null;
     const resolvedCompany =
       result.job_details?.company?.trim() || 'Unknown Company';
 
-    const created = await this.analyses.saveRegistered({
-      email: cmd.email,
-      ip: cmd.ip,
+    const payload = {
       jobDescription: cmd.jobDescription,
       jobLabel: resolvedLabel,
       company: resolvedCompany,
@@ -450,8 +444,25 @@ export class AnalyzeCvUseCase {
       linkedinTextFormatted: args.linkedinTextFormatted || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: args.motivationLetterText || null,
-      creditCost: CREDIT_COSTS.analyze,
       result,
+    };
+
+    // Anonymous: persist the full payload + a claimToken so the user can attach
+    // it to their account at signup. Row keeps ip/createdAt for rate-limiting;
+    // PII is scrubbed by the TTL job if never claimed.
+    if (!cmd.isRegistered || !cmd.email) {
+      const { claimToken } = await this.analyses.saveAnonymous({
+        ...payload,
+        ip: cmd.ip,
+      });
+      return { analysisId: null, claimToken };
+    }
+
+    const created = await this.analyses.saveRegistered({
+      ...payload,
+      email: cmd.email,
+      ip: cmd.ip,
+      creditCost: CREDIT_COSTS.analyze,
     });
 
     const meta: ApplicationUpsertInput['meta'] = {
@@ -473,7 +484,7 @@ export class AnalyzeCvUseCase {
       meta,
     });
 
-    return created.id;
+    return { analysisId: created.id, claimToken: null };
   }
 
   /**

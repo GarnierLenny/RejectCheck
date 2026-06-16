@@ -9,6 +9,8 @@ import { LlmJobsService } from '../queue/llm-jobs.service';
 import { QUEUE_ENABLED } from '../queue/queue.constants';
 import { CreditsModule } from '../credits/credits.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ClaimAnalysisUseCase } from './application/claim-analysis.use-case';
+import { AnalysisCleanupCron } from './infrastructure/analysis-cleanup.cron';
 import { DeepAnalysisProcessor } from './infrastructure/queue/deep-analysis.processor';
 import { NegotiationProcessor } from './infrastructure/queue/negotiation.processor';
 
@@ -102,6 +104,8 @@ import {
     DeleteAnalysisUseCase,
     GetProfileUseCase,
     UpdateProfileUseCase,
+    ClaimAnalysisUseCase,
+    AnalysisCleanupCron,
     ListSavedCvsUseCase,
     AddSavedCvUseCase,
     RemoveSavedCvUseCase,

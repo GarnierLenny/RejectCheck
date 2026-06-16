@@ -8,6 +8,7 @@ import type {
   ApplicationUpsertInput,
   HistoryPage,
   SaveAnalysisInput,
+  SaveAnonymousInput,
 } from '../ports/analysis.repository';
 import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
 import type {
@@ -96,14 +97,79 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     return { id: created.id };
   }
 
-  async saveAnonymous(ip?: string): Promise<void> {
-    await this.prisma.analysis.create({
+  async saveAnonymous(
+    input: SaveAnonymousInput,
+  ): Promise<{ id: number; claimToken: string }> {
+    const claimToken = randomUUID();
+    const created = await this.prisma.analysis.create({
       data: {
-        ip: ip ?? null,
         email: null,
-        jobDescription: null,
+        ip: input.ip ?? null,
+        claimToken,
+        jobDescription: input.jobDescription,
+        jobLabel: input.jobLabel,
+        company: input.company,
+        jdLanguage: input.jdLanguage,
+        cvText: input.cvText,
+        cvTextFormatted: input.cvTextFormatted ?? null,
+        linkedinText: input.linkedinText,
+        linkedinTextFormatted: input.linkedinTextFormatted ?? null,
+        githubInfo: input.githubInfo,
+        motivationLetter: input.motivationLetter,
+        creditCost: 0, // anonymous analyses don't consume credits
+        result: input.result as unknown as Prisma.InputJsonValue,
       },
     });
+    return { id: created.id, claimToken };
+  }
+
+  async claimByToken(
+    email: string,
+    claimToken: string,
+  ): Promise<{ id: number } | null> {
+    const found = await this.prisma.analysis.findUnique({
+      where: { claimToken },
+      select: { id: true, email: true },
+    });
+    if (!found || found.email !== null) return null; // unknown or already claimed
+    await this.prisma.analysis.update({
+      where: { id: found.id },
+      data: { email, claimToken: null },
+    });
+    return { id: found.id };
+  }
+
+  async scrubUnclaimedOlderThan(cutoff: Date): Promise<number> {
+    // Keep the row (id, ip, createdAt) so IP rate-limiting is unaffected;
+    // wipe the payload + token so an expired anonymous analysis holds no PII
+    // and can no longer be claimed.
+    // Skip publicly-shared rows (shareToken set): the user chose to make that
+    // analysis public, so its live share link must outlive the 7-day TTL.
+    const res = await this.prisma.analysis.updateMany({
+      where: {
+        email: null,
+        claimToken: { not: null },
+        shareToken: null,
+        createdAt: { lt: cutoff },
+      },
+      data: {
+        claimToken: null,
+        jobDescription: null,
+        jobLabel: null,
+        company: null,
+        cvText: null,
+        cvTextFormatted: null,
+        linkedinText: null,
+        linkedinTextFormatted: null,
+        githubInfo: null,
+        motivationLetter: null,
+        result: Prisma.DbNull,
+        deepAnalysis: Prisma.DbNull,
+        negotiationAnalysis: Prisma.DbNull,
+        starterRepo: Prisma.DbNull,
+      },
+    });
+    return res.count;
   }
 
   async upsertApplication(input: ApplicationUpsertInput): Promise<void> {
@@ -328,6 +394,25 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     if (row.shareToken) return row.shareToken;
     const token = randomUUID();
     await this.prisma.analysis.update({ where: { id }, data: { shareToken: token } });
+    return token;
+  }
+
+  async createShareTokenForClaim(claimToken: string): Promise<string | null> {
+    // The claimToken is the bearer of ownership for a logged-out analysis: only
+    // the client that ran it holds the (unguessable) value, so it's safe to mint
+    // a public share token from it without auth. Require email: null (not yet
+    // claimed) and a non-empty result (not scrubbed by the TTL cron).
+    const row = await this.prisma.analysis.findFirst({
+      where: { claimToken, email: null, result: { not: Prisma.DbNull } },
+      select: { id: true, shareToken: true },
+    });
+    if (!row) return null; // unknown, already claimed, or scrubbed
+    if (row.shareToken) return row.shareToken;
+    const token = randomUUID();
+    await this.prisma.analysis.update({
+      where: { id: row.id },
+      data: { shareToken: token },
+    });
     return token;
   }
 

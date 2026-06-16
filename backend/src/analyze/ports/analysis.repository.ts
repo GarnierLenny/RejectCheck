@@ -27,6 +27,9 @@ export type SaveAnalysisInput = {
   negotiationAnalysis?: NegotiationAnalysis | null;
 };
 
+/** Same payload as a registered save, minus the account-specific fields. */
+export type SaveAnonymousInput = Omit<SaveAnalysisInput, 'email' | 'creditCost'>;
+
 export type ApplicationUpsertInput = {
   email: string;
   jobTitle: string;
@@ -65,8 +68,29 @@ export interface AnalysisRepository {
 
   /** Persists a registered-user analysis with full payload. */
   saveRegistered(input: SaveAnalysisInput): Promise<{ id: number }>;
-  /** Persists an anonymous analysis: only IP and createdAt are kept (GDPR). */
-  saveAnonymous(ip?: string): Promise<void>;
+  /**
+   * Persists an anonymous analysis with its full payload + a one-time
+   * claimToken so the user can attach it to their account at signup. The row
+   * keeps ip/createdAt for rate-limiting; its PII is scrubbed by the TTL job if
+   * never claimed.
+   */
+  saveAnonymous(
+    input: SaveAnonymousInput,
+  ): Promise<{ id: number; claimToken: string }>;
+  /**
+   * Attaches an unclaimed anonymous analysis to a user (sets email, clears the
+   * token). Returns null if the token is unknown or already claimed.
+   */
+  claimByToken(
+    email: string,
+    claimToken: string,
+  ): Promise<{ id: number } | null>;
+  /**
+   * GDPR TTL: scrub PII from unclaimed anonymous analyses older than `cutoff`,
+   * keeping the row (ip + createdAt) so IP rate-limiting is unaffected. Returns
+   * how many rows were scrubbed.
+   */
+  scrubUnclaimedOlderThan(cutoff: Date): Promise<number>;
 
   /** Upserts the matching Application row so the analyses surface in the user's tracker. */
   upsertApplication(input: ApplicationUpsertInput): Promise<void>;
@@ -132,6 +156,13 @@ export interface AnalysisRepository {
    * Throws AnalysisNotFoundException if the analysis doesn't belong to the email.
    */
   createShareToken(id: number, email: string): Promise<string>;
+
+  /**
+   * Generates (or returns existing) share token for an *anonymous* analysis,
+   * identified by its claimToken (proof of ownership for a logged-out run).
+   * Returns null if the token is unknown, already claimed, or has no result.
+   */
+  createShareTokenForClaim(claimToken: string): Promise<string | null>;
 
   /** Finds a shared analysis by its public token. Returns null if not found or has no result. */
   findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null>;

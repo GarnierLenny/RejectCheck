@@ -59,6 +59,8 @@ export type ReviewCvEvent =
       type: 'analysis_done';
       result: CvReviewResponse;
       analysisId: number | null;
+      /** Anonymous analyses only — lets the client claim it after signup. */
+      claimToken: string | null;
     };
 
 @Injectable()
@@ -154,13 +156,13 @@ export class ReviewCvUseCase {
       onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
     });
 
-    const analysisId = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
+    const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
 
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
       await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.review });
     }
 
-    emit({ type: 'analysis_done', result, analysisId });
+    emit({ type: 'analysis_done', result, analysisId, claimToken });
     return { result, analysisId };
   }
 
@@ -244,17 +246,10 @@ export class ReviewCvUseCase {
     linkedinText: string;
     linkedinTextFormatted: string;
     githubInfo: string;
-  }): Promise<number | null> {
+  }): Promise<{ analysisId: number | null; claimToken: string | null }> {
     const { cmd, result } = args;
 
-    if (!cmd.isRegistered || !cmd.email) {
-      await this.analyses.saveAnonymous(cmd.ip);
-      return null;
-    }
-
-    const created = await this.analyses.saveRegistered({
-      email: cmd.email,
-      ip: cmd.ip,
+    const payload = {
       jobDescription: '',
       jobLabel: null,
       company: 'CV Review',
@@ -265,11 +260,28 @@ export class ReviewCvUseCase {
       linkedinTextFormatted: args.linkedinTextFormatted || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: null,
+      result: result as unknown as Parameters<
+        AnalysisRepository['saveRegistered']
+      >[0]['result'],
+    };
+
+    // Anonymous: persist + claimToken so it can be attached to an account later.
+    if (!cmd.isRegistered || !cmd.email) {
+      const { claimToken } = await this.analyses.saveAnonymous({
+        ...payload,
+        ip: cmd.ip,
+      });
+      return { analysisId: null, claimToken };
+    }
+
+    const created = await this.analyses.saveRegistered({
+      ...payload,
+      email: cmd.email,
+      ip: cmd.ip,
       creditCost: CREDIT_COSTS.review,
-      result: result as unknown as Parameters<AnalysisRepository['saveRegistered']>[0]['result'],
     });
 
-    return created.id;
+    return { analysisId: created.id, claimToken: null };
   }
 
   private async resolveDigest(input: {

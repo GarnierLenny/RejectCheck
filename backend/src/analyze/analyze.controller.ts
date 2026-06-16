@@ -6,6 +6,7 @@ import {
   Get,
   Headers,
   Inject,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -68,6 +69,7 @@ import {
   GetProfileUseCase,
   UpdateProfileUseCase,
 } from './application/profile.use-cases';
+import { ClaimAnalysisUseCase } from './application/claim-analysis.use-case';
 import {
   AddSavedCvUseCase,
   ListSavedCvsUseCase,
@@ -120,6 +122,7 @@ export class AnalyzeController {
     private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
     private readonly getProfileUc: GetProfileUseCase,
     private readonly updateProfileUc: UpdateProfileUseCase,
+    private readonly claimUc: ClaimAnalysisUseCase,
     private readonly listSavedCvsUc: ListSavedCvsUseCase,
     private readonly addSavedCvUc: AddSavedCvUseCase,
     private readonly removeSavedCvUc: RemoveSavedCvUseCase,
@@ -417,6 +420,21 @@ export class AnalyzeController {
     return this.updateProfileUc.execute(email, parsed.data, locale);
   }
 
+  @UseGuards(SupabaseGuard)
+  @Post('claim')
+  @ApiOperation({ summary: 'Attach an anonymous analysis to the account' })
+  async claimAnalysis(@AuthEmail() email: string, @Body() body: unknown) {
+    const token = (body as { claimToken?: unknown } | null)?.claimToken;
+    if (typeof token !== 'string' || !token) {
+      throw new BadRequestException('claimToken is required');
+    }
+    const result = await this.claimUc.execute(email, token);
+    if (!result) {
+      throw new NotFoundException('Analysis not found or already claimed');
+    }
+    return result; // { analysisId }
+  }
+
   @RequiresPremium()
   @Get('saved-cvs')
   async listSavedCvs(@AuthEmail() email: string) {
@@ -603,6 +621,24 @@ export class AnalyzeController {
     const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     return this.createShareTokenUc.execute(id, email);
+  }
+
+  // No auth guard: the claimToken is the bearer of ownership for a logged-out
+  // analysis. Unlocks the viral share loop for anonymous users.
+  @Post('share-anonymous')
+  @ApiOperation({
+    summary: 'Generate a public share token for an anonymous analysis (by claimToken)',
+  })
+  async createShareTokenAnonymous(@Body() body: unknown) {
+    const token = (body as { claimToken?: unknown } | null)?.claimToken;
+    if (typeof token !== 'string' || !token) {
+      throw new BadRequestException('claimToken is required');
+    }
+    const result = await this.createShareTokenUc.executeForClaim(token);
+    if (!result) {
+      throw new NotFoundException('Analysis not found, already claimed, or empty');
+    }
+    return result; // { token }
   }
 
   @RequiresPremium('shortlisted')
