@@ -851,6 +851,7 @@ function AnalyzeContent() {
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
           deepStatus="ready"
+          isAnonymous={!user}
           isPremium={isPremium}
           userPlan={userPlan}
           onReset={handleReset}

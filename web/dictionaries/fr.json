@@ -746,6 +746,14 @@
     "contextVsJob": "vs cette offre",
     "contextCv": "ce CV en général"
   },
+  "resultNudge": {
+    "eyebrow": "Compte gratuit",
+    "title": "Crée un compte gratuit pour garder tes analyses.",
+    "benefits": "Sauvegardées · 3 analyses / mois · dashboard de suivi",
+    "cta": "Créer un compte gratuit",
+    "login": "Déjà un compte ? Se connecter",
+    "dismiss": "Masquer"
+  },
   "paywall": {
     "badge": "Scan Gratuit Terminé",
     "title": "Boostez votre",

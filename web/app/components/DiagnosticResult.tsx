@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "../../context/language";
 import { AnalysisLayout } from "./AnalysisLayout";
+import { ResultSignupNudge } from "./ResultSignupNudge";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -31,6 +32,7 @@ type Props = {
   email?: string | null;
   accessToken?: string | null;
   completedSteps?: number[];
+  isAnonymous?: boolean;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -58,6 +60,7 @@ export function DiagnosticResult({
   email = null,
   accessToken = null,
   completedSteps,
+  isAnonymous = false,
 }: Props) {
   const { t, localePath } = useLanguage();
 
@@ -131,6 +134,7 @@ export function DiagnosticResult({
         completedSteps={completedSteps}
       />
 
+      {isAnonymous && <ResultSignupNudge />}
     </div>
   );
 }

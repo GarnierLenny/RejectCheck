@@ -746,6 +746,14 @@
     "contextVsJob": "vs this job",
     "contextCv": "this CV overall"
   },
+  "resultNudge": {
+    "eyebrow": "Free account",
+    "title": "Create a free account to keep your analyses.",
+    "benefits": "Saved · 3 analyses / month · tracking dashboard",
+    "cta": "Create a free account",
+    "login": "Already have an account? Log in",
+    "dismiss": "Dismiss"
+  },
   "paywall": {
     "badge": "Free Scan Complete",
     "title": "Level up your",
