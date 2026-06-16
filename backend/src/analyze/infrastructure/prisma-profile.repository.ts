@@ -45,16 +45,21 @@ const PROFILE_SAFE_SELECT = {
 export class PrismaProfileRepository implements ProfileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findOrCreate(email: string): Promise<Profile> {
+  async findOrCreate(
+    email: string,
+  ): Promise<{ profile: Profile; created: boolean }> {
     const existing = await this.prisma.profile.findUnique({
       where: { email },
       select: PROFILE_SAFE_SELECT,
     });
-    if (existing) return existing as unknown as Profile;
-    return this.prisma.profile.create({
+    if (existing) {
+      return { profile: existing as unknown as Profile, created: false };
+    }
+    const profile = (await this.prisma.profile.create({
       data: { email },
       select: PROFILE_SAFE_SELECT,
-    }) as unknown as Promise<Profile>;
+    })) as unknown as Profile;
+    return { profile, created: true };
   }
 
   findByEmail(email: string): Promise<Profile | null> {

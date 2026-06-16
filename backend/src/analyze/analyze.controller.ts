@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Inject,
   Param,
   Patch,
@@ -353,8 +354,16 @@ export class AnalyzeController {
   @UseGuards(SupabaseGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get profile of the authenticated user' })
-  async getProfile(@AuthEmail() email: string) {
-    return this.getProfileUc.execute(email);
+  async getProfile(
+    @AuthEmail() email: string,
+    @Headers('accept-language') acceptLanguage?: string,
+  ) {
+    // Best-effort locale for the (first-load only) welcome email; the rest of
+    // the response is locale-agnostic.
+    const locale = (acceptLanguage ?? '').toLowerCase().startsWith('fr')
+      ? 'fr'
+      : 'en';
+    return this.getProfileUc.execute(email, locale);
   }
 
   @UseGuards(SupabaseGuard)

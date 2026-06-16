@@ -51,6 +51,21 @@ export const envSchema = z.object({
 
 
   SENTRY_DSN: z.string().optional(),
+
+  // ── Email (Resend) ────────────────────────────────────────────────────────
+  // All optional. When EMAIL_ENABLED!=='true' or RESEND_API_KEY is unset, the
+  // NotificationsModule wires the LoggerEmailAdapter (emails are logged, not
+  // sent) — so the app boots and works without any email config, and local dev
+  // never sends real mail. Set both to send via Resend. Links in emails reuse
+  // FRONTEND_URL.
+  EMAIL_ENABLED: z.enum(['true', 'false']).optional(),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().optional(),
+  EMAIL_REPLY_TO: z.string().optional(),
+  // Public base URL used inside emails for images AND links. Email clients
+  // (Gmail's image proxy) can't reach localhost, so this must be a public
+  // HTTPS origin even in dev. Falls back to FRONTEND_URL when unset.
+  EMAIL_BASE_URL: z.string().optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

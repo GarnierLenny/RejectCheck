@@ -136,10 +136,6 @@ export default async function ForTeamsPage({
     },
   }
 
-  const analyzeHref = `/${locale}/analyze`
-  const pricingHref = `/${locale}/pricing`
-  const privacyHref = `/${locale}/privacy`
-  const alternativesHref = `/${locale}/alternatives`
 
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen">

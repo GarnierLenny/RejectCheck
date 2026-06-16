@@ -8,7 +8,6 @@ import { setPendingCv } from "../../../lib/pending-cv";
 import { SAMPLE_JDS } from "../../../lib/sample-jds";
 import { Navbar } from "../../components/Navbar";
 import { FadeInSection } from "../../components/FadeInSection";
-import { DotGridCanvas } from "../../components/DotGridCanvas";
 import { BlueprintBackdrop } from "../../components/BlueprintBackdrop";
 import { useLanguage } from "../../../context/language";
 import {

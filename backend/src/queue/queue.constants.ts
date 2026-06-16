@@ -1,5 +1,6 @@
 export const DEEP_ANALYSIS_QUEUE = 'analyze-deep';
 export const NEGOTIATION_QUEUE = 'analyze-negotiation';
+export const EMAIL_QUEUE = 'email-send';
 
 export type DeepAnalysisJobPayload = {
   analysisId: number;

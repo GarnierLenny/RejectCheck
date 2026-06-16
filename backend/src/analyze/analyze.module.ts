@@ -8,6 +8,7 @@ import { QueueModule } from '../queue/queue.module';
 import { LlmJobsService } from '../queue/llm-jobs.service';
 import { QUEUE_ENABLED } from '../queue/queue.constants';
 import { CreditsModule } from '../credits/credits.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { DeepAnalysisProcessor } from './infrastructure/queue/deep-analysis.processor';
 import { NegotiationProcessor } from './infrastructure/queue/negotiation.processor';
 
@@ -72,6 +73,7 @@ import {
     SocialModule,
     ChallengeModule,
     CreditsModule,
+    NotificationsModule,
     QueueModule.register(),
   ],
   controllers: [AnalyzeController, ShareController],
