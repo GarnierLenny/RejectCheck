@@ -2,9 +2,16 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import type { Queue } from 'bullmq';
 import { ModuleRef } from '@nestjs/core';
+import { createHash } from 'crypto';
 import { EMAIL_QUEUE, QUEUE_ENABLED } from '../../queue/queue.constants';
 import type { EmailJobPayload } from '../domain/email.types';
 import { RenderAndSendEmailUseCase } from './render-and-send-email.use-case';
+
+/** BullMQ forbids ':' in a custom jobId (it's the Redis-key separator) and our
+ *  dedupeKeys are colon-delimited — hash to a safe, deterministic id so the
+ *  queue-level idempotency still holds. */
+const toJobId = (dedupeKey: string): string =>
+  createHash('sha1').update(dedupeKey).digest('hex');
 
 /**
  * Façade for sending an email out-of-band. Mirrors LlmJobsService:
@@ -27,7 +34,7 @@ export class EmailJobsService {
   async enqueue(payload: EmailJobPayload): Promise<void> {
     if (QUEUE_ENABLED && this.emailQueue) {
       await this.emailQueue.add('email', payload, {
-        ...(payload.dedupeKey ? { jobId: payload.dedupeKey } : {}),
+        ...(payload.dedupeKey ? { jobId: toJobId(payload.dedupeKey) } : {}),
       });
       return;
     }

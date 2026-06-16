@@ -52,7 +52,17 @@ export class EnqueueEmailUseCase {
       throw err;
     }
 
-    await this.jobs.enqueue(payload);
+    try {
+      await this.jobs.enqueue(payload);
+    } catch (err) {
+      // The log row is written before enqueue for concurrency-safe idempotency.
+      // If enqueue then fails, roll it back so the unique dedupeKey doesn't
+      // block a later retry (otherwise the email would be stuck forever).
+      await this.prisma.emailLog
+        .delete({ where: { dedupeKey } })
+        .catch(() => undefined);
+      throw err;
+    }
     return { enqueued: true };
   }
 }
