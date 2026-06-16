@@ -52,11 +52,43 @@ export class GetProfileUseCase {
 
 @Injectable()
 export class UpdateProfileUseCase {
+  private readonly logger = new Logger(UpdateProfileUseCase.name);
+
   constructor(
     @Inject(PROFILE_REPOSITORY) private readonly profiles: ProfileRepository,
+    private readonly enqueueEmail: EnqueueEmailUseCase,
+    private readonly scheduleDrips: ScheduleDripsUseCase,
   ) {}
 
-  execute(email: string, data: ProfileUpdate): Promise<Profile> {
-    return this.profiles.upsert(email, data);
+  async execute(
+    email: string,
+    data: ProfileUpdate,
+    locale: EmailLocale = 'en',
+  ): Promise<Profile> {
+    // Onboarding upserts the profile before the dashboard's findOrCreate runs,
+    // so this is often a new user's FIRST persisted touch — welcome them here
+    // too. Idempotent (welcome:email / drip_*:email dedupe), so it never
+    // double-sends with GetProfileUseCase.
+    const existed = await this.profiles.findByEmail(email);
+    const profile = await this.profiles.upsert(email, data);
+
+    if (!existed) {
+      void this.enqueueEmail
+        .execute({
+          to: email,
+          locale,
+          context: { type: 'welcome', firstName: profile.displayName },
+        })
+        .catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`welcome enqueue failed for ${email}: ${msg}`);
+        });
+      void this.scheduleDrips.execute(email, locale).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`drip scheduling failed for ${email}: ${msg}`);
+      });
+    }
+
+    return profile;
   }
 }

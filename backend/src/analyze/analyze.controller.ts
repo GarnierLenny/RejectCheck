@@ -393,7 +393,11 @@ export class AnalyzeController {
   @UseGuards(SupabaseGuard)
   @Post('profile')
   @ApiOperation({ summary: 'Update profile of the authenticated user' })
-  async updateProfile(@AuthEmail() email: string, @Body() body: unknown) {
+  async updateProfile(
+    @AuthEmail() email: string,
+    @Body() body: unknown,
+    @Headers('accept-language') acceptLanguage?: string,
+  ) {
     if (
       body &&
       typeof body === 'object' &&
@@ -407,7 +411,10 @@ export class AnalyzeController {
     if (!parsed.success) {
       throw new BadRequestException(parsed.error.issues[0].message);
     }
-    return this.updateProfileUc.execute(email, parsed.data);
+    const locale = (acceptLanguage ?? '').toLowerCase().startsWith('fr')
+      ? 'fr'
+      : 'en';
+    return this.updateProfileUc.execute(email, parsed.data, locale);
   }
 
   @RequiresPremium()

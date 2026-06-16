@@ -73,6 +73,9 @@ export const envSchema = z.object({
   // falls back to a dev constant otherwise (a forged token can only unsubscribe
   // — low severity — but still set it in prod).
   EMAIL_UNSUBSCRIBE_SECRET: z.string().optional(),
+  // When set, unlocks the /api/email/dev playground in production via
+  // ?secret=<this>. Leave unset to keep it dev-only (404 in prod).
+  EMAIL_DEV_SECRET: z.string().optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
