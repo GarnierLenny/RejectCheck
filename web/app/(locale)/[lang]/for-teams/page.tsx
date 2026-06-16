@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navbar } from '../../../components/Navbar'
+import { SeoFooter } from '../../../components/SeoFooter'
+import { BlueprintCta } from '../../../components/BlueprintCta'
 import {
   JsonLd,
   SITE_URL,
@@ -436,36 +438,8 @@ export default async function ForTeamsPage({
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="font-mono text-[13px] text-rc-muted">{c.footer.copyright}</div>
-        <div className="flex gap-6 flex-wrap justify-center">
-          <Link
-            href={alternativesHref}
-            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-          >
-            {c.footer.alternatives}
-          </Link>
-          <Link
-            href={pricingHref}
-            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-          >
-            {c.footer.pricing}
-          </Link>
-          <Link
-            href={privacyHref}
-            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-          >
-            {c.footer.privacy}
-          </Link>
-          <Link
-            href={analyzeHref}
-            className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-          >
-            {locale === 'fr' ? 'Analyser mon CV' : 'Analyze my CV'}
-          </Link>
-        </div>
-      </footer>
+      <BlueprintCta lang={locale} />
+      <SeoFooter lang={locale} />
     </div>
   )
 }

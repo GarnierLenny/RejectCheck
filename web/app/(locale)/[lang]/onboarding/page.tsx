@@ -16,6 +16,7 @@ import { StepStack } from "../../../components/onboarding/StepStack";
 import { StepLanguages } from "../../../components/onboarding/StepLanguages";
 import { StepLinks } from "../../../components/onboarding/StepLinks";
 import { StepDone } from "../../../components/onboarding/StepDone";
+import { BlueprintBackdrop } from "../../../components/BlueprintBackdrop";
 
 const MAX_STACKS = 3;
 
@@ -281,7 +282,8 @@ export default function OnboardingPage() {
   const showBack = currentIndex > 0 && currentStep !== 6;
 
   return (
-    <div className="min-h-screen bg-rc-bg text-rc-text overflow-x-hidden">
+    <div className="min-h-screen bg-rc-bg text-rc-text overflow-x-hidden relative isolate">
+      <BlueprintBackdrop variant="light" />
       <OnboardingTopbar
         stepLabel={stepLabel}
         skipLabel={t.onboarding.nav.skip}
@@ -290,7 +292,7 @@ export default function OnboardingPage() {
         fillPercent={fillPercent}
       />
 
-      <main className="pt-[88px] pb-[140px] px-5 md:px-8 flex flex-col items-center">
+      <main className="pt-[88px] pb-[140px] px-5 md:px-8 flex flex-col items-center relative z-10">
         <div
           key={currentStep}
           className="w-full max-w-[1040px]"

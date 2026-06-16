@@ -14,6 +14,8 @@ type Props = {
   required?: boolean;
   /** show the segmented strength meter + hint below the field (signup / new password) */
   showStrength?: boolean;
+  /** optional right-aligned slot under the field (e.g. "Forgot password?") */
+  meta?: React.ReactNode;
 };
 
 const STRENGTH_COLOR: Record<StrengthLevel, string> = {
@@ -23,9 +25,9 @@ const STRENGTH_COLOR: Record<StrengthLevel, string> = {
 };
 
 /**
- * Password input with a reveal toggle (eye) and an optional strength meter.
- * Shared by the login/signup form and the reset-password page so the two stay
- * visually identical. Reads its micro-copy from `t.login.*`.
+ * Password input with a reveal toggle (eye) and an optional strength meter,
+ * styled with the shared rc-auth-* classes so login and reset-password stay
+ * visually identical. Reads its micro-copy from t.login.*.
  */
 export function PasswordField({
   value,
@@ -35,6 +37,7 @@ export function PasswordField({
   placeholder = "••••••••",
   required = true,
   showStrength = false,
+  meta,
 }: Props) {
   const { t } = useLanguage();
   const [reveal, setReveal] = useState(false);
@@ -46,52 +49,54 @@ export function PasswordField({
   const color = STRENGTH_COLOR[level];
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={fieldId} className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-muted">
+    <div className="rc-auth-field">
+      <label htmlFor={fieldId} className="rc-auth-field-label">
         {label}
       </label>
-      <div className="relative">
+      <div className="rc-auth-input-wrap">
         <input
           id={fieldId}
+          className="rc-auth-input"
           type={reveal ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          className="w-full pl-4 pr-11 py-3 rounded-lg bg-rc-surface border border-rc-border text-[13px] font-sans text-rc-text placeholder:text-rc-hint focus:outline-none focus:border-rc-red/40 transition-colors"
         />
         <button
           type="button"
+          className="rc-auth-eye"
           onClick={() => setReveal((r) => !r)}
           aria-label={reveal ? t.login.hidePassword : t.login.showPassword}
           aria-pressed={reveal}
           tabIndex={-1}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-md text-rc-hint hover:text-rc-text hover:bg-rc-bg transition-colors"
         >
-          {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {reveal ? <EyeOff width={18} height={18} /> : <Eye width={18} height={18} />}
         </button>
       </div>
 
       {showStrength && value.length > 0 && (
-        <div className="mt-1 flex flex-col gap-1.5">
-          <div className="flex items-center gap-1.5">
+        <div className="rc-auth-strength">
+          <div className="rc-auth-strength-track">
             {[0, 1, 2, 3].map((i) => (
               <span
                 key={i}
-                className="h-[3px] flex-1 rounded-full transition-colors duration-200"
-                style={{ background: i < fill ? color : "var(--rc-border)" }}
+                className="rc-auth-strength-seg"
+                style={i < fill ? { background: color } : undefined}
               />
             ))}
           </div>
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em]" style={{ color }}>
+          <div className="rc-auth-strength-meta">
+            <span className="rc-auth-strength-label" style={{ color }}>
               {strengthLabel}
             </span>
-            <span className="font-mono text-[9.5px] tracking-wide text-rc-hint">{t.login.passwordHint}</span>
+            <span className="rc-auth-strength-hint">{t.login.passwordHint}</span>
           </div>
         </div>
       )}
+
+      {meta && <div className="rc-auth-pw-meta">{meta}</div>}
     </div>
   );
 }

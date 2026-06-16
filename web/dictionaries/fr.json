@@ -1281,6 +1281,33 @@
     "requestNew": "Demander un nouveau lien",
     "verifying": "Vérification du lien…"
   },
+  "authHero": {
+    "wordmark": "RejectCheck",
+    "editorialPre": "Vois pourquoi tu te fais ",
+    "editorialAccent": "ghoster",
+    "editorialPost": " — avant de postuler.",
+    "cardLabel": "Risque de rejet",
+    "tagExample": "exemple",
+    "verdict": "73",
+    "pill": "Risque élevé",
+    "zoneLow": "Faible",
+    "zoneMid": "Moyen",
+    "zoneHigh": "Élevé",
+    "signalsHead": "Signaux détectés",
+    "signal1": "Aucun chiffre d'impact",
+    "signal2": "Trou de 8 mois non expliqué",
+    "signal3": "Stack matche à 55 % du JD",
+    "footnoteLeft": "Analyse en 30 s",
+    "footnoteRight": ["CV", "JD", "LinkedIn"]
+  },
+  "ctaBand": {
+    "eyebrow": "§ Dernière étape",
+    "titlePre": "Arrête de deviner pourquoi tu te fais",
+    "titleAccent": "ghoster.",
+    "subtitle": "Une lecture honnête de ton CV — gratuitement. Vois ton risque de rejet et les raisons exactes en ~30 secondes.",
+    "cta": "Analyser mon CV gratuitement",
+    "reassurance": "Sans carte bancaire · 3 analyses gratuites / mois · optimisé pour les devs"
+  },
   "account": {
     "title": "Compte",
     "subscription": "Abonnement",

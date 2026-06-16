@@ -9,6 +9,7 @@ import { SAMPLE_JDS } from "../../../lib/sample-jds";
 import { Navbar } from "../../components/Navbar";
 import { FadeInSection } from "../../components/FadeInSection";
 import { DotGridCanvas } from "../../components/DotGridCanvas";
+import { BlueprintBackdrop } from "../../components/BlueprintBackdrop";
 import { useLanguage } from "../../../context/language";
 import {
   JsonLd,
@@ -435,14 +436,13 @@ export default function Home() {
       <Navbar />
 
       {/* ═══ § 01 HERO ═══════════════════════════════════════════════════ */}
-      <section style={{ padding: "96px 0 72px" }}>
-        <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px" }}>
+      <section style={{ padding: "96px 0 72px", position: "relative", overflow: "hidden", isolation: "isolate" }}>
+        <BlueprintBackdrop variant="light" />
+        <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px", position: "relative", zIndex: 1 }}>
           {/* 3-col top */}
           <div style={{ display: "grid", gridTemplateColumns: "80px 1.1fr 460px", gap: 32, alignItems: "start" }}>
-            {/* Left — margin number */}
-            <div style={NUM}>
-              § 01<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s01.smallLabel}</small>
-            </div>
+            {/* Left — margin gutter (kept empty to align with the dropzone row below) */}
+            <div aria-hidden />
 
             {/* Center — headline */}
             <div>
@@ -482,7 +482,7 @@ export default function Home() {
                 border: `1.5px dashed ${dropHover ? "var(--rc-red)" : "var(--rc-border)"}`,
                 borderRadius: 6,
                 padding: "28px 32px",
-                background: dropHover ? "rgba(192,57,43,0.04)" : "rgba(255,255,255,0.4)",
+                background: dropHover ? "#fbf1f0" : "var(--rc-surface)",
                 transition: "all 200ms ease",
               }}
               onMouseEnter={() => setDropHover(true)}
@@ -976,8 +976,9 @@ export default function Home() {
       </section>
 
       {/* ═══ DARK FOOTER ══════════════════════════════════════════════════ */}
-      <footer style={{ background: "#161412", color: "#f4f1ec", padding: "56px 0 32px" }}>
-        <div style={WRAP}>
+      <footer style={{ background: "var(--rc-text)", color: "#f4f1ec", padding: "56px 0 32px", position: "relative", overflow: "hidden", isolation: "isolate" }}>
+        <BlueprintBackdrop variant="dark" bloom={false} />
+        <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
           <div style={{ display: "grid", gridTemplateColumns: "80px 1.6fr 1fr 1fr 1fr", gap: 32 }}>
             {/* END label */}
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", borderTop: "1px solid rgba(255,255,255,0.5)", paddingTop: 10 }}>END</span>

@@ -1,4 +1,5 @@
 import { SeoFooter } from "../../../components/SeoFooter";
+import { BlueprintCta } from "../../../components/BlueprintCta";
 import { hasLocale, type Locale } from "../dictionaries";
 
 export default async function ShareLayout({
@@ -14,6 +15,7 @@ export default async function ShareLayout({
   return (
     <>
       {children}
+      <BlueprintCta lang={locale} />
       <SeoFooter lang={locale} />
     </>
   );

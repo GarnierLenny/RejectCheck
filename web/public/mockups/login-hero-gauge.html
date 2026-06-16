@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RejectCheck — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rc-red:#C93A39;
+    --rc-red-hover:#b33332;
+    --rc-amber:#e07b00;
+    --rc-green:#22a350;
+    --rc-bg:#f7f5f2;
+    --rc-surface:#ffffff;
+    --rc-border:#d4cfc9;
+    --rc-text:#1a1917;
+    --rc-hint:#6b6860;
+    --panel:#1a1917;
+    --panel-text:#f7f5f2;
+    /* token-derived alpha helpers */
+    --panel-text-82:rgba(247,245,242,.82);
+    --panel-text-55:rgba(247,245,242,.55);
+    --panel-text-50:rgba(247,245,242,.50);
+    --panel-text-42:rgba(247,245,242,.42);
+    --panel-text-34:rgba(247,245,242,.34);
+    --border-18:rgba(212,207,201,.18);
+    --border-16:rgba(212,207,201,.16);
+    --red-soft:rgba(201,58,57,.16);
+    --red-strong:rgba(201,58,57,.42);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  html,body{height:100%;}
+
+  body{
+    font-family:"Instrument Sans",system-ui,sans-serif;
+    background:var(--rc-bg);
+    color:var(--rc-text);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    line-height:1.5;
+  }
+
+  .shell{
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    min-height:100vh;
+  }
+
+  /* ============ LEFT VERDICT PANEL (dark, hero-centered) ============ */
+  .panel{
+    position:relative;
+    background:var(--panel);
+    color:var(--panel-text);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding:56px 64px;
+    overflow:hidden;
+  }
+
+  /* ---- GAUGE ECHO: the background IS the risk meter, scaled huge & faint ---- */
+  /* decorative concentric-arc SVG, anchored at the gauge core (panel center) */
+  .gauge{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    z-index:0;
+    pointer-events:none;
+  }
+  /* core glow of the gauge — the existing soft red bloom, now meaningful as the
+     pivot/hub the arcs radiate from. Sits at the gauge centre (panel middle). */
+  .panel::before{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:680px;
+    height:680px;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle at center, rgba(201,58,57,.20) 0%, rgba(201,58,57,.08) 32%, rgba(201,58,57,0) 64%);
+    pointer-events:none;
+    z-index:0;
+  }
+  /* faint vignette for depth + a subtle dark scrim so the verdict card text stays
+     crisp over the arcs */
+  .panel::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(46% 52% at 50% 50%, rgba(0,0,0,.30) 0%, rgba(0,0,0,.12) 46%, rgba(0,0,0,0) 72%),
+      radial-gradient(120% 90% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.28) 100%);
+    pointer-events:none;
+    z-index:1;
+  }
+
+  .wordmark{
+    position:absolute;
+    top:48px;
+    left:64px;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:11px;
+  }
+  .wordmark .mark{
+    width:26px;height:26px;
+    display:block;
+    flex:none;
+  }
+  .wordmark .name{
+    font-family:"JetBrains Mono",monospace;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--panel-text);
+  }
+  .wordmark .name .sec{
+    color:rgba(247,245,242,.45);
+    margin-right:7px;
+  }
+
+  .hero{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:440px;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .editorial{
+    font-family:"Instrument Serif",Georgia,serif;
+    font-style:italic;
+    font-size:21px;
+    line-height:1.34;
+    color:var(--panel-text-82);
+    margin:0 2px 26px;
+    text-wrap:balance;
+  }
+  .editorial .glow{ color:var(--panel-text); }
+
+  /* ---- the HERO verdict card ---- */
+  .card{
+    position:relative;
+    background:rgba(247,245,242,.035);
+    border:1px solid var(--border-18);
+    border-radius:16px;
+    padding:34px 36px 32px;
+    box-shadow:
+      0 1px 0 rgba(247,245,242,.05) inset,
+      0 24px 60px -24px rgba(0,0,0,.6),
+      0 8px 22px -12px rgba(201,58,57,.28);
+    backdrop-filter:blur(2px);
+  }
+
+  .card-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .card-label{
+    font-family:"JetBrains Mono",monospace;
+    font-size:10.5px;
+    font-weight:500;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--panel-text-50);
+  }
+  .tag-ex{
+    font-family:"JetBrains Mono",monospace;
+    font-size:9.5px;
+    font-weight:500;
+    letter-spacing:.12em;
+    text-transform:lowercase;
+    color:var(--panel-text-55);
+    border:1px solid rgba(212,207,201,.22);
+    border-radius:999px;
+    padding:3px 9px 2.5px;
+  }
+
+  .verdict-row{
+    display:flex;
+    align-items:baseline;
+    gap:16px;
+    margin-bottom:26px;
+  }
+  .pct{
+    font-family:"Instrument Sans",sans-serif;
+    font-size:76px;
+    font-weight:600;
+    line-height:.92;
+    letter-spacing:-.03em;
+    color:var(--panel-text);
+  }
+  .pct .sym{
+    font-size:34px;
+    font-weight:500;
+    color:var(--panel-text-55);
+    margin-left:2px;
+    letter-spacing:0;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:#f7b0af; /* token-derived: rc-red lightened for AA contrast on dark panel */
+    background:var(--red-soft);
+    border:1px solid var(--red-strong);
+    border-radius:999px;
+    padding:6px 12px 5px;
+    transform:translateY(-6px);
+  }
+  .pill .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--rc-red);
+    box-shadow:0 0 0 3px rgba(201,58,57,.22);
+  }
+
+  /* ---- meter ---- */
+  .meter-wrap{ margin-bottom:8px; }
+  .meter{
+    position:relative;
+    height:10px;
+    border-radius:6px;
+    overflow:hidden;
+    display:flex;
+    border:1px solid rgba(0,0,0,.25);
+  }
+  .meter .z{ height:100%; }
+  .meter .z.g{ flex:0 0 40%; background:var(--rc-green); }
+  .meter .z.a{ flex:0 0 25%; background:var(--rc-amber); border-left:1px solid rgba(26,25,23,.55); }
+  .meter .z.r{ flex:0 0 35%; background:var(--rc-red); border-left:1px solid rgba(26,25,23,.55); }
+
+  .needle{
+    position:absolute;
+    top:-5px;
+    left:73%;
+    transform:translateX(-50%);
+    z-index:3;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    pointer-events:none;
+  }
+  .needle .stem{
+    width:2px;
+    height:20px;
+    background:var(--panel-text);
+    border-radius:1px;
+    box-shadow:0 0 0 1px rgba(26,25,23,.6), 0 2px 4px rgba(0,0,0,.5);
+  }
+  .needle .tri{
+    width:0;height:0;
+    border-left:5px solid transparent;
+    border-right:5px solid transparent;
+    border-top:6px solid var(--panel-text);
+    margin-top:-1px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.5));
+  }
+
+  /* zone labels align exactly to their meter zones (same flex basis) */
+  .zone-labels{
+    display:flex;
+    margin-top:9px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    font-weight:500;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--panel-text-42);
+  }
+  .zone-labels span{ text-align:center; }
+  .zone-labels .zl-g{ flex:0 0 40%; }
+  .zone-labels .zl-a{ flex:0 0 25%; }
+  .zone-labels .zl-r{ flex:0 0 35%; color:#f7b0af; }
+
+  .ticks{
+    display:flex;
+    justify-content:space-between;
+    margin-top:6px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9px;
+    letter-spacing:.06em;
+    color:rgba(247,245,242,.32);
+  }
+
+  /* ---- signals ---- */
+  .card-divider{
+    height:1px;
+    background:var(--border-16);
+    margin:26px 0 18px;
+  }
+  .sig-head{
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    font-weight:500;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--panel-text-50);
+    margin-bottom:14px;
+  }
+  .signals{ display:flex; flex-direction:column; gap:11px; }
+  .signal{
+    display:flex;
+    align-items:baseline;
+    gap:11px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;
+    line-height:1.45;
+    letter-spacing:.005em;
+    color:rgba(247,245,242,.86);
+  }
+  .signal .dash{
+    color:var(--rc-red);
+    font-weight:600;
+    flex:none;
+  }
+
+  .panel-footnote{
+    position:absolute;
+    bottom:40px;
+    left:64px;
+    right:64px;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--panel-text-34);
+  }
+  .panel-footnote .l,.panel-footnote .r{ display:flex; align-items:center; gap:9px; }
+  .panel-footnote .sep{ color:rgba(247,245,242,.18); }
+
+  /* ============ RIGHT FORM PANEL ============ */
+  .form-panel{
+    background:var(--rc-surface);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 40px;
+  }
+  .form{
+    width:100%;
+    max-width:400px;
+  }
+
+  .kicker{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    margin-bottom:22px;
+  }
+  .kicker .bar{
+    width:24px;
+    height:6px;
+    border-radius:3px;
+    background:var(--rc-red);
+  }
+  .kicker .ktxt{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--rc-red);
+  }
+
+  .form h1{
+    font-size:28px;
+    font-weight:600;
+    letter-spacing:-.02em;
+    line-height:1.1;
+    margin-bottom:8px;
+  }
+  .form .sub{
+    font-size:15px;
+    color:var(--rc-hint);
+    margin-bottom:30px;
+  }
+
+  /* OAuth */
+  .oauth{ display:flex; flex-direction:column; gap:10px; }
+  .oauth-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:11px;
+    width:100%;
+    padding:12px 16px;
+    background:var(--rc-surface);
+    border:1px solid var(--rc-border);
+    border-radius:10px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:.01em;
+    color:var(--rc-text);
+    cursor:pointer;
+    text-decoration:none;
+    transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
+  }
+  .oauth-btn svg{ flex:none; }
+  .oauth-btn:hover{
+    border-color:rgba(201,58,57,.4);
+    box-shadow:0 4px 14px -6px rgba(26,25,23,.16);
+    transform:translateY(-1px);
+  }
+  .oauth-btn:active{ transform:translateY(0); }
+
+  /* divider */
+  .or{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin:24px 0;
+  }
+  .or .line{ flex:1; height:1px; background:var(--rc-border); }
+  .or .word{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+  }
+
+  /* fields */
+  .field{ margin-bottom:18px; }
+  .field-label{
+    display:block;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10.5px;
+    font-weight:500;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    margin-bottom:8px;
+  }
+  .input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+    border:1px solid var(--rc-border);
+    border-radius:10px;
+    background:var(--rc-surface);
+    transition:border-color .18s ease, box-shadow .18s ease;
+  }
+  .input-wrap:focus-within{
+    border-color:rgba(201,58,57,.4);
+    box-shadow:0 0 0 4px rgba(201,58,57,.08);
+  }
+  .input-wrap input{
+    flex:1;
+    width:100%;
+    border:0;
+    outline:0;
+    background:transparent;
+    padding:12px 14px;
+    font-family:"Instrument Sans",sans-serif;
+    font-size:14.5px;
+    color:var(--rc-text);
+  }
+  /* token-derived placeholder (rc-hint lightened) */
+  .input-wrap input::placeholder{ color:#a6a29b; }
+  .eye-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+    border:0;
+    padding:0 14px 0 4px;
+    color:var(--rc-hint);
+  }
+
+  .pw-meta{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:9px;
+  }
+  .pw-meta a{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    letter-spacing:.02em;
+    color:var(--rc-hint);
+    text-decoration:none;
+    transition:color .15s ease;
+  }
+  .pw-meta a:hover{ color:var(--rc-text); }
+
+  /* submit */
+  .submit{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    width:100%;
+    margin-top:24px;
+    padding:14px 18px;
+    background:var(--rc-red);
+    border:1px solid var(--rc-red);
+    border-radius:10px;
+    color:var(--rc-surface);
+    font-family:"JetBrains Mono",monospace;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow:0 8px 20px -10px rgba(201,58,57,.6);
+    transition:background .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .submit .arr{
+    display:inline-block;
+    transition:transform .2s ease;
+  }
+  .submit:hover{
+    background:var(--rc-red-hover);
+    box-shadow:0 10px 26px -10px rgba(201,58,57,.7);
+  }
+  .submit:hover .arr{ transform:translateX(4px); }
+  .submit:active{ transform:translateY(1px); }
+
+  .form-footer{
+    margin-top:26px;
+    text-align:center;
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    letter-spacing:.02em;
+    color:var(--rc-hint);
+  }
+  .form-footer a{
+    color:var(--rc-red);
+    text-decoration:none;
+    font-weight:500;
+  }
+  .form-footer a:hover{ text-decoration:underline; }
+
+  /* ============ STAGGERED ENTRANCE ============ */
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(14px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .anim{ opacity:0; animation:rise .7s cubic-bezier(.22,.61,.36,1) forwards; }
+  .a-editorial{ animation-delay:0ms; }
+  .a-card{ animation-delay:80ms; }
+  .a-sig1{ animation-delay:160ms; }
+  .a-sig2{ animation-delay:220ms; }
+  .a-sig3{ animation-delay:280ms; }
+  .a-wordmark{ animation-delay:40ms; }
+  .a-footnote{ animation-delay:340ms; }
+
+  @media (prefers-reduced-motion: reduce){
+    .anim{ opacity:1 !important; animation:none !important; }
+    .oauth-btn,.oauth-btn:hover,.submit,.submit:hover .arr,.submit .arr,.input-wrap,.pw-meta a{
+      transition:none !important;
+    }
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:900px){
+    .shell{ grid-template-columns:1fr; }
+    .panel{ display:none; }
+    .form-panel{ min-height:100vh; padding:48px 32px; }
+  }
+  @media (max-width:480px){
+    .form-panel{ padding:30px 20px; }
+    .form h1{ font-size:24px; }
+    .form .sub{ font-size:14.5px; margin-bottom:26px; }
+    .oauth-btn{ font-size:12.5px; padding:11px 14px; }
+  }
+</style>
+</head>
+<body>
+  <main class="shell">
+
+    <!-- ===================== LEFT VERDICT PANEL ===================== -->
+    <section class="panel">
+
+      <!-- GAUGE ECHO: huge, faint concentric arcs radiating from the gauge core
+           (panel centre), echoing the product's risk-meter. The arc band that maps
+           to the meter's "high risk" zone (top-right quadrant) is tinted faint red,
+           so the red glow reads as the danger zone of the gauge, not random.
+           Purely decorative, static, no motion. -->
+      <svg class="gauge" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+        <defs>
+          <!-- faint warm-light stroke for the ring outlines -->
+          <linearGradient id="ringFade" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="rgba(247,245,242,.085)"/>
+            <stop offset=".55" stop-color="rgba(247,245,242,.05)"/>
+            <stop offset="1" stop-color="rgba(247,245,242,.02)"/>
+          </linearGradient>
+          <!-- red tint for the danger-zone arc band -->
+          <linearGradient id="dangerArc" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="rgba(201,58,57,0)"/>
+            <stop offset=".5" stop-color="rgba(201,58,57,.12)"/>
+            <stop offset="1" stop-color="rgba(201,58,57,.04)"/>
+          </linearGradient>
+        </defs>
+
+        <!-- gauge centre = 500,500 (panel middle). Several thin concentric rings of
+             increasing radius, like a radar / gauge dial. -->
+        <g fill="none" stroke="url(#ringFade)" stroke-width="1">
+          <circle cx="500" cy="500" r="150"/>
+          <circle cx="500" cy="500" r="230"/>
+          <circle cx="500" cy="500" r="320"/>
+          <circle cx="500" cy="500" r="420"/>
+          <circle cx="500" cy="500" r="530"/>
+          <circle cx="500" cy="500" r="650"/>
+        </g>
+
+        <!-- DANGER ZONE: the arc sweep (top-right, ~ -18deg to -90deg) that
+             corresponds to the meter's high-risk segment, tinted faint red.
+             Two concentric red arcs so the band reads as part of the same dial. -->
+        <g fill="none" stroke="url(#dangerArc)" stroke-linecap="round">
+          <!-- r=420 : from angle -18deg to -90deg around centre 500,500 -->
+          <path d="M 899.4 370.2 A 420 420 0 0 0 500 80" stroke-width="14"/>
+          <!-- r=320 : a tighter inner danger arc -->
+          <path d="M 804.4 401.1 A 320 320 0 0 0 500 180" stroke-width="9"/>
+        </g>
+
+        <!-- a few faint radial tick marks emanating outward from the core,
+             very subtle, like gauge graduations -->
+        <g stroke="rgba(247,245,242,.045)" stroke-width="1" stroke-linecap="round">
+          <line x1="650" y1="500" x2="668" y2="500"/>
+          <line x1="606.1" y1="393.9" x2="618.8" y2="381.2"/>
+          <line x1="500" y1="350" x2="500" y2="332"/>
+          <line x1="393.9" y1="393.9" x2="381.2" y2="381.2"/>
+          <line x1="350" y1="500" x2="332" y2="500"/>
+        </g>
+      </svg>
+
+      <div class="wordmark anim a-wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="21" height="21" rx="6" stroke="#f7f5f2" stroke-width="1.5" opacity=".85"/>
+          <path d="M7 12.4l3.1 3.1L17 8.5" stroke="#C93A39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="name"><span class="sec">§</span>RejectCheck</span>
+      </div>
+
+      <div class="hero">
+        <p class="editorial anim a-editorial">
+          «&nbsp;Vois pourquoi tu te fais <span class="glow">ghoster</span> —<br>avant de postuler.&nbsp;»
+        </p>
+
+        <article class="card anim a-card">
+          <div class="card-top">
+            <span class="card-label">Risque de rejet</span>
+            <span class="tag-ex">exemple</span>
+          </div>
+
+          <div class="verdict-row">
+            <span class="pct">73<span class="sym">%</span></span>
+            <span class="pill"><span class="dot"></span>Risque élevé</span>
+          </div>
+
+          <div class="meter-wrap">
+            <div class="meter">
+              <div class="z g"></div>
+              <div class="z a"></div>
+              <div class="z r"></div>
+              <div class="needle">
+                <span class="stem"></span>
+                <span class="tri"></span>
+              </div>
+            </div>
+            <div class="zone-labels">
+              <span class="zl-g">Faible</span>
+              <span class="zl-a">Moyen</span>
+              <span class="zl-r">Élevé</span>
+            </div>
+            <div class="ticks">
+              <span>0</span><span>50</span><span>100</span>
+            </div>
+          </div>
+
+          <div class="card-divider"></div>
+
+          <div class="sig-head">Signaux détectés</div>
+          <div class="signals">
+            <div class="signal anim a-sig1"><span class="dash">—</span><span>Aucun chiffre d'impact</span></div>
+            <div class="signal anim a-sig2"><span class="dash">—</span><span>Trou de 8 mois non expliqué</span></div>
+            <div class="signal anim a-sig3"><span class="dash">—</span><span>Stack matche à 55&nbsp;% du JD</span></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="panel-footnote anim a-footnote">
+        <span class="l">Analyse en 30 s</span>
+        <span class="r">
+          <span>CV</span><span class="sep">/</span><span>JD</span><span class="sep">/</span><span>LinkedIn</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- ===================== RIGHT FORM PANEL ===================== -->
+    <section class="form-panel">
+      <form class="form" action="#" method="post" novalidate>
+
+        <div class="kicker">
+          <span class="bar"></span>
+          <span class="ktxt">Se connecter</span>
+        </div>
+
+        <h1>Bon retour.</h1>
+        <p class="sub">Connecte-toi pour retrouver tes analyses.</p>
+
+        <div class="oauth">
+          <a class="oauth-btn" href="#" role="button">
+            <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.97 10.72A5.41 5.41 0 0 1 3.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"/>
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+            </svg>
+            Continuer avec Google
+          </a>
+
+          <a class="oauth-btn" href="#" role="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#0A66C2" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/>
+            </svg>
+            Continuer avec LinkedIn
+          </a>
+
+          <a class="oauth-btn" href="#" role="button">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.05-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.31-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.87.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.62-5.48 5.92.43.37.81 1.1.81 2.22 0 1.61-.01 2.9-.01 3.29 0 .32.21.7.82.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>
+            </svg>
+            Continuer avec GitHub
+          </a>
+        </div>
+
+        <div class="or">
+          <span class="line"></span>
+          <span class="word">ou</span>
+          <span class="line"></span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="email">E-mail</label>
+          <div class="input-wrap">
+            <input type="email" id="email" name="email" placeholder="toi@exemple.com" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="password">Mot de passe</label>
+          <div class="input-wrap">
+            <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password">
+            <span class="eye-btn" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </span>
+          </div>
+          <div class="pw-meta">
+            <a href="#">Mot de passe oublié ?</a>
+          </div>
+        </div>
+
+        <button type="submit" class="submit">
+          Se connecter <span class="arr">&rarr;</span>
+        </button>
+
+        <p class="form-footer">
+          Pas de compte ? <a href="#">Créer un compte</a>
+        </p>
+      </form>
+    </section>
+
+  </main>
+</body>
+</html>

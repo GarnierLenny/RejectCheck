@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RejectCheck — Diagnostic CV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rc-red:#C93A39;
+    --rc-red-hover:#b33332;
+    --rc-amber:#e07b00;
+    --rc-green:#22a350;
+    --rc-bg:#f7f5f2;
+    --rc-surface:#ffffff;
+    --rc-border:#d4cfc9;
+    --rc-text:#1a1917;
+    --rc-hint:#6b6860;
+    /* WARM INK grid — whisper-faint, never neutral gray */
+    --ink-minor:rgba(26,25,23,.028);
+    --ink-major:rgba(26,25,23,.045);
+    --ink-mark:rgba(26,25,23,.13);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+
+  html{-webkit-text-size-adjust:100%}
+
+  body{
+    font-family:"Instrument Sans",system-ui,sans-serif;
+    background:var(--rc-bg);
+    color:var(--rc-text);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .mono{
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+  }
+
+  .serif-italic{
+    font-family:"Instrument Serif",Georgia,serif;
+    font-style:italic;
+    font-weight:400;
+  }
+
+  a{color:inherit;text-decoration:none}
+
+  /* ============ PAGE SHELL ============ */
+  .page{
+    max-width:1240px;
+    margin:0 auto;
+    padding:0 clamp(20px,4vw,48px);
+  }
+
+  /* ============ TOP NAV ============ */
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:22px 0 18px;
+  }
+
+  .wordmark{
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+
+  .wordmark .mark{
+    display:block;
+    width:22px;
+    height:22px;
+    flex:0 0 auto;
+  }
+
+  .wordmark .name{
+    font-family:"JetBrains Mono",monospace;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.06em;
+    color:var(--rc-text);
+  }
+
+  .wordmark .name .sec{
+    color:var(--rc-hint);
+    margin-right:2px;
+  }
+
+  .nav-right{
+    display:flex;
+    align-items:center;
+    gap:clamp(14px,2.4vw,26px);
+  }
+
+  .nav-link{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:.08em;
+    color:var(--rc-hint);
+    transition:color .18s ease;
+  }
+  .nav-link:hover{color:var(--rc-text)}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    font-family:"JetBrains Mono",monospace;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    border:none;
+    cursor:pointer;
+    transition:background .18s ease, transform .18s ease, box-shadow .18s ease;
+  }
+
+  .btn-primary{
+    background:var(--rc-red);
+    color:#fff;
+    box-shadow:0 1px 2px rgba(201,58,57,.28), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .btn-primary:hover{
+    background:var(--rc-red-hover);
+    transform:translateY(-1px);
+    box-shadow:0 6px 18px rgba(201,58,57,.26), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  .btn-primary:active{transform:translateY(0)}
+
+  .nav .btn-primary{
+    font-size:12px;
+    padding:10px 16px;
+    border-radius:8px;
+  }
+
+  /* ============ BLUEPRINT SHEET ============ */
+  .sheet{
+    position:relative;
+    margin:14px 0 56px;
+    border:1px solid var(--rc-border);
+    border-radius:20px;
+    background:var(--rc-surface);
+    overflow:hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.7) inset,
+      0 18px 50px -28px rgba(26,25,23,.22),
+      0 2px 8px -4px rgba(26,25,23,.10);
+  }
+
+  /* faint graph-paper, CONFINED inside the sheet + masked so it dissolves.
+     No filled or bordered cells — only whisper-faint warm-ink rules. */
+  .sheet-grid{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    background-image:
+      /* major lines */
+      linear-gradient(to right,  var(--ink-major) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ink-major) 1px, transparent 1px),
+      /* minor lines */
+      linear-gradient(to right,  var(--ink-minor) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--ink-minor) 1px, transparent 1px);
+    background-size:
+      128px 128px,
+      128px 128px,
+      32px 32px,
+      32px 32px;
+    background-position:-1px -1px, -1px -1px, -1px -1px, -1px -1px;
+    /* dissolve hard toward lower-right so it reads as a calque, not a table */
+    -webkit-mask-image:radial-gradient(120% 115% at 28% 16%, #000 26%, rgba(0,0,0,.42) 54%, transparent 88%);
+            mask-image:radial-gradient(120% 115% at 28% 16%, #000 26%, rgba(0,0,0,.42) 54%, transparent 88%);
+  }
+
+  /* single decorative SVG layer: corner crop-marks + edge ruler */
+  .sheet-marks{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:1;
+    display:block;
+  }
+
+  /* sheet label along the top edge */
+  .sheet-label{
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px clamp(20px,3.2vw,34px) 0;
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+  }
+  .sheet-label .ref{color:var(--rc-text)}
+  .sheet-label .dot{
+    display:inline-block;
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--rc-green);
+    margin-right:6px;
+    vertical-align:middle;
+    box-shadow:0 0 0 3px rgba(34,163,80,.14);
+  }
+
+  /* ============ HERO GRID ============ */
+  .hero{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:clamp(28px,4vw,64px);
+    align-items:center;
+    padding:clamp(28px,4.4vw,60px) clamp(22px,3.6vw,52px) clamp(40px,5vw,64px);
+  }
+
+  /* ---- LEFT COLUMN ---- */
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    margin-bottom:24px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px;height:1px;
+    background:var(--rc-border);
+  }
+
+  .headline{
+    font-size:clamp(2.4rem,4.6vw,3.7rem);
+    line-height:1.06;
+    letter-spacing:-.018em;
+    font-weight:600;
+    color:var(--rc-text);
+    margin-bottom:22px;
+  }
+  .headline .serif-italic{
+    font-size:1.08em;
+    line-height:1;
+    letter-spacing:.005em;
+    color:var(--rc-text);
+  }
+
+  .lede{
+    font-size:clamp(1rem,1.35vw,1.12rem);
+    color:var(--rc-hint);
+    max-width:30em;
+    margin-bottom:32px;
+  }
+
+  .cta-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px 22px;
+    margin-bottom:22px;
+  }
+
+  .btn-hero{
+    font-size:13px;
+    padding:15px 22px;
+    border-radius:10px;
+  }
+  .btn-hero .arrow{
+    transition:transform .2s ease;
+    font-size:15px;
+  }
+  .btn-hero:hover .arrow{transform:translateX(3px)}
+
+  .ghost-link{
+    font-size:14.5px;
+    font-weight:500;
+    color:var(--rc-text);
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    border-bottom:1px solid var(--rc-border);
+    padding-bottom:1px;
+    transition:border-color .18s ease, color .18s ease;
+  }
+  .ghost-link:hover{
+    border-color:var(--rc-text);
+  }
+  .ghost-link .play{
+    color:var(--rc-hint);
+    font-size:11px;
+  }
+
+  .reassure{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11.5px;
+    letter-spacing:.02em;
+    color:var(--rc-hint);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 0;
+  }
+  .reassure .sep{
+    margin:0 9px;
+    color:var(--rc-border);
+  }
+
+  /* ============ RIGHT COLUMN — VERDICT CARD ============ */
+  .verdict{
+    position:relative;
+    background:var(--rc-surface);
+    border:1px solid var(--rc-border);
+    border-radius:16px;
+    padding:26px 26px 24px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.8) inset,
+      0 20px 46px -26px rgba(26,25,23,.28),
+      0 4px 14px -8px rgba(26,25,23,.12);
+  }
+
+  .verdict-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-bottom:18px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--rc-border);
+  }
+  .verdict-head .label{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+  }
+  .tag-example{
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    border:1px solid var(--rc-border);
+    border-radius:5px;
+    padding:3px 8px;
+    background:var(--rc-bg);
+  }
+
+  .score-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .score{
+    font-size:clamp(3.4rem,7vw,4.4rem);
+    line-height:.9;
+    font-weight:700;
+    letter-spacing:-.03em;
+    color:var(--rc-text);
+    font-variant-numeric:tabular-nums;
+  }
+  .score .pct{
+    font-size:.42em;
+    font-weight:600;
+    color:var(--rc-hint);
+    margin-left:2px;
+  }
+  .score-meta{
+    text-align:right;
+  }
+  .verdict-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--rc-red);
+    background:rgba(201,58,57,.08);
+    border:1px solid rgba(201,58,57,.28);
+    border-radius:7px;
+    padding:6px 11px;
+  }
+  .verdict-pill::before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:var(--rc-red);
+  }
+  .score-sub{
+    margin-top:8px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10.5px;
+    letter-spacing:.06em;
+    color:var(--rc-hint);
+  }
+
+  /* ---- METER ---- */
+  .meter{
+    margin-bottom:24px;
+  }
+  .meter-track{
+    position:relative;
+    height:11px;
+    border-radius:6px;
+    overflow:hidden;
+    background:linear-gradient(
+      to right,
+      var(--rc-green) 0%,
+      var(--rc-green) 33%,
+      var(--rc-amber) 33%,
+      var(--rc-amber) 66%,
+      var(--rc-red) 66%,
+      var(--rc-red) 100%
+    );
+    box-shadow:inset 0 1px 2px rgba(26,25,23,.18);
+  }
+  /* thin separators between zones */
+  .meter-track::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(to right, transparent calc(33% - 1px), rgba(255,255,255,.55) 33%, transparent calc(33% + 1px)),
+      linear-gradient(to right, transparent calc(66% - 1px), rgba(255,255,255,.55) 66%, transparent calc(66% + 1px));
+  }
+  .needle{
+    position:absolute;
+    top:-5px;
+    bottom:-5px;
+    left:73%;
+    width:2px;
+    transform:translateX(-1px);
+    background:var(--rc-text);
+    border-radius:2px;
+    z-index:2;
+    box-shadow:0 0 0 2px var(--rc-surface);
+  }
+  .needle::before{
+    content:"";
+    position:absolute;
+    top:-6px;left:50%;
+    width:9px;height:9px;
+    transform:translateX(-50%) rotate(45deg);
+    background:var(--rc-text);
+    border-radius:2px;
+  }
+
+  .meter-zones{
+    display:flex;
+    margin-top:9px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+  }
+  .meter-zones span{flex:1 1 0;text-align:center}
+  .meter-zones span:first-child{text-align:left}
+  .meter-zones span:last-child{text-align:right}
+  .meter-zones .z-red{color:var(--rc-red);font-weight:600}
+
+  .meter-ticks{
+    display:flex;
+    justify-content:space-between;
+    margin-top:3px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:9.5px;
+    color:var(--rc-border);
+  }
+
+  /* ---- SIGNALS ---- */
+  .signals-label{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    margin-bottom:12px;
+    padding-top:18px;
+    border-top:1px solid var(--rc-border);
+  }
+  .signals{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .signals li{
+    display:flex;
+    align-items:flex-start;
+    gap:11px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:12.5px;
+    letter-spacing:.005em;
+    color:var(--rc-text);
+  }
+  .signals .dash{
+    flex:0 0 auto;
+    width:13px;height:2px;
+    margin-top:8px;
+    background:var(--rc-red);
+    border-radius:2px;
+  }
+
+  /* ============ ENTRANCE ANIMATIONS ============ */
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(14px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  @keyframes needleSwing{
+    from{left:0%}
+    to{left:73%}
+  }
+  @keyframes sheetIn{
+    from{opacity:0;transform:translateY(18px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .sheet{animation:sheetIn .7s cubic-bezier(.2,.7,.2,1) both}
+  .eyebrow{animation:fadeUp .6s ease both .12s}
+  .headline{animation:fadeUp .7s ease both .2s}
+  .lede{animation:fadeUp .7s ease both .3s}
+  .cta-row{animation:fadeUp .7s ease both .4s}
+  .reassure{animation:fadeUp .7s ease both .48s}
+  .verdict{animation:fadeUp .8s cubic-bezier(.2,.7,.2,1) both .34s}
+  .needle{animation:needleSwing 1.1s cubic-bezier(.3,1.2,.4,1) both .9s}
+
+  @media (prefers-reduced-motion: reduce){
+    .sheet,.eyebrow,.headline,.lede,.cta-row,.reassure,.verdict,.needle{
+      animation:none !important;
+    }
+    .btn-primary:hover{transform:none}
+    *{transition:none !important}
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:920px){
+    .hero{
+      grid-template-columns:1fr;
+      gap:36px;
+    }
+    .sheet-grid{
+      -webkit-mask-image:radial-gradient(140% 100% at 50% 12%, #000 28%, rgba(0,0,0,.4) 58%, transparent 90%);
+              mask-image:radial-gradient(140% 100% at 50% 12%, #000 28%, rgba(0,0,0,.4) 58%, transparent 90%);
+    }
+  }
+
+  @media (max-width:768px){
+    .nav{flex-wrap:wrap;gap:10px}
+    .nav-right{gap:14px}
+    .nav .nav-link.connect{display:none}
+    .headline{font-size:clamp(2rem,8.5vw,2.7rem)}
+    .hero{padding:26px 18px 38px}
+    .verdict{padding:22px 20px 22px}
+    .score{font-size:3.2rem}
+    .cta-row{gap:14px}
+    .btn-hero{width:100%;justify-content:center}
+    .ghost-link{width:100%}
+    .ruler-line{display:none}
+    .reassure{font-size:11px}
+  }
+
+  @media (max-width:430px){
+    .sheet-label .meta-right{display:none}
+    .score-row{flex-direction:column;align-items:flex-start;gap:14px}
+    .score-meta{text-align:left}
+  }
+</style>
+</head>
+<body>
+
+  <div class="page">
+
+    <!-- ============ TOP NAV ============ -->
+    <nav class="nav">
+      <a class="wordmark" href="#" aria-label="RejectCheck — accueil">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="1.25" y="1.25" width="21.5" height="21.5" rx="5" stroke="#1a1917" stroke-width="1.4"/>
+          <path d="M6.5 12.4l3.4 3.4 7.4-7.8" stroke="#C93A39" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="name"><span class="sec">§</span>REJECTCHECK</span>
+      </a>
+      <div class="nav-right">
+        <a class="nav-link connect" href="#">SE CONNECTER</a>
+        <a class="btn btn-primary" href="#">ANALYSER MON CV</a>
+      </div>
+    </nav>
+
+    <!-- ============ BLUEPRINT SHEET ============ -->
+    <section class="sheet" aria-label="Diagnostic CV">
+
+      <!-- faint confined graph-paper (CSS only) -->
+      <div class="sheet-grid" aria-hidden="true"></div>
+
+      <!-- SINGLE decorative SVG: corner crop-marks + edge ruler -->
+      <svg class="sheet-marks" viewBox="0 0 1200 620" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <!-- corner crop-marks (drawn in non-stretching corner groups via vector-effect) -->
+        <g fill="none" stroke="rgba(26,25,23,.16)" stroke-width="1.2" vector-effect="non-scaling-stroke">
+          <!-- top-left -->
+          <path d="M14 28 V14 H28"/>
+          <!-- top-right -->
+          <path d="M1186 28 V14 H1172"/>
+          <!-- bottom-left -->
+          <path d="M14 592 V606 H28"/>
+          <!-- bottom-right -->
+          <path d="M1186 592 V606 H1172"/>
+        </g>
+        <!-- top edge ruler -->
+        <g class="ruler-line" stroke="rgba(26,25,23,.12)" stroke-width="1" vector-effect="non-scaling-stroke">
+          <line x1="40" y1="55" x2="1160" y2="55"/>
+          <line x1="100"  y1="49" x2="100"  y2="55"/>
+          <line x1="160"  y1="46" x2="160"  y2="55"/>
+          <line x1="220"  y1="49" x2="220"  y2="55"/>
+          <line x1="280"  y1="46" x2="280"  y2="55"/>
+          <line x1="340"  y1="49" x2="340"  y2="55"/>
+          <line x1="400"  y1="46" x2="400"  y2="55"/>
+          <line x1="460"  y1="49" x2="460"  y2="55"/>
+          <line x1="520"  y1="46" x2="520"  y2="55"/>
+          <line x1="580"  y1="49" x2="580"  y2="55"/>
+          <line x1="640"  y1="46" x2="640"  y2="55"/>
+          <line x1="700"  y1="49" x2="700"  y2="55"/>
+          <line x1="760"  y1="46" x2="760"  y2="55"/>
+          <line x1="820"  y1="49" x2="820"  y2="55"/>
+          <line x1="880"  y1="46" x2="880"  y2="55"/>
+          <line x1="940"  y1="49" x2="940"  y2="55"/>
+          <line x1="1000" y1="46" x2="1000" y2="55"/>
+          <line x1="1060" y1="49" x2="1060" y2="55"/>
+          <line x1="1120" y1="46" x2="1120" y2="55"/>
+        </g>
+      </svg>
+
+      <!-- sheet label -->
+      <div class="sheet-label">
+        <span><span class="dot"></span>REJECTCHECK / DIAGNOSTIC</span>
+        <span class="meta-right">RÉF. <span class="ref">CV-73</span> · ÉCH. 1:1</span>
+      </div>
+
+      <!-- ============ HERO ============ -->
+      <div class="hero">
+
+        <!-- LEFT -->
+        <div class="hero-left">
+          <span class="eyebrow">§ 01 — DIAGNOSTIC</span>
+
+          <h1 class="headline">
+            La plupart des CV<br>
+            sont rejetés
+            <span class="serif-italic">sans qu'on sache&nbsp;pourquoi.</span>
+          </h1>
+
+          <p class="lede">
+            RejectCheck radiographie votre CV face à une offre,
+            détecte les signaux qui font fuir recruteurs et ATS,
+            et vous dit exactement quoi corriger.
+          </p>
+
+          <div class="cta-row">
+            <a class="btn btn-primary btn-hero" href="#">
+              ANALYSER MON CV GRATUITEMENT
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+            <a class="ghost-link" href="#">
+              <span class="play" aria-hidden="true">▶</span>
+              Voir un exemple d'analyse
+            </a>
+          </div>
+
+          <p class="reassure mono">
+            Sans carte bancaire
+            <span class="sep">·</span>
+            Résultat en ~30&nbsp;s
+            <span class="sep">·</span>
+            Optimisé pour les devs
+          </p>
+        </div>
+
+        <!-- RIGHT — VERDICT CARD -->
+        <div class="hero-right">
+          <div class="verdict" role="figure" aria-label="Exemple de verdict : risque de rejet 73 %, risque élevé">
+
+            <div class="verdict-head">
+              <span class="label">Risque de rejet</span>
+              <span class="tag-example">Exemple</span>
+            </div>
+
+            <div class="score-row">
+              <div class="score">73<span class="pct">%</span></div>
+              <div class="score-meta">
+                <span class="verdict-pill">Risque élevé</span>
+                <div class="score-sub">3 signaux bloquants</div>
+              </div>
+            </div>
+
+            <div class="meter">
+              <div class="meter-track" role="img" aria-label="Jauge de risque positionnée à 73 % dans la zone élevée">
+                <div class="needle"></div>
+              </div>
+              <div class="meter-zones">
+                <span>Faible</span>
+                <span>Moyen</span>
+                <span class="z-red">Élevé</span>
+              </div>
+              <div class="meter-ticks">
+                <span>0</span>
+                <span>50</span>
+                <span>100</span>
+              </div>
+            </div>
+
+            <div class="signals-label">Signaux détectés</div>
+            <ul class="signals">
+              <li><span class="dash" aria-hidden="true"></span>Aucun chiffre d'impact</li>
+              <li><span class="dash" aria-hidden="true"></span>Trou de 8 mois non expliqué</li>
+              <li><span class="dash" aria-hidden="true"></span>Stack matche à 55&nbsp;% du JD</li>
+            </ul>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+</body>
+</html>

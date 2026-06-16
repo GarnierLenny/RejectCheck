@@ -7,6 +7,7 @@ import {
   faqPageSchema,
 } from '../../../components/JsonLd'
 import { SeoFooter } from '../../../components/SeoFooter'
+import { BlueprintCta } from '../../../components/BlueprintCta'
 import { getDictionary, hasLocale, type Locale } from '../dictionaries'
 
 type LangParams = { lang: string }
@@ -94,6 +95,7 @@ export default async function PricingLayout({
       ))}
       <JsonLd id="ld-faq-pricing" data={faqSchema} />
       {children}
+      <BlueprintCta lang={locale} />
       <SeoFooter lang={locale} />
     </>
   )

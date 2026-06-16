@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RejectCheck — Se connecter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rc-red:#C93A39;
+    --rc-red-hover:#b33332;
+    --rc-amber:#e07b00;
+    --rc-green:#22a350;
+    --rc-bg:#f7f5f2;
+    --rc-surface:#ffffff;
+    --rc-border:#d4cfc9;
+    --rc-text:#1a1917;
+    --rc-muted:#6b6860;
+    --rc-hint:#6b6860;
+    --sans:'Instrument Sans',system-ui,-apple-system,sans-serif;
+    --serif:'Instrument Serif',Georgia,serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans);
+    color:var(--rc-text);
+    background:var(--rc-bg);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .shell{
+    display:grid;
+    grid-template-columns:1.05fr 0.95fr;
+    min-height:100vh;
+  }
+
+  /* ─────────────────────────  LEFT — EDITORIAL MANIFESTO  ───────────────────────── */
+  .brand{
+    position:relative;
+    background:
+      radial-gradient(120% 120% at 8% 4%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 42%),
+      linear-gradient(180deg, #ffffff 0%, var(--rc-bg) 55%, #f7f5f2 100%);
+    border-right:1px solid var(--rc-border);
+    display:flex;
+    flex-direction:column;
+    padding:56px 64px 48px;
+    overflow:hidden;
+  }
+  /* very faint paper grain via layered hairline gradients */
+  .brand::before{
+    content:"";
+    position:absolute;inset:0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(26,25,23,.014) 0 1px, transparent 1px 38px),
+      repeating-linear-gradient(90deg, rgba(26,25,23,.012) 0 1px, transparent 1px 38px);
+    pointer-events:none;
+  }
+  .brand > *{position:relative;z-index:1}
+
+  /* top kicker */
+  .kicker{
+    font-family:var(--mono);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .kicker .mark{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;height:22px;
+    border:1.5px solid var(--rc-red);
+    border-radius:6px;
+    color:var(--rc-red);
+  }
+  .kicker .sec{color:var(--rc-red)}
+
+  /* manifesto block, centered with breathing room */
+  .manifesto{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    max-width:17.5ch;
+    padding:48px 0;
+  }
+  .manifesto .over{
+    font-family:var(--mono);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    margin-bottom:30px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .manifesto .over::before{
+    content:"";
+    width:28px;height:1px;
+    background:var(--rc-border);
+  }
+  .statement{
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:clamp(38px,4.6vw,62px);
+    line-height:1.02;
+    letter-spacing:-.025em;
+    color:var(--rc-text);
+    text-wrap:balance;
+  }
+  .statement .sev{
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:400;
+    color:var(--rc-red);
+    letter-spacing:0;
+    /* serif optical size runs large — nudge down to align baseline rhythm */
+    font-size:1.06em;
+  }
+  .statement .sev .u{
+    /* the unit kept tight to the number */
+    white-space:nowrap;
+  }
+
+  /* graphic anchor rule */
+  .anchor{
+    margin:38px 0 0;
+    width:84px;height:3px;
+    background:var(--rc-red);
+    border-radius:3px;
+  }
+
+  .subline{
+    margin-top:26px;
+    max-width:30ch;
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.5;
+    color:var(--rc-muted);
+  }
+  .subline em{
+    font-family:var(--serif);
+    font-style:italic;
+    color:var(--rc-text);
+  }
+
+  /* bottom footnotes — TRUE claims only */
+  .footnotes{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:0 14px;
+    row-gap:6px;
+    font-family:var(--mono);
+    font-size:9.5px;
+    font-weight:500;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    padding-top:22px;
+    border-top:1px solid var(--rc-border);
+  }
+  .footnotes .dot{color:var(--rc-border)}
+  .footnotes .hl{color:var(--rc-muted)}
+
+  /* ─────────────────────────  RIGHT — THE FORM  ───────────────────────── */
+  .panel{
+    background:var(--rc-surface);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 40px;
+  }
+  .form{
+    width:100%;
+    max-width:400px;
+  }
+
+  .formhead .toprule{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:24px;
+  }
+  .formhead .toprule .bar{
+    width:6px;height:6px;
+    background:var(--rc-red);
+    border-radius:99px;
+    height:14px;width:6px;
+    border-radius:3px;
+  }
+  .formhead .toprule .lab{
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+  }
+  .formhead h1{
+    font-family:var(--sans);
+    font-size:28px;
+    font-weight:600;
+    letter-spacing:-.02em;
+    line-height:1.1;
+    margin-bottom:8px;
+  }
+  .formhead .sub{
+    font-size:13px;
+    color:var(--rc-hint);
+    line-height:1.45;
+    margin-bottom:26px;
+  }
+
+  /* OAuth */
+  .oauth{display:flex;flex-direction:column;gap:10px}
+  .oauth a{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    text-decoration:none;
+    background:var(--rc-surface);
+    border:1px solid var(--rc-border);
+    border-radius:10px;
+    padding:11px 14px;
+    color:var(--rc-text);
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:500;
+    letter-spacing:.01em;
+    transition:border-color .15s ease, background .15s ease, transform .05s ease;
+  }
+  .oauth a:hover{
+    border-color:var(--rc-border);
+    background:var(--rc-bg);
+  }
+  .oauth a:active{transform:translateY(1px)}
+  .oauth a svg{flex:0 0 auto;width:18px;height:18px}
+  .oauth a .txt{flex:1}
+
+  /* divider */
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:22px 0;
+  }
+  .divider .line{flex:1;height:1px;background:var(--rc-border)}
+  .divider .ou{
+    font-family:var(--mono);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+  }
+
+  /* fields */
+  .field{margin-bottom:16px}
+  .field label{
+    display:block;
+    font-family:var(--mono);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--rc-hint);
+    margin-bottom:7px;
+  }
+  .inputwrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+    border:1px solid var(--rc-border);
+    border-radius:10px;
+    background:var(--rc-surface);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .inputwrap:focus-within{
+    border-color:rgba(201,58,57,.4);
+    box-shadow:0 0 0 3px rgba(201,58,57,.08);
+  }
+  .inputwrap input{
+    flex:1;
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    padding:12px 14px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--rc-text);
+    letter-spacing:.01em;
+  }
+  .inputwrap input::placeholder{color:var(--rc-hint)}
+  .inputwrap.pw input{
+    font-family:var(--mono);
+    letter-spacing:.18em;
+  }
+  .inputwrap .eye{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px 0 4px;
+    color:var(--rc-hint);
+    cursor:pointer;
+  }
+  .inputwrap .eye svg{width:18px;height:18px}
+
+  .forgot{
+    text-align:right;
+    margin-top:8px;
+  }
+  .forgot a{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.04em;
+    color:var(--rc-hint);
+    text-decoration:none;
+    transition:color .15s ease;
+  }
+  .forgot a:hover{color:var(--rc-text);text-decoration:underline;text-underline-offset:2px}
+
+  /* submit */
+  .submit{
+    width:100%;
+    margin-top:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    border:none;
+    cursor:pointer;
+    background:var(--rc-red);
+    color:#ffffff;
+    border-radius:10px;
+    padding:14px 16px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    transition:background .15s ease, transform .05s ease, box-shadow .15s ease;
+    box-shadow:0 1px 2px rgba(201,58,57,.18);
+  }
+  .submit:hover{background:var(--rc-red-hover);box-shadow:0 3px 10px rgba(201,58,57,.22)}
+  .submit:active{transform:translateY(1px)}
+  .submit svg{width:15px;height:15px;transition:transform .15s ease}
+  .submit:hover svg{transform:translateX(3px)}
+
+  .foot{
+    margin-top:26px;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--rc-hint);
+    letter-spacing:.01em;
+  }
+  .foot a{
+    color:var(--rc-red);
+    text-decoration:none;
+    font-weight:500;
+  }
+  .foot a:hover{text-decoration:underline;text-underline-offset:2px}
+
+  /* ─────────────────────────  RESPONSIVE  ───────────────────────── */
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .brand{display:none}
+    .panel{padding:40px 24px}
+  }
+  @media (max-width:420px){
+    .panel{padding:32px 20px}
+    .formhead h1{font-size:25px}
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+
+    <!-- ════════════════  LEFT : EDITORIAL MANIFESTO  ════════════════ -->
+    <aside class="brand">
+      <div class="kicker">
+        <span class="mark" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 13l4 4L19 7"/>
+          </svg>
+        </span>
+        <span><span class="sec">§</span>&nbsp; REJECTCHECK</span>
+      </div>
+
+      <div class="manifesto">
+        <p class="over">Le manifeste</p>
+        <h2 class="statement">
+          La plupart des CV sont rejetés
+          <span class="sev"><span class="u">sans qu'on sache pourquoi.</span></span>
+        </h2>
+        <div class="anchor" aria-hidden="true"></div>
+        <p class="subline">
+          RejectCheck te dit <em>lesquels</em> — et exactement pourquoi.
+        </p>
+      </div>
+
+      <div class="footnotes">
+        <span class="hl">Optimisé pour les devs</span>
+        <span class="dot">·</span>
+        <span>3 analyses gratuites / mois</span>
+        <span class="dot">·</span>
+        <span>Tes données restent privées</span>
+      </div>
+    </aside>
+
+    <!-- ════════════════  RIGHT : LOGIN FORM  ════════════════ -->
+    <main class="panel">
+      <div class="form">
+
+        <div class="formhead">
+          <div class="toprule">
+            <span class="bar" aria-hidden="true"></span>
+            <span class="lab">Se connecter</span>
+          </div>
+          <h1>Bon retour.</h1>
+          <p class="sub">Connecte-toi pour retrouver tes analyses.</p>
+        </div>
+
+        <!-- OAuth -->
+        <div class="oauth">
+          <a href="#">
+            <svg viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+              <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+              <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+              <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001 6.19 5.238 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+            </svg>
+            <span class="txt">Continuer avec Google</span>
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#0A66C2" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            </svg>
+            <span class="txt">Continuer avec LinkedIn</span>
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.014 2.898-.014 3.293 0 .322.216.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+            <span class="txt">Continuer avec GitHub</span>
+          </a>
+        </div>
+
+        <!-- divider -->
+        <div class="divider">
+          <span class="line"></span>
+          <span class="ou">ou</span>
+          <span class="line"></span>
+        </div>
+
+        <!-- email -->
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="inputwrap">
+            <input id="email" type="email" autocomplete="email" placeholder="toi@exemple.com">
+          </div>
+        </div>
+
+        <!-- password -->
+        <div class="field">
+          <label for="password">Mot de passe</label>
+          <div class="inputwrap pw">
+            <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" aria-label="Mot de passe">
+            <span class="eye" role="button" tabindex="0" aria-label="Afficher le mot de passe">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </span>
+          </div>
+          <div class="forgot">
+            <a href="#">Mot de passe oublié ?</a>
+          </div>
+        </div>
+
+        <!-- submit -->
+        <button class="submit" type="submit">
+          Se connecter
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/>
+            <path d="M13 6l6 6-6 6"/>
+          </svg>
+        </button>
+
+        <!-- footer -->
+        <p class="foot">
+          Pas de compte ? <a href="#">Créer un compte</a>
+        </p>
+
+      </div>
+    </main>
+
+  </div>
+</body>
+</html>

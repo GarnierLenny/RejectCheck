@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { createClient } from "../../../../lib/supabase";
 import { useLanguage } from "../../../../context/language";
 import { PasswordField } from "../../../../app/components/PasswordField";
+import { AuthHero } from "../../../../app/components/AuthHero";
 import posthog from "posthog-js";
 
 type Status = "checking" | "ready" | "expired";
@@ -56,97 +57,74 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-rc-bg text-rc-text font-sans flex flex-col">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border">
-        <Link href={localePath("/")} className="flex items-center gap-2.5 no-underline">
-          <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={36} height={36} />
-        </Link>
-        <Link
-          href={localePath("/login")}
-          className="font-mono text-[11px] tracking-[0.14em] uppercase text-rc-red border border-rc-red/30 hover:border-rc-red/60 hover:bg-rc-red/5 px-4 py-2 rounded-lg transition-all duration-200 no-underline"
-        >
-          {t.login.backToSignIn}
-        </Link>
-      </nav>
+    <main className="rc-auth-shell">
+      <AuthHero />
 
-      <div className="flex-1 flex items-center justify-center px-5 py-16">
-        <div className="w-full max-w-[400px]">
-          {status === "checking" && (
-            <div className="flex items-center justify-center gap-3 text-rc-hint">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="font-mono text-[11px] tracking-widest uppercase">{t.resetPassword.verifying}</span>
-            </div>
-          )}
-
-          {status === "expired" && (
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="h-px w-6 bg-rc-red" />
-                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red">{t.resetPassword.eyebrow}</span>
-                <div className="h-px w-6 bg-rc-red" />
-              </div>
-              <p className="text-[14px] text-rc-text mb-6 leading-relaxed">{t.resetPassword.linkExpired}</p>
-              <Link
-                href={localePath("/login")}
-                className="inline-flex items-center justify-center px-6 py-3 bg-rc-red text-white font-mono text-[11px] tracking-[0.14em] uppercase rounded-lg no-underline hover:bg-[#b33332] transition-colors"
-              >
-                {t.resetPassword.requestNew}
-              </Link>
-            </div>
-          )}
-
-          {status === "ready" && (
-            <>
-              <div className="mb-8">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-px w-6 bg-rc-red" />
-                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red">
-                    {t.resetPassword.eyebrow}
-                  </span>
-                </div>
-                <h1 className="text-[28px] font-semibold text-rc-text leading-tight">{t.resetPassword.title}</h1>
-                <p className="mt-2 text-[13px] text-rc-hint font-sans">{t.resetPassword.desc}</p>
-              </div>
-
-              {error && (
-                <div className="mb-5 px-4 py-3 rounded-lg bg-rc-red-bg border border-rc-red-border text-[13px] text-rc-red font-mono">
-                  {error}
-                </div>
-              )}
-              {info && (
-                <div className="mb-5 px-4 py-3 rounded-lg bg-rc-green-bg border border-rc-green-border text-[13px] text-rc-green font-mono">
-                  {info}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <PasswordField
-                  value={password}
-                  onChange={setPassword}
-                  label={t.resetPassword.newPassword}
-                  autoComplete="new-password"
-                  showStrength
-                />
-                <PasswordField
-                  value={confirm}
-                  onChange={setConfirm}
-                  label={t.resetPassword.confirmPassword}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="submit"
-                  disabled={loading || !!info}
-                  className="mt-2 w-full flex items-center justify-center gap-2 font-mono text-[12px] tracking-[0.14em] uppercase text-white bg-rc-red rounded-lg py-3.5 border-none cursor-pointer transition-all duration-200 hover:bg-[#b33332] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {loading ? t.resetPassword.updating : t.resetPassword.submit}
-                </button>
-              </form>
-            </>
-          )}
+      <section className="rc-auth-form-panel">
+        <div className="rc-auth-topbar">
+          <Link href={localePath("/")} className="rc-auth-topbar-logo" aria-label="RejectCheck">
+            <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={28} height={28} />
+          </Link>
+          <Link href={localePath("/login")} className="rc-auth-tryfree">
+            {t.login.backToSignIn}
+          </Link>
         </div>
-      </div>
-    </div>
+
+        {status === "checking" && (
+          <div className="rc-auth-form" style={{ display: "flex", alignItems: "center", gap: 12, color: "var(--rc-hint)" }}>
+            <Loader2 className="rc-auth-spin" width={16} height={16} />
+            <span className="font-mono text-[11px] tracking-widest uppercase">{t.resetPassword.verifying}</span>
+          </div>
+        )}
+
+        {status === "expired" && (
+          <div className="rc-auth-form" style={{ textAlign: "center" }}>
+            <div className="rc-auth-kicker" style={{ justifyContent: "center" }}>
+              <span className="bar" />
+              <span className="ktxt">{t.resetPassword.eyebrow}</span>
+            </div>
+            <p className="rc-auth-sub" style={{ marginBottom: 22 }}>{t.resetPassword.linkExpired}</p>
+            <Link href={localePath("/login")} className="rc-auth-submit" style={{ textDecoration: "none" }}>
+              {t.resetPassword.requestNew}
+              <span className="arr">→</span>
+            </Link>
+          </div>
+        )}
+
+        {status === "ready" && (
+          <form className="rc-auth-form" onSubmit={handleSubmit} noValidate>
+            <div className="rc-auth-kicker">
+              <span className="bar" />
+              <span className="ktxt">{t.resetPassword.eyebrow}</span>
+            </div>
+            <h1 className="rc-auth-h1">{t.resetPassword.title}</h1>
+            <p className="rc-auth-sub">{t.resetPassword.desc}</p>
+
+            {error && <div className="rc-auth-alert err">{error}</div>}
+            {info && <div className="rc-auth-alert ok">{info}</div>}
+
+            <PasswordField
+              value={password}
+              onChange={setPassword}
+              label={t.resetPassword.newPassword}
+              autoComplete="new-password"
+              showStrength
+            />
+            <PasswordField
+              value={confirm}
+              onChange={setConfirm}
+              label={t.resetPassword.confirmPassword}
+              autoComplete="new-password"
+            />
+
+            <button type="submit" className="rc-auth-submit" disabled={loading || !!info}>
+              {loading && <Loader2 className="rc-auth-spin" width={15} height={15} />}
+              {loading ? t.resetPassword.updating : t.resetPassword.submit}
+              {!loading && <span className="arr">→</span>}
+            </button>
+          </form>
+        )}
+      </section>
+    </main>
   );
 }

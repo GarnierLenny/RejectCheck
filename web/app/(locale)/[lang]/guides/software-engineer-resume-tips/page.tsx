@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Navbar } from '../../../../components/Navbar'
+import { SeoFooter } from '../../../../components/SeoFooter'
+import { BlueprintCta } from '../../../../components/BlueprintCta'
 import {
   JsonLd,
   SITE_URL,
@@ -9,7 +11,7 @@ import {
   breadcrumbSchema,
   faqPageSchema,
 } from '../../../../components/JsonLd'
-import { hasLocale } from '../../dictionaries'
+import { hasLocale, type Locale } from '../../dictionaries'
 
 const PAGE_PATH = '/guides/software-engineer-resume-tips'
 const PUBLISHED_ISO = '2026-04-29'
@@ -420,43 +422,8 @@ export default async function SoftwareEngineerResumeTipsPage({
           </div>
         </article>
 
-        <footer className="border-t-[0.5px] border-rc-border py-6 px-5 md:px-[40px] flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="font-mono text-[13px] text-rc-muted">
-            © RejectCheck — Optimised for developers
-          </div>
-          <div className="flex gap-6 flex-wrap justify-center">
-            <Link
-              href="/en/software-engineer-cv"
-              className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-            >
-              SE CV Guide
-            </Link>
-            <Link
-              href="/en/cv-review"
-              className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-            >
-              CV Review
-            </Link>
-            <Link
-              href="/en/ats-checker"
-              className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-            >
-              ATS Checker
-            </Link>
-            <Link
-              href="/en/pricing"
-              className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/en/privacy"
-              className="font-mono text-[11px] tracking-[0.05em] text-rc-muted no-underline hover:text-rc-text"
-            >
-              Privacy (GDPR)
-            </Link>
-          </div>
-        </footer>
+        <BlueprintCta lang={lang as Locale} />
+        <SeoFooter lang={lang as Locale} />
       </div>
     </>
   )

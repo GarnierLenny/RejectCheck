@@ -1280,6 +1280,33 @@
     "requestNew": "Request a new link",
     "verifying": "Verifying your link…"
   },
+  "authHero": {
+    "wordmark": "RejectCheck",
+    "editorialPre": "See why you get ",
+    "editorialAccent": "ghosted",
+    "editorialPost": " — before you apply.",
+    "cardLabel": "Rejection risk",
+    "tagExample": "example",
+    "verdict": "73",
+    "pill": "High risk",
+    "zoneLow": "Low",
+    "zoneMid": "Medium",
+    "zoneHigh": "High",
+    "signalsHead": "Signals detected",
+    "signal1": "No quantified impact",
+    "signal2": "Unexplained 8-month gap",
+    "signal3": "Stack matches 55% of the JD",
+    "footnoteLeft": "Analysis in 30s",
+    "footnoteRight": ["CV", "JD", "LinkedIn"]
+  },
+  "ctaBand": {
+    "eyebrow": "§ Last step",
+    "titlePre": "Stop guessing why you get",
+    "titleAccent": "ghosted.",
+    "subtitle": "An honest read on your CV — for free. See your rejection risk and the exact reasons in about 30 seconds.",
+    "cta": "Analyze my CV — free",
+    "reassurance": "No credit card · 3 free analyses / month · optimised for devs"
+  },
   "account": {
     "title": "Account",
     "subscription": "Subscription",
