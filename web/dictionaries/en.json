@@ -756,29 +756,29 @@
   },
   "paywall": {
     "badge": "Free Scan Complete",
-    "title": "Level up your",
-    "titleHighlight": "job search.",
-    "subtitle": "You've seen the red flags. Now it's time to fix them and land your next role. Unlock 1,500 credits/month and career-changing tools.",
     "getAccess": "Get More Credits",
     "backToAnalyzer": "Back to Analyzer",
-    "features": [
-      "1,500–3,000 credits/month",
-      "Priority CV optimization",
-      "Red flag removal guide",
-      "Full CV rewrite mode"
-    ],
-    "waitlist": {
-      "label": "Or join the waitlist for early features",
-      "placeholder": "name@email.com",
-      "join": "Join",
-      "success": "You're on the priority list."
-    },
     "freeCapTitle": "You've used your free analyses this month",
     "freeCapSubtitle": "Upgrade for 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), or buy one-time credits that never expire.",
     "subscriberCapTitle": "Monthly cap reached",
     "subscriberCapSubtitle": "Buy one-time credits to keep going — they never expire and your monthly allowance resets on the 1st.",
     "buyCredits": "Buy credits",
-    "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached."
+    "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached.",
+    "guest": {
+      "badge": "Free limit reached",
+      "title": "Keep going with a",
+      "titleHighlight": "free account.",
+      "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month — every report saved, plus a dashboard to track your applications.",
+      "cta": "Create a free account",
+      "secondary": "See plans",
+      "noCard": "Free forever · No credit card · 30 seconds",
+      "features": [
+        "3 full analyses / month",
+        "Every analysis saved",
+        "Application tracking dashboard",
+        "Free forever — no card"
+      ]
+    }
   },
   "buyCreditsModal": {
     "title": "Top up credits",
@@ -1250,7 +1250,35 @@
     "continueWithLinkedIn": "Continue with LinkedIn",
     "continueWithGitHub": "Continue with GitHub",
     "or": "or",
-    "oauthError": "Sign-in was cancelled or failed. Please try again."
+    "oauthError": "Sign-in was cancelled or failed. Please try again.",
+    "forgotPassword": "Forgot password?",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "resetEyebrow": "Reset",
+    "resetTitle": "Reset your password.",
+    "resetDesc": "Enter your email and we'll send you a secure link to set a new one.",
+    "sendResetLink": "Send reset link",
+    "resetSent": "If an account exists for that email, a reset link is on its way. Check your inbox.",
+    "backToSignIn": "Back to sign in",
+    "strengthWeak": "Weak",
+    "strengthMedium": "Medium",
+    "strengthStrong": "Strong",
+    "passwordHint": "8+ characters, mix letters & numbers"
+  },
+  "resetPassword": {
+    "eyebrow": "New password",
+    "title": "Set a new password.",
+    "desc": "Choose a strong password — you'll use it to sign in from now on.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "submit": "Update password",
+    "updating": "Updating…",
+    "success": "Password updated. Redirecting you to your dashboard…",
+    "noMatch": "Passwords don't match.",
+    "tooShort": "Password must be at least 8 characters.",
+    "linkExpired": "This reset link is invalid or has expired. Request a new one to continue.",
+    "requestNew": "Request a new link",
+    "verifying": "Verifying your link…"
   },
   "account": {
     "title": "Account",
