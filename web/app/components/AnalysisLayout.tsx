@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { AnalysisResult, Fix } from "./types";
 import { Eyebrow, Mono } from "./resultAtoms";
 import { RiskMeter } from "./RiskMeter";
@@ -20,9 +20,6 @@ import { InterviewTab } from "./tabs/InterviewTab";
 import { useLanguage } from "../../context/language";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-type MainTab = "match" | "cv" | "rewrite" | "signals" | "timeline" | "plan";
-type PlanPane = "roadmap" | "bridge" | "negotiate";
 
 export type AnalysisLayoutProps = {
   result: AnalysisResult;
@@ -52,12 +49,6 @@ const R_SM = "4px";
 const R_MD = "8px";
 const SHADOW_XS = "0 1px 2px rgba(26,22,18,0.06)";
 const SHADOW_SM = "0 1px 3px rgba(26,22,18,0.08), 0 1px 2px rgba(26,22,18,0.04)";
-
-const scoreColor = (n: number) =>
-  n >= 70 ? "var(--rc-red)" : n >= 50 ? "var(--rc-amber)" : "var(--rc-green)";
-
-const verdictKey = (n: number): "critical" | "high" | "moderate" | "low" | "excellent" =>
-  n >= 70 ? "critical" : n >= 50 ? "high" : n >= 35 ? "moderate" : n >= 15 ? "low" : "excellent";
 
 const heroHeadline = (n: number) =>
   n >= 50 ? "You're below the line for this one." : n >= 35 ? "Competitive — with a few gaps to close." : "Strong match. Polish and apply.";
@@ -742,11 +733,9 @@ export function AnalysisLayout({
   completedSteps,
 }: AnalysisLayoutProps) {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<MainTab>("match");
-  const [activePlan, setActivePlan] = useState<PlanPane>("roadmap");
+  const [activeSection, setActiveSection] = useState("risk");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
-  const [heroOpen, setHeroOpen] = useState(true);
-  const [scoreDisplay, setScoreDisplay] = useState(0);
+  const reportRef = useRef<HTMLElement>(null);
   const highlightsByDoc = useMemo((): Partial<Record<"cv" | "linkedin" | "cover", HighlightMap>> => {
     const dedup = (entries: HighlightEntry[]): HighlightEntry[] => {
       const seen = new Set<string>();
@@ -815,26 +804,27 @@ export function AnalysisLayout({
     return { cv: flatMap };
   }, [result]);
 
+  // TOC scroll-spy — highlight the section currently in view.
   useEffect(() => {
-    const target = result.score;
-    const dur = 1400;
-    let start: number | null = null;
-    let raf: number;
-    function tick(t: number) {
-      if (start === null) start = t;
-      const p = Math.min(1, (t - start) / dur);
-      const e = 1 - Math.pow(1 - p, 3);
-      setScoreDisplay(Math.round(target * e));
-      if (p < 1) raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [result.score]);
+    const container = reportRef.current;
+    if (!container) return;
+    const sections = container.querySelectorAll<HTMLElement>("section[id^='sec-']");
+    if (!sections.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActiveSection(e.target.id.replace("sec-", ""));
+        });
+      },
+      { root: container, rootMargin: "-30% 0px -60% 0px" },
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, [result]);
 
   const toggleKeyword = (kw: string) =>
     setCheckedKeywords((prev) => { const n = new Set(prev); n.has(kw) ? n.delete(kw) : n.add(kw); return n; });
 
-  const color = scoreColor(result.score);
   const hasShortlisted = userPlan === "shortlisted" || userPlan === "hired";
   const hasHired = userPlan === "hired";
   const jd = result.job_details;
@@ -843,21 +833,6 @@ export function AnalysisLayout({
   const cvBadge = result.audit.cv.issues.filter((i) => i.severity === "critical").length;
   const signalsBadge = (result.audit.github?.issues.length ?? 0) + (result.audit.linkedin?.issues.length ?? 0);
   const timelineBadge = result.cross_profile_inconsistencies?.filter((i) => i.severity === "critical").length ?? 0;
-
-  const TABS: { id: MainTab; label: string; badge: number; tone?: string; premium?: boolean }[] = [
-    { id: "match",    label: t.analysisLayout.tabs.match,    badge: matchBadge },
-    { id: "cv",       label: t.analysisLayout.tabs.cv,       badge: cvBadge },
-    { id: "rewrite",  label: t.analysisLayout.tabs.rewrite,  badge: 0, premium: true },
-    { id: "signals",  label: t.analysisLayout.tabs.signals,  badge: signalsBadge, tone: "amber" },
-    { id: "timeline", label: t.analysisLayout.tabs.timeline, badge: timelineBadge },
-    { id: "plan",     label: t.analysisLayout.tabs.plan,     badge: 0 },
-  ];
-
-  const PLAN_PANES: { id: PlanPane; label: string }[] = [
-    { id: "roadmap",   label: t.analysisLayout.tabs.roadmap },
-    { id: "bridge",    label: t.analysisLayout.tabs.bridge },
-    { id: "negotiate", label: t.analysisLayout.tabs.negotiate },
-  ];
 
   // Role dossier meta string
   const jdMeta = jd ? [jd.seniority, jd.years_of_experience ? `${jd.years_of_experience} exp` : null, jd.office_location, jd.contract_type, jd.company_stage].filter(Boolean).join("   ·   ") : null;
@@ -899,21 +874,25 @@ export function AnalysisLayout({
           <aside className="rc-toc" style={{ height: "100%", overflowY: "auto", padding: "40px 14px 0 26px", borderRight: "1px solid var(--rc-border)", scrollbarWidth: "none" }}>
             <Eyebrow style={{ display: "block", marginBottom: 14, paddingLeft: 8 }}>Diagnostic</Eyebrow>
             <nav style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              {TOC.map((s) => (
-                <a key={s.id} href={`#sec-${s.id}`}
-                  onClick={(e) => { e.preventDefault(); document.getElementById(`sec-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
-                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: R_SM, textDecoration: "none", color: "var(--rc-hint)" }}>
-                  <Mono style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em" }}>{s.n}</Mono>
-                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 500, flex: 1 }}>{s.label}</span>
-                  {s.badge > 0 && <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-amber)" }}>{s.badge}</Mono>}
-                  {s.premium && <Mono style={{ fontSize: 9, color: "var(--rc-red)" }}>✦</Mono>}
-                </a>
-              ))}
+              {TOC.map((s) => {
+                const on = activeSection === s.id;
+                return (
+                  <a key={s.id} href={`#sec-${s.id}`}
+                    onClick={(e) => { e.preventDefault(); document.getElementById(`sec-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                    style={{ position: "relative", display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: R_SM, textDecoration: "none", color: on ? "var(--rc-red)" : "var(--rc-hint)", background: on ? "var(--rc-red-bg)" : "transparent", transition: "color 0.15s, background 0.15s" }}>
+                    {on && <span style={{ position: "absolute", left: 0, top: 6, bottom: 6, width: 2, borderRadius: 99, background: "var(--rc-red)" }} />}
+                    <Mono style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: on ? "var(--rc-red)" : "var(--rc-hint)" }}>{s.n}</Mono>
+                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: on ? 600 : 500, flex: 1, color: on ? "var(--rc-text)" : "inherit" }}>{s.label}</span>
+                    {s.badge > 0 && <Mono style={{ fontSize: 9, fontWeight: 700, color: "var(--rc-amber)" }}>{s.badge}</Mono>}
+                    {s.premium && <Mono style={{ fontSize: 9, color: "var(--rc-red)" }}>✦</Mono>}
+                  </a>
+                );
+              })}
             </nav>
           </aside>
 
           {/* ── Scrolled report ── */}
-          <main style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
+          <main ref={reportRef} style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
 
             {/* §01 — Rejection risk */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
