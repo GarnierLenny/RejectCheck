@@ -15,10 +15,14 @@ const inter = Inter({
   variable: '--font-sans',
 })
 
+// preload:false on the non-LCP families — the hero text is Inter (still
+// preloaded), so the mono labels and the display-serif accents can swap in
+// without their woff2 racing the LCP paint.
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ['400', '500', '700'],
   subsets: ['latin'],
   variable: '--font-mono',
+  preload: false,
 })
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -26,6 +30,7 @@ const dmSerifDisplay = DM_Serif_Display({
   style: ['normal', 'italic'],
   subsets: ['latin'],
   variable: '--font-display',
+  preload: false,
 })
 
 export async function generateStaticParams() {

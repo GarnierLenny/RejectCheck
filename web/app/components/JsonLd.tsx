@@ -45,7 +45,7 @@ export const organizationSchema: JsonLdSchema = {
   url: SITE_URL,
   logo: `${SITE_URL}/RejectCheck_white.png`,
   description:
-    'RejectCheck is an AI-powered CV and job application diagnosis tool. Dual-AI pipeline (GPT-4o + Claude) delivers ATS simulation, technical skill gap radar, GitHub/LinkedIn signal audit, red-flag detection, CV rewrite, and a voice-based AI mock interview in under 60 seconds.',
+    'RejectCheck is an AI CV checker that shows you why your application gets rejected — ATS simulation, GitHub/LinkedIn signal audit, skill-gap radar and red-flag detection against a specific job, in under 60 seconds. First analysis free, no signup. Optimised for developers, works for any role.',
   email: 'support@rejectcheck.com',
   sameAs: [
     'https://www.producthunt.com/products/rejectcheck',
@@ -70,8 +70,8 @@ export const websiteSchema: JsonLdSchema = {
 export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
   const description =
     locale === 'fr'
-      ? "RejectCheck est un outil IA de diagnostic de CV et candidatures. Pipeline dual-IA (GPT-4o + Claude) : simulation ATS, radar des lacunes techniques, audit signaux GitHub/LinkedIn, détection de red flags, réécriture de CV, et entretien simulé IA vocal, le tout en moins de 60 secondes."
-      : 'RejectCheck is an AI-powered CV and job application diagnosis tool. Dual-AI pipeline (GPT-4o + Claude) delivers ATS simulation, technical skill gap radar, GitHub/LinkedIn signal audit, red-flag detection, CV rewrite, and a voice-based AI mock interview in under 60 seconds.'
+      ? "RejectCheck est un outil IA qui montre pourquoi une candidature est rejetée — simulation ATS, audit des signaux GitHub/LinkedIn, radar des lacunes et détection de signaux d'alerte face à une offre précise, en moins de 60 secondes. Première analyse gratuite, sans inscription. Optimisé pour les développeurs, fonctionne pour tous les métiers."
+      : 'RejectCheck is an AI CV checker that shows you why your application gets rejected — ATS simulation, GitHub/LinkedIn signal audit, skill-gap radar and red-flag detection against a specific job, in under 60 seconds. First analysis free, no signup. Optimised for developers, works for any role.'
 
   return {
     '@context': 'https://schema.org',
@@ -129,10 +129,8 @@ export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
       'LinkedIn signal audit',
       'Red-flag detection (employment gaps, vague titles, passive voice)',
       'AI CV rewrite with PDF export',
-      'Voice-based AI mock interview',
       'Cover letter generator',
       'Negotiation playbook (counter-offer email, leverage points, salary positioning, per-action impact estimates)',
-      'Application tracker',
     ],
     publisher: {
       '@type': 'Organization',
@@ -168,8 +166,8 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
       name: 'RejectCheck SHORTLISTED',
       description:
         locale === 'fr'
-          ? 'Abonnement mensuel : analyses illimitées, historique, entretien simulé IA, réécriture de CV, suivi des candidatures.'
-          : 'Monthly subscription: unlimited analyses, history, AI mock interview, CV rewrite, application tracker.',
+          ? 'Abonnement mensuel : analyses illimitées, historique, réécriture de CV, lettre de motivation.'
+          : 'Monthly subscription: unlimited analyses, history, CV rewrite, cover letter.',
       brand: { '@type': 'Brand', name: 'RejectCheck' },
       offers: {
         '@type': 'Offer',

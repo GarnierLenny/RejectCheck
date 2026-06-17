@@ -59,7 +59,7 @@ const COPY: Record<Locale, Copy> = {
   en: {
     title: 'Free ATS Resume Checker for Developers',
     description:
-      'Free ATS resume checker, optimised for developers and works for any role. Simulates the layer that rejects 70% of CVs before a human reads them. Find missing keywords and exact fixes.',
+      'Free ATS resume checker, optimised for developers and works for any role. Simulates the automated filter that screens most CVs out before a human reads them. Find missing keywords and exact fixes.',
     bcHome: 'Home',
     bcCurrent: 'ATS Checker',
     eyebrow: 'ATS Checker · Optimised for devs. Works for any role.',
@@ -113,7 +113,7 @@ const COPY: Record<Locale, Copy> = {
   fr: {
     title: 'Test CV ATS Gratuit pour Développeurs',
     description:
-      'Checker ATS gratuit, optimisé pour les développeurs et adapté à tout métier. Simule le filtre qui rejette 70 % des CV avant qu’un humain les lise. Trouve les mots-clés manquants et les corrections exactes.',
+      'Checker ATS gratuit, optimisé pour les développeurs et adapté à tout métier. Simule le filtre automatique qui élimine la plupart des CV avant qu’un humain les lise. Trouve les mots-clés manquants et les corrections exactes.',
     bcHome: 'Accueil',
     bcCurrent: 'Checker ATS',
     eyebrow: 'Checker ATS · Optimisé pour les devs. Marche pour tous les métiers.',

@@ -27,6 +27,8 @@ const ROUTES: RoutePath[] = [
   { path: '/resume-checker', changeFrequency: 'monthly', priority: 0.85 },
   { path: '/software-engineer-cv', changeFrequency: 'monthly', priority: 0.85 },
   { path: '/cv-review', changeFrequency: 'monthly', priority: 0.85 },
+  // Named-frameworks / method page — bilingual EN+FR (AIO attribution surface)
+  { path: '/methode', changeFrequency: 'monthly', priority: 0.7 },
   // Guides hub + long-form guides — bilingual EN+FR (AIO / LLM citation)
   { path: '/guides', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/guides/how-to-pass-ats', changeFrequency: 'monthly', priority: 0.7 },
@@ -39,6 +41,13 @@ const LANGS = ['en', 'fr'] as const
 // English-only routes (no FR version). Currently none — every SEO page is
 // bilingual. Kept for future EN-only pages; emitted without hreflang alternates.
 const EN_ONLY_ROUTES: RoutePath[] = []
+
+// French-only routes (no EN version — native FR slug, EN intent covered
+// elsewhere). Emitted under /fr with x-default pointing at the FR URL.
+const FR_ONLY_ROUTES: RoutePath[] = [
+  // FR dev-resume pillar (target: "cv développeur", "analyse cv développeur")
+  { path: '/cv-developpeur', changeFrequency: 'monthly', priority: 0.8 },
+]
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
@@ -75,6 +84,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       alternates: {
         languages: {
           en: url,
+          'x-default': url,
+        },
+      },
+    })
+  }
+
+  for (const route of FR_ONLY_ROUTES) {
+    const url = `${BASE_URL}/fr${route.path}`
+    entries.push({
+      url,
+      lastModified,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority,
+      alternates: {
+        languages: {
+          fr: url,
           'x-default': url,
         },
       },

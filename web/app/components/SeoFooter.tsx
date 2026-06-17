@@ -16,8 +16,10 @@ export async function SeoFooter({ lang }: { lang: Locale }) {
       ? [
           { href: `${base}/ats-checker`, label: 'Checker ATS' },
           { href: `${base}/resume-checker`, label: 'Checker de CV' },
+          { href: `${base}/cv-developpeur`, label: 'CV développeur' },
           { href: `${base}/cv-review`, label: 'Revue de CV' },
           { href: `${base}/software-engineer-cv`, label: 'CV ingénieur logiciel' },
+          { href: `${base}/methode`, label: 'Méthode' },
           { href: `${base}/guides`, label: 'Guides' },
         ]
       : [
@@ -25,6 +27,7 @@ export async function SeoFooter({ lang }: { lang: Locale }) {
           { href: `${base}/resume-checker`, label: 'Resume Checker' },
           { href: `${base}/cv-review`, label: 'CV Review' },
           { href: `${base}/software-engineer-cv`, label: 'Software Engineer CV' },
+          { href: `${base}/methode`, label: 'Method' },
           { href: `${base}/guides`, label: 'Guides' },
         ]
 
