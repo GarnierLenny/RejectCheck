@@ -277,16 +277,22 @@ export const HotAnalyzeResponseSchema = z.object({
       // Backward compat — older analyses had strengths, new ones don't.
       strengths: z.array(z.string()).optional(),
     }),
-    github: z.object({
-      score: z.number().min(0).max(100).nullable(),
-      issues: z.array(IssueHotSchema),
-      strengths: z.array(z.string()).optional(),
-    }),
-    linkedin: z.object({
-      score: z.number().min(0).max(100).nullable(),
-      issues: z.array(IssueHotSchema),
-      strengths: z.array(z.string()).optional(),
-    }),
+    // See AnalyzeResponseSchema: sparse sources can come back as a bare string
+    // from Claude — coerce to an empty audit instead of failing the analysis.
+    github: z
+      .object({
+        score: z.number().min(0).max(100).nullable(),
+        issues: z.array(IssueHotSchema),
+        strengths: z.array(z.string()).optional(),
+      })
+      .catch({ score: null, issues: [], strengths: [] }),
+    linkedin: z
+      .object({
+        score: z.number().min(0).max(100).nullable(),
+        issues: z.array(IssueHotSchema),
+        strengths: z.array(z.string()).optional(),
+      })
+      .catch({ score: null, issues: [], strengths: [] }),
     jd_match: AuditJdMatchSchema,
   }),
   hidden_red_flags: z.array(
@@ -386,20 +392,29 @@ export const AnalyzeResponseSchema = z.object({
       ),
       strengths: z.array(z.string()).optional(),
     }),
-    github: z.object({
-      score: z.number().min(0).max(100).nullable(),
-      issues: z.array(
-        IssueHotSchema.extend({ fix: FixSchema.optional() }),
-      ),
-      strengths: z.array(z.string()).optional(),
-    }),
-    linkedin: z.object({
-      score: z.number().min(0).max(100).nullable(),
-      issues: z.array(
-        IssueHotSchema.extend({ fix: FixSchema.optional() }),
-      ),
-      strengths: z.array(z.string()).optional(),
-    }),
+    // github / linkedin are SPARSE sources: when the data is thin or absent,
+    // Claude occasionally returns a bare string (e.g. "No GitHub profile to
+    // audit") instead of the object. `.catch` coerces any malformed value to an
+    // empty audit so a secondary field never fails the whole (expensive,
+    // ~3 min) analysis. cv / jd_match stay strict — they're always present.
+    github: z
+      .object({
+        score: z.number().min(0).max(100).nullable(),
+        issues: z.array(
+          IssueHotSchema.extend({ fix: FixSchema.optional() }),
+        ),
+        strengths: z.array(z.string()).optional(),
+      })
+      .catch({ score: null, issues: [], strengths: [] }),
+    linkedin: z
+      .object({
+        score: z.number().min(0).max(100).nullable(),
+        issues: z.array(
+          IssueHotSchema.extend({ fix: FixSchema.optional() }),
+        ),
+        strengths: z.array(z.string()).optional(),
+      })
+      .catch({ score: null, issues: [], strengths: [] }),
     jd_match: AuditJdMatchSchema,
   }),
   hidden_red_flags: z.array(

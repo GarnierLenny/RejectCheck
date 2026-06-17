@@ -370,6 +370,16 @@ Formatting rules:
       }
 
       const i = toolUse.input as Record<string, any>;
+      // Observability for the resilient `.catch` on audit.github / audit.linkedin
+      // in AnalyzeResponseSchema: track how often Claude drifts off-shape so we
+      // can decide whether the tool prompt needs tightening.
+      for (const src of ['audit_github', 'audit_linkedin'] as const) {
+        if (i[src] != null && typeof i[src] !== 'object') {
+          this.logger.warn(
+            `Claude analyze: ${src} returned as ${typeof i[src]} (coerced to empty audit)`,
+          );
+        }
+      }
       const result: AnalyzeResponse = {
         score: i.overall.score,
         verdict: i.overall.verdict,
