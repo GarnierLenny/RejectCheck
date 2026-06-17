@@ -19,7 +19,7 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Free ATS Checker'
+const TITLE = 'Free ATS Resume Checker for Developers'
 const DESCRIPTION =
   'Free ATS resume checker, optimised for developers and works for any role. Simulates the layer that rejects 70% of CVs before a human reads them. Find missing keywords and exact fixes.'
 
@@ -56,6 +56,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: TITLE,
       description: DESCRIPTION,
+      // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
+      images: [`${SITE_URL}/en/opengraph-image/main`],
     },
   }
 }

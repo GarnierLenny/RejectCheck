@@ -56,6 +56,10 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // Per-user, tokenized, thin pages: keep them out of the index (and off the
+    // crawl budget) but leave OG/Twitter tags so link unfurls still render rich
+    // previews when a share URL is pasted into social/chat.
+    robots: { index: false, follow: false },
     openGraph: {
       title,
       description,

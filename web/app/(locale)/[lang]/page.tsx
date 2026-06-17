@@ -945,12 +945,47 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 07 CLOSING MANIFESTO ══════════════════════════════════════ */}
+      {/* ═══ § 07 FAQ ════════════════════════════════════════════════════ */}
+      <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px", background: "var(--rc-surface)" }}>
+        <div style={WRAP}>
+          {/* Section head */}
+          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
+            <div style={NUM}>§ 07</div>
+            <div>
+              <h2 style={{
+                fontFamily: "var(--font-sans)", fontWeight: 500,
+                fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05,
+                letterSpacing: "-0.025em", margin: 0, maxWidth: 800,
+              }}>
+                {t.faq.title}
+              </h2>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 15, lineHeight: 1.6, color: "var(--rc-muted)", margin: "14px 0 0", maxWidth: 560 }}>
+                {t.faq.subtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* Accordion — native <details> keeps every answer in the DOM */}
+          <div style={{ maxWidth: 920, margin: "0 auto" }}>
+            {t.faq.items.map((item, i) => (
+              <details key={i} className="rc-faq__item">
+                <summary className="rc-faq__q">
+                  <span>{item.question}</span>
+                  <span className="rc-faq__icon" aria-hidden="true" />
+                </summary>
+                <p className="rc-faq__a">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ § 08 CLOSING MANIFESTO ══════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "140px 0 120px" }}>
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32 }}>
             <div style={NUM}>
-              § 07<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s07.smallLabel}</small>
+              § 08<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s07.smallLabel}</small>
             </div>
             <div>
               <p style={{
@@ -1020,6 +1055,9 @@ export default function Home() {
                 <>
                   <Link href="/en/cv-review" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>CV Review</Link>
                   <Link href="/en/ats-checker" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>ATS Checker</Link>
+                  <Link href="/en/resume-checker" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>Resume Checker</Link>
+                  <Link href="/en/software-engineer-cv" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>Software Engineer CV</Link>
+                  <Link href="/en/guides" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>Guides</Link>
                 </>
               )}
             </div>
@@ -1030,9 +1068,6 @@ export default function Home() {
               <Link href={localePath("/privacy")} style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>
                 {t.landing.footer.privacy}
               </Link>
-              <a href="#" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>
-                {t.landing.footer.terms}
-              </a>
             </div>
           </div>
 

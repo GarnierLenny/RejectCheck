@@ -77,11 +77,9 @@ export async function generateMetadata({
         'max-video-preview': -1,
       },
     },
-    icons: {
-      icon: '/RejectCheck_white.png',
-      shortcut: '/RejectCheck_white.png',
-      apple: '/RejectCheck_white.png',
-    },
+    // Icons come from the file conventions app/icon.png (256) + app/apple-icon.png
+    // (180), the red-on-cream brand mark. (The old override pointed every icon at
+    // the white-on-transparent logo, which is invisible on light browser tabs.)
     alternates: {
       canonical,
       languages: {
@@ -98,11 +96,15 @@ export async function generateMetadata({
       locale: ogLocale,
       alternateLocale: isEn ? ['fr_FR'] : ['en_US'],
       type: 'website',
+      images: [{ url: `${SITE_URL}/${lang}/opengraph-image/main`, width: 1200, height: 630, alt: 'RejectCheck' }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      // Custom twitter object suppresses Next's auto file-based card image, so
+      // re-declare it explicitly (otherwise X renders an imageless card).
+      images: [`${SITE_URL}/${lang}/opengraph-image/main`],
     },
   }
 }

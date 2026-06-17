@@ -8,11 +8,26 @@ export async function SeoFooter({ lang }: { lang: Locale }) {
   const f = dict.pricing.footer
   const base = `/${lang}`
 
-  const links = [
+  // EN-only SEO landings + guides (these routes notFound() under /fr, so only
+  // link them on the English footer). Cross-linking them from this shared footer
+  // propagates internal links across every page that renders SeoFooter.
+  const enSeoLinks =
+    lang === 'en'
+      ? [
+          { href: `${base}/ats-checker`, label: 'ATS Checker' },
+          { href: `${base}/resume-checker`, label: 'Resume Checker' },
+          { href: `${base}/cv-review`, label: 'CV Review' },
+          { href: `${base}/software-engineer-cv`, label: 'Software Engineer CV' },
+          { href: `${base}/guides`, label: 'Guides' },
+        ]
+      : []
+
+  const links: { href: string; label: string; external?: boolean }[] = [
     { href: `${base}/analyze`, label: dict.navbar.tryFree },
     { href: `${base}/pricing`, label: dict.navbar.pricing },
     { href: `${base}/for-teams`, label: f.forTeams },
     { href: `${base}/alternatives`, label: f.alternatives },
+    ...enSeoLinks,
     { href: `${base}/privacy`, label: f.privacy },
     { href: 'mailto:support@rejectcheck.com', label: f.contact ?? 'Contact', external: true },
   ]

@@ -3052,3 +3052,66 @@ body {
   .rc-cta__inner { padding: 60px 20px; }
   .rc-cta__btn { width: 100%; justify-content: center; }
 }
+
+/* ── Landing FAQ accordion (§ 07) ───────────────────────────────────────
+   Native <details> so every answer ships in the DOM (valid FAQPage rich
+   result + accessible, no JS). */
+.rc-faq__item {
+  border-top: 1px solid var(--rc-border);
+}
+.rc-faq__item:last-child {
+  border-bottom: 1px solid var(--rc-border);
+}
+.rc-faq__q {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.012em;
+  color: var(--rc-text);
+}
+.rc-faq__q::-webkit-details-marker { display: none; }
+.rc-faq__q:hover { color: var(--rc-red); }
+.rc-faq__icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 4px;
+  position: relative;
+  transition: transform 0.22s ease;
+  color: var(--rc-hint);
+}
+.rc-faq__icon::before,
+.rc-faq__icon::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.rc-faq__icon::before { width: 16px; height: 1.5px; }
+.rc-faq__icon::after { width: 1.5px; height: 16px; }
+.rc-faq__item[open] .rc-faq__icon { transform: rotate(45deg); color: var(--rc-red); }
+.rc-faq__a {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--rc-muted);
+  margin: 0;
+  padding: 0 40px 28px 0;
+  max-width: 760px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-faq__icon { transition: none !important; }
+}
+@media (max-width: 600px) {
+  .rc-faq__q { font-size: 16px; padding: 22px 0; }
+  .rc-faq__a { padding-right: 0; }
+}

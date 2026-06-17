@@ -56,6 +56,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: TITLE,
       description: DESCRIPTION,
+      // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
+      images: [`${SITE_URL}/en/opengraph-image/main`],
     },
   }
 }
@@ -110,6 +112,8 @@ export default async function HowToPassAtsPage({
     datePublished: PUBLISHED_ISO,
     dateModified: LAST_UPDATED_ISO,
     locale: 'en',
+    // Match the other two guides: named Person author for consistent E-E-A-T.
+    author: { type: 'Person', name: 'Lenny Garnier' },
   })
 
   return (

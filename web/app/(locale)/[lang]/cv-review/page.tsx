@@ -17,7 +17,7 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'Deep CV Review'
+const TITLE = 'Deep CV Review for Developers'
 const DESCRIPTION =
   'Deep CV review tailored to a specific role: tone, seniority signals, GitHub coherence. The critique a hiring manager would write. Free.'
 
@@ -54,6 +54,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: TITLE,
       description: DESCRIPTION,
+      // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
+      images: [`${SITE_URL}/en/opengraph-image/main`],
     },
   }
 }
@@ -133,12 +135,12 @@ export default async function CvReviewPage({
             </span>
           </div>
           <h1 className="text-[40px] md:text-[58px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[860px] mb-6">
-            Not a score.{' '}
+            Not a CV score.{' '}
             <span
               className="text-rc-red italic"
               style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
             >
-              A real review
+              A real CV review
             </span>{' '}
             — the one a hiring manager would write.
           </h1>

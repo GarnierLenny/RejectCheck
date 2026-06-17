@@ -33,6 +33,8 @@ const EN_ONLY_ROUTES: RoutePath[] = [
   // Phase 2 SEO landings (target: "software engineer cv" — top volume; "cv review" — trending UP)
   { path: '/software-engineer-cv', changeFrequency: 'monthly', priority: 0.85 },
   { path: '/cv-review', changeFrequency: 'monthly', priority: 0.85 },
+  // Guides hub (indexable cluster page + breadcrumb target)
+  { path: '/guides', changeFrequency: 'monthly', priority: 0.6 },
   // Long-form guides (target: AIO / LLM citation for informational queries)
   { path: '/guides/how-to-pass-ats', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/guides/why-developers-get-rejected', changeFrequency: 'monthly', priority: 0.7 },

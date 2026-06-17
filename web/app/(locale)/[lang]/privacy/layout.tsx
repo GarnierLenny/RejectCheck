@@ -57,6 +57,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title,
       description,
+      // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
+      images: [`${SITE_URL}/${lang}/opengraph-image/main`],
     },
   }
 }

@@ -19,7 +19,7 @@ const PUBLISHED_ISO = '2026-04-29'
 const LAST_UPDATED_ISO = '2026-04-29'
 const CANONICAL = `${SITE_URL}/en${PAGE_PATH}`
 
-const TITLE = 'AI Resume Checker'
+const TITLE = 'AI Resume Checker for Developers'
 const DESCRIPTION =
   'Resume checker optimised for developers — works for any role. Audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags rejected in 6 seconds. Free.'
 
@@ -56,6 +56,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: TITLE,
       description: DESCRIPTION,
+      // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
+      images: [`${SITE_URL}/en/opengraph-image/main`],
     },
   }
 }
