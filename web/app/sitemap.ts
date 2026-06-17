@@ -21,25 +21,24 @@ const ROUTES: RoutePath[] = [
   { path: '/alternatives/jobscan', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/alternatives/rezi', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/alternatives/resume-worded', changeFrequency: 'monthly', priority: 0.7 },
-]
-
-const LANGS = ['en', 'fr'] as const
-
-// English-only routes (no FR version). Emitted without hreflang alternates.
-const EN_ONLY_ROUTES: RoutePath[] = [
-  // SEO product landings (target: "ats checker", "resume checker", "ats resume checker")
+  // SEO product landings — now bilingual EN+FR (target EN: "ats checker",
+  // "resume checker"; FR: "test cv ats", "checker de cv", "revue de cv")
   { path: '/ats-checker', changeFrequency: 'monthly', priority: 0.85 },
   { path: '/resume-checker', changeFrequency: 'monthly', priority: 0.85 },
-  // Phase 2 SEO landings (target: "software engineer cv" — top volume; "cv review" — trending UP)
   { path: '/software-engineer-cv', changeFrequency: 'monthly', priority: 0.85 },
   { path: '/cv-review', changeFrequency: 'monthly', priority: 0.85 },
-  // Guides hub (indexable cluster page + breadcrumb target)
+  // Guides hub + long-form guides — bilingual EN+FR (AIO / LLM citation)
   { path: '/guides', changeFrequency: 'monthly', priority: 0.6 },
-  // Long-form guides (target: AIO / LLM citation for informational queries)
   { path: '/guides/how-to-pass-ats', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/guides/why-developers-get-rejected', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/guides/software-engineer-resume-tips', changeFrequency: 'monthly', priority: 0.7 },
 ]
+
+const LANGS = ['en', 'fr'] as const
+
+// English-only routes (no FR version). Currently none — every SEO page is
+// bilingual. Kept for future EN-only pages; emitted without hreflang alternates.
+const EN_ONLY_ROUTES: RoutePath[] = []
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()

@@ -8,26 +8,32 @@ export async function SeoFooter({ lang }: { lang: Locale }) {
   const f = dict.pricing.footer
   const base = `/${lang}`
 
-  // EN-only SEO landings + guides (these routes notFound() under /fr, so only
-  // link them on the English footer). Cross-linking them from this shared footer
-  // propagates internal links across every page that renders SeoFooter.
-  const enSeoLinks =
-    lang === 'en'
+  // SEO landings + guides — now bilingual, so cross-linked on both EN and FR
+  // footers. This shared footer propagates internal links to the cluster across
+  // every page that renders it (and feeds the new FR cluster its internal links).
+  const seoLinks =
+    lang === 'fr'
       ? [
+          { href: `${base}/ats-checker`, label: 'Checker ATS' },
+          { href: `${base}/resume-checker`, label: 'Checker de CV' },
+          { href: `${base}/cv-review`, label: 'Revue de CV' },
+          { href: `${base}/software-engineer-cv`, label: 'CV ingénieur logiciel' },
+          { href: `${base}/guides`, label: 'Guides' },
+        ]
+      : [
           { href: `${base}/ats-checker`, label: 'ATS Checker' },
           { href: `${base}/resume-checker`, label: 'Resume Checker' },
           { href: `${base}/cv-review`, label: 'CV Review' },
           { href: `${base}/software-engineer-cv`, label: 'Software Engineer CV' },
           { href: `${base}/guides`, label: 'Guides' },
         ]
-      : []
 
   const links: { href: string; label: string; external?: boolean }[] = [
     { href: `${base}/analyze`, label: dict.navbar.tryFree },
     { href: `${base}/pricing`, label: dict.navbar.pricing },
     { href: `${base}/for-teams`, label: f.forTeams },
     { href: `${base}/alternatives`, label: f.alternatives },
-    ...enSeoLinks,
+    ...seoLinks,
     { href: `${base}/privacy`, label: f.privacy },
     { href: 'mailto:support@rejectcheck.com', label: f.contact ?? 'Contact', external: true },
   ]

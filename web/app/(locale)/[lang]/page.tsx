@@ -1051,15 +1051,24 @@ export default function Home() {
               <Link href={localePath("/alternatives")} style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>
                 {t.landing.footer.alternatives}
               </Link>
-              {locale === "en" && (
-                <>
-                  <Link href="/en/cv-review" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>CV Review</Link>
-                  <Link href="/en/ats-checker" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>ATS Checker</Link>
-                  <Link href="/en/resume-checker" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>Resume Checker</Link>
-                  <Link href="/en/software-engineer-cv" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>Software Engineer CV</Link>
-                  <Link href="/en/guides" style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>Guides</Link>
-                </>
-              )}
+              {(locale === "fr"
+                ? [
+                    { href: "/cv-review", label: "Revue de CV" },
+                    { href: "/ats-checker", label: "Checker ATS" },
+                    { href: "/resume-checker", label: "Checker de CV" },
+                    { href: "/software-engineer-cv", label: "CV ingénieur logiciel" },
+                    { href: "/guides", label: "Guides" },
+                  ]
+                : [
+                    { href: "/cv-review", label: "CV Review" },
+                    { href: "/ats-checker", label: "ATS Checker" },
+                    { href: "/resume-checker", label: "Resume Checker" },
+                    { href: "/software-engineer-cv", label: "Software Engineer CV" },
+                    { href: "/guides", label: "Guides" },
+                  ]
+              ).map((l) => (
+                <Link key={l.href} href={localePath(l.href)} style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>{l.label}</Link>
+              ))}
             </div>
 
             {/* Company */}
