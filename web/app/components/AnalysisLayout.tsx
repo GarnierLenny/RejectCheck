@@ -30,6 +30,11 @@ export type AnalysisLayoutProps = {
   deepStatus: "pending" | "failed" | "ready";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
+  /** This specific analysis was unlocked via a one-time purchase (€4.99). */
+  premiumUnlocked?: boolean;
+  /** Starts the one-time "unlock the rewrite for this CV" checkout. */
+  onUnlockRewrite?: () => void;
+  isUnlocking?: boolean;
   onReset: () => void;
   reconstructedCv?: string | null;
   liText?: string | null;
@@ -722,6 +727,9 @@ export function AnalysisLayout({
   deepStatus,
   isPremium,
   userPlan = "free",
+  premiumUnlocked = false,
+  onUnlockRewrite,
+  isUnlocking = false,
   onReset,
   reconstructedCv,
   liText = null,
@@ -1020,7 +1028,7 @@ export function AnalysisLayout({
             {/* §09 — Rewrite */}
             <section id="sec-rewrite" style={SEC}>
               {secHead("09", t.analysisLayout.tabs.rewrite)}
-              {hasShortlisted ? (
+              {(hasShortlisted || premiumUnlocked) ? (
                 <RewriteTab
                   result={result}
                   reconstructedCv={reconstructedCv ?? null}
@@ -1039,10 +1047,36 @@ export function AnalysisLayout({
                       {t.analysisLayout.rewritePaywall.desc}
                     </div>
                   </div>
-                  <a href="/pricing" style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", textDecoration: "none", boxShadow: "0 6px 20px rgba(201,58,57,0.28)" }}>
-                    {t.analysisLayout.rewritePaywall.cta}
-                  </a>
-                  <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.rewritePaywall.note}</Eyebrow>
+                  {onUnlockRewrite ? (
+                    <>
+                      {/* Primary: one-time unlock for THIS CV — the low-commitment
+                          offer at peak desire (right after a bad score). */}
+                      <button
+                        onClick={onUnlockRewrite}
+                        disabled={isUnlocking}
+                        style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", border: "none", cursor: isUnlocking ? "not-allowed" : "pointer", opacity: isUnlocking ? 0.6 : 1, boxShadow: "0 6px 20px rgba(201,58,57,0.28)" }}
+                      >
+                        {isUnlocking ? "…" : t.analysisLayout.rewritePaywall.unlockCta}
+                      </button>
+                      <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.rewritePaywall.unlockNote}</Eyebrow>
+                      {/* Secondary: the subscription path, demoted. */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                        <span style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-hint)" }}>
+                          {t.analysisLayout.rewritePaywall.unlockOr}
+                        </span>
+                        <a href="/pricing" style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 12, color: "var(--rc-text)", textDecoration: "underline" }}>
+                          {t.analysisLayout.rewritePaywall.cta}
+                        </a>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <a href="/pricing" style={{ fontFamily: "var(--font-sans)", fontWeight: 700, fontSize: 14, padding: "11px 24px", borderRadius: 6, background: "linear-gradient(180deg, var(--rc-red), #A32A29)", color: "#fff", textDecoration: "none", boxShadow: "0 6px 20px rgba(201,58,57,0.28)" }}>
+                        {t.analysisLayout.rewritePaywall.cta}
+                      </a>
+                      <Eyebrow style={{ fontSize: 9 }}>{t.analysisLayout.rewritePaywall.note}</Eyebrow>
+                    </>
+                  )}
                 </div>
               )}
             </section>

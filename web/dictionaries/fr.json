@@ -2291,7 +2291,10 @@
       "title": "Réécriture CV & lettre de motivation",
       "desc": "Des réécritures prêtes à coller basées exactement sur ce que ce scan a trouvé. Bullets passifs rendus actifs, mots-clés ATS injectés, signaux de séniorité ajoutés.",
       "cta": "Débloquer Shortlisted →",
-      "note": "Résiliable à tout moment · sans engagement"
+      "note": "Résiliable à tout moment · sans engagement",
+      "unlockCta": "Débloquer la réécriture — 2,99 €",
+      "unlockNote": "Paiement unique · ce CV uniquement · sans abonnement · jusqu'à 5 réécritures",
+      "unlockOr": "ou, pour l'illimité :"
     },
     "plan": {
       "bridgeNotAvailable": "Projet bridge non disponible.",

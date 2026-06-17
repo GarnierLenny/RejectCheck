@@ -697,7 +697,7 @@ export function useAnalysis(
   return useQuery({
     queryKey: ['analysis', id, userId],
     queryFn: () =>
-      apiFetch<{ result: any; jobDescription: string; jobLabel?: string; company?: string; cvText?: string | null; cvTextFormatted?: string | null; linkedinText?: string | null; linkedinTextFormatted?: string | null; cvFileUrl?: string | null; liFileUrl?: string | null; mlFileUrl?: string | null; rewrite?: any; motivationLetter?: string | null; coverLetter?: string | null; completedSteps?: number[] }>(
+      apiFetch<{ result: any; jobDescription: string; jobLabel?: string; company?: string; cvText?: string | null; cvTextFormatted?: string | null; linkedinText?: string | null; linkedinTextFormatted?: string | null; cvFileUrl?: string | null; liFileUrl?: string | null; mlFileUrl?: string | null; rewrite?: any; motivationLetter?: string | null; coverLetter?: string | null; completedSteps?: number[]; premiumUnlocked?: boolean }>(
         `/api/analyze/${id}`,
         { headers: authHeaders(token!) },
       ),

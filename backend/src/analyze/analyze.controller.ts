@@ -457,10 +457,12 @@ export class AnalyzeController {
     return { ok: true };
   }
 
-  @RequiresPremium()
+  // Auth only — entitlement (subscription OR one-time per-analysis unlock) is
+  // enforced inside RewriteCvUseCase, which has the analysisId.
+  @UseGuards(SupabaseGuard)
   @Post('rewrite')
   @ApiOperation({
-    summary: 'Rewrite a CV based on a previous analysis (premium)',
+    summary: 'Rewrite a CV (premium: subscription or one-time unlock)',
   })
   async rewrite(
     @AuthEmail() email: string,

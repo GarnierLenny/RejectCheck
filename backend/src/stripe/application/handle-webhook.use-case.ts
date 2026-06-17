@@ -3,6 +3,7 @@ import { WEBHOOK_PARSER } from '../ports/tokens';
 import type { StripeWebhookParser } from '../ports/webhook-parser';
 import { HandleCheckoutCompletedUseCase } from './handle-checkout-completed.use-case';
 import { HandleCreditPurchaseUseCase } from './handle-credit-purchase.use-case';
+import { HandleAnalysisUnlockUseCase } from './handle-analysis-unlock.use-case';
 import { HandleSubscriptionDeletedUseCase } from './handle-subscription-deleted.use-case';
 
 /**
@@ -23,6 +24,7 @@ export class HandleWebhookUseCase {
     @Inject(WEBHOOK_PARSER) private readonly parser: StripeWebhookParser,
     private readonly checkoutCompleted: HandleCheckoutCompletedUseCase,
     private readonly creditPurchase: HandleCreditPurchaseUseCase,
+    private readonly analysisUnlock: HandleAnalysisUnlockUseCase,
     private readonly subscriptionDeleted: HandleSubscriptionDeletedUseCase,
   ) {}
 
@@ -31,9 +33,17 @@ export class HandleWebhookUseCase {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as { mode?: string };
+        const session = event.data.object as {
+          mode?: string;
+          metadata?: { type?: string } | null;
+        };
         if (session.mode === 'payment') {
-          await this.creditPurchase.execute(event.data.object);
+          // Both one-time flows are mode:'payment' — discriminate on type.
+          if (session.metadata?.type === 'analysis_unlock') {
+            await this.analysisUnlock.execute(event.data.object);
+          } else {
+            await this.creditPurchase.execute(event.data.object);
+          }
         } else {
           // 'subscription' (or legacy events missing mode) → subscription flow.
           await this.checkoutCompleted.execute(event.data.object);

@@ -171,6 +171,10 @@ function AnalyzeContent() {
     urlId,
     { pollIntervalMs: shouldPoll ? 5000 : undefined },
   );
+  // One-time "unlock this CV" purchase: the CV rewrite is available if the user
+  // is subscribed OR this specific analysis was unlocked (€4.99 one-off).
+  const premiumUnlocked = savedAnalysis?.premiumUnlocked ?? false;
+  const canUseRewrite = isPremium || premiumUnlocked;
   const bootstrappedRef = useRef(false);
   useEffect(() => {
     if (bootstrappedRef.current) return;
@@ -709,6 +713,51 @@ function AnalyzeContent() {
     }
   }
 
+  // One-time unlock of the CV rewrite for THIS analysis (€4.99, no subscription).
+  // Logged-out users are sent to signup first — their anonymous analysis attaches
+  // to the new account (pending-claim, see AuthProvider), then they can unlock it.
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  async function unlockRewrite() {
+    if (!analysisId) return;
+    posthog.capture("rewrite_unlock_clicked", { analysis_id: analysisId, logged_in: !!user });
+    if (!user || !session?.access_token) {
+      if (anonClaimToken) setPendingClaim(anonClaimToken);
+      toast.message("Crée un compte gratuit (30s, sans carte) pour débloquer la réécriture.");
+      router.push(localePath("/login"));
+      return;
+    }
+    setIsUnlocking(true);
+    try {
+      const res = await fetch(`${apiUrl}/api/stripe/analysis-unlock/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ analysisId, locale }),
+      });
+      if (!res.ok) throw new Error("checkout failed");
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+      else throw new Error("no url");
+    } catch {
+      toast.error("Impossible de lancer le paiement. Réessaie.");
+      setIsUnlocking(false);
+    }
+  }
+
+  // Return from a successful unlock checkout → the analysis reloads (by id) with
+  // premiumUnlocked=true, so the rewrite tab is already open. Just confirm + tidy.
+  const unlockToastShownRef = useRef(false);
+  useEffect(() => {
+    if (unlockToastShownRef.current) return;
+    if (searchParams.get("unlock_success") === "true") {
+      unlockToastShownRef.current = true;
+      toast.success("Réécriture débloquée pour ce CV ✅");
+      posthog.capture("rewrite_unlock_succeeded");
+      const params = new URLSearchParams(Array.from(searchParams.entries()));
+      params.delete("unlock_success");
+      router.replace(`${localePath("/analyze")}?${params.toString()}`, { scroll: false });
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleRewrite() {
     const emailVal = user?.email;
     if (!analysisId || !emailVal || !session?.access_token) return;
@@ -901,6 +950,9 @@ function AnalyzeContent() {
           isAnonymous={!user}
           isPremium={isPremium}
           userPlan={userPlan}
+          premiumUnlocked={premiumUnlocked}
+          onUnlockRewrite={unlockRewrite}
+          isUnlocking={isUnlocking}
           onReset={handleReset}
           onExportMd={exportToMd}
           onExportPdf={exportToPdf}

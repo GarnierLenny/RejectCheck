@@ -18,6 +18,9 @@ type Props = {
   deepStatus: "pending" | "failed" | "ready";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
+  premiumUnlocked?: boolean;
+  onUnlockRewrite?: () => void;
+  isUnlocking?: boolean;
   onReset: () => void;
   onExportMd: () => void;
   onExportPdf: () => void;
@@ -46,6 +49,9 @@ export function DiagnosticResult({
   deepStatus,
   isPremium,
   userPlan = "free",
+  premiumUnlocked = false,
+  onUnlockRewrite,
+  isUnlocking = false,
   onReset,
   onExportMd,
   onExportPdf,
@@ -123,6 +129,9 @@ export function DiagnosticResult({
         deepStatus={deepStatus}
         isPremium={isPremium}
         userPlan={userPlan}
+        premiumUnlocked={premiumUnlocked}
+        onUnlockRewrite={onUnlockRewrite}
+        isUnlocking={isUnlocking}
         onReset={onReset}
         reconstructedCv={reconstructedCv}
         liText={liText}

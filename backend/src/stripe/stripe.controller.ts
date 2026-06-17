@@ -15,6 +15,7 @@ import { SupabaseGuard } from '../auth/supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
+import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
 import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 
@@ -23,6 +24,7 @@ export class StripeController {
   constructor(
     private readonly createCheckout: CreateCheckoutSessionUseCase,
     private readonly createCreditsCheckout: CreateCreditsCheckoutSessionUseCase,
+    private readonly createAnalysisUnlockCheckout: CreateAnalysisUnlockCheckoutSessionUseCase,
     private readonly getSubscription: GetSubscriptionUseCase,
     private readonly handleWebhookUc: HandleWebhookUseCase,
   ) {}
@@ -59,6 +61,24 @@ export class StripeController {
     return this.createCreditsCheckout.execute({
       email,
       quantity: body?.quantity,
+    });
+  }
+
+  /**
+   * Protected — one-time "unlock the CV rewrite for this analysis" Checkout.
+   * Email comes from the JWT (never the body) so the webhook can trust
+   * `customer_details.email` when granting the per-analysis unlock.
+   */
+  @UseGuards(SupabaseGuard)
+  @Post('analysis-unlock/checkout')
+  async createAnalysisUnlockCheckoutSession(
+    @AuthEmail() email: string,
+    @Body() body: { analysisId: number; locale?: string },
+  ) {
+    return this.createAnalysisUnlockCheckout.execute({
+      email,
+      analysisId: body?.analysisId,
+      locale: body?.locale,
     });
   }
 

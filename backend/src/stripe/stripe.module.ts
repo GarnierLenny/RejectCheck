@@ -17,10 +17,12 @@ import { StripeSubscriptionGate } from './infrastructure/stripe-subscription.gat
 
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
+import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
 import { CheckSubscriptionUseCase } from './application/check-subscription.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
 import { HandleCheckoutCompletedUseCase } from './application/handle-checkout-completed.use-case';
 import { HandleCreditPurchaseUseCase } from './application/handle-credit-purchase.use-case';
+import { HandleAnalysisUnlockUseCase } from './application/handle-analysis-unlock.use-case';
 import { HandleSubscriptionDeletedUseCase } from './application/handle-subscription-deleted.use-case';
 import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 
@@ -42,10 +44,12 @@ import { PremiumGuard } from './guards/premium.guard';
     // Use cases
     CreateCheckoutSessionUseCase,
     CreateCreditsCheckoutSessionUseCase,
+    CreateAnalysisUnlockCheckoutSessionUseCase,
     CheckSubscriptionUseCase,
     GetSubscriptionUseCase,
     HandleCheckoutCompletedUseCase,
     HandleCreditPurchaseUseCase,
+    HandleAnalysisUnlockUseCase,
     HandleSubscriptionDeletedUseCase,
     HandleWebhookUseCase,
 

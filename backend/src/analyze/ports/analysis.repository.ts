@@ -166,4 +166,18 @@ export interface AnalysisRepository {
 
   /** Finds a shared analysis by its public token. Returns null if not found or has no result. */
   findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null>;
+
+  /**
+   * One-time "unlock this CV" purchase: marks premium features (CV rewrite,
+   * cover letter) unlocked for a single analysis owned by `email`. Idempotent
+   * (re-marking just refreshes the timestamp). No-op if the analysis isn't
+   * owned by that email. Returns true if a row was updated.
+   */
+  markPremiumUnlocked(analysisId: number, email: string): Promise<boolean>;
+
+  /** True if this analysis (owned by `email`) has a one-time premium unlock. */
+  isPremiumUnlocked(analysisId: number, email: string): Promise<boolean>;
+
+  /** Increments the CV-rewrite generation counter for this analysis (cost cap). */
+  incrementRewriteCount(analysisId: number, email: string): Promise<void>;
 }

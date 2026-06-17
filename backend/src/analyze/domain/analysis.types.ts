@@ -37,6 +37,7 @@ export type StoredAnalysis = {
   result: AnalyzeResponse | null;
   deepAnalysis: DeepAnalyzeResponse | null;
   negotiationAnalysis: NegotiationAnalysis | null;
+  rewriteCount: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -65,7 +66,7 @@ export type AnalysisDetail = Pick<
   | 'negotiationAnalysis'
   | 'createdAt'
   | 'updatedAt'
-> & { completedSteps: number[] };
+> & { completedSteps: number[]; premiumUnlocked: boolean; rewriteCount: number };
 
 export type Profile = {
   id: number;

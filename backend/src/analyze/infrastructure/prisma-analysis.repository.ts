@@ -38,6 +38,7 @@ type AnalysisRow = {
   result: Prisma.JsonValue | null;
   deepAnalysis: Prisma.JsonValue | null;
   negotiationAnalysis: Prisma.JsonValue | null;
+  rewriteCount: number;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -229,6 +230,8 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         coverLetter: true,
         negotiationAnalysis: true,
         completedSteps: true,
+        premiumUnlockedAt: true,
+        rewriteCount: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -253,6 +256,8 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       negotiationAnalysis:
         row.negotiationAnalysis as NegotiationAnalysis | null,
       completedSteps: row.completedSteps ?? [],
+      premiumUnlocked: row.premiumUnlockedAt !== null,
+      rewriteCount: row.rewriteCount ?? 0,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -416,6 +421,25 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     return token;
   }
 
+  async markPremiumUnlocked(analysisId: number, email: string): Promise<boolean> {
+    // Scoped to the owner's email — a webhook can only unlock an analysis that
+    // belongs to the verified buyer. Idempotent: replayed webhooks just refresh
+    // the timestamp.
+    const res = await this.prisma.analysis.updateMany({
+      where: { id: analysisId, email },
+      data: { premiumUnlockedAt: new Date() },
+    });
+    return res.count > 0;
+  }
+
+  async isPremiumUnlocked(analysisId: number, email: string): Promise<boolean> {
+    const row = await this.prisma.analysis.findFirst({
+      where: { id: analysisId, email, premiumUnlockedAt: { not: null } },
+      select: { id: true },
+    });
+    return row !== null;
+  }
+
   async findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null> {
     const row = await this.prisma.analysis.findUnique({
       where: { shareToken: token },
@@ -462,6 +486,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
       negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
       completedSteps: row.completedSteps ?? [],
+      // Public shared view never exposes the per-buyer rewrite unlock.
+      premiumUnlocked: false,
+      rewriteCount: 0,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -490,8 +517,16 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       deepAnalysis: (row.deepAnalysis as DeepAnalyzeResponse | null) ?? null,
       negotiationAnalysis:
         (row.negotiationAnalysis as NegotiationAnalysis | null) ?? null,
+      rewriteCount: row.rewriteCount ?? 0,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
+  }
+
+  async incrementRewriteCount(analysisId: number, email: string): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id: analysisId, email },
+      data: { rewriteCount: { increment: 1 } },
+    });
   }
 }

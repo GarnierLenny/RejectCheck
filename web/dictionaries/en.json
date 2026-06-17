@@ -2290,7 +2290,10 @@
       "title": "CV rewrite & cover letter",
       "desc": "Paste-ready rewrites based on exactly what this scan found. Passive bullets made active, ATS keywords injected, seniority signals added.",
       "cta": "Unlock Shortlisted →",
-      "note": "Cancel anytime · no commitment"
+      "note": "Cancel anytime · no commitment",
+      "unlockCta": "Unlock the rewrite — €2.99",
+      "unlockNote": "One-time · this CV only · no subscription · up to 5 rewrites",
+      "unlockOr": "or, for unlimited:"
     },
     "plan": {
       "bridgeNotAvailable": "Bridge project not available.",
