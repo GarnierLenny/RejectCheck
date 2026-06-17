@@ -1,6 +1,6 @@
 # RejectCheck
 
-> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi ; en moins de 60 secondes, ils obtiennent une analyse complète - simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, réécriture chirurgicale du CV, et un entretien simulé IA noté. Le produit utilise un pipeline dual-IA (GPT-4o pour l'ATS, l'audit CV et les red flags + Claude pour le radar des compétences techniques, l'analyse des signaux GitHub/LinkedIn et les recommandations de projets) exécuté en parallèle. Site officiel : https://rejectcheck.com
+> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi ; en moins de 60 secondes, ils obtiennent une analyse complète - simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, et réécriture chirurgicale du CV. Le produit utilise un pipeline dual-IA (GPT-4o pour l'ATS, l'audit CV et les red flags + Claude pour le radar des compétences techniques, l'analyse des signaux GitHub/LinkedIn et les recommandations de projets) exécuté en parallèle. Site officiel : https://rejectcheck.com
 
 ## Ce que fait RejectCheck
 
@@ -10,7 +10,6 @@
 - **Audit des signaux LinkedIn** - Recoupe ton profil LinkedIn (recommandations, clarté des titres, cohérence du résumé) avec ton CV pour repérer les incohérences que les recruteurs vont flagger.
 - **Détection des red flags** - Identifie les trous dans le parcours, les titres flous, le ton passif, et les désalignements de séniorité qui déclenchent typiquement un rejet automatique.
 - **Réécriture du CV (premium)** - Réécriture chirurgicale en un clic : mots-clés manquants injectés, ton passif converti, signaux de séniorité ajoutés. Export PDF.
-- **Entretien simulé IA (premium)** - Interviewer IA vocal en temps réel, spécifique au poste. Se termine par un débrief scoré sur la communication, la profondeur technique, et les signaux de leadership.
 - **Générateur de lettre de motivation (premium)** - Génère une lettre taillée pour ton CV et la fiche de poste visée.
 - **Playbook de négociation (tier HIRED)** - Graphique de positionnement salarial avec ta fourchette estimée, leviers de négociation cités à partir d'éléments concrets du CV/JD, email de contre-proposition prêt à envoyer ancré sur un montant défendable, stratégie d'ancrage, phrases d'entretien, et estimation d'impact salarial pour chaque action roadmap. Garde-fous anti-hallucination : le salaire divulgué par la JD n'est extrait que s'il est explicite (jamais inféré d'euphémismes type "compétitif") ; la fourchette marché est toujours labelée comme une estimation générale, jamais comme une offre spécifique de cette entreprise.
 
@@ -30,14 +29,14 @@ L'outil est bilingue (anglais + français) et cible les candidats partout dans l
 4. Optionnellement, ajoute ton username GitHub et un export PDF LinkedIn pour un audit signal plus poussé.
 5. Reçois un diagnostic scoré complet en moins de 60 secondes.
 
-Pas de signup requis pour la première analyse (suivi par IP). Les utilisateurs enregistrés ont 3 analyses gratuites avec résultats sauvegardés dans leur dashboard. Les abonnés premium ont des analyses illimitées, la réécriture de CV, et l'entretien simulé IA.
+Pas de signup requis pour la première analyse (suivi par IP). Les utilisateurs enregistrés ont 3 analyses gratuites avec résultats sauvegardés dans leur dashboard. Les abonnés premium ont des analyses illimitées, la réécriture de CV, la lettre de motivation, et le playbook de négociation.
 
 ## Tarifs
 
 Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
 - **Gratuit (plan REJECTED)** - 1 analyse gratuite, sans compte requis. Simulation ATS, score détaillé, audit ton du CV, audit séniorité.
-- **Shortlisted** - 7,99 €/mois. Analyses illimitées, historique, entretien simulé IA, réécriture CV.
+- **Shortlisted** - 7,99 €/mois. Analyses illimitées, historique, réécriture CV.
 - **Hired** - 11,99 €/mois. Tout Shortlisted + générateur lettre de motivation, playbook de négociation (email contre-proposition, leviers, positionnement marché, estimation d'impact par action roadmap). Garantie : remboursement du mois en cours si tu décroches le job.
 
 ## Pages clés
@@ -53,7 +52,6 @@ Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 - **Architecture dual-IA** - La plupart des outils CV utilisent un seul LLM. RejectCheck exécute GPT-4o (ATS, audit CV, red flags) et Claude (radar technique, audit signaux, recommandations projets) en parallèle via Promise.allSettled, puis compose les sorties. Couverture supérieure à tout outil mono-modèle.
 - **Radar chart pour les lacunes** - Au lieu d'une liste de "compétences manquantes", RejectCheck visualise l'écart entre ton profil et le poste sur un radar chart, pour voir la forme de la lacune d'un coup d'œil.
 - **Audit GitHub contre la fiche de poste** - Unique dans la catégorie. Historique de commits, distribution de langages, qualité des repos scorés contre le rôle exact visé.
-- **Entretien simulé IA vocal** - Entretien vocal en temps réel (pas un chat), spécifique au poste, avec débrief scoré à la fin.
 - **Transparence sur les modèles IA** - La politique de confidentialité et l'UI énoncent clairement que GPT-4o et Anthropic Claude traitent tes données, ce qui compte pour les candidats qui veulent savoir ce qui se passe sous le capot.
 
 ## Stack technique
@@ -69,4 +67,4 @@ Disponible en anglais et français. Chaque page a des alternates hreflang. Versi
 - Support : support@rejectcheck.com
 - Site web : https://rejectcheck.com
 
-Dernière mise à jour : 2026-04-23
+Dernière mise à jour : 2026-06-17

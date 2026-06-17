@@ -6,7 +6,6 @@ import { User as UserIcon, Settings as SettingsIcon, LogOut, Users, Activity } f
 import { useAuth } from "../../context/auth";
 import { useProfile } from "../../lib/queries";
 import { useLanguage } from "../../context/language";
-import { createClient } from "../../lib/supabase";
 import { COMMUNITY_FEATURES_ENABLED } from "../../lib/features";
 
 const LOGIN_LABELS: Record<string, string> = {
@@ -15,7 +14,7 @@ const LOGIN_LABELS: Record<string, string> = {
 };
 
 export function AuthNavLink() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const { data: profile } = useProfile();
   const { localePath, locale, t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -23,8 +22,9 @@ export function AuthNavLink() {
 
   async function handleSignOut() {
     setOpen(false);
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    // Goes through the auth context, which lazily loads the Supabase client —
+    // so the navbar no longer pulls the SDK into every marketing page's bundle.
+    await signOut();
     if (typeof window !== "undefined") {
       localStorage.removeItem("rc_subscription");
       window.location.href = localePath("/");

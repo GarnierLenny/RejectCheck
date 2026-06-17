@@ -51,7 +51,21 @@ export const organizationSchema: JsonLdSchema = {
     'https://www.producthunt.com/products/rejectcheck',
     'https://www.linkedin.com/company/rejectcheck',
     'https://github.com/GarnierLenny/RejectCheck',
+    'https://www.crunchbase.com/organization/rejectcheck',
+    'https://www.wikidata.org/wiki/Q140263932',
+    'https://www.g2.com/products/rejectcheck/reviews',
+    'https://www.saashub.com/rejectcheck-alternatives',
   ],
+  // Founder ↔ company link, machine-readable: strengthens the entity graph so
+  // Google/LLMs resolve "RejectCheck" and "Lenny Garnier" to connected entities.
+  founder: {
+    '@type': 'Person',
+    name: 'Lenny Garnier',
+    sameAs: [
+      'https://www.linkedin.com/in/lenny-garnier-2ab689199/',
+      'https://github.com/GarnierLenny',
+    ],
+  },
 }
 
 export const websiteSchema: JsonLdSchema = {
@@ -166,8 +180,8 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
       name: 'RejectCheck SHORTLISTED',
       description:
         locale === 'fr'
-          ? 'Abonnement mensuel : analyses illimitées, historique, réécriture de CV, lettre de motivation.'
-          : 'Monthly subscription: unlimited analyses, history, CV rewrite, cover letter.',
+          ? 'Abonnement mensuel : analyses illimitées, historique, réécriture de CV.'
+          : 'Monthly subscription: unlimited analyses, history, CV rewrite.',
       brand: { '@type': 'Brand', name: 'RejectCheck' },
       offers: {
         '@type': 'Offer',
