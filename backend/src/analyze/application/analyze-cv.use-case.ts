@@ -280,7 +280,7 @@ export class AnalyzeCvUseCase {
     timings.persist_ms = Date.now() - persistStart;
 
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
-      await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.analyze });
+      await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'analyze', amount: CREDIT_COSTS.analyze });
     }
 
     emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText });

@@ -55,6 +55,10 @@ export class PrismaCreditLedgerRepository implements CreditLedgerRepository {
   }
 
   async consume(input: ConsumeCreditInput): Promise<void> {
+    // R3: namespace the idempotency key per chargeable action so distinct
+    // consumes on the same analysis (analyze / review / fixes / rewrite) don't
+    // collide on @@unique([type, referenceId]).
+    const referenceId = `${input.analysisId}:${input.scope}`;
     const result = await this.prisma.creditLedger.createMany({
       data: [
         {
@@ -62,14 +66,14 @@ export class PrismaCreditLedgerRepository implements CreditLedgerRepository {
           type: 'consume',
           amount: input.amount,
           source: 'analysis',
-          referenceId: String(input.analysisId),
+          referenceId,
         },
       ],
       skipDuplicates: true,
     });
     if (result.count === 0) {
       this.logger.log(
-        `Credit consume noop (replay): email=${input.email} analysisId=${input.analysisId}`,
+        `Credit consume noop (replay): email=${input.email} ref=${referenceId}`,
       );
     }
   }

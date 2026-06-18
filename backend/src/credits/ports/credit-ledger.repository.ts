@@ -12,11 +12,17 @@ export type GrantCreditInput = {
 
 export type ConsumeCreditInput = {
   email: string;
-  /**
-   * Idempotency key. One consume per analysis row — a retried analyze flow
-   * cannot double-debit.
-   */
+  /** The analysis this charge belongs to. */
   analysisId: number;
+  /**
+   * Namespaces the idempotency key so DISTINCT chargeable actions on the same
+   * analysis don't collide on (type, referenceId) — concurrency-audit rule R3.
+   * referenceId = `${analysisId}:${scope}`. Use a stable token per action:
+   * 'analyze' (JD analysis), 'review' (CV audit), 'fixes' (the fix bundle),
+   * 'rewrite' (a CV rewrite). Without this, a per-fix fan-out sharing the bare
+   * analysisId would charge only the FIRST consume and silently free the rest.
+   */
+  scope: string;
   /** Credits to debit. See CREDIT_COSTS in quota.policy.ts. */
   amount: number;
 };
@@ -31,6 +37,6 @@ export interface CreditLedgerRepository {
   getBalance(email: string): Promise<number>;
   /** Idempotent on (type='grant', referenceId). */
   grant(input: GrantCreditInput): Promise<void>;
-  /** Idempotent on (type='consume', referenceId=analysisId.toString()). */
+  /** Idempotent on (type='consume', referenceId=`${analysisId}:${scope}`). */
   consume(input: ConsumeCreditInput): Promise<void>;
 }

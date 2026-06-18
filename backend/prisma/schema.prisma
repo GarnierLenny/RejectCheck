@@ -101,11 +101,30 @@ model Analysis {
   updatedAt             DateTime           @updatedAt
   application           Application?
   interviewAttempts     InterviewAttempt[]
+  fixes                 AnalysisFix[]
 
   @@index([email])
   @@index([ip])
   // Covers /api/analyze/history (WHERE email = ? ORDER BY createdAt DESC).
   @@index([email, createdAt(sort: Desc)])
+}
+
+// Per-issue fix blocks, generated lazily/in-parallel AFTER the hot diagnostic.
+// One row per fix keyed by a STABLE issueKey (assigned in the hot pass) — this
+// is deliberate (concurrency-audit rule R1): concurrent per-fix generations
+// upsert their OWN row and never read-modify-write a shared JSON column, so a
+// "generate all fixes" fan-out can't lose writes (last-writer-wins on a blob).
+model AnalysisFix {
+  id         Int      @id @default(autoincrement())
+  analysisId Int
+  issueKey   String // stable key from the hot pass (R2) — e.g. "cv-<hash>"
+  scope      String // cv | github | linkedin | seniority | tone | redflag | project | ats
+  fix        Json // the generated fix block (summary, steps, example, project_idea, time_required)
+  createdAt  DateTime @default(now())
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@unique([analysisId, issueKey]) // idempotent upsert target — the whole point of R1
+  @@index([analysisId])
 }
 
 model Application {

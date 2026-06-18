@@ -159,7 +159,7 @@ export class ReviewCvUseCase {
     const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
 
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
-      await this.creditLedger.consume({ email: cmd.email, analysisId, amount: CREDIT_COSTS.review });
+      await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'review', amount: CREDIT_COSTS.review });
     }
 
     emit({ type: 'analysis_done', result, analysisId, claimToken });
