@@ -588,6 +588,65 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
   },
 };
 
+// Shared `highlight_terms` JSON-schema property — verbatim phrases to underline
+// per source document (CV / LinkedIn / cover letter). Lives on the DEEP pass in
+// the split flow (kept off the hot pass to keep the diagnostic fast); the legacy
+// single-pass tool defines its own inline copy.
+const HIGHLIGHT_TERMS_PROPERTY = (() => {
+  const termEntry = (docHint: string) => ({
+    type: 'object' as const,
+    properties: {
+      term: { type: 'string' as const, description: `Verbatim excerpt copy-pasted from the ${docHint}. 2-8 words. Must exist character-for-character in the document.` },
+      tooltip: { type: 'string' as const, description: 'One sentence shown on hover. ≤ 20 words.' },
+    },
+    required: ['term', 'tooltip'],
+  });
+  const sourceSchema = (doc: string, flagDesc: string, issueDesc: string, skillDesc: string | null, weakDesc: string, metricsDesc: string | null) => ({
+    type: 'object' as const,
+    properties: {
+      flags: { type: 'array' as const, description: flagDesc, maxItems: 6, items: termEntry(doc) },
+      issues: { type: 'array' as const, description: issueDesc, maxItems: 10, items: termEntry(doc) },
+      ...(skillDesc ? { skills: { type: 'array' as const, description: skillDesc, maxItems: 12, items: { type: 'string' as const } } } : {}),
+      weak: { type: 'array' as const, description: weakDesc, maxItems: 8, items: termEntry(doc) },
+      ...(metricsDesc ? { metrics: { type: 'array' as const, description: metricsDesc, maxItems: 8, items: termEntry(doc) } } : {}),
+    },
+    required: ['flags', 'issues', 'weak', ...(skillDesc ? ['skills'] : []), ...(metricsDesc ? ['metrics'] : [])],
+  });
+  return {
+    type: 'object' as const,
+    description: 'Verbatim phrases to underline per source document. The matching engine is a case-insensitive regex — one wrong character = no underline. Every term MUST be copy-pasteable from the source document. Omit rather than approximate. Keep excerpts 2-8 words.',
+    properties: {
+      cv: sourceSchema(
+        'CV text',
+        'Verbatim CV phrases showing ambiguous ownership or weak agency: "participated in", "helped with", "involved in", "contributed to". One excerpt per occurrence.',
+        'Verbatim CV phrases that expose an audit_cv issue. One or two excerpts per issue.',
+        'Exact skill/technology names as written in the CV that match required JD skills (found=true in audit_jd_match). Use exact CV casing.',
+        'Passive or nominalized phrases from CV bullets that illustrate cv_tone findings.',
+        'Verbatim CV phrases containing a number, percentage, or measurable result (e.g. "réduit la latence de 40%", "géré une équipe de 8"). Positive signals.',
+      ),
+      linkedin: sourceSchema(
+        'LinkedIn text',
+        'Verbatim LinkedIn phrases showing ambiguous ownership or weak agency (same logic as CV flags).',
+        'Verbatim LinkedIn phrases with weak positioning — vague titles, generic descriptions, or soft phrasing that undersells the candidate.',
+        'Skill/technology names as written in the LinkedIn profile that match required JD skills. Use exact LinkedIn casing.',
+        'Passive or weak phrasing copied directly from the LinkedIn bio or experience descriptions.',
+        'Verbatim LinkedIn phrases containing a measurable result or quantified achievement.',
+      ),
+      cover_letter: {
+        type: 'object' as const,
+        description: 'Highlights for the motivation/cover letter. Only populate if a cover letter was provided.',
+        properties: {
+          flags: { type: 'array' as const, description: 'Generic opening formulas or hollow clichés copied from the letter (e.g. "I am writing to apply for", "Je me permets de vous contacter", "team player").', maxItems: 6, items: termEntry('cover letter text') },
+          issues: { type: 'array' as const, description: 'Verbatim repeated words/phrases or weak arguments copied from the cover letter.', maxItems: 10, items: termEntry('cover letter text') },
+          weak: { type: 'array' as const, description: 'Passive or conditional phrasing copied from the cover letter (e.g. "je souhaiterais", "I would be interested in").', maxItems: 8, items: termEntry('cover letter text') },
+        },
+        required: ['flags', 'issues', 'weak'],
+      },
+    },
+    required: ['cv', 'linkedin', 'cover_letter'],
+  };
+})();
+
 export const SUBMIT_ANALYSIS_DEEP_TOOL = {
   name: 'submit_analysis_deep',
   description:
@@ -595,6 +654,7 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
   input_schema: {
     type: 'object' as const,
     properties: {
+      highlight_terms: HIGHLIGHT_TERMS_PROPERTY,
       project_recommendation: {
         type: 'object' as const,
         properties: {
@@ -844,6 +904,7 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
       },
     },
     required: [
+      'highlight_terms',
       'project_recommendation',
       'ats_critical_missing_keywords',
       'fixes',
@@ -870,7 +931,7 @@ export function buildDeepAnalysisTool(generateBridgeProject: boolean) {
     input_schema: {
       ...SUBMIT_ANALYSIS_DEEP_TOOL.input_schema,
       properties: propertiesWithout,
-      required: ['ats_critical_missing_keywords', 'fixes'],
+      required: ['highlight_terms', 'ats_critical_missing_keywords', 'fixes'],
     },
   };
 }

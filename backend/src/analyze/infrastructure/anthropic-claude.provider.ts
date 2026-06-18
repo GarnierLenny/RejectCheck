@@ -87,7 +87,13 @@ type ToolUseBlock = {
  * an existing id. Mutates in place. Red flags / seniority / tone get their keys
  * when per-fix generation is wired (their key is the scope itself or flag hash).
  */
-function assignIssueKeys(result: AnalyzeResponse): void {
+function assignIssueKeys(result: {
+  audit?: {
+    cv?: { issues?: Array<{ id?: string; what: string }> };
+    github?: { issues?: Array<{ id?: string; what: string }> };
+    linkedin?: { issues?: Array<{ id?: string; what: string }> };
+  };
+}): void {
   const tag = (
     issues: Array<{ id?: string; what: string }> | undefined,
     scope: string,
@@ -545,6 +551,7 @@ Formatting rules:
         technical_analysis: i.technical_analysis,
         challenge_analysis: i.challenge_analysis,
       };
+      assignIssueKeys(hot);
       return HotAnalyzeResponseSchema.parse(hot);
     } catch (apiErr: any) {
       this.logger.error(
@@ -573,6 +580,10 @@ Formatting rules:
           model: MODEL,
           max_tokens: DEEP_MAX_TOKENS,
           temperature: 0.1,
+          // Cost lever #4: medium effort consolidates the deep output (~15-20%
+          // fewer output tokens, the dominant cost) at a small depth tradeoff.
+          // A/B this vs default (high) before trusting it on the paid fixes.
+          output_config: { effort: 'medium' },
           system: [
             {
               type: 'text',

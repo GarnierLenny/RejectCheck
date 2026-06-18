@@ -58,6 +58,7 @@ import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
+import { LlmJobsService } from '../queue/llm-jobs.service';
 import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
 import { ANALYSIS_REPOSITORY } from './ports/tokens';
 import type { AnalysisRepository } from './ports/analysis.repository';
@@ -128,6 +129,7 @@ export class AnalyzeController {
     private readonly removeSavedCvUc: RemoveSavedCvUseCase,
     private readonly createShareTokenUc: CreateShareTokenUseCase,
     private readonly generateStarterRepoUc: GenerateStarterRepoUseCase,
+    private readonly llmJobs: LlmJobsService,
     @Inject(ANALYSIS_REPOSITORY) private readonly analysisRepo: AnalysisRepository,
   ) {}
 
@@ -530,6 +532,28 @@ export class AnalyzeController {
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     const deep = await this.regenerateDeepUc.execute(id, email);
     return { deep };
+  }
+
+  // ANALYSIS_SPLIT_V2 Phase 3-lite: on-demand DEEP generation. The split flow
+  // delivers the hot diagnostic only; the user triggers the fixes/project/ATS
+  // here. Enqueued ASYNC (non-blocking, ~166s in the background) so the request
+  // returns instantly — the client polls GET :id for the merged result. Email-
+  // scoped (own analysis only) and idempotent (RegenerateDeepUseCase no-ops if a
+  // deepAnalysis already exists), so it can't be spammed into extra LLM spend.
+  @UseGuards(SupabaseGuard)
+  @Post(':id/generate-deep')
+  @ApiOperation({
+    summary: 'Generate the deep pass on demand (async); poll GET :id for the result.',
+  })
+  async generateDeep(@AuthEmail() email: string, @Param('id') rawId: string) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    await this.llmJobs.enqueueDeep({
+      analysisId: id,
+      email,
+      generateBridgeProject: true,
+    });
+    return { status: 'generating' };
   }
 
   @RequiresPremium('hired')

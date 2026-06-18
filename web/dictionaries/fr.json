@@ -2195,6 +2195,12 @@
     "strongestSignal": "Signal le plus fort"
   },
   "analysisLayout": {
+    "deepPending": "Génération de tes corrections détaillées en cours…",
+    "deepLocked": {
+      "eyebrow": "Corrections détaillées",
+      "desc": "Comment corriger chaque point + ton projet bridge + les mots-clés ATS manquants. Généré à la demande.",
+      "cta": "Voir mes corrections"
+    },
     "verdicts": {
       "critical": "Risque critique",
       "high": "Risque élevé",

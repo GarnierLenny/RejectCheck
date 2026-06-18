@@ -27,13 +27,15 @@ export type AnalysisLayoutProps = {
   cvBlobUrl: string | null;
   liBlobUrl?: string | null;
   mlBlobUrl?: string | null;
-  deepStatus: "pending" | "failed" | "ready";
+  deepStatus: "pending" | "failed" | "ready" | "locked";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
   /** This specific analysis was unlocked via a one-time purchase (€4.99). */
   premiumUnlocked?: boolean;
   /** Starts the one-time "unlock the rewrite for this CV" checkout. */
   onUnlockRewrite?: () => void;
+  /** ANALYSIS_SPLIT_V2: generate the deep pass (fixes/project) on demand. */
+  onUnlockDeep?: () => void;
   isUnlocking?: boolean;
   onReset: () => void;
   reconstructedCv?: string | null;
@@ -729,6 +731,7 @@ export function AnalysisLayout({
   userPlan = "free",
   premiumUnlocked = false,
   onUnlockRewrite,
+  onUnlockDeep,
   isUnlocking = false,
   onReset,
   reconstructedCv,
@@ -902,6 +905,26 @@ export function AnalysisLayout({
           {/* ── Scrolled report ── */}
           <main ref={reportRef} style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
 
+            {/* ANALYSIS_SPLIT_V2: the deep pass (fixes) is still generating. */}
+            {deepStatus === "pending" && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28, padding: "11px 16px", borderRadius: R_SM, border: "1px solid color-mix(in srgb, var(--rc-amber) 28%, transparent)", background: "color-mix(in srgb, var(--rc-amber) 7%, transparent)" }}>
+                <span style={{ width: 8, height: 8, borderRadius: 999, background: "var(--rc-amber)", flexShrink: 0, animation: "rcPulse 1.4s ease-in-out infinite" }} />
+                <Mono style={{ fontSize: 12, color: "var(--rc-text)", letterSpacing: "0.01em" }}>{t.analysisLayout.deepPending}</Mono>
+                <style>{`@keyframes rcPulse{0%,100%{opacity:1}50%{opacity:.3}}`}</style>
+              </div>
+            )}
+
+            {/* ANALYSIS_SPLIT_V2 Phase 3-lite: the deep is generated on demand. */}
+            {deepStatus === "locked" && onUnlockDeep && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap", marginBottom: 28, padding: "14px 18px", borderRadius: R_SM, border: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
+                <div style={{ minWidth: 0 }}>
+                  <Eyebrow style={{ display: "block", marginBottom: 4 }}>{t.analysisLayout.deepLocked.eyebrow}</Eyebrow>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-muted)", lineHeight: 1.5 }}>{t.analysisLayout.deepLocked.desc}</span>
+                </div>
+                <button onClick={onUnlockDeep} style={{ flexShrink: 0, padding: "9px 16px", borderRadius: R_SM, border: "none", background: "var(--rc-text)", color: "var(--rc-bg)", fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", cursor: "pointer", whiteSpace: "nowrap" }}>{t.analysisLayout.deepLocked.cta}</button>
+              </div>
+            )}
+
             {/* §01 — Rejection risk */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
               <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score)} sectionNo="01" />
@@ -984,10 +1007,15 @@ export function AnalysisLayout({
               />
             </section>
 
-            {/* §06 — Roadmap */}
+            {/* §06 — Roadmap (derived from the deep fixes → skeleton while pending,
+                else the empty "no issues" state misleads during generation) */}
             <section id="sec-roadmap" style={SEC}>
               {secHead("06", t.analysisLayout.tabs.roadmap)}
-              <RoadmapTab result={result} />
+              {deepStatus === "pending" ? (
+                <ProjectRecommendationSkeleton />
+              ) : (
+                <RoadmapTab result={result} />
+              )}
             </section>
 
             {/* §07 — Bridge project */}

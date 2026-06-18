@@ -15,11 +15,12 @@ type Props = {
   cvBlobUrl: string | null;
   liBlobUrl?: string | null;
   mlBlobUrl?: string | null;
-  deepStatus: "pending" | "failed" | "ready";
+  deepStatus: "pending" | "failed" | "ready" | "locked";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
   premiumUnlocked?: boolean;
   onUnlockRewrite?: () => void;
+  onUnlockDeep?: () => void;
   isUnlocking?: boolean;
   onReset: () => void;
   onExportMd: () => void;
@@ -47,6 +48,7 @@ export function DiagnosticResult({
   liBlobUrl = null,
   mlBlobUrl = null,
   deepStatus,
+  onUnlockDeep,
   isPremium,
   userPlan = "free",
   premiumUnlocked = false,
@@ -131,6 +133,7 @@ export function DiagnosticResult({
         userPlan={userPlan}
         premiumUnlocked={premiumUnlocked}
         onUnlockRewrite={onUnlockRewrite}
+        onUnlockDeep={onUnlockDeep}
         isUnlocking={isUnlocking}
         onReset={onReset}
         reconstructedCv={reconstructedCv}

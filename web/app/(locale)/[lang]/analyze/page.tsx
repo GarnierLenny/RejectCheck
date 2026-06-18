@@ -80,6 +80,22 @@ function AnalyzeContent() {
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [streamText, setStreamText] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  // ANALYSIS_SPLIT_V2 (Phase 3-lite): true while the on-demand DEEP pass (fixes)
+  // is generating after the user clicked "show my fixes".
+  const [deepGenerating, setDeepGenerating] = useState(false);
+  // Derived deep state: "ready" once the result carries the fixes/project,
+  // "pending" while the deep is generating, else "locked" → show the unlock CTA.
+  // Legacy single-pass results already carry the deep, so they read "ready".
+  const resultHasDeep =
+    !!result?.project_recommendation ||
+    (result?.audit?.cv?.issues ?? []).some(
+      (i: { fix?: unknown }) => !!i.fix,
+    );
+  const deepStatus: "ready" | "pending" | "locked" = resultHasDeep
+    ? "ready"
+    : deepGenerating
+      ? "pending"
+      : "locked";
   const [error, setError] = useState<string | null>(null);
   // True only on a runtime analysis failure (stream/network) — drives the
   // LoadingScreen error card + retry. Validation errors stay in the upload form.
@@ -165,16 +181,50 @@ function AnalyzeContent() {
   const isPremium = liveActivePlan === 'shortlisted' || liveActivePlan === 'hired';
   const userPlan = liveActivePlan;
   const isHiredTier = liveActivePlan === 'hired';
-  const shouldPoll = isHiredTier && !!result && !result.negotiation_analysis;
+  // Poll the saved analysis while waiting on an async pass: the hired-tier
+  // negotiation, OR (ANALYSIS_SPLIT_V2) the deep fixes pass — see deepStatus.
+  const shouldPoll =
+    (isHiredTier && !!result && !result.negotiation_analysis) ||
+    deepStatus === "pending";
 
   const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(
-    urlId,
+    // Poll by the analysisId STATE (set at analysis_done) with urlId as fallback:
+    // on a FRESH analysis the URL `?id=` is added via router.replace but
+    // useSearchParams doesn't re-read it reactively, so urlId stays null and the
+    // deep poll would never run (infinite skeleton). analysisId is reliable.
+    analysisId ?? urlId,
     { pollIntervalMs: shouldPoll ? 5000 : undefined },
   );
   // One-time "unlock this CV" purchase: the CV rewrite is available if the user
   // is subscribed OR this specific analysis was unlocked (€4.99 one-off).
   const premiumUnlocked = savedAnalysis?.premiumUnlocked ?? false;
   const canUseRewrite = isPremium || premiumUnlocked;
+
+  // ANALYSIS_SPLIT_V2 robust deep delivery: the deep pass holds the live SSE
+  // idle for ~3 min, so the `deep_done` event can be lost if the connection
+  // drops. While deepStatus is "pending" we poll GET /analyze/:id (shouldPoll
+  // above) and apply the deep the moment the merged result carries it —
+  // independent of streamingRef, so it works even if the stream is still open.
+  useEffect(() => {
+    if (deepStatus !== "pending") return;
+    const r = savedAnalysis?.result;
+    if (!r) return;
+    const hasDeep =
+      !!r.project_recommendation ||
+      (r.audit?.cv?.issues ?? []).some((i: { fix?: unknown }) => !!i.fix);
+    if (hasDeep) {
+      setResult(r);
+      setDeepGenerating(false); // result now has the deep → deepStatus = "ready"
+    }
+  }, [deepStatus, savedAnalysis]);
+
+  // Stop waiting if the deep never lands (rare failed pass): after 4 min, clear
+  // the generating flag so deepStatus falls back to "locked" (user can retry).
+  useEffect(() => {
+    if (!deepGenerating) return;
+    const t = setTimeout(() => setDeepGenerating(false), 240_000);
+    return () => clearTimeout(t);
+  }, [deepGenerating]);
   const bootstrappedRef = useRef(false);
   useEffect(() => {
     if (bootstrappedRef.current) return;
@@ -496,6 +546,8 @@ function AnalyzeContent() {
         message?: string;
         code?: string;
         details?: { plan?: 'free' | 'shortlisted' | 'hired'; monthlyCap?: number };
+        /** ANALYSIS_SPLIT_V2: analysis_done carries this; deep_done follows. */
+        deepPending?: boolean;
       };
 
       // Tracks the latest known result during the stream so we can keep the
@@ -566,6 +618,11 @@ function AnalyzeContent() {
               uploadAnalysisFiles(payload.analysisId, user.id, session.access_token).catch(() => {});
             }
           }
+          // ANALYSIS_SPLIT_V2: deepPending=true means the deep is auto-generating
+          // server-side → mark generating so deepStatus reads "pending" and the
+          // GET poll delivers the fixes. (deepPending=false would leave it
+          // "locked" → the on-demand CTA, kept for a future paid model.)
+          setDeepGenerating(payload.deepPending ?? false);
           setVisualLoadingDone(true);
         } else if (payload.step === "negotiation_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
@@ -577,6 +634,16 @@ function AnalyzeContent() {
             primeQueryCache();
             return merged;
           });
+        } else if (payload.step === "deep_done") {
+          // ANALYSIS_SPLIT_V2: deep pass finished — swap in the FULL merged
+          // result (server-computed) and lift the skeletons. One atomic event,
+          // so a plain replace is race-free (unlike Phase 3 per-fix merges).
+          if (payload.result) {
+            latestResult = payload.result;
+            setResult(payload.result);
+            primeQueryCache();
+          }
+          setDeepGenerating(false);
         } else if (payload.step === "done") {
           // Fallback: ensure we have a result even if analysis_done was missed.
           if (payload.result && !latestResult) {
@@ -740,6 +807,26 @@ function AnalyzeContent() {
     } catch {
       toast.error("Impossible de lancer le paiement. Réessaie.");
       setIsUnlocking(false);
+    }
+  }
+
+  // ANALYSIS_SPLIT_V2 Phase 3-lite: generate the deep pass (fixes/project/ATS)
+  // on demand. Fires the async backend trigger; the GET poll (shouldPoll while
+  // deepStatus === "pending") swaps in the merged result once it's ready.
+  async function unlockDeep() {
+    if (!analysisId || deepGenerating) return;
+    posthog.capture("deep_unlock_clicked", { analysis_id: analysisId });
+    setDeepGenerating(true);
+    try {
+      await fetch(`${apiUrl}/api/analyze/${analysisId}/generate-deep`, {
+        method: "POST",
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
+      });
+    } catch {
+      // Network hiccup — the deep may still be enqueued; the poll + the 4-min
+      // timeout (which resets deepGenerating) cover both outcomes.
     }
   }
 
@@ -946,7 +1033,8 @@ function AnalyzeContent() {
           cvBlobUrl={cvBlobUrl}
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
-          deepStatus="ready"
+          deepStatus={deepStatus}
+          onUnlockDeep={unlockDeep}
           isAnonymous={!user}
           isPremium={isPremium}
           userPlan={userPlan}

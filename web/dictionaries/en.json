@@ -2194,6 +2194,12 @@
     "strongestSignal": "Strongest signal"
   },
   "analysisLayout": {
+    "deepPending": "Generating your detailed fixes…",
+    "deepLocked": {
+      "eyebrow": "Detailed fixes",
+      "desc": "How to fix each issue + your bridge project + the missing ATS keywords. Generated on demand.",
+      "cta": "Show my fixes"
+    },
     "verdicts": {
       "critical": "Critical risk",
       "high": "High risk",

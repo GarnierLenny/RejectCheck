@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
 import { createHash } from 'crypto';
 import {
@@ -28,7 +29,11 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
-import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import type {
+  AnalyzeResponse,
+  HotAnalyzeResponse,
+} from '../dto/analyze-response.dto';
+import { mergeHotAndDeep } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type {
   DigestSourceHashes,
@@ -83,9 +88,14 @@ export type AnalyzeEvent =
       cvTextFormatted: string;
       linkedinTextFormatted: string;
       motivationLetterText: string;
+      /** ANALYSIS_SPLIT_V2: true when a deep_done will follow with the fixes. */
+      deepPending: boolean;
     }
   | { type: 'negotiation_delta'; delta: string }
-  | { type: 'negotiation_done'; negotiation: NegotiationAnalysis };
+  | { type: 'negotiation_done'; negotiation: NegotiationAnalysis }
+  // ANALYSIS_SPLIT_V2: the deep pass (fixes/project/ats) finished after the hot
+  // diagnostic was already streamed. Carries the FULL merged result.
+  | { type: 'deep_done'; result: AnalyzeResponse };
 
 /**
  * Orchestrates the full analyze flow:
@@ -119,6 +129,7 @@ export class AnalyzeCvUseCase {
     private readonly creditLedger: CreditLedgerRepository,
     private readonly generateDigestUc: GenerateProfileDigestUseCase,
     private readonly llmJobs: LlmJobsService,
+    private readonly config: ConfigService,
   ) {}
 
   async execute(
@@ -133,6 +144,7 @@ export class AnalyzeCvUseCase {
       profile_ctx_ms: 0,
       digest_ms: 0,
       claude_ms: 0,
+      deep_ms: 0,
       persist_ms: 0,
       negotiation_ms: 0,
     };
@@ -245,26 +257,48 @@ export class AnalyzeCvUseCase {
     // @RequiresPremium('shortlisted') starter-repo endpoint. Generating it for
     // everyone also stabilises the prompt-cache prefix (always bridge-ON).
     const generateBridgeProject = true;
-    const result = await this.claude.analyzeApplication({
-      ...claudeInput,
-      generateBridgeProject,
-      onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
-    });
-    timings.claude_ms = Date.now() - claudeStart;
 
-    // Surface the digest's pre-computed cross-profile inconsistencies on the
-    // result so the frontend can render the "Consistency check" section.
-    if (digest && digest.cross_profile_inconsistencies.length > 0) {
-      result.cross_profile_inconsistencies =
-        digest.cross_profile_inconsistencies;
+    // Append the digest's pre-computed cross-profile data (inconsistencies +
+    // timeline) onto a result so the frontend can render the Consistency tab.
+    // Applied to BOTH the hot diagnostic and the later merged result.
+    const applyCrossRef = (r: AnalyzeResponse): void => {
+      if (digest && digest.cross_profile_inconsistencies.length > 0) {
+        r.cross_profile_inconsistencies = digest.cross_profile_inconsistencies;
+      }
+      if (
+        digest &&
+        digest.timeline_entries &&
+        digest.timeline_entries.length > 0
+      ) {
+        r.timeline_entries = digest.timeline_entries;
+      }
+    };
+
+    // ANALYSIS_SPLIT_V2 (registered users only): run the HOT pass first so the
+    // free diagnostic streams ~2-3x sooner, persist + deliver analysis_done,
+    // THEN run the DEEP pass below and emit deep_done. A deep failure can no
+    // longer kill the analysis. Anonymous + flag-off keep the single pass.
+    const splitV2 =
+      this.config.get<string>('ANALYSIS_SPLIT_V2') === 'true' &&
+      !!cmd.email &&
+      cmd.isRegistered;
+
+    let result: AnalyzeResponse;
+    if (splitV2) {
+      const hot = await this.claude.analyzeApplicationHot({
+        ...claudeInput,
+        onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
+      });
+      result = mergeHotAndDeep(hot, null);
+    } else {
+      result = await this.claude.analyzeApplication({
+        ...claudeInput,
+        generateBridgeProject,
+        onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
+      });
     }
-    if (
-      digest &&
-      digest.timeline_entries &&
-      digest.timeline_entries.length > 0
-    ) {
-      result.timeline_entries = digest.timeline_entries;
-    }
+    timings.claude_ms = Date.now() - claudeStart;
+    applyCrossRef(result);
 
     const persistStart = Date.now();
     const { analysisId, claimToken } = await this.persist({
@@ -283,7 +317,21 @@ export class AnalyzeCvUseCase {
       await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'analyze', amount: CREDIT_COSTS.analyze });
     }
 
-    emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText });
+    // ANALYSIS_SPLIT_V2: deliver the HOT diagnostic immediately, then auto-
+    // generate the DEEP pass (fixes/project/ATS/highlights). The deep is
+    // ENQUEUED (async, not inline) so it never holds the SSE idle for ~3 min —
+    // the frontend shows "pending" (deepPending) and polls GET :id for the
+    // merged result. (The on-demand path — POST :id/generate-deep — stays wired
+    // for a future credit-gated/paid model; here we auto-run it for everyone.)
+    emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText, deepPending: splitV2 });
+
+    if (splitV2 && cmd.email && analysisId !== null) {
+      await this.llmJobs.enqueueDeep({
+        analysisId,
+        email: cmd.email,
+        generateBridgeProject: true,
+      });
+    }
 
     // Negotiation pass for hired users — still async via BullMQ or setImmediate.
     if (cmd.email && cmd.isRegistered && analysisId !== null) {
