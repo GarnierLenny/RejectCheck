@@ -4,6 +4,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHash } from 'node:crypto';
 import * as Sentry from '@sentry/nestjs';
 import Anthropic from '@anthropic-ai/sdk';
 import {
@@ -78,6 +79,33 @@ type ToolUseBlock = {
   type: 'tool_use';
   input: Record<string, unknown>;
 };
+
+/**
+ * Assigns a STABLE per-issue key to each audit issue (concurrency-audit rule
+ * R2). Deterministic = scope + short content hash, so per-fix generation and
+ * storage can key off it instead of fragile array positions. Idempotent: keeps
+ * an existing id. Mutates in place. Red flags / seniority / tone get their keys
+ * when per-fix generation is wired (their key is the scope itself or flag hash).
+ */
+function assignIssueKeys(result: AnalyzeResponse): void {
+  const tag = (
+    issues: Array<{ id?: string; what: string }> | undefined,
+    scope: string,
+  ): void => {
+    (issues ?? []).forEach((issue) => {
+      if (issue && !issue.id) {
+        const hash = createHash('sha1')
+          .update(issue.what)
+          .digest('hex')
+          .slice(0, 8);
+        issue.id = `${scope}-${hash}`;
+      }
+    });
+  };
+  tag(result.audit?.cv?.issues, 'cv');
+  tag(result.audit?.github?.issues, 'github');
+  tag(result.audit?.linkedin?.issues, 'linkedin');
+}
 
 @Injectable()
 export class AnthropicClaudeProvider implements ClaudeProvider {
@@ -410,6 +438,7 @@ Formatting rules:
         project_recommendation: i.project_recommendation,
         highlight_terms: i.highlight_terms,
       };
+      assignIssueKeys(result);
       return AnalyzeResponseSchema.parse(result);
     } catch (apiErr: any) {
       this.logger.error(
