@@ -69,8 +69,8 @@ The dashboard (`/dashboard`) is a 3-tab command center for returning users.
 |---|---|
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4 |
 | Backend | NestJS 11, TypeScript, Zod, Prisma, PostgreSQL (Supabase) |
-| AI | OpenAI GPT-4o (ATS, CV audit), Anthropic Claude Sonnet (technical analysis, interview evaluation) |
-| Voice | OpenAI Whisper (STT), OpenAI TTS, GPT-4o-mini (conversation logic) |
+| AI | Anthropic Claude Sonnet (ATS check, CV audit, technical analysis, red flags), Claude Haiku (multi-source profile digest), Google Gemini (starter-repo generation) |
+| Voice (interview module, currently disabled) | OpenAI Whisper (STT), OpenAI TTS, GPT-4o-mini (conversation logic) |
 | Payments | Stripe (subscriptions, webhooks) |
 | Auth | Supabase Auth |
 

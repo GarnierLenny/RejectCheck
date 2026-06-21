@@ -65,8 +65,10 @@ import {
 } from './system-technical-prompts';
 
 const MODEL = 'claude-sonnet-4-6';
-// We previously tried Haiku 4.5 on the hot pass for cost savings (~$0.035
-// per analysis) but observed structural failures: Haiku occasionally
+// We previously tried Haiku 4.5 on the hot pass for cost savings (the hot pass
+// alone is ~$0.035 — so a full hot+deep run is materially more, ~$0.15-0.40,
+// NOT the ~$0.036 some older comments cited) but observed structural failures:
+// Haiku occasionally
 // dropped required fields like `overall` or flattened nested objects when
 // asked to produce the full hot schema (16 required fields with nested
 // arrays/objects). Sonnet 4.6 is reliable for this shape. If you want to
@@ -113,14 +115,44 @@ function assignIssueKeys(result: {
   tag(result.audit?.linkedin?.issues, 'linkedin');
 }
 
+/**
+ * Trust guardrail: the model emits the ATS `score`, `threshold` and
+ * `would_pass` as three INDEPENDENT fields, so it can return a
+ * self-contradictory verdict (e.g. score 40, threshold 70, would_pass true)
+ * that then renders as a hard PASSED/FAILED badge. We never trust the model's
+ * boolean — we derive it from `score >= threshold` so the badge can never
+ * contradict the numbers shown next to it. Leaves the object untouched when
+ * either number is missing (sparse / malformed output).
+ */
+function deriveAtsWouldPass<
+  T extends { score?: number; threshold?: number; would_pass?: boolean },
+>(ats: T): T {
+  if (!ats || typeof ats !== 'object') return ats;
+  const { score, threshold } = ats;
+  if (typeof score === 'number' && typeof threshold === 'number') {
+    return { ...ats, would_pass: score >= threshold };
+  }
+  return ats;
+}
+
 @Injectable()
 export class AnthropicClaudeProvider implements ClaudeProvider {
   private readonly logger = new Logger(AnthropicClaudeProvider.name);
   private readonly anthropic: Anthropic;
 
   constructor(private readonly config: ConfigService) {
+    // Resilience for the single revenue-generating dependency. The SDK retries
+    // transient failures — 408/409/429 and 5xx (incl. 529 "overloaded") and
+    // connection errors — with exponential backoff, and it re-initiates the
+    // request BEFORE any stream events are yielded, so streamed calls (hot pass)
+    // are covered too. This directly addresses the rate-limit-ceiling / brief
+    // overload failure modes. A cross-provider (e.g. OpenAI) fallback is
+    // deliberately NOT added: the analysis pipeline is intentionally Claude-only.
+    // The generous timeout accommodates the long deep pass (~3 min).
     this.anthropic = new Anthropic({
       apiKey: this.config.get<string>('ANTHROPIC_API_KEY'),
+      maxRetries: 3,
+      timeout: 10 * 60 * 1000,
     });
   }
 
@@ -426,7 +458,7 @@ Formatting rules:
           linkedin_signal: i.linkedin_signal,
         },
         ats_simulation: {
-          ...i.ats_simulation,
+          ...deriveAtsWouldPass(i.ats_simulation),
           critical_missing_keywords: i.ats_critical_missing_keywords,
         },
         seniority_analysis: i.seniority_analysis,
@@ -537,7 +569,7 @@ Formatting rules:
           github_signal: i.github_signal,
           linkedin_signal: i.linkedin_signal,
         },
-        ats_simulation: i.ats_simulation,
+        ats_simulation: deriveAtsWouldPass(i.ats_simulation),
         seniority_analysis: i.seniority_analysis,
         cv_tone: i.cv_tone,
         audit: {

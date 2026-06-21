@@ -161,7 +161,7 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'How long does the resume check take?',
         answer:
-          'Under 60 seconds. Upload a CV PDF, paste the target job description, optionally add GitHub username and a LinkedIn PDF export. The dual-AI pipeline (GPT-4o + Claude) runs all audits in parallel.',
+          'Under 60 seconds. Upload a CV PDF, paste the target job description, optionally add GitHub username and a LinkedIn PDF export. A multi-pass Claude pipeline (Sonnet diagnostic + Haiku multi-source cross-check) runs the audits in parallel.',
       },
       {
         question: 'What does a good resume look like for the hiring manager layer?',
@@ -280,7 +280,7 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Combien de temps prend l’analyse du CV ?',
         answer:
-          'Moins de 60 secondes. Dépose ton CV en PDF, colle l’offre visée, et ajoute en option ton pseudo GitHub et un export PDF de ton LinkedIn. Le pipeline à double IA (GPT-4o + Claude) lance tous les audits en parallèle.',
+          'Moins de 60 secondes. Dépose ton CV en PDF, colle l’offre visée, et ajoute en option ton pseudo GitHub et un export PDF de ton LinkedIn. Un pipeline Claude multi-passe (diagnostic Sonnet + croisement multi-source Haiku) lance les audits en parallèle.',
       },
       {
         question: 'À quoi ressemble un bon CV pour la couche manager ?',

@@ -262,7 +262,7 @@ export default async function OgImage({
             fontFamily: "monospace", fontSize: 14,
             color: "#a09d98", letterSpacing: "0.1em", textTransform: "uppercase",
           }}>
-            GPT-4o · Claude
+            Powered by Claude
           </div>
         </div>
       </div>

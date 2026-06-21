@@ -28,7 +28,7 @@
     "hero": {
       "title": "Find out why your job application got rejected",
       "titleItalic": "before it does.",
-      "subtitle": "Upload your CV. In under a minute, get a full breakdown: ATS simulation, skill gap radar, CV rewrite, and an AI mock interview. Tailored to the exact job.",
+      "subtitle": "Upload your CV. In under a minute, get a full breakdown: an ATS check, skill gap radar, CV rewrite, and red-flag detection. Tailored to the exact job.",
       "cta": "Analyze my CV, free",
       "noDataStored": "No account required · No data stored",
       "freeBadge": "Free · No sign-up required",
@@ -435,8 +435,8 @@
           "sub": "Reads your public repos and weighs them against the JD."
         },
         {
-          "feat": "Dual-AI analysis",
-          "sub": "GPT-4o + Claude cross-check every finding — not one model."
+          "feat": "Multi-source cross-check",
+          "sub": "Your CV, LinkedIn and GitHub reconciled against one job — not a single keyword scan."
         },
         {
           "feat": "Bullet-by-bullet rewrite",
@@ -713,7 +713,7 @@
     "reasoning": {
       "audit_cv": "Auditing your CV's structure and clarity…",
       "audit_jd_match": "Matching your profile against the role's requirements…",
-      "ats_simulation": "Simulating the ATS pass and spotting missing keywords…",
+      "ats_simulation": "Checking ATS keyword & format fit and spotting missing keywords…",
       "cv_tone": "Assessing your seniority and the tone of your bullet points…",
       "hidden_red_flags": "Detecting hidden red flags (gaps, short tenures…)…"
     },
@@ -1225,7 +1225,7 @@
         },
         {
           "question": "How is RejectCheck priced compared to Jobscan, Rezi, and other alternatives?",
-          "answer": "Shortlisted at €7.99/month is below Rezi ($29/month), Jobscan's monthly tier, and Enhancv's Pro quarterly. Only Kickresume's annual tier (€8/month equivalent) is similarly priced. RejectCheck is the only option in this price range that includes dual-AI analysis (GPT-4o + Claude) and a full GitHub/LinkedIn audit."
+          "answer": "Shortlisted at €7.99/month is below Rezi ($29/month), Jobscan's monthly tier, and Enhancv's Pro quarterly. Only Kickresume's annual tier (€8/month equivalent) is similarly priced. RejectCheck is the only option in this price range that includes a multi-pass Claude pipeline (Sonnet + Haiku) with a full GitHub/LinkedIn cross-check."
         }
       ]
     }
@@ -1795,11 +1795,11 @@
     "items": [
       {
         "question": "What is RejectCheck?",
-        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In under 60 seconds, it shows you exactly why your application is getting filtered - running a dual-AI pipeline (GPT-4o for ATS and red flags, Claude for skill gap radar and GitHub/LinkedIn audit) against the specific job description."
+        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In under 60 seconds, it shows you exactly why your application is getting filtered - running a multi-pass Claude pipeline (a Sonnet diagnostic for ATS fit, red flags and skill-gap radar, plus a Haiku pass that cross-references your GitHub and LinkedIn) against the specific job description."
       },
       {
         "question": "How does RejectCheck analyze my CV?",
-        "answer": "Upload your CV and paste the target job description. RejectCheck runs GPT-4o and Claude in parallel: GPT-4o handles ATS simulation, tone audit, and red-flag detection; Claude builds the technical skill gap radar and audits your GitHub and LinkedIn signals. Results arrive in under 60 seconds."
+        "answer": "Upload your CV and paste the target job description. RejectCheck runs a multi-pass Claude pipeline: a fast Sonnet diagnostic (ATS keyword/format check, tone audit, red-flag detection, technical skill-gap radar) plus a Haiku pass that cross-references your CV, LinkedIn and GitHub. Results arrive in under 60 seconds."
       },
       {
         "question": "What is an ATS and how does RejectCheck simulate it?",
@@ -1815,7 +1815,7 @@
       },
       {
         "question": "Which AI models does RejectCheck use?",
-        "answer": "RejectCheck uses OpenAI GPT-4o (for ATS simulation, CV audit, and red-flag detection) and Anthropic Claude (for technical skill gap radar, GitHub/LinkedIn signal analysis, and project recommendations). Both run in parallel. The privacy policy explicitly documents which model processes which data."
+        "answer": "RejectCheck runs on Anthropic Claude — Sonnet for the diagnostic (ATS keyword/format check, CV audit, red-flag detection, technical skill-gap radar) and Haiku for the multi-source profile digest (GitHub/LinkedIn cross-reference) — plus Google Gemini for optional starter-repo generation. The privacy policy documents which provider processes which data."
       },
       {
         "question": "How is RejectCheck different from other CV tools?",
@@ -1844,12 +1844,12 @@
   "forTeams": {
     "meta": {
       "title": "For Teams - Bootcamps & Coaches",
-      "description": "Bulk licensing of dual-AI CV diagnosis for career coaches, bootcamps, university career centers, and outplacement firms. Volume pricing."
+      "description": "Bulk licensing of AI CV diagnosis for career coaches, bootcamps, university career centers, and outplacement firms. Volume pricing."
     },
     "hero": {
       "badge": "For career coaches · bootcamps · universities · outplacement",
       "title": "RejectCheck for teams serving job seekers",
-      "subtitle": "Help your clients, students, or candidates land interviews faster. One dual-AI CV diagnosis pipeline (GPT-4o + Claude), bulk licensing, and custom pricing for teams of 10 to 10,000.",
+      "subtitle": "Help your clients, students, or candidates land interviews faster. One multi-pass Claude CV diagnosis pipeline (Sonnet + Haiku), bulk licensing, and custom pricing for teams of 10 to 10,000.",
       "availabilityNote": "Currently early-access for teams. Individual plans shipping now; team infrastructure provisioned manually by our team on request - no self-serve team dashboard yet."
     },
     "breadcrumb": {
@@ -1895,7 +1895,7 @@
         {
           "n": "03",
           "title": "Your users run unlimited analyses",
-          "text": "Each seat gets the full dual-AI RejectCheck experience: ATS simulation, skill gap radar, GitHub/LinkedIn audit, red-flag detection, and CV rewrite. Same features as individual Hired-tier users."
+          "text": "Each seat gets the full RejectCheck experience: ATS check, skill gap radar, GitHub/LinkedIn audit, red-flag detection, and CV rewrite. Same features as individual Hired-tier users."
         }
       ]
     },
@@ -1908,7 +1908,7 @@
         "Manual account provisioning within 24h",
         "Monthly or annual Stripe invoicing (PO numbers supported)",
         "Custom volume pricing",
-        "Full dual-AI diagnosis per user (GPT-4o + Claude)",
+        "Full multi-pass Claude diagnosis per user (Sonnet + Haiku)",
         "Email support with 24h SLA"
       ],
       "roadmapLabel": "On the roadmap (building as demand grows)",
@@ -1934,7 +1934,7 @@
             "Best for career coaches and small consulting firms",
             "Per-seat Stripe invoicing",
             "Cancel any month",
-            "Same dual-AI features as individual Hired tier"
+            "Same analysis features as individual Hired tier"
           ],
           "cta": "Request quote"
         },
@@ -1986,7 +1986,7 @@
         },
         {
           "question": "Do team members get the same features as individual Hired-tier users?",
-          "answer": "Yes - full dual-AI diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, and CV rewrite. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
+          "answer": "Yes - full diagnosis including GitHub audit, LinkedIn cross-reference, technical skill gap radar, red-flag detection, and CV rewrite. The only thing that differs is billing (you pay, not them) and account provisioning (we create accounts, not self-signup)."
         },
         {
           "question": "Can we white-label the PDF exports with our logo?",
@@ -1994,7 +1994,7 @@
         },
         {
           "question": "How do you handle candidate data privacy?",
-          "answer": "Per our privacy policy, CV data is processed by OpenAI GPT-4o and Anthropic Claude APIs for analysis. For team deployments, we sign custom DPAs on request. Candidate-facing users control their own data (they can delete anytime). For universities and enterprise contracts, GDPR-compliant processing is documented and auditable."
+          "answer": "Per our privacy policy, CV data is processed by Anthropic Claude (and Google Gemini for optional starter-repo generation) APIs for analysis. For team deployments, we sign custom DPAs on request. Candidate-facing users control their own data (they can delete anytime). For universities and enterprise contracts, GDPR-compliant processing is documented and auditable."
         }
       ]
     },

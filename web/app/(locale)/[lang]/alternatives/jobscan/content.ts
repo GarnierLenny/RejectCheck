@@ -90,7 +90,7 @@ export type AlternativesContent = {
 const COMPETITORS_EN: Competitor[] = [
   {
     name: 'RejectCheck',
-    tagline: 'Dual-AI CV diagnosis with skill gap radar and GitHub/LinkedIn audit.',
+    tagline: 'AI CV diagnosis with skill gap radar and GitHub/LinkedIn audit.',
     website: 'https://rejectcheck.com',
     freeTier: '1 full analysis (guest) or 3 (registered, free)',
     paidEntry: '€7.99 / month',
@@ -101,7 +101,7 @@ const COMPETITORS_EN: Competitor[] = [
       'LinkedIn profile cross-reference with CV',
       'Voice-based AI mock interview (10 minutes)',
       'CV rewrite with keyword injection + PDF export',
-      'Dual-AI pipeline (GPT-4o + Anthropic Claude) run in parallel',
+      'Multi-pass Claude pipeline (Sonnet diagnostic + Haiku multi-source cross-check)',
     ],
     bestFor:
       'Software engineers and technical candidates who want skill-gap visualization and GitHub/LinkedIn auditing, not just keyword matching.',
@@ -237,7 +237,7 @@ const COMPETITORS_EN: Competitor[] = [
 const COMPETITORS_FR: Competitor[] = [
   {
     name: 'RejectCheck',
-    tagline: 'Diagnostic de CV dual-IA avec radar des lacunes et audit GitHub/LinkedIn.',
+    tagline: 'Diagnostic de CV IA avec radar des lacunes et audit GitHub/LinkedIn.',
     website: 'https://rejectcheck.com',
     freeTier: '1 analyse complète (invité) ou 3 (enregistré, gratuit)',
     paidEntry: '7,99 € / mois',
@@ -248,7 +248,7 @@ const COMPETITORS_FR: Competitor[] = [
       'Recoupement profil LinkedIn avec ton CV',
       'Entretien simulé IA vocal (10 minutes)',
       'Réécriture de CV avec injection de mots-clés + export PDF',
-      'Pipeline dual-IA (GPT-4o + Anthropic Claude) en parallèle',
+      'Pipeline Claude multi-passe (diagnostic Sonnet + croisement multi-source Haiku)',
     ],
     bestFor:
       'Développeurs et candidats techniques qui veulent voir leurs lacunes visualisées et un audit GitHub/LinkedIn - pas juste du matching de mots-clés.',
@@ -510,7 +510,7 @@ export const contentEn: AlternativesContent = {
     {
       question: 'Which AI models do these tools use?',
       answer:
-        'RejectCheck openly documents its dual-AI architecture: OpenAI GPT-4o for ATS simulation, CV audit, and red-flag detection, plus Anthropic Claude for technical skill radar, GitHub/LinkedIn signals, and project recommendations, run in parallel. Rezi, Jobscan, Kickresume, and Enhancv use AI for writing and scoring but do not publicly disclose which specific models power each feature.',
+        'RejectCheck runs a multi-pass Claude pipeline: a Sonnet diagnostic pass (ATS keyword/format check, CV audit, red-flag detection, technical skill radar) plus a Haiku synthesis pass that cross-references your CV, LinkedIn, and GitHub for consistency, scored against one specific job. Rezi, Jobscan, Kickresume, and Enhancv use AI for writing and scoring but do not reconcile signals across multiple sources against a single target role.',
     },
     {
       question: 'How accurate are ATS simulators in general?',
@@ -658,7 +658,7 @@ export const contentFr: AlternativesContent = {
     {
       question: 'Quels modèles IA utilisent ces outils ?',
       answer:
-        "RejectCheck documente ouvertement son architecture dual-IA : OpenAI GPT-4o pour la simulation ATS, l'audit CV, et la détection de red flags, plus Anthropic Claude pour le radar technique, les signaux GitHub/LinkedIn, et les recommandations de projets, en parallèle. Rezi, Jobscan, Kickresume, et Enhancv utilisent de l'IA pour l'écriture et le scoring mais ne documentent pas publiquement quels modèles spécifiques alimentent chaque feature.",
+        "RejectCheck repose sur un pipeline Claude multi-passe : une passe de diagnostic Sonnet (vérification mots-clés/format ATS, audit CV, détection de red flags, radar technique) plus une passe de synthèse Haiku qui croise ton CV, ton LinkedIn et ton GitHub pour vérifier la cohérence, le tout noté face à une offre précise. Rezi, Jobscan, Kickresume, et Enhancv utilisent de l'IA pour l'écriture et le scoring mais ne recoupent pas les signaux entre plusieurs sources face à un rôle cible unique.",
     },
     {
       question: "Quelle est la précision des simulateurs ATS en général ?",

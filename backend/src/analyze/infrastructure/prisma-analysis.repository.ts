@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AnalysisNotFoundException } from '../../common/exceptions';
@@ -45,6 +45,8 @@ type AnalysisRow = {
 
 @Injectable()
 export class PrismaAnalysisRepository implements AnalysisRepository {
+  private readonly logger = new Logger(PrismaAnalysisRepository.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   countByEmail(email: string): Promise<number> {
@@ -341,12 +343,20 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     email: string,
     negotiation: NegotiationAnalysis,
   ): Promise<void> {
-    await this.prisma.analysis.updateMany({
+    const res = await this.prisma.analysis.updateMany({
       where: { id, email },
       data: {
         negotiationAnalysis: negotiation as unknown as Prisma.InputJsonValue,
       },
     });
+    // Guard against silently discarded LLM spend: a 0-row update means the
+    // (id, email) pair didn't match (deleted row, wrong owner) and we just
+    // paid for a Claude call whose result is being thrown away.
+    if (res.count === 0) {
+      this.logger.error(
+        `attachNegotiation matched 0 rows (id=${id}) — negotiation result discarded, spend wasted`,
+      );
+    }
   }
 
   async attachDeepAnalysis(
@@ -354,12 +364,19 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     email: string,
     deep: DeepAnalyzeResponse,
   ): Promise<void> {
-    await this.prisma.analysis.updateMany({
+    const res = await this.prisma.analysis.updateMany({
       where: { id, email },
       data: {
         deepAnalysis: deep as unknown as Prisma.InputJsonValue,
       },
     });
+    // See attachNegotiation: a 0-row update silently drops the (expensive)
+    // deep-pass result. Surface it loudly instead of losing the spend quietly.
+    if (res.count === 0) {
+      this.logger.error(
+        `attachDeepAnalysis matched 0 rows (id=${id}) — deep result discarded, spend wasted`,
+      );
+    }
   }
 
   async findStarterRepo(id: number, email: string): Promise<unknown | null> {

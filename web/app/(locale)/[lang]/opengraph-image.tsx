@@ -37,8 +37,8 @@ export default async function OgImage({
     : 'Find out why your CV got rejected'
   const headlineAccent = isFr ? 'avant que ce soit le cas.' : 'before it does.'
   const subtitle = isFr
-    ? 'Diagnostic IA dual (GPT-4o + Claude) : simulation ATS, radar des lacunes, audit GitHub & LinkedIn, entretien simulé IA - en moins de 60 secondes.'
-    : 'Dual-AI CV diagnosis (GPT-4o + Claude): ATS simulation, skill gap radar, GitHub & LinkedIn audit, AI mock interview - in under 60 seconds.'
+    ? 'Diagnostic IA (Claude) : vérification ATS, radar des lacunes, audit GitHub & LinkedIn, croisement multi-source - en moins de 60 secondes.'
+    : 'AI CV diagnosis (Claude): ATS check, skill gap radar, GitHub & LinkedIn audit, multi-source cross-check - in under 60 seconds.'
   const langTag = isFr ? 'FR · EN' : 'EN · FR'
 
   return new ImageResponse(
@@ -152,7 +152,7 @@ export default async function OgImage({
               textTransform: 'uppercase',
             }}
           >
-            <span>GPT-4o</span>
+            <span>ATS</span>
             <span style={{ color: '#d4cfc9' }}>·</span>
             <span>Claude</span>
             <span style={{ color: '#d4cfc9' }}>·</span>

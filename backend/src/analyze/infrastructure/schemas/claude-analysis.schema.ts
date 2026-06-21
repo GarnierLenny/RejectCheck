@@ -345,15 +345,19 @@ export const SUBMIT_ANALYSIS_HOT_TOOL = {
       ats_simulation: {
         type: 'object' as const,
         description:
-          'ATS pass/fail signal. The detailed list of critical_missing_keywords is generated in the deep pass.',
+          'ESTIMATE of how an ATS keyword/format filter would score this CV against this JD — not a real ATS engine. The detailed critical_missing_keywords list is generated in the deep pass.',
         properties: {
-          would_pass: { type: 'boolean' as const },
+          would_pass: {
+            type: 'boolean' as const,
+            description:
+              'MUST equal (score >= threshold). Do not set independently — the backend recomputes it from score and threshold, so an inconsistent value here will be overwritten.',
+          },
           score: { type: 'number' as const, minimum: 0, maximum: 100 },
           threshold: { type: 'number' as const, minimum: 0, maximum: 100 },
           reason: {
             type: 'string' as const,
             description:
-              'One sentence explaining the pass/fail and the main driver. ≤ 30 words.',
+              'One sentence explaining the estimate and the main driver. ≤ 30 words.',
           },
         },
         required: ['would_pass', 'score', 'threshold', 'reason'],
@@ -717,7 +721,7 @@ export const SUBMIT_ANALYSIS_DEEP_TOOL = {
           cv_bullet: {
             type: 'string' as const,
             description:
-              'A ready-to-paste CV bullet the candidate can add once the project is done. Start with a strong past-tense verb. Include the core technologies and one concrete metric (estimated or synthetic is fine). ≤ 25 words.',
+              'A ready-to-paste CV bullet TEMPLATE the candidate adds once the project is built. Start with a strong past-tense verb, include the core technologies, and leave a clearly-marked placeholder for a REAL measured metric (e.g. "[X]% faster", "[N] users") — never fabricate a number. ≤ 25 words.',
           },
           signal_boost: {
             type: 'string' as const,

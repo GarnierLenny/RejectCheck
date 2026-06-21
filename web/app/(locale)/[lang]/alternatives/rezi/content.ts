@@ -4,7 +4,7 @@ const COMPETITORS_EN: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline:
-      'Dual-AI CV diagnosis tool - not a builder. Tells you what is wrong with the CV you already have.',
+      'AI CV diagnosis tool - not a builder. Tells you what is wrong with the CV you already have.',
     website: 'https://rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month',
@@ -15,7 +15,7 @@ const COMPETITORS_EN: Competitor[] = [
       'LinkedIn profile cross-reference with CV',
       'Voice-based AI mock interview (10 minutes, scored debrief)',
       'CV rewrite with keyword injection and PDF export',
-      'Dual-AI pipeline (GPT-4o + Anthropic Claude) run in parallel',
+      'Multi-pass Claude pipeline (Sonnet diagnostic + Haiku multi-source cross-check)',
       'Bilingual (English + French) end-to-end',
     ],
     bestFor:
@@ -159,7 +159,7 @@ const COMPETITORS_FR: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline:
-      "Outil de diagnostic de CV dual-IA - pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
+      "Outil de diagnostic de CV IA - pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
     website: 'https://rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois',
@@ -170,7 +170,7 @@ const COMPETITORS_FR: Competitor[] = [
       'Recoupement profil LinkedIn avec ton CV',
       'Entretien simulé IA vocal (10 minutes, débrief scoré)',
       'Réécriture de CV avec injection de mots-clés + export PDF',
-      'Pipeline dual-IA (GPT-4o + Anthropic Claude) en parallèle',
+      'Pipeline Claude multi-passe (diagnostic Sonnet + croisement multi-source Haiku)',
       'Bilingue (anglais + français) de bout en bout',
     ],
     bestFor:
@@ -444,7 +444,7 @@ export const contentEn: AlternativesContent = {
     {
       question: 'Which AI models does Rezi use compared to alternatives?',
       answer:
-        'Rezi uses AI for its Resume Agent, writer, and interview practice but does not publicly disclose which specific models. RejectCheck openly documents a dual-AI architecture: OpenAI GPT-4o for ATS, CV audit, and red flags, plus Anthropic Claude for technical skill radar, GitHub/LinkedIn signals, and project recommendations - run in parallel. Jobscan, Kickresume, and Enhancv also use AI but similarly do not disclose specific models per feature.',
+        'Rezi uses AI for its Resume Agent, writer, and interview practice but does not publicly disclose which specific models. RejectCheck runs a multi-pass Claude pipeline: a Sonnet diagnostic pass (ATS keyword/format check, CV audit, red flags, technical skill radar) plus a Haiku synthesis pass that cross-references CV, LinkedIn, and GitHub for consistency against one specific job. Jobscan, Kickresume, and Enhancv also use AI but do not reconcile signals across multiple sources against a single target role.',
     },
   ],
   ctaTitle: 'Try RejectCheck - free, no signup',
@@ -592,7 +592,7 @@ export const contentFr: AlternativesContent = {
     {
       question: 'Quels modèles IA utilise Rezi vs les alternatives ?',
       answer:
-        "Rezi utilise l'IA pour son Resume Agent, le writer, et la pratique d'entretien, mais ne divulgue pas publiquement les modèles spécifiques. RejectCheck documente ouvertement son architecture dual-IA : OpenAI GPT-4o pour l'ATS, l'audit CV, et les red flags, plus Anthropic Claude pour le radar technique, les signaux GitHub/LinkedIn, et les recommandations de projets - en parallèle. Jobscan, Kickresume, et Enhancv utilisent aussi de l'IA mais de même ne divulguent pas les modèles spécifiques par feature.",
+        "Rezi utilise l'IA pour son Resume Agent, le writer, et la pratique d'entretien, mais ne divulgue pas publiquement les modèles spécifiques. RejectCheck repose sur un pipeline Claude multi-passe : une passe de diagnostic Sonnet (vérification mots-clés/format ATS, audit CV, red flags, radar technique) plus une passe de synthèse Haiku qui croise CV, LinkedIn et GitHub pour la cohérence, face à une offre précise. Jobscan, Kickresume, et Enhancv utilisent aussi de l'IA mais ne recoupent pas les signaux entre plusieurs sources face à un rôle cible unique.",
     },
   ],
   ctaTitle: 'Essaie RejectCheck - gratuit, sans inscription',

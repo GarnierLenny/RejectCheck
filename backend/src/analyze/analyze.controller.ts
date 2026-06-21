@@ -134,11 +134,13 @@ export class AnalyzeController {
   ) {}
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
-  // Tight IP-based rate limit on top of the per-email/per-IP quota policy: at
-  // ~$0.036 per analyze (hot + deep + negotiation Claude calls combined), an
-  // unthrottled retry loop could burn cash quickly. 10 reqs / 5 min leaves
-  // headroom for legitimate iteration (re-uploading after CV edits) while
-  // capping worst-case spend at ~$5/hour/IP.
+  // Tight IP-based rate limit on top of the per-email/per-IP quota policy.
+  // Real per-analysis Claude cost is ~$0.15-0.40 for a registered hot+deep run
+  // (two Sonnet calls) and ~$0.12-0.15 for an anonymous HOT-only run — i.e.
+  // roughly 10x the old "~$0.036" estimate this comment used to cite. With
+  // input now token-capped (MAX_MODEL_INPUT_CHARS) the worst case is bounded;
+  // 10 reqs / 5 min still leaves headroom for legitimate re-uploads after CV
+  // edits while capping worst-case spend at roughly $15-20/hour/IP.
   @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
   @UseGuards(OptionalSupabaseGuard)
   @Post()

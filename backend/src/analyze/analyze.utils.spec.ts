@@ -11,14 +11,21 @@ describe('validateJobDescription', () => {
   });
 
   it('returns invalid for empty input', () => {
-    expect(validateJobDescription('')).toEqual({
+    const tooShort = {
       valid: false,
-      reason: 'Job description too short',
-    });
-    expect(validateJobDescription('   ')).toEqual({
-      valid: false,
-      reason: 'Job description too short',
-    });
+      reason:
+        'Job description too short — paste the full job posting so the analysis has enough to work with.',
+    };
+    expect(validateJobDescription('')).toEqual(tooShort);
+    expect(validateJobDescription('   ')).toEqual(tooShort);
+  });
+
+  it('returns invalid for a too-short (non-empty) job description', () => {
+    const result = validateJobDescription('Dev job, React.');
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.reason).toContain('too short');
+    }
   });
 
   it('blocks prompt injection patterns', () => {

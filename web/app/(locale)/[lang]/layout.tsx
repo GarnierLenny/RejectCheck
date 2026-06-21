@@ -54,7 +54,7 @@ export async function generateMetadata({
     : 'RejectCheck - Comprends pourquoi ton CV a été rejeté'
 
   const description = isEn
-    ? 'AI ATS + resume checker for engineering roles, works for any job. Dual-AI scores ATS, skill gaps, GitHub & LinkedIn in 60 seconds. Free.'
+    ? 'AI ATS + resume checker for engineering roles, works for any job. Scores ATS fit, skill gaps, GitHub & LinkedIn in 60 seconds. Free.'
     : 'Diagnostic IA de CV optimisé pour développeurs, fonctionne pour tous métiers. Score ATS, lacunes, audit GitHub & LinkedIn en 60s. Gratuit.'
 
   const ogLocale = isEn ? 'en_US' : 'fr_FR'

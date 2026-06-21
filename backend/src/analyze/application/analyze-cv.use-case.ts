@@ -49,6 +49,21 @@ import { CREDIT_COSTS, decideQuota, startOfMonthUTC } from '../domain/quota.poli
 const MAX_TEXT_CHARS = 12000;
 
 /**
+ * Below this many characters of extracted CV text, the upload is almost
+ * certainly an image-only / scanned / corrupt PDF rather than a real CV.
+ * See the minimum-evidence gate in execute().
+ */
+const MIN_CV_TEXT_CHARS = 200;
+
+/**
+ * Upper bound (chars) on each free-text source actually sent to the model
+ * (CV, LinkedIn, GitHub snapshot). ~16k chars ≈ 4k tokens — comfortably fits
+ * any real CV/profile while capping the cost of oversized/abusive uploads,
+ * which the hot+deep path would otherwise send to Claude twice, uncapped.
+ */
+const MAX_MODEL_INPUT_CHARS = 16000;
+
+/**
  * Maps the use-case's legacy 3-value plan ('rejected' = no active sub,
  * 'shortlisted', 'hired') into the new quota policy's `Plan` type, where
  * 'rejected' becomes 'free'.
@@ -187,6 +202,16 @@ export class AnalyzeCvUseCase {
       ]);
     timings.parse_inputs_ms = Date.now() - parseStart;
 
+    // Minimum-evidence gate: a real CV yields hundreds of chars of extracted
+    // text. Near-empty output means an image-only / scanned / corrupt PDF — we
+    // refuse rather than force the model (tool_choice) to emit a confident
+    // score + ATS verdict + red flags on no input. Also saves the LLM spend.
+    if (cvText.trim().length < MIN_CV_TEXT_CHARS) {
+      throw new BadRequestException(
+        "We couldn't read enough text from your CV. It may be an image or scanned PDF — please upload a text-based PDF.",
+      );
+    }
+
     const githubInfo = githubSnapshot
       ? JSON.stringify(githubSnapshot, null, 2)
       : '';
@@ -233,11 +258,17 @@ export class AnalyzeCvUseCase {
     }
     timings.digest_ms = Date.now() - digestStart;
 
+    // Cap the text actually SENT to the model (the full text is still parsed,
+    // persisted and shown to the user). The hot/deep path never sliced cvText/
+    // linkedinText, so an oversized PDF (e.g. a 30-page LinkedIn export) would
+    // inflate input cost unbounded — sent twice (hot + deep). These caps are
+    // generous for any real CV/LinkedIn yet bound the worst case. jobText is
+    // already sliced to 8000 above; motivationLetterText to MAX_TEXT_CHARS.
     const claudeInput = {
       jobText,
-      cvText,
-      githubInfo,
-      linkedinText,
+      cvText: cvText.slice(0, MAX_MODEL_INPUT_CHARS),
+      githubInfo: githubInfo.slice(0, MAX_MODEL_INPUT_CHARS),
+      linkedinText: linkedinText.slice(0, MAX_MODEL_INPUT_CHARS),
       motivationLetterText,
       challengeStats: challengeSummary,
       locale: cmd.locale,
@@ -274,17 +305,22 @@ export class AnalyzeCvUseCase {
       }
     };
 
-    // ANALYSIS_SPLIT_V2 (registered users only): run the HOT pass first so the
-    // free diagnostic streams ~2-3x sooner, persist + deliver analysis_done,
-    // THEN run the DEEP pass below and emit deep_done. A deep failure can no
-    // longer kill the analysis. Anonymous + flag-off keep the single pass.
-    const splitV2 =
-      this.config.get<string>('ANALYSIS_SPLIT_V2') === 'true' &&
-      !!cmd.email &&
-      cmd.isRegistered;
+    // Hot/deep split:
+    //  - Registered + flag on  → HOT now (streamed), DEEP enqueued below so the
+    //    free diagnostic lands ~2-3x sooner and a deep failure can't kill it.
+    //  - Anonymous (any flag)  → HOT only. The deep (fixes / project / ATS
+    //    keyword list) unlocks at signup. This halves the COGS on the
+    //    unauthenticated, IP-only path — the most abusable surface — and the
+    //    frontend renders the absent deep fields as the existing "locked"
+    //    unlock CTA (deepPending=false → deepStatus "locked").
+    //  - Registered + flag off → legacy single pass (full result inline).
+    const splitFlag = this.config.get<string>('ANALYSIS_SPLIT_V2') === 'true';
+    const isAnonymous = !cmd.email || !cmd.isRegistered;
+    const useHotPass = splitFlag || isAnonymous;
+    const willEnqueueDeep = splitFlag && !isAnonymous;
 
     let result: AnalyzeResponse;
-    if (splitV2) {
+    if (useHotPass) {
       const hot = await this.claude.analyzeApplicationHot({
         ...claudeInput,
         onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
@@ -317,15 +353,14 @@ export class AnalyzeCvUseCase {
       await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'analyze', amount: CREDIT_COSTS.analyze });
     }
 
-    // ANALYSIS_SPLIT_V2: deliver the HOT diagnostic immediately, then auto-
-    // generate the DEEP pass (fixes/project/ATS/highlights). The deep is
-    // ENQUEUED (async, not inline) so it never holds the SSE idle for ~3 min —
-    // the frontend shows "pending" (deepPending) and polls GET :id for the
-    // merged result. (The on-demand path — POST :id/generate-deep — stays wired
-    // for a future credit-gated/paid model; here we auto-run it for everyone.)
-    emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText, deepPending: splitV2 });
+    // Deliver the HOT diagnostic immediately. For registered users the DEEP
+    // pass (fixes/project/ATS/highlights) is ENQUEUED (async, not inline) so it
+    // never holds the SSE idle for ~3 min — the frontend shows "pending"
+    // (deepPending) and polls GET :id for the merged result. Anonymous users
+    // get deepPending=false, which the frontend renders as the unlock CTA.
+    emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText, deepPending: willEnqueueDeep });
 
-    if (splitV2 && cmd.email && analysisId !== null) {
+    if (willEnqueueDeep && cmd.email && analysisId !== null) {
       await this.llmJobs.enqueueDeep({
         analysisId,
         email: cmd.email,
@@ -333,16 +368,12 @@ export class AnalyzeCvUseCase {
       });
     }
 
-    // Negotiation pass for hired users — still async via BullMQ or setImmediate.
-    if (cmd.email && cmd.isRegistered && analysisId !== null) {
-      if (subscriptionState.plan === 'hired') {
-        await this.llmJobs.enqueueNegotiation({
-          analysisId,
-          email: cmd.email,
-          locale: cmd.locale ?? 'en',
-        });
-      }
-    }
+    // Negotiation is now ON-DEMAND (generated when a hired user opens the
+    // Negotiation tab → POST :id/negotiation, which is cache-or-generate). We
+    // no longer auto-run a Sonnet negotiation pass on EVERY hired analysis:
+    // at the real per-analysis cost it pushed the Hired tier to breakeven/
+    // negative at the cap, and most analyses never have their negotiation
+    // viewed. See GenerateNegotiationUseCase.
 
     const totalMs = Date.now() - executeStartedAt;
     this.logger.log(

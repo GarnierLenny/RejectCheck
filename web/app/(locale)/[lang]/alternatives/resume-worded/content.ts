@@ -4,7 +4,7 @@ const COMPETITORS_EN: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline:
-      'Dual-AI CV diagnosis with skill gap radar, GitHub commit audit, LinkedIn cross-reference, and voice-based AI mock interview.',
+      'AI CV diagnosis with skill gap radar, GitHub commit audit, and LinkedIn cross-reference against one specific job.',
     website: 'https://rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
     paidEntry: '€7.99 / month (transparent pricing, published publicly)',
@@ -15,7 +15,7 @@ const COMPETITORS_EN: Competitor[] = [
       'LinkedIn profile cross-reference with CV - detects inconsistencies',
       'Voice-based AI mock interview (10 minutes, scored debrief)',
       'CV rewrite with keyword injection and PDF export',
-      'Dual-AI pipeline (GPT-4o + Anthropic Claude) run in parallel',
+      'Multi-pass Claude pipeline (Sonnet diagnostic + Haiku multi-source cross-check)',
       'Bilingual (English + French) end-to-end',
     ],
     bestFor:
@@ -290,7 +290,7 @@ export const contentEn: AlternativesContent = {
     {
       question: 'Which AI models does Resume Worded use compared to alternatives?',
       answer:
-        'Resume Worded does not publicly disclose which AI models power its reviews. RejectCheck openly documents a dual-AI architecture: OpenAI GPT-4o for ATS simulation, CV audit, and red flags, plus Anthropic Claude for technical skill radar, GitHub/LinkedIn signal analysis, and project recommendations, run in parallel. Jobscan, Rezi, Kickresume, and Enhancv use AI but similarly do not disclose specific models per feature.',
+        'Resume Worded does not publicly disclose which AI models power its reviews. RejectCheck runs a multi-pass Claude pipeline: a Sonnet diagnostic pass (ATS keyword/format check, CV audit, red flags, technical skill radar) plus a Haiku synthesis pass that cross-references CV, LinkedIn, and GitHub signals for consistency against one specific job. Jobscan, Rezi, Kickresume, and Enhancv use AI but do not reconcile signals across multiple sources against a single target role.',
     },
   ],
   ctaTitle: 'Try RejectCheck - free, no signup, transparent pricing',
@@ -308,7 +308,7 @@ const COMPETITORS_FR: Competitor[] = [
   {
     name: 'RejectCheck',
     tagline:
-      'Diagnostic de CV dual-IA avec radar des lacunes, audit commits GitHub, recoupement LinkedIn, et entretien simulé IA vocal.',
+      'Diagnostic de CV IA avec radar des lacunes, audit commits GitHub, et recoupement LinkedIn face à une offre précise.',
     website: 'https://rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
     paidEntry: '7,99 € / mois (prix transparent, publié publiquement)',
@@ -319,7 +319,7 @@ const COMPETITORS_FR: Competitor[] = [
       'Recoupement profil LinkedIn avec CV - détecte les incohérences',
       'Entretien simulé IA vocal (10 minutes, débrief scoré)',
       'Réécriture de CV avec injection de mots-clés + export PDF',
-      'Pipeline dual-IA (GPT-4o + Anthropic Claude) en parallèle',
+      'Pipeline Claude multi-passe (diagnostic Sonnet + croisement multi-source Haiku)',
       'Bilingue (anglais + français) de bout en bout',
     ],
     bestFor:
@@ -594,7 +594,7 @@ export const contentFr: AlternativesContent = {
     {
       question: "Quels modèles IA utilise Resume Worded vs les alternatives ?",
       answer:
-        "Resume Worded ne divulgue pas publiquement les modèles IA qui alimentent ses revues. RejectCheck documente ouvertement son architecture dual-IA : OpenAI GPT-4o pour l'ATS, l'audit CV, et les red flags, plus Anthropic Claude pour le radar technique, l'analyse des signaux GitHub/LinkedIn, et les recommandations de projets, en parallèle. Jobscan, Rezi, Kickresume, et Enhancv utilisent de l'IA mais de même ne divulguent pas les modèles spécifiques par feature.",
+        "Resume Worded ne divulgue pas publiquement les modèles IA qui alimentent ses revues. RejectCheck repose sur un pipeline Claude multi-passe : une passe de diagnostic Sonnet (vérification mots-clés/format ATS, audit CV, red flags, radar technique) plus une passe de synthèse Haiku qui croise les signaux CV, LinkedIn et GitHub pour la cohérence, face à une offre précise. Jobscan, Rezi, Kickresume, et Enhancv utilisent de l'IA mais ne recoupent pas les signaux entre plusieurs sources face à un rôle cible unique.",
     },
   ],
   ctaTitle: 'Essaie RejectCheck - gratuit, sans inscription, prix transparent',

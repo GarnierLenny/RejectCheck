@@ -85,7 +85,7 @@ export default async function OgImage() {
               marginTop: 20,
             }}
           >
-            Dual-AI CV diagnosis: ATS simulation, skill gap radar, GitHub & LinkedIn audit, AI mock interview - in under 60 seconds.
+            AI CV diagnosis: ATS check, skill gap radar, GitHub & LinkedIn audit, multi-source cross-check - in under 60 seconds.
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export default async function OgImage() {
               textTransform: 'uppercase',
             }}
           >
-            <span>GPT-4o</span>
+            <span>ATS</span>
             <span style={{ color: '#d4cfc9' }}>·</span>
             <span>Claude</span>
             <span style={{ color: '#d4cfc9' }}>·</span>
