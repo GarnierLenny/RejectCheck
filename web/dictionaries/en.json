@@ -67,9 +67,9 @@
       "coverCta": "Generate my cover letter",
       "coverPremiumNote": "Full letter generated with Premium, tailored per company and role",
       "bridgePremiumNote": "Full project roadmap, actionable steps & recruiter tip unlocked with Premium",
-      "platformLabel": "All-in-one platform",
-      "platformTitle": "Six tools. One subscription.",
-      "platformSubtitle": "Everything you need to go from rejected to hired: CV, LinkedIn, GitHub, job tracker, cover letter, and mock interviews.",
+      "platformLabel": "One verdict",
+      "platformTitle": "Why you'd be rejected. Before you apply.",
+      "platformSubtitle": "One read of your CV against the exact job — the gaps a recruiter would catch in six seconds, scored before you hit send.",
       "founderLabel": "Co-Founder",
       "cancelAnytime": "Cancel anytime",
       "hiredRefund": "Hired? We refund your last month. No form. Just tell us."
@@ -351,10 +351,10 @@
     },
     "s01": {
       "smallLabel": "The promise",
-      "h1Part1": "Know",
-      "h1Italic": "why.",
-      "h1Part2": "Before they",
-      "h1Faded": "don't say.",
+      "h1Part1": "Find out why your CV",
+      "h1Italic": "got rejected",
+      "h1Part2": "",
+      "h1Faded": "before it does.",
       "subtitle": "You send 80 applications. 78 disappear into silence. RejectCheck reads your CV the way a recruiter would — and tells you, before you apply, exactly what would have killed it.",
       "stat1Value": "60 seconds",
       "stat1Label": "per analysis",
@@ -471,7 +471,7 @@
       "coFounders": "Co-Founders"
     },
     "footerBrand": {
-      "tagline": "The CV coach that tells you why you'd be rejected, before you apply. Built for developers, useful for any role."
+      "tagline": "Tells you why you'd be rejected — before you apply. Built for developers, works for any role."
     },
     "whatsNew": {
       "badge": "More from RejectCheck",
@@ -759,7 +759,7 @@
     "getAccess": "Get More Credits",
     "backToAnalyzer": "Back to Analyzer",
     "freeCapTitle": "You've used your free analyses this month",
-    "freeCapSubtitle": "Upgrade for 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), or buy one-time credits that never expire.",
+    "freeCapSubtitle": "Upgrade for 15 or 30 full analyses per month, or buy extra runs that never expire.",
     "subscriberCapTitle": "Monthly cap reached",
     "subscriberCapSubtitle": "Buy one-time credits to keep going — they never expire and your monthly allowance resets on the 1st.",
     "buyCredits": "Buy credits",
@@ -792,7 +792,7 @@
     "credits": "credits",
     "popular": "Popular",
     "upgradeTitle": "Switch to Shortlisted or Hired",
-    "upgradeSub": "1,500 or 3,000 credits/month · extras on demand",
+    "upgradeSub": "15 or 30 full analyses / month · extras on demand",
     "upgradeCta": "See plans →",
     "paymentNote": "One-time payment · Stripe",
     "close": "Close"
@@ -1146,7 +1146,7 @@
         "period": "/forever",
         "description": "Perfect for a first reality check.",
         "features": [
-          "300 credits (= 3× JD analysis or 6× CV audit)",
+          "3 full analyses to start",
           "ATS simulation",
           "Seniority gap audit",
           "CV tone analysis",
@@ -1165,8 +1165,8 @@
         "description": "For serious candidates who iterate until they win.",
         "features": [
           "Everything in Free",
-          "1,500 credits/month (≈ 15 JD analyses or 30 CV audits)",
-          "Buy extra credits anytime — they never expire",
+          "15 full analyses / month",
+          "Buy extra analyses anytime — never expires",
           "Score Evolution Tracker",
           "Analysis history",
           "CV Rewrite Mode",
@@ -1180,8 +1180,8 @@
         "description": "Maximum firepower. We guarantee your success.",
         "features": [
           "Everything in SHORTLISTED",
-          "3,000 credits/month (≈ 30 JD analyses or 60 CV audits)",
-          "Buy extra credits anytime — they never expire",
+          "30 full analyses / month",
+          "Buy extra analyses anytime — never expires",
           "RejectCheck Roadmaps (coming soon)",
           "Cover Letter Generator",
           "Negotiation Playbook (counter-offer email + leverage points)",
@@ -1807,7 +1807,7 @@
       },
       {
         "question": "Is RejectCheck free?",
-        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock 1,500 or 3,000 credits/month (≈ 15–30 JD analyses or 30–60 CV audits), CV rewrite, and extra credits you can buy anytime that never expire."
+        "answer": "Yes. The Free plan is free forever: 1 deep analysis (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, red-flag detection, and CV score. Premium plans (€7.99 or €11.99 per month) unlock 15 or 30 full analyses per month, CV rewrite, and extra runs you can buy anytime that never expire."
       },
       {
         "question": "Does RejectCheck audit my GitHub and LinkedIn profiles?",

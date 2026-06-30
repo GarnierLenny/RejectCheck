@@ -67,9 +67,9 @@
       "coverCta": "Générer ma lettre de motivation",
       "coverPremiumNote": "Lettre complète générée avec Premium, adaptée par entreprise et poste",
       "bridgePremiumNote": "Feuille de route complète, étapes actionnables et conseil recruteur avec Premium",
-      "platformLabel": "Plateforme tout-en-un",
-      "platformTitle": "Six outils. Un seul abonnement.",
-      "platformSubtitle": "Tout ce qu'il faut pour passer de candidat ignoré à embauché : CV, LinkedIn, GitHub, suivi des candidatures, lettre de motivation et entretiens simulés.",
+      "platformLabel": "Un seul verdict",
+      "platformTitle": "Pourquoi vous seriez rejeté. Avant de postuler.",
+      "platformSubtitle": "Une seule lecture de votre CV face à l'offre exacte — les failles qu'un recruteur repère en six secondes, scorées avant que vous n'envoyiez.",
       "founderLabel": "Co-Fondateur",
       "cancelAnytime": "Résiliation possible à tout moment",
       "hiredRefund": "Embauché ? On rembourse ton dernier mois. Sans formulaire. Dis-le nous."
@@ -351,10 +351,10 @@
     },
     "s01": {
       "smallLabel": "La promesse",
-      "h1Part1": "Savoir",
-      "h1Italic": "pourquoi.",
-      "h1Part2": "Avant qu'ils ne",
-      "h1Faded": "disent rien.",
+      "h1Part1": "Découvrez pourquoi votre CV a été",
+      "h1Italic": "rejeté",
+      "h1Part2": "",
+      "h1Faded": "avant que ce soit le cas.",
       "subtitle": "Vous envoyez 80 candidatures. 78 disparaissent dans le silence. RejectCheck lit votre CV comme un recruteur le lirait — et vous dit, avant de postuler, exactement ce qui l'aurait tué.",
       "stat1Value": "60 secondes",
       "stat1Label": "par analyse",
@@ -471,7 +471,7 @@
       "coFounders": "Co-Fondateurs"
     },
     "footerBrand": {
-      "tagline": "Le coach CV qui vous dit pourquoi vous seriez rejeté, avant de postuler. Conçu pour les devs, utile pour tous les métiers."
+      "tagline": "Vous dit pourquoi vous seriez rejeté — avant de postuler. Conçu pour les devs, marche pour tous les métiers."
     },
     "whatsNew": {
       "badge": "Plus dans RejectCheck",
@@ -759,7 +759,7 @@
     "getAccess": "Obtenir plus de crédits",
     "backToAnalyzer": "Retour à l'analyseur",
     "freeCapTitle": "Vous avez utilisé vos analyses gratuites ce mois-ci",
-    "freeCapSubtitle": "Passez à 1 500 ou 3 000 crédits/mois (≈ 15–30 analyses JD ou 30–60 audits CV), ou achetez des crédits à l'unité qui n'expirent jamais.",
+    "freeCapSubtitle": "Passez à 15 ou 30 analyses complètes par mois, ou achetez des analyses supplémentaires qui n'expirent jamais.",
     "subscriberCapTitle": "Plafond mensuel atteint",
     "subscriberCapSubtitle": "Achetez des crédits à l'unité pour continuer — ils n'expirent jamais et votre quota mensuel se réinitialise le 1er.",
     "buyCredits": "Acheter des crédits",
@@ -792,7 +792,7 @@
     "credits": "crédits",
     "popular": "Populaire",
     "upgradeTitle": "Passer au plan Shortlisted ou Hired",
-    "upgradeSub": "1 500 ou 3 000 crédits/mois · extras à la demande",
+    "upgradeSub": "15 ou 30 analyses complètes / mois · extras à la demande",
     "upgradeCta": "Voir les plans →",
     "paymentNote": "Paiement unique · Stripe",
     "close": "Fermer"
@@ -1146,7 +1146,7 @@
         "period": "/à vie",
         "description": "Parfait pour un premier bilan de réalité.",
         "features": [
-          "300 crédits (= 3× analyse JD ou 6× audit CV)",
+          "3 analyses complètes pour démarrer",
           "Simulation ATS",
           "Audit d'écart de séniorité",
           "Analyse du ton du CV",
@@ -1165,8 +1165,8 @@
         "description": "Pour les candidats sérieux qui itèrent jusqu'à la victoire.",
         "features": [
           "Tout dans Gratuit",
-          "1 500 crédits/mois (≈ 15 analyses JD ou 30 audits CV)",
-          "Crédits supplémentaires à l'unité — sans expiration",
+          "15 analyses complètes / mois",
+          "Analyses supplémentaires à tout moment — sans expiration",
           "Suivi d'évolution du score",
           "Historique des analyses",
           "Mode Réécriture CV",
@@ -1180,8 +1180,8 @@
         "description": "Puissance maximale. Nous garantissons votre succès.",
         "features": [
           "Tout dans PRÉSÉLECTIONNÉ",
-          "3 000 crédits/mois (≈ 30 analyses JD ou 60 audits CV)",
-          "Crédits supplémentaires à l'unité — sans expiration",
+          "30 analyses complètes / mois",
+          "Analyses supplémentaires à tout moment — sans expiration",
           "Score de fit via URL (bientôt)",
           "Roadmaps RejectCheck (bientôt)",
           "Générateur de lettre de motivation",
@@ -1808,7 +1808,7 @@
       },
       {
         "question": "RejectCheck est-il gratuit ?",
-        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent 1 500 ou 3 000 crédits/mois (≈ 15–30 analyses JD ou 30–60 audits CV), la réécriture de CV, et des crédits à l'unité achetables à tout moment qui n'expirent jamais."
+        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent 15 ou 30 analyses complètes par mois, la réécriture de CV, et des analyses supplémentaires achetables à tout moment qui n'expirent jamais."
       },
       {
         "question": "RejectCheck audite-t-il mes profils GitHub et LinkedIn ?",
