@@ -93,7 +93,7 @@ const COMPETITORS_EN: Competitor[] = [
     tagline: 'AI CV diagnosis with skill gap radar and GitHub/LinkedIn audit.',
     website: 'https://rejectcheck.com',
     freeTier: '1 full analysis (guest) or 3 (registered, free)',
-    paidEntry: '€7.99 / month',
+    paidEntry: '€19.99 / month',
     topFeatures: [
       'ATS simulation against exact job description',
       'Technical skill gap radar chart',
@@ -240,7 +240,7 @@ const COMPETITORS_FR: Competitor[] = [
     tagline: 'Diagnostic de CV IA avec radar des lacunes et audit GitHub/LinkedIn.',
     website: 'https://rejectcheck.com',
     freeTier: '1 analyse complète (invité) ou 3 (enregistré, gratuit)',
-    paidEntry: '7,99 € / mois',
+    paidEntry: '19,99 € / mois',
     topFeatures: [
       "Simulation ATS contre l'offre exacte",
       'Radar des lacunes techniques',
@@ -399,7 +399,7 @@ export const contentEn: AlternativesContent = {
   whyReasons: [
     {
       title: 'Price on the higher end of the category',
-      text: "Jobscan's monthly tier sits at the top of the resume-scanner market. Alternatives like Rezi ($29/mo or $149 lifetime), Kickresume (€8/mo annual), and RejectCheck (€7.99/mo) cover the same ATS-scan use case for meaningfully less per month.",
+      text: "Jobscan's monthly tier sits at the top of the resume-scanner market. Alternatives like Rezi ($29/mo or $149 lifetime), Kickresume (€8/mo annual), and RejectCheck (€19.99/mo) cover the same ATS-scan use case at a more accessible monthly price — and RejectCheck adds a multi-pass Claude pipeline with GitHub/LinkedIn cross-check on top.",
     },
     {
       title: 'Keyword matching only - no deeper portfolio signals',
@@ -547,7 +547,7 @@ export const contentFr: AlternativesContent = {
   whyReasons: [
     {
       title: 'Prix dans le haut de la catégorie',
-      text: "Le tier mensuel de Jobscan est au sommet du marché des scanners de CV. Des alternatives comme Rezi (29 $/mois ou 149 $ à vie), Kickresume (8 €/mois annuel), et RejectCheck (7,99 €/mois) couvrent le même cas d'usage ATS pour significativement moins par mois.",
+      text: "Le tier mensuel de Jobscan est au sommet du marché des scanners de CV. Des alternatives comme Rezi (29 $/mois ou 149 $ à vie), Kickresume (8 €/mois annuel), et RejectCheck (19,99 €/mois) couvrent le même cas d'usage ATS à un tarif mensuel plus accessible — et RejectCheck ajoute en plus un pipeline Claude multi-passe avec croisement GitHub/LinkedIn.",
     },
     {
       title: 'Matching de mots-clés uniquement - pas de signaux portfolio',

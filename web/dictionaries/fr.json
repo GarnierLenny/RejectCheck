@@ -338,7 +338,7 @@
         },
         {
           "label": "La garantie Hired est réelle",
-          "claim": "Si tu souscris Hired (11,99 €/mois) et décroches un job pendant un mois facturé actif, on rembourse ce mois sur réception d'une lettre d'offre acceptée. C'est une clause contractuelle, pas du marketing.",
+          "claim": "Si tu souscris Hired (39,99 €/mois) et décroches un job pendant un mois facturé actif, on rembourse ce mois sur réception d'une lettre d'offre acceptée. C'est une clause contractuelle, pas du marketing.",
           "source": "Politique de remboursement documentée dans la FAQ Tarifs",
           "sourceLinks": [
             {
@@ -448,7 +448,7 @@
         },
         {
           "feat": "Tarif",
-          "sub": "Ce que vous payez pour le plan illimité."
+          "sub": "Analyse premium, facturée au mois. Résiliable à tout moment."
         }
       ]
     },
@@ -903,7 +903,7 @@
     "premiumBadge": "Fonctionnalité HIRED",
     "premiumTitle": "Playbook de négociation",
     "premiumDesc": "Email de contre-proposition, leviers, phrases clés — construits à partir de ton analyse.",
-    "unlockButton": "Passer à HIRED - 11,99€/mois",
+    "unlockButton": "Passer à HIRED - 39,99€/mois",
     "salaryImpactBadge": "+{glyph}{min}-{max}k/an"
   },
   "roadmapSalaryImpact": {
@@ -926,7 +926,7 @@
     "premiumBadge": "Fonctionnalité HIRED",
     "premiumTitle": "Générateur de lettre de motivation",
     "premiumDesc": "Analyse vos points forts et lacunes pour rédiger une lettre qui répond directement aux exigences du poste.",
-    "unlockButton": "Passer à HIRED - 11,99€/mois"
+    "unlockButton": "Passer à HIRED - 39,99€/mois"
   },
   "analyzeNav": {
     "pricing": "Tarifs →",
@@ -1206,7 +1206,7 @@
       "items": [
         {
           "question": "Puis-je annuler mon abonnement RejectCheck à tout moment ?",
-          "answer": "Oui. Tu peux annuler ton abonnement Shortlisted (7,99 €/mois) ou Hired (11,99 €/mois) à tout moment depuis la page paramètres du compte. Tu gardes l'accès complet jusqu'à la fin du mois déjà facturé - aucun prorata."
+          "answer": "Oui. Tu peux annuler ton abonnement Shortlisted (19,99 €/mois) ou Hired (39,99 €/mois) à tout moment depuis la page paramètres du compte. Tu gardes l'accès complet jusqu'à la fin du mois déjà facturé - aucun prorata."
         },
         {
           "question": "Y a-t-il un essai gratuit ou un tier gratuit ?",
@@ -1225,8 +1225,8 @@
           "answer": "Oui. Tu peux upgrader de Shortlisted vers Hired ou downgrader à tout moment depuis la page compte. Les upgrades sont facturés au prorata immédiatement ; les downgrades prennent effet à la fin du mois courant."
         },
         {
-          "question": "Comment RejectCheck se compare en prix à Jobscan, Rezi, et les autres ?",
-          "answer": "Shortlisted à 7,99 €/mois est en dessous de Rezi (29 $/mois), du tier mensuel Jobscan, et du Pro trimestriel d'Enhancv. Seul le tier annuel de Kickresume (équivalent 8 €/mois) est au même prix. RejectCheck est la seule option dans cette gamme de prix avec un pipeline Claude multi-passe (Sonnet + Haiku) et un croisement GitHub/LinkedIn complet."
+          "question": "Comment RejectCheck se compare à Jobscan, Rezi, et les autres ?",
+          "answer": "À 19,99 €/mois, Shortlisted se situe dans la même gamme que des outils comme Rezi (29 $/mois), Jobscan ou Enhancv — sans en être le plus cher. Ce qui distingue RejectCheck, ce n'est pas le prix : c'est la profondeur. Vous obtenez un pipeline Claude multi-passe (Sonnet + Haiku) avec un croisement GitHub/LinkedIn complet, le type d'analyse que les autres ne font à aucun palier. Vous payez l'analyse, pas la marque."
         }
       ]
     }
@@ -1808,7 +1808,7 @@
       },
       {
         "question": "RejectCheck est-il gratuit ?",
-        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (7,99 € ou 11,99 € par mois) débloquent 15 ou 30 analyses complètes par mois, la réécriture de CV, et des analyses supplémentaires achetables à tout moment qui n'expirent jamais."
+        "answer": "Oui. Le plan Gratuit est gratuit à vie : 1 analyse approfondie (sans compte) ou 3 analyses pour les utilisateurs enregistrés, avec simulation ATS, audit ton, détection de red flags, et score du CV. Les plans premium (19,99 € ou 39,99 € par mois) débloquent 15 ou 30 analyses complètes par mois, la réécriture de CV, et des analyses supplémentaires achetables à tout moment qui n'expirent jamais."
       },
       {
         "question": "RejectCheck audite-t-il mes profils GitHub et LinkedIn ?",

@@ -111,7 +111,7 @@ function CreditsContent() {
                 <span className="font-mono text-[11px] text-rc-hint">{quota?.monthlyCap ?? 300} crédits / mois</span>
                 {!isHired && (
                   <Link href={localePath("/pricing")} className="font-mono text-[11px] text-rc-hint hover:text-rc-text no-underline transition-colors">
-                    Jusqu'à 3 000 crédits/mois dès 7,99 €
+                    Jusqu'à 3 000 crédits/mois dès 19,99 €
                   </Link>
                 )}
               </div>
@@ -179,7 +179,7 @@ function CreditsContent() {
                 </div>
                 <div className="flex flex-col items-end gap-3 flex-shrink-0">
                   <div className="text-right">
-                    <span className="font-serif text-[36px] font-medium leading-none text-rc-text">7,99 €</span>
+                    <span className="font-serif text-[36px] font-medium leading-none text-rc-text">19,99 €</span>
                     <p className="font-mono text-[11px] text-rc-hint mt-0.5">/ mois</p>
                   </div>
                   <Link

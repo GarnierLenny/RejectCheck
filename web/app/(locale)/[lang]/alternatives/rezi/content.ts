@@ -7,7 +7,7 @@ const COMPETITORS_EN: Competitor[] = [
       'AI CV diagnosis tool - not a builder. Tells you what is wrong with the CV you already have.',
     website: 'https://rejectcheck.com',
     freeTier: '1 full diagnosis (guest) or 3 (registered, free) - no signup required for first run',
-    paidEntry: '€7.99 / month',
+    paidEntry: '€19.99 / month',
     topFeatures: [
       'ATS simulation against exact job description',
       'Technical skill gap radar chart (visual, not just a keyword list)',
@@ -162,7 +162,7 @@ const COMPETITORS_FR: Competitor[] = [
       "Outil de diagnostic de CV IA - pas un builder. Te dit ce qui ne va pas dans le CV que tu as déjà.",
     website: 'https://rejectcheck.com',
     freeTier: "1 diagnostic complet (invité) ou 3 (enregistré, gratuit) - pas d'inscription requise au premier essai",
-    paidEntry: '7,99 € / mois',
+    paidEntry: '19,99 € / mois',
     topFeatures: [
       "Simulation ATS face à l'offre exacte",
       'Radar des lacunes techniques (visuel, pas juste une liste de mots-clés)',
@@ -419,7 +419,7 @@ export const contentEn: AlternativesContent = {
     {
       question: "Is Rezi's $149 lifetime plan actually worth it?",
       answer:
-        'If you expect to update your resume 5+ times over 1-2 years, the $149 lifetime is cheaper than 6 months of the $29/month Pro tier. For anyone who updates their resume only once or twice per year, a monthly ATS-check tool like RejectCheck (€7.99/month, cancel anytime) is cheaper on a per-use basis. Rezi is also only worth it if you use the builder itself - the Rezi Score alone can be obtained elsewhere.',
+        'If you expect to update your resume 5+ times over 1-2 years, the $149 lifetime is cheaper than 6 months of the $29/month Pro tier. For anyone who updates their resume only once or twice per year, a monthly ATS-check tool like RejectCheck (€19.99/month, cancel anytime) is better value on a per-use basis — and you get a full diagnosis with GitHub/LinkedIn cross-check rather than a builder you may not need. Rezi is only worth it if you use the builder itself; the Rezi Score alone can be obtained elsewhere.',
     },
     {
       question: 'What does RejectCheck do that Rezi does not?',
@@ -567,7 +567,7 @@ export const contentFr: AlternativesContent = {
     {
       question: "Le plan à vie de Rezi à 149 $ vaut-il vraiment le coup ?",
       answer:
-        "Si tu t'attends à mettre à jour ton CV 5+ fois sur 1-2 ans, le 149 $ à vie est moins cher que 6 mois du tier Pro à 29 $/mois. Pour ceux qui mettent leur CV à jour seulement 1-2 fois par an, un outil de check ATS mensuel comme RejectCheck (7,99 €/mois, résiliable à tout moment) est moins cher à l'usage. Rezi n'est aussi intéressant que si tu utilises le builder lui-même - le Rezi Score seul peut être obtenu ailleurs.",
+        "Si tu t'attends à mettre à jour ton CV 5+ fois sur 1-2 ans, le 149 $ à vie est moins cher que 6 mois du tier Pro à 29 $/mois. Pour ceux qui mettent leur CV à jour seulement 1-2 fois par an, un outil de check ATS mensuel comme RejectCheck (19,99 €/mois, résiliable à tout moment) offre un meilleur rapport qualité-prix à l'usage — avec un diagnostic complet et un croisement GitHub/LinkedIn plutôt qu'un builder dont tu n'as peut-être pas besoin. Rezi n'est intéressant que si tu utilises le builder lui-même ; le Rezi Score seul peut être obtenu ailleurs.",
     },
     {
       question: 'Que fait RejectCheck que Rezi ne fait pas ?',

@@ -41,7 +41,7 @@ function PricingContent() {
     {
       id: 'shortlisted' as const,
       name: t.pricing.plans.shortlisted.name,
-      price: '7.99€',
+      price: '19.99€',
       period: t.pricing.plans.shortlisted.period,
       description: t.pricing.plans.shortlisted.description,
       icon: <Star className="w-5 h-5 text-rc-red" />,
@@ -53,7 +53,7 @@ function PricingContent() {
     {
       id: 'hired' as const,
       name: t.pricing.plans.hired.name,
-      price: '11.99€',
+      price: '39.99€',
       period: t.pricing.plans.hired.period,
       description: t.pricing.plans.hired.description,
       icon: <Trophy className="w-5 h-5 text-amber-500" />,

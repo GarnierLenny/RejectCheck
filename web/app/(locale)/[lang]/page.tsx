@@ -414,7 +414,7 @@ export default function Home() {
     {
       feat: t.landing.s04.compRows[5].feat,
       sub: t.landing.s04.compRows[5].sub,
-      rc: { mark: "€7.99/mo", cls: "brand" },
+      rc: { mark: "€19.99/mo", cls: "brand" },
       jobscan: { mark: "$50/mo", cls: "" },
       rw: { mark: "$49/mo", cls: "" },
       rezi: { mark: "$29/mo", cls: "" },
@@ -884,7 +884,7 @@ export default function Home() {
             <div style={{ padding: "36px 28px 32px", borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "rgba(192,57,43,0.04)" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 14 }}>{t.pricing.plans.shortlisted.name} {t.landing.s06.recommendedSuffix}</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>€7.99</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>€19.99</span>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)" }}>{t.pricing.plans.shortlisted.period}</span>
               </div>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.5, marginBottom: 28 }}>{t.pricing.plans.shortlisted.description}</div>
@@ -916,7 +916,7 @@ export default function Home() {
             <div style={{ padding: "36px 28px 32px", display: "flex", flexDirection: "column" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 14 }}>{t.pricing.plans.hired.name}</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>€11.99</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>€39.99</span>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)" }}>{t.landing.s06.hiredPeriod}</span>
               </div>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.5, marginBottom: 28 }}>{t.pricing.plans.hired.description}</div>

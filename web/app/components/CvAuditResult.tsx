@@ -1008,7 +1008,7 @@ export function CvAuditResult({
                         const active = proTier === tier;
                         return (
                           <button key={tier} onClick={() => setProTier(tier)} style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, padding: "8px 16px", border: "none", borderLeft: tier === "hired" ? "1px solid var(--rc-border)" : "none", cursor: "pointer", background: active ? "var(--rc-text)" : "var(--rc-bg)", color: active ? "var(--rc-bg)" : "var(--rc-hint)", transition: "all 150ms ease", whiteSpace: "nowrap" as const }}>
-                            {tier === "shortlisted" ? "Shortlisted · €7.99" : "Hired · €11.99"}
+                            {tier === "shortlisted" ? "Shortlisted · €19.99" : "Hired · €39.99"}
                           </button>
                         );
                       })}

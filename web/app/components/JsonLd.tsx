@@ -110,7 +110,7 @@ export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
       {
         '@type': 'Offer',
         name: 'SHORTLISTED',
-        price: '7.99',
+        price: '19.99',
         priceCurrency: 'EUR',
         url: `${SITE_URL}/${locale}/pricing`,
         availability: 'https://schema.org/InStock',
@@ -124,7 +124,7 @@ export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
       {
         '@type': 'Offer',
         name: 'HIRED',
-        price: '11.99',
+        price: '39.99',
         priceCurrency: 'EUR',
         url: `${SITE_URL}/${locale}/pricing`,
         availability: 'https://schema.org/InStock',
@@ -185,7 +185,7 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
       brand: { '@type': 'Brand', name: 'RejectCheck' },
       offers: {
         '@type': 'Offer',
-        price: '7.99',
+        price: '19.99',
         priceCurrency: 'EUR',
         availability: 'https://schema.org/InStock',
         url: pricingUrl,
@@ -202,7 +202,7 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
       brand: { '@type': 'Brand', name: 'RejectCheck' },
       offers: {
         '@type': 'Offer',
-        price: '11.99',
+        price: '39.99',
         priceCurrency: 'EUR',
         availability: 'https://schema.org/InStock',
         url: pricingUrl,
