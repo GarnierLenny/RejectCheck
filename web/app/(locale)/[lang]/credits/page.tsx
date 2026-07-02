@@ -9,10 +9,12 @@ import { useBuyCredits } from "../../../../lib/mutations";
 import { useLanguage } from "../../../../context/language";
 import { Navbar } from "../../../components/Navbar";
 
+// Prices mirror the backend source of truth (backend/src/credits/domain/credit-packs.ts).
+// Keep in sync when repricing.
 const PACKS = [
-  { quantity: 500,  price: "4,99 €",  sub: "= 5× analyse JD · 10× audit CV",          badge: null,   popular: false },
-  { quantity: 1000, price: "8,99 €",  sub: "= 10× analyse JD · 20× audit CV  · -10%", badge: "-10%", popular: true  },
-  { quantity: 2000, price: "15,99 €", sub: "= 20× analyse JD · 40× audit CV  · -20%", badge: "-20%", popular: false },
+  { quantity: 500,  price: "8,99 €",  sub: "= 5× analyse JD · 10× audit CV",          badge: null,   popular: false },
+  { quantity: 1000, price: "15,99 €", sub: "= 10× analyse JD · 20× audit CV  · -11%", badge: "-11%", popular: true  },
+  { quantity: 2000, price: "27,99 €", sub: "= 20× analyse JD · 40× audit CV  · -22%", badge: "-22%", popular: false },
 ] as const;
 
 const MOCK_HISTORY: { id: number; event: string; date: string; delta: number; type: string }[] = [];

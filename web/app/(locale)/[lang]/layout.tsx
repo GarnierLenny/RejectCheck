@@ -101,7 +101,7 @@ export async function generateMetadata({
       locale: ogLocale,
       alternateLocale: isEn ? ['fr_FR'] : ['en_US'],
       type: 'website',
-      images: [{ url: `${SITE_URL}/${lang}/opengraph-image/main`, width: 1200, height: 630, alt: 'RejectCheck' }],
+      images: [{ url: `${SITE_URL}/og?lang=${lang}`, width: 1200, height: 630, alt: 'RejectCheck' }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -109,7 +109,7 @@ export async function generateMetadata({
       description,
       // Custom twitter object suppresses Next's auto file-based card image, so
       // re-declare it explicitly (otherwise X renders an imageless card).
-      images: [`${SITE_URL}/${lang}/opengraph-image/main`],
+      images: [`${SITE_URL}/og?lang=${lang}`],
     },
   }
 }

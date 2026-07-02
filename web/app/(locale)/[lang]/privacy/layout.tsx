@@ -48,7 +48,7 @@ export async function generateMetadata({
       url: canonical,
       locale: isEn ? 'en_US' : 'fr_FR',
       siteName: 'RejectCheck',
-      images: [{ url: `${SITE_URL}/${lang}/opengraph-image/main`, width: 1200, height: 630, alt: `RejectCheck` }],
+      images: [{ url: `${SITE_URL}/og?lang=${lang}`, width: 1200, height: 630, alt: `RejectCheck` }],
       type: 'article',
       publishedTime: PUBLISHED_ISO,
       modifiedTime: LAST_UPDATED_ISO,
@@ -58,7 +58,7 @@ export async function generateMetadata({
       title,
       description,
       // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
-      images: [`${SITE_URL}/${lang}/opengraph-image/main`],
+      images: [`${SITE_URL}/og?lang=${lang}`],
     },
   }
 }
@@ -91,7 +91,7 @@ export default async function PrivacyLayout({
       locale === 'fr'
         ? 'Politique de confidentialité RejectCheck'
         : 'RejectCheck Privacy Policy',
-    image: [`${SITE_URL}/${locale}/opengraph-image/main`],
+    image: [`${SITE_URL}/og?lang=${locale}`],
     author: {
       '@type': 'Organization',
       name: 'RejectCheck',

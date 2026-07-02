@@ -46,7 +46,7 @@ export async function generateMetadata({
       locale: locale === 'fr' ? 'fr_FR' : 'en_US',
       alternateLocale: locale === 'fr' ? ['en_US'] : ['fr_FR'],
       siteName: 'RejectCheck',
-      images: [{ url: `${SITE_URL}/${locale}/opengraph-image/main`, width: 1200, height: 630, alt: `RejectCheck` }],
+      images: [{ url: `${SITE_URL}/og?lang=${locale}`, width: 1200, height: 630, alt: `RejectCheck` }],
       type: 'article',
     },
     twitter: {
@@ -54,7 +54,7 @@ export async function generateMetadata({
       title: c.title,
       description: c.description,
       // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
-      images: [`${SITE_URL}/${locale}/opengraph-image/main`],
+      images: [`${SITE_URL}/og?lang=${locale}`],
     },
   }
 }
@@ -103,7 +103,7 @@ export default async function JobscanAlternativesPage({
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: c.title,
-    image: [`${SITE_URL}/${locale}/opengraph-image/main`],
+    image: [`${SITE_URL}/og?lang=${locale}`],
     author: { '@type': 'Organization', name: 'RejectCheck', url: SITE_URL },
     publisher: {
       '@type': 'Organization',

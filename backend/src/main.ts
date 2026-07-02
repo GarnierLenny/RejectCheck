@@ -3,6 +3,7 @@
 import './sentry.init';
 
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import helmet from 'helmet';
@@ -11,11 +12,19 @@ import { ConfigService } from '@nestjs/config';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
 
   const configService = app.get(ConfigService);
   const nodeEnv = configService.get<string>('NODE_ENV') ?? 'development';
   const isProd = nodeEnv === 'production';
+
+  // Behind Railway's edge proxy: trust the first hop so `req.ip` resolves to the
+  // real client (rightmost untrusted XFF entry) instead of the proxy address.
+  // Without this, the ThrottlerGuard buckets every client under the proxy IP and
+  // the anonymous-quota IP is read from a client-forgeable header.
+  app.set('trust proxy', 1);
 
   app.use(helmet());
 
@@ -51,4 +60,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 8888);
 }
-bootstrap();
+void bootstrap();

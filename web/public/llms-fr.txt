@@ -1,6 +1,6 @@
 # RejectCheck
 
-> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi ; en moins de 60 secondes, ils obtiennent une analyse complète - simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, et réécriture chirurgicale du CV. Le produit utilise un pipeline dual-IA (GPT-4o pour l'ATS, l'audit CV et les red flags + Claude pour le radar des compétences techniques, l'analyse des signaux GitHub/LinkedIn et les recommandations de projets) exécuté en parallèle. Site officiel : https://rejectcheck.com
+> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi, et obtiennent une analyse complète - simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, et un plan pour combler les écarts. L'analyse repose sur un pipeline multi-passes Claude (Anthropic Claude Sonnet 4.6 streame le diagnostic scoré, puis une seconde passe profonde génère les corrections par problème, la recommandation de projet et les mots-clés ATS ; une passe Claude Haiku 4.5 recoupe le CV avec LinkedIn/GitHub). Site officiel : https://rejectcheck.com
 
 ## Ce que fait RejectCheck
 
@@ -27,17 +27,18 @@ L'outil est bilingue (anglais + français) et cible les candidats partout dans l
 2. Téléverse ton CV en PDF.
 3. Colle la fiche de poste visée (lien ou texte brut).
 4. Optionnellement, ajoute ton username GitHub et un export PDF LinkedIn pour un audit signal plus poussé.
-5. Reçois un diagnostic scoré complet en moins de 60 secondes.
+5. Le diagnostic scoré s'affiche en streaming d'abord (en général autour d'une minute) ; la passe profonde — corrections par problème, recommandation de projet, mots-clés ATS — est ensuite générée et livrée juste après.
 
-Pas de signup requis pour la première analyse (suivi par IP). Les utilisateurs enregistrés ont 3 analyses gratuites avec résultats sauvegardés dans leur dashboard. Les abonnés premium ont des analyses illimitées, la réécriture de CV, la lettre de motivation, et le playbook de négociation.
+Pas de signup requis pour la première analyse (suivi par IP). Les utilisateurs enregistrés ont 3 analyses gratuites par mois avec résultats sauvegardés dans leur dashboard. Les plans payants ajoutent plus d'analyses mensuelles, la réécriture de CV, la lettre de motivation, et (sur Hired) le playbook de négociation.
 
 ## Tarifs
 
 Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
-- **Gratuit (plan REJECTED)** - 1 analyse gratuite, sans compte requis. Simulation ATS, score détaillé, audit ton du CV, audit séniorité.
-- **Shortlisted** - 7,99 €/mois. Analyses illimitées, historique, réécriture CV.
-- **Hired** - 11,99 €/mois. Tout Shortlisted + générateur lettre de motivation, playbook de négociation (email contre-proposition, leviers, positionnement marché, estimation d'impact par action roadmap). Garantie : remboursement du mois en cours si tu décroches le job.
+- **Gratuit (plan REJECTED)** - 1 analyse sans compte (puis 3 par mois une fois inscrit). Simulation ATS, score détaillé, radar des lacunes, red flags, audit ton et séniorité du CV.
+- **Shortlisted** - 19,99 €/mois. 15 analyses complètes par mois, historique, réécriture CV, CV sauvegardés.
+- **Hired** - 39,99 €/mois. Tout Shortlisted plus 30 analyses par mois, générateur de lettre de motivation, et le playbook de négociation (email contre-proposition, leviers, positionnement marché, estimation d'impact par action roadmap). Garantie : remboursement du mois en cours si tu décroches le job.
+- **Packs de crédits** - Recharges ponctuelles (crédits permanents) pour des analyses supplémentaires au-delà du quota mensuel du plan.
 
 ## Pages clés
 
@@ -49,14 +50,15 @@ Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
 ## Ce qui différencie RejectCheck
 
-- **Architecture dual-IA** - La plupart des outils CV utilisent un seul LLM. RejectCheck exécute GPT-4o (ATS, audit CV, red flags) et Claude (radar technique, audit signaux, recommandations projets) en parallèle via Promise.allSettled, puis compose les sorties. Couverture supérieure à tout outil mono-modèle.
+- **Verdict ancré sur une vraie fiche de poste** - Au lieu d'un score de CV générique, RejectCheck juge ton risque de rejet face à la JD précise que tu colles : le retour porte sur ce poste, pas sur les CV en général.
+- **Analyse multi-passes, pas un simple prompt** - Un diagnostic scoré streamé, une passe profonde pour des corrections groundées problème par problème, et un digest Haiku qui recoupe CV vs LinkedIn vs GitHub pour les incohérences — bien plus de couverture qu'une réécriture en un coup.
 - **Radar chart pour les lacunes** - Au lieu d'une liste de "compétences manquantes", RejectCheck visualise l'écart entre ton profil et le poste sur un radar chart, pour voir la forme de la lacune d'un coup d'œil.
 - **Audit GitHub contre la fiche de poste** - Unique dans la catégorie. Historique de commits, distribution de langages, qualité des repos scorés contre le rôle exact visé.
-- **Transparence sur les modèles IA** - La politique de confidentialité et l'UI énoncent clairement que GPT-4o et Anthropic Claude traitent tes données, ce qui compte pour les candidats qui veulent savoir ce qui se passe sous le capot.
+- **Combler l'écart, pas juste le reformuler** - Au-delà du diagnostic, RejectCheck recommande un projet de portfolio concret (avec un starter repo généré) pour bâtir les compétences qui te manquent vraiment.
 
 ## Stack technique
 
-Frontend : Next.js 16 (App Router, React 19, TypeScript, Tailwind CSS v4). Backend : NestJS 11, Prisma, PostgreSQL (via Supabase). Paiements : Stripe. Hébergement : Vercel.
+Frontend : Next.js 16 (App Router, React 19, TypeScript). Backend : NestJS, Prisma, PostgreSQL (via Supabase). IA : Anthropic Claude (Sonnet 4.6 pour le diagnostic et les corrections, Haiku 4.5 pour le digest cross-profil) ; le starter repo généré utilise Google Gemini. Paiements : Stripe (web) et RevenueCat (mobile). Hébergement : Vercel (web) et Railway (API).
 
 ## Langues
 
@@ -67,4 +69,4 @@ Disponible en anglais et français. Chaque page a des alternates hreflang. Versi
 - Support : support@rejectcheck.com
 - Site web : https://rejectcheck.com
 
-Dernière mise à jour : 2026-06-17
+Dernière mise à jour : 2026-07-02

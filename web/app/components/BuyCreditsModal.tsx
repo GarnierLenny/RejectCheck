@@ -11,10 +11,12 @@ interface BuyCreditsModalProps {
   onClose: () => void;
 }
 
+// Prices mirror the backend source of truth (backend/src/credits/domain/credit-packs.ts).
+// Keep in sync when repricing.
 const PACKS = [
-  { quantity: 500,  price: "4,99 €",  sub: "= 5× analyse JD · 10× audit CV",         popular: false },
-  { quantity: 1000, price: "8,99 €",  sub: "= 10× analyse JD · 20× audit CV · -10%", popular: true  },
-  { quantity: 2000, price: "15,99 €", sub: "= 20× analyse JD · 40× audit CV · -20%", popular: false },
+  { quantity: 500,  price: "8,99 €",  sub: "= 5× analyse JD · 10× audit CV",         popular: false },
+  { quantity: 1000, price: "15,99 €", sub: "= 10× analyse JD · 20× audit CV · -11%", popular: true  },
+  { quantity: 2000, price: "27,99 €", sub: "= 20× analyse JD · 40× audit CV · -22%", popular: false },
 ] as const;
 
 export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {

@@ -1,6 +1,6 @@
 # RejectCheck
 
-> RejectCheck is an AI-powered CV and job application diagnosis tool. Candidates upload their CV and a job description; in under 60 seconds they get a full breakdown - ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, red-flag detection, and a surgically rewritten CV. The product runs a dual-AI pipeline (GPT-4o for ATS, CV audit, and red flags + Claude for technical skill radar, GitHub/LinkedIn signal analysis, and project recommendations) executing in parallel. Official site: https://rejectcheck.com
+> RejectCheck is an AI-powered CV and job application diagnosis tool. Candidates upload their CV and a job description and get a full breakdown - ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, red-flag detection, and a plan to close the gaps. The analysis runs a multi-pass Claude pipeline (Anthropic Claude Sonnet 4.6 streams the scored diagnosis, then a second deep pass generates per-issue fixes, project recommendations, and ATS keywords; a Claude Haiku 4.5 pass cross-checks the CV against LinkedIn/GitHub). Official site: https://rejectcheck.com
 
 ## What it does
 
@@ -27,17 +27,18 @@ The tool is bilingual (English + French) and targets candidates worldwide, with 
 2. Upload your CV as a PDF.
 3. Paste the target job description (link or raw text).
 4. Optionally add your GitHub username and LinkedIn PDF export for deeper signal analysis.
-5. Receive a full scored diagnosis in under 60 seconds.
+5. The scored diagnosis streams in first (typically around a minute); the deep pass — per-issue fixes, project recommendation, and ATS keywords — is then generated and delivered right after.
 
-No signup is required for the first analysis (IP-tracked). Registered users get 3 free analyses with results saved to their dashboard. Premium subscribers get unlimited analyses, CV rewrite, cover letter generation, and a negotiation playbook.
+No signup is required for the first analysis (IP-tracked). Registered users get 3 free analyses per month with results saved to their dashboard. Paid plans add more monthly analyses, CV rewrite, cover letter generation, and (on Hired) the negotiation playbook.
 
 ## Pricing
 
 See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 
-- **Free (REJECTED plan)** - 1 free analysis, no account required. ATS simulation, score breakdown, CV tone audit, seniority audit.
-- **Shortlisted** - €7.99/month. Unlimited analyses, history, CV rewrite.
-- **Hired** - €11.99/month. Everything in Shortlisted + cover letter generator, negotiation playbook (counter-offer email, leverage points, salary positioning, per-action impact estimates). Refund guarantee: refund of the current month if you get hired.
+- **Free (REJECTED plan)** - 1 analysis with no account (then 3 per month once registered). ATS simulation, score breakdown, skill gap radar, red flags, CV tone and seniority audit.
+- **Shortlisted** - €19.99/month. 15 full analyses per month, analysis history, CV rewrite, saved CVs.
+- **Hired** - €39.99/month. Everything in Shortlisted plus 30 analyses per month, cover letter generator, and the negotiation playbook (counter-offer email, leverage points, salary positioning, per-action impact estimates). Refund guarantee: refund of the current month if you get hired.
+- **Credit packs** - One-time top-ups (permanent credits) for extra analyses beyond the monthly plan allowance.
 
 ## Key pages
 
@@ -59,14 +60,15 @@ See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 
 ## What makes RejectCheck different
 
-- **Dual-AI architecture** - Most CV tools use a single LLM. RejectCheck runs GPT-4o (ATS, CV audit, red flags) and Claude (technical radar, signal audit, project recommendations) in parallel via Promise.allSettled, then composes the outputs. This gives better coverage than any single-model tool.
+- **Verdict anchored on a real job description** - Instead of a generic resume score, RejectCheck judges your rejection risk against the specific JD you paste, so the feedback is about that role, not resumes in general.
+- **Multi-pass analysis, not a single prompt** - A streamed scored diagnosis, a deep pass for grounded per-issue fixes, and a Haiku digest that cross-checks CV vs LinkedIn vs GitHub for inconsistencies — more coverage than a one-shot rewrite.
 - **Radar chart for skill gaps** - Instead of a list of "missing skills", RejectCheck visualizes the delta between your profile and the job on a radar chart, so you see the shape of the gap at a glance.
-- **GitHub audit against job description** - Unique in the category. Commit history, language distribution, and repo quality scored against the specific role you're applying to.
-- **Transparent about AI models used** - The privacy policy and UI openly state that GPT-4o and Anthropic Claude process your data, which matters for candidates who want to know what's happening under the hood.
+- **GitHub audit against the job description** - Unique in the category. Commit history, language distribution, and repo quality scored against the specific role you're applying to.
+- **Close the gap, not just reword it** - Beyond the diagnosis, RejectCheck recommends a concrete portfolio project (with a generated starter repo) to build the skills you're actually missing.
 
 ## Tech stack
 
-Frontend: Next.js 16 (App Router, React 19, TypeScript, Tailwind CSS v4). Backend: NestJS 11, Prisma, PostgreSQL (via Supabase). Payments: Stripe. Hosting: Vercel.
+Frontend: Next.js 16 (App Router, React 19, TypeScript). Backend: NestJS, Prisma, PostgreSQL (via Supabase). AI: Anthropic Claude (Sonnet 4.6 for diagnosis and fixes, Haiku 4.5 for the cross-profile digest); the generated starter repo uses Google Gemini. Payments: Stripe (web) and RevenueCat (mobile). Hosting: Vercel (web) and Railway (API).
 
 ## Languages
 
@@ -77,4 +79,4 @@ Available in English and French. Each page has hreflang alternates. French versi
 - Support: support@rejectcheck.com
 - Website: https://rejectcheck.com
 
-Last updated: 2026-06-17
+Last updated: 2026-07-02

@@ -18,6 +18,9 @@ interface Props {
   activeTab: DashboardTab;
   onTabChange: (tab: DashboardTab) => void;
   onBuyCredits: () => void;
+  /** Mobile drawer state — ignored on md+ where the sidebar is always visible. */
+  mobileOpen?: boolean;
+  onClose?: () => void;
 }
 
 function NavSection({ label, children }: { label: string; children: React.ReactNode }) {
@@ -80,12 +83,13 @@ function LinkItem({
   );
 }
 
-export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props) {
+export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits, mobileOpen = false, onClose }: Props) {
   const { data: quota } = useQuota();
   const { data: xp } = useUserXp();
   const { data: sub } = useSubscription();
   const { data: profile } = useProfile();
-  const { localePath } = useLanguage();
+  const { t, localePath } = useLanguage();
+  const s = t.dashboardShell;
 
   const monthlyRemaining = quota ? quota.monthlyCap - quota.monthlyUsed : null;
   const perm = quota?.creditsBalance ?? 0;
@@ -99,10 +103,21 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
   const resetDays = Math.ceil((_nextMonth.getTime() - _now.getTime()) / 86400000);
 
   return (
-    <aside
-      className="flex flex-col flex-shrink-0 h-full bg-rc-bg"
-      style={{ width: 230, borderRight: "1px solid var(--rc-border)" }}
-    >
+    <>
+      {/* Backdrop — mobile drawer only */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={onClose}
+          aria-hidden
+        />
+      )}
+      <aside
+        className={`flex flex-col flex-shrink-0 h-full bg-rc-bg fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:z-auto md:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        style={{ width: 230, borderRight: "1px solid var(--rc-border)" }}
+      >
       {/* Logo → landing */}
       <Link
         href={localePath("/")}
@@ -117,35 +132,35 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
 
       {/* Nav */}
       <div className="flex-1 flex flex-col gap-5 overflow-y-auto px-2 py-4">
-        <NavSection label="Dashboard">
-          <TabItem label="Overview"     icon={LayoutDashboard} active={activeTab === "home"}         onClick={() => onTabChange("home")} />
-          <TabItem label="Analyses"     icon={FileSearch}      active={activeTab === "analyses"}     onClick={() => onTabChange("analyses")} />
-          {APPLICATIONS_TAB_ENABLED && <TabItem label="Applications" icon={Briefcase} active={activeTab === "applications"} onClick={() => onTabChange("applications")} />}
+        <NavSection label={s.navDashboard}>
+          <TabItem label={s.overview}   icon={LayoutDashboard} active={activeTab === "home"}         onClick={() => onTabChange("home")} />
+          <TabItem label={s.analyses}   icon={FileSearch}      active={activeTab === "analyses"}     onClick={() => onTabChange("analyses")} />
+          {APPLICATIONS_TAB_ENABLED && <TabItem label={s.applications} icon={Briefcase} active={activeTab === "applications"} onClick={() => onTabChange("applications")} />}
         </NavSection>
 
-        <NavSection label="Tools">
-          <LinkItem label="Analyze CV"     icon={FileText} href={localePath("/analyze")} />
-          {AI_INTERVIEW_ENABLED && <LinkItem label="Mock interview" icon={Mic} href={`${localePath("/analyze")}?tab=interview`} />}
+        <NavSection label={s.navTools}>
+          <LinkItem label={s.analyzeCv}     icon={FileText} href={localePath("/analyze")} />
+          {AI_INTERVIEW_ENABLED && <LinkItem label={s.mockInterview} icon={Mic} href={`${localePath("/analyze")}?tab=interview`} />}
         </NavSection>
 
-        <NavSection label="Account">
+        <NavSection label={s.navAccount}>
           {COMMUNITY_FEATURES_ENABLED && profile?.username && (
-            <LinkItem label="Profile"       icon={User}       href={localePath(`/u/${profile.username}`)} />
+            <LinkItem label={s.profile}       icon={User}       href={localePath(`/u/${profile.username}`)} />
           )}
           {RANK_REWARDS_ENABLED && (
-            <LinkItem label="Rank & rewards" icon={Trophy}     href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
+            <LinkItem label={s.rankRewards} icon={Trophy}     href={localePath("/dashboard")} badge={xp ? `Lvl ${xp.level}` : undefined} />
           )}
-          <LinkItem label="Plan & billing" icon={CreditCard} href={localePath("/settings")} />
-          <LinkItem label="Settings"       icon={Settings}   href={localePath("/settings")} />
+          <LinkItem label={s.planBilling} icon={CreditCard} href={localePath("/settings")} />
+          <LinkItem label={s.settings}    icon={Settings}   href={localePath("/settings")} />
         </NavSection>
 
         {/* Credits */}
         {quota && (
           <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-3">
             <div className="flex justify-between items-baseline mb-2">
-              <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold">Credits</span>
+              <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold">{s.credits}</span>
               <span className={`font-mono text-[9px] tracking-[0.1em] font-bold ${isLow ? "text-rc-red" : "text-rc-green"}`}>
-                {`Reset ${resetDays}d`}
+                {`${s.reset} ${resetDays}${s.dayShort}`}
               </span>
             </div>
 
@@ -155,7 +170,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
               </span>
               <span className="font-mono text-[12px] text-rc-hint">/ {quota.monthlyCap}</span>
               {perm > 0 && (
-                <span className="font-mono text-[9px] text-rc-hint ml-auto">+{perm} perm</span>
+                <span className="font-mono text-[9px] text-rc-hint ml-auto">+{perm} {s.perm}</span>
               )}
             </div>
 
@@ -170,7 +185,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
               onClick={onBuyCredits}
               className={`mt-2.5 font-mono text-[10px] font-bold tracking-[0.12em] uppercase hover:opacity-70 transition-opacity ${isLow ? "text-rc-red" : "text-rc-hint"}`}
             >
-              {isLow ? "Buy credits →" : "Buy more →"}
+              {isLow ? s.buyCreditsArrow : s.buyMoreArrow}
             </button>
           </div>
         )}
@@ -184,6 +199,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits }: Props
         <LangSwitcher />
         <AuthNavLink />
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

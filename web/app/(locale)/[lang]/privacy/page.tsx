@@ -54,7 +54,7 @@ export default function PrivacyPage() {
               </div>
               <div className="p-6 rounded-2xl bg-rc-surface border border-rc-border">
                 <h3 className="font-bold mb-2">Anonymous Scans</h3>
-                <p className="text-sm text-rc-muted">We only log your IP address to enforce free-tier limits. Your CV and job description are NOT stored on our servers.</p>
+                <p className="text-sm text-rc-muted">For anonymous scans, we store your CV and job description only long enough to run the analysis, then automatically delete them within 7 days. After that we keep only your IP address and a timestamp to enforce the free-tier limit. Create an account to save an analysis to your dashboard.</p>
               </div>
             </div>
           </div>
@@ -65,8 +65,8 @@ export default function PrivacyPage() {
               <Lock className="w-6 h-6 text-rc-red" /> 3. {t.privacy.sections.aiProcessing}
             </h2>
             <p className="text-rc-muted leading-relaxed">
-              Your data is processed exclusively using <span className="text-rc-text font-semibold">Anthropic Claude</span> models via their API. This covers CV analysis, CV rewriting, and cover letter generation.
-              <span className="text-rc-text font-semibold"> Anthropic does not train on your data:</span> data sent through the API is not used to train Anthropic&apos;s models. Your documents are processed transiently and are never stored on Anthropic&apos;s servers beyond the duration of the request. For anonymous users, your CV content is not stored on our servers either.
+              CV analysis, CV rewriting, and cover letter generation are processed using <span className="text-rc-text font-semibold">Anthropic Claude</span> models via their API. Generating an optional starter-repo scaffold uses Google&apos;s Gemini API.
+              <span className="text-rc-text font-semibold"> Anthropic does not train on your data:</span> data sent through the Claude API is not used to train Anthropic&apos;s models, and your documents are processed transiently, never stored on Anthropic&apos;s servers beyond the request. On our own servers, anonymous scans are auto-deleted within 7 days (see above); registered users&apos; analyses are kept in their dashboard until they delete them.
             </p>
           </div>
 

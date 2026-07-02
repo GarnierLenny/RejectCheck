@@ -30,6 +30,11 @@ enum SubscriptionStatus {
   paused
 }
 
+enum SubscriptionProvider {
+  stripe
+  revenuecat
+}
+
 enum ApplicationStatus {
   interested
   applied
@@ -57,16 +62,24 @@ model Waitlist {
 }
 
 model Subscription {
-  id               Int                @id @default(autoincrement())
-  email            String             @unique
-  stripeCustomerId String
+  id               Int                  @id @default(autoincrement())
+  email            String
+  // Which billing provider wrote this row. Stripe = web, RevenueCat = mobile
+  // IAP. One row per (email, provider) so a user can hold both simultaneously.
+  provider         SubscriptionProvider @default(stripe)
+  // Stripe customer id (Stripe rows only — null for RevenueCat).
+  stripeCustomerId String?
+  // Generic external id (RevenueCat app_user_id) for audit/lookup.
+  externalRef      String?
   plan             SubscriptionPlan
   status           SubscriptionStatus
   currentPeriodEnd DateTime
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
 
+  @@unique([email, provider])
   @@index([stripeCustomerId])
+  @@index([provider, externalRef])
 }
 
 model Analysis {

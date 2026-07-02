@@ -27,13 +27,13 @@ export function ogDefaults(opts: { locale?: 'en' | 'fr'; alt?: string } = {}) {
     siteName: 'RejectCheck',
     images: [
       {
-        url: `${SITE_URL}/${opts.locale ?? 'en'}/opengraph-image/main`,
+        url: `${SITE_URL}/og?lang=${opts.locale ?? 'en'}`,
         width: 1200,
         height: 630,
         alt,
       },
     ],
-    twitterImages: [`${SITE_URL}/${opts.locale ?? 'en'}/opengraph-image/main`],
+    twitterImages: [`${SITE_URL}/og?lang=${opts.locale ?? 'en'}`],
   }
 }
 
@@ -265,7 +265,7 @@ export function articleSchema({
     '@type': 'Article',
     headline,
     description,
-    image: [`${SITE_URL}/${locale}/opengraph-image/main`],
+    image: [`${SITE_URL}/og?lang=${locale}`],
     author: {
       '@type': author.type,
       name: author.name,
@@ -291,7 +291,7 @@ export function howToPassAtsSchema(url: string): JsonLdSchema {
     name: 'How to Pass ATS Filters in 2026',
     description:
       'Step-by-step guide to passing Applicant Tracking System filters: format your CV for plain-text parsing, mirror job-description keywords, and avoid the structural traps that trigger auto-rejection.',
-    image: [`${SITE_URL}/en/opengraph-image/main`],
+    image: [`${SITE_URL}/og?lang=en`],
     totalTime: 'PT15M',
     inLanguage: 'en',
     step: [
@@ -337,7 +337,7 @@ export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
       name: 'Comment analyser ton CV avec RejectCheck',
       description:
         "Diagnostic complet de ton CV face à une offre d'emploi en moins de 60 secondes : simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection de red flags.",
-      image: [`${SITE_URL}/fr/opengraph-image/main`],
+      image: [`${SITE_URL}/og?lang=fr`],
       totalTime: 'PT1M',
       inLanguage: 'fr',
       tool: [{ '@type': 'HowToTool', name: 'RejectCheck' }],
@@ -384,7 +384,7 @@ export function howToSchema(locale: 'en' | 'fr'): JsonLdSchema {
     name: 'How to analyze your CV with RejectCheck',
     description:
       'Get a full CV diagnosis against a specific job in under 60 seconds: ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, and red-flag detection.',
-    image: [`${SITE_URL}/en/opengraph-image/main`],
+    image: [`${SITE_URL}/og?lang=en`],
     totalTime: 'PT1M',
     inLanguage: 'en',
     tool: [{ '@type': 'HowToTool', name: 'RejectCheck' }],

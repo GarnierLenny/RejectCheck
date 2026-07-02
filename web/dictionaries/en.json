@@ -21,16 +21,18 @@
   },
   "navbar": {
     "pricing": "Pricing",
-    "tryFree": "Try free →"
+    "tryFree": "Try free →",
+    "analyze": "Analyze",
+    "dashboard": "Dashboard"
   },
   "landing": {
     "badge": "Optimised for devs. Works for any role.",
     "hero": {
       "title": "Find out why your job application got rejected",
       "titleItalic": "before it does.",
-      "subtitle": "Upload your CV. In under a minute, get a full breakdown: an ATS check, skill gap radar, CV rewrite, and red-flag detection. Tailored to the exact job.",
+      "subtitle": "Upload your CV. In about a minute, get a full breakdown: an ATS check, skill gap radar, CV rewrite, and red-flag detection. Tailored to the exact job.",
       "cta": "Analyze my CV, free",
-      "noDataStored": "No account required · No data stored",
+      "noDataStored": "No account required · Guest data auto-deleted in 7 days",
       "freeBadge": "Free · No sign-up required",
       "step1": "Upload CV",
       "step2": "Add job",
@@ -285,8 +287,8 @@
           ]
         },
         {
-          "label": "Analysis under 60 seconds",
-          "claim": "End-to-end runtime (CV upload, AI analysis, full result rendering) measured under a minute on a typical CV + job description pair.",
+          "label": "Scored diagnosis in about a minute",
+          "claim": "The scored diagnosis streams in around a minute on a typical CV + job description pair; the deep pass (per-issue fixes, project recommendation, ATS keywords) is then generated and delivered right after.",
           "source": "Observable by timing any analysis on /en/analyze",
           "sourceLinks": [
             {
@@ -326,8 +328,8 @@
           ]
         },
         {
-          "label": "No guest data retention",
-          "claim": "For unregistered users, CVs and analysis results are NOT stored in the database. Only usage is tracked by IP to enforce the 1-analysis-per-guest limit. Registered users' analyses are saved to their dashboard, at their own choice.",
+          "label": "Guest data auto-deleted in 7 days",
+          "claim": "For guest scans, your CV, job description, and result are automatically deleted from our database within 7 days — after that only your IP and a timestamp remain, to enforce the 1-analysis-per-guest limit. Registered users' analyses are kept in their dashboard until they choose to delete them, and no data is ever used to train AI models.",
           "source": "Privacy policy, section on data handling",
           "sourceLinks": [
             {
@@ -356,8 +358,8 @@
       "h1Part2": "",
       "h1Faded": "before it does.",
       "subtitle": "You send 80 applications. 78 disappear into silence. RejectCheck reads your CV the way a recruiter would — and tells you, before you apply, exactly what would have killed it.",
-      "stat1Value": "60 seconds",
-      "stat1Label": "per analysis",
+      "stat1Value": "~1 min",
+      "stat1Label": "to first diagnosis",
       "stat2Value": "2 free",
       "stat2Label": "per month",
       "stat3Value": "No signup",
@@ -593,7 +595,7 @@
       "runAnalysis": "Run analysis",
       "analyzing": "Analyzing…",
       "duration": "~45s",
-      "dataNotStored": "Data not stored",
+      "dataNotStored": "Guest data auto-deleted in 7 days",
       "credit": "1 credit"
     },
     "recap": {
@@ -726,7 +728,7 @@
     ],
     "liveThoughtsPlaceholder": "Claude is reasoning…",
     "liveThoughtsLabel": "Live reasoning",
-    "footer": "No data stored without your consent",
+    "footer": "Guest data auto-deleted within 7 days",
     "error": {
       "title": "This is taking longer than expected…",
       "subtitle": "The analysis didn't respond in time. No credit was used — you can try again.",
@@ -749,7 +751,7 @@
   "resultNudge": {
     "eyebrow": "Free account",
     "title": "Create a free account to keep your analyses.",
-    "benefits": "Saved · 3 analyses / month · tracking dashboard",
+    "benefits": "Saved · 3 analyses / month · score history",
     "cta": "Create a free account",
     "login": "Already have an account? Log in",
     "dismiss": "Dismiss"
@@ -768,14 +770,14 @@
       "badge": "Free limit reached",
       "title": "Keep going with a",
       "titleHighlight": "free account.",
-      "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month — every report saved, plus a dashboard to track your applications.",
+      "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month — every report saved to your dashboard with score history.",
       "cta": "Create a free account",
       "secondary": "See plans",
       "noCard": "Free forever · No credit card · 30 seconds",
       "features": [
         "3 full analyses / month",
         "Every analysis saved",
-        "Application tracking dashboard",
+        "Score history & evolution",
         "Free forever — no card"
       ]
     }
@@ -1307,6 +1309,37 @@
     "cta": "Analyze my CV — free",
     "reassurance": "No credit card · 3 free analyses / month · optimised for devs"
   },
+  "dashboardShell": {
+    "navDashboard": "Dashboard",
+    "navTools": "Tools",
+    "navAccount": "Account",
+    "overview": "Overview",
+    "analyses": "Analyses",
+    "applications": "Applications",
+    "analyzeCv": "Analyze CV",
+    "mockInterview": "Mock interview",
+    "profile": "Profile",
+    "rankRewards": "Rank & rewards",
+    "planBilling": "Plan & billing",
+    "settings": "Settings",
+    "credits": "Credits",
+    "reset": "Reset",
+    "dayShort": "d",
+    "perm": "perm",
+    "buyCreditsArrow": "Buy credits →",
+    "buyMoreArrow": "Buy more →",
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "analysisHistory": "Analysis history",
+    "pipeline": "Pipeline",
+    "yourPrefix": "Your ",
+    "yourAnalyses": "analyses.",
+    "yourApplications": "applications.",
+    "there": "there.",
+    "buyCredits": "Buy credits",
+    "newAnalysis": "+ New analysis"
+  },
   "account": {
     "title": "Account",
     "subscription": "Subscription",
@@ -1795,11 +1828,11 @@
     "items": [
       {
         "question": "What is RejectCheck?",
-        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In under 60 seconds, it shows you exactly why your application is getting filtered - running a multi-pass Claude pipeline (a Sonnet diagnostic for ATS fit, red flags and skill-gap radar, plus a Haiku pass that cross-references your GitHub and LinkedIn) against the specific job description."
+        "answer": "RejectCheck is an AI-powered CV and job application diagnosis tool. In about a minute, it shows you exactly why your application is getting filtered - running a multi-pass Claude pipeline (a Sonnet diagnostic for ATS fit, red flags and skill-gap radar, plus a Haiku pass that cross-references your GitHub and LinkedIn) against the specific job description."
       },
       {
         "question": "How does RejectCheck analyze my CV?",
-        "answer": "Upload your CV and paste the target job description. RejectCheck runs a multi-pass Claude pipeline: a fast Sonnet diagnostic (ATS keyword/format check, tone audit, red-flag detection, technical skill-gap radar) plus a Haiku pass that cross-references your CV, LinkedIn and GitHub. Results arrive in under 60 seconds."
+        "answer": "Upload your CV and paste the target job description. RejectCheck runs a multi-pass Claude pipeline: a fast Sonnet diagnostic (ATS keyword/format check, tone audit, red-flag detection, technical skill-gap radar) plus a Haiku pass that cross-references your CV, LinkedIn and GitHub. The scored diagnosis arrives in about a minute, with the deep fixes generated right after."
       },
       {
         "question": "What is an ATS and how does RejectCheck simulate it?",
@@ -2022,7 +2055,7 @@
     "continue": "Continue",
     "back": "Back",
     "step1": {
-      "eyebrow": "The brief · 60 seconds",
+      "eyebrow": "The brief · ~1 minute",
       "title": "First,",
       "titleAccent": "what's your move?",
       "sub": "Pick the closest one. We tune the rejection-risk model differently for every role, so this matters.",

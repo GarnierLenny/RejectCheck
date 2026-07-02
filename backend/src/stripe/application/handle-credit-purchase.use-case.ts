@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
+import { CREDIT_PACK_AMOUNTS } from '../../credits/domain/credit-packs';
 
 /**
  * Handles `checkout.session.completed` events whose `mode === 'payment'`
@@ -96,8 +97,7 @@ export class HandleCreditPurchaseUseCase {
     // Defensive cross-check: amount_total must match the known pack price.
     // We warn on mismatch but trust the quantity from metadata — the user
     // already paid, refusing the grant would be worse than a logged anomaly.
-    const PACK_AMOUNTS: Record<number, number> = { 500: 499, 1000: 899, 2000: 1599 };
-    const expectedTotal = PACK_AMOUNTS[quantityFromMetadata];
+    const expectedTotal = CREDIT_PACK_AMOUNTS[quantityFromMetadata];
     if (
       typeof session.amount_total === 'number' &&
       expectedTotal !== undefined &&

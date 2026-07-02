@@ -1,6 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
-import { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  SubscriptionProvider,
+} from '@prisma/client';
 import { STRIPE_CLIENT, SUBSCRIPTION_REPOSITORY } from '../ports/tokens';
 import type { StripeClient } from '../ports/stripe-client';
 import type { SubscriptionRepository } from '../ports/subscription.repository';
@@ -85,6 +89,7 @@ export class HandleCheckoutCompletedUseCase {
 
     await this.subscriptions.upsert({
       email,
+      provider: SubscriptionProvider.stripe,
       stripeCustomerId: customerId,
       plan: planParse.data as SubscriptionPlan,
       status: sub.status as SubscriptionStatus,

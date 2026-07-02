@@ -17,6 +17,7 @@ export class GetSubscriptionUseCase {
       plan: sub.plan,
       status: sub.status,
       currentPeriodEnd: sub.currentPeriodEnd,
+      provider: sub.provider,
     };
   }
 }

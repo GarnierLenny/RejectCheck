@@ -1,4 +1,8 @@
-import type { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
+import type {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  SubscriptionProvider,
+} from '@prisma/client';
 
 /**
  * Domain view of a subscription. Mirrors the persistence row but is decoupled
@@ -6,7 +10,11 @@ import type { SubscriptionPlan, SubscriptionStatus } from '@prisma/client';
  */
 export type Subscription = {
   email: string;
-  stripeCustomerId: string;
+  provider: SubscriptionProvider;
+  /** Stripe rows only — null for RevenueCat. */
+  stripeCustomerId?: string | null;
+  /** RevenueCat app_user_id (audit/lookup) — null for Stripe. */
+  externalRef?: string | null;
   plan: SubscriptionPlan;
   status: SubscriptionStatus;
   currentPeriodEnd: Date;
@@ -14,10 +22,22 @@ export type Subscription = {
 
 export type SubscriptionSummary = Pick<
   Subscription,
-  'plan' | 'status' | 'currentPeriodEnd'
+  'plan' | 'status' | 'currentPeriodEnd' | 'provider'
 >;
 
 export type UpsertSubscriptionInput = Subscription;
+
+/**
+ * Partial update applied to an existing Stripe row on
+ * `customer.subscription.updated` (renewals, status transitions, plan changes).
+ * `plan` is optional: omit it to preserve the stored plan when the event's price
+ * doesn't map to a known plan (e.g. a legacy grandfathered price).
+ */
+export type SubscriptionRefresh = {
+  status: SubscriptionStatus;
+  currentPeriodEnd: Date;
+  plan?: SubscriptionPlan;
+};
 
 /**
  * Predicate used both by use cases and by the SubscriptionGate. Centralised

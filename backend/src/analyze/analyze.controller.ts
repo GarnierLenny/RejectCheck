@@ -184,8 +184,10 @@ export class AnalyzeController {
     // Identity comes from the verified JWT, not the request body.
     const isRegistered = !!email;
 
-    const ip =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+    // `trust proxy` is set in main.ts, so req.ip is the real client IP (Express
+    // parses X-Forwarded-For and drops the trusted proxy hop). Reading the raw
+    // header's left entry here would let a client forge it to bypass the cap.
+    const ip = req.ip;
 
     const jdValidation = validateJobDescription(jobDescription);
     if (!jdValidation.valid) {
@@ -288,8 +290,10 @@ export class AnalyzeController {
       return res.status(400).json({ message: 'CV is required' });
     }
 
-    const ip =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.ip;
+    // `trust proxy` is set in main.ts, so req.ip is the real client IP (Express
+    // parses X-Forwarded-For and drops the trusted proxy hop). Reading the raw
+    // header's left entry here would let a client forge it to bypass the cap.
+    const ip = req.ip;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');

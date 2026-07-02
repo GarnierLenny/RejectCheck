@@ -48,7 +48,9 @@ function PricingContent() {
       features: t.pricing.plans.shortlisted.features as string[],
       cta: t.pricing.plans.shortlisted.cta,
       href: null,
-      popular: false,
+      // Recommended tier — kept consistent with the landing page (§06), which
+      // highlights Shortlisted as the entry paid plan.
+      popular: true,
     },
     {
       id: 'hired' as const,
@@ -60,7 +62,7 @@ function PricingContent() {
       features: t.pricing.plans.hired.features as string[],
       cta: t.pricing.plans.hired.cta,
       href: null,
-      popular: true,
+      popular: false,
       guarantee: t.pricing.plans.hired.guarantee,
     },
   ];

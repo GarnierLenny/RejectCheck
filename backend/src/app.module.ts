@@ -8,6 +8,8 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { StripeModule } from './stripe/stripe.module';
+import { RevenueCatModule } from './revenuecat/revenuecat.module';
+import { MeModule } from './me/me.module';
 import { InterviewModule } from './interview/interview.module';
 import { ApplicationsModule } from './applications/applications.module';
 import { ChallengeModule } from './challenge/challenge.module';
@@ -32,6 +34,8 @@ import { AppThrottlerModule } from './common/throttler.module';
     AnalyzeModule,
     WaitlistModule,
     StripeModule,
+    RevenueCatModule,
+    MeModule,
     InterviewModule,
     ApplicationsModule,
     ChallengeModule,

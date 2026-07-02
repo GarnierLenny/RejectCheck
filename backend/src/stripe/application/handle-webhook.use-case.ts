@@ -4,6 +4,7 @@ import type { StripeWebhookParser } from '../ports/webhook-parser';
 import { HandleCheckoutCompletedUseCase } from './handle-checkout-completed.use-case';
 import { HandleCreditPurchaseUseCase } from './handle-credit-purchase.use-case';
 import { HandleAnalysisUnlockUseCase } from './handle-analysis-unlock.use-case';
+import { HandleSubscriptionUpdatedUseCase } from './handle-subscription-updated.use-case';
 import { HandleSubscriptionDeletedUseCase } from './handle-subscription-deleted.use-case';
 
 /**
@@ -25,6 +26,7 @@ export class HandleWebhookUseCase {
     private readonly checkoutCompleted: HandleCheckoutCompletedUseCase,
     private readonly creditPurchase: HandleCreditPurchaseUseCase,
     private readonly analysisUnlock: HandleAnalysisUnlockUseCase,
+    private readonly subscriptionUpdated: HandleSubscriptionUpdatedUseCase,
     private readonly subscriptionDeleted: HandleSubscriptionDeletedUseCase,
   ) {}
 
@@ -50,6 +52,11 @@ export class HandleWebhookUseCase {
         }
         return;
       }
+      case 'customer.subscription.updated':
+        // Renewals, status transitions and plan changes — keeps currentPeriodEnd
+        // in sync so paying subscribers stay active past the first period.
+        await this.subscriptionUpdated.execute(event.data.object);
+        return;
       case 'customer.subscription.deleted':
         await this.subscriptionDeleted.execute(event.data.object);
         return;

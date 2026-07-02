@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { STRIPE_CLIENT } from '../ports/tokens';
 import type { StripeClient } from '../ports/stripe-client';
+import { CREDIT_PACKS } from '../../credits/domain/credit-packs';
 
 export type CreateCreditsCheckoutSessionCommand = {
   /** Authenticated user email — required, not user-controllable client side. */
@@ -12,23 +13,6 @@ export type CreateCreditsCheckoutSessionCommand = {
 
 export type CreateCreditsCheckoutSessionResult = {
   url: string | null;
-};
-
-/**
- * Pack prices in euro cents. Each pack has a fixed total price that gives a
- * discount over buying individual credits — the unit price decreases as the
- * pack size increases.
- *
- * Credits are granular: analyse vs JD = 100 crédits, audit CV = 50 crédits.
- *
- * 500 crédits  → 4,99 € (= 5× analyse JD ou 10× audit CV)
- * 1000 crédits → 8,99 € (-10 %)
- * 2000 crédits → 15,99 € (-20 %)
- */
-export const CREDIT_PACKS: Record<number, { amountCents: number; label: string }> = {
-  500:  { amountCents: 499,  label: '500 crédits d\'analyse' },
-  1000: { amountCents: 899,  label: '1000 crédits d\'analyse' },
-  2000: { amountCents: 1599, label: '2000 crédits d\'analyse' },
 };
 
 /**

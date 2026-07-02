@@ -85,14 +85,14 @@ export async function generateMetadata({
       url: CANONICAL,
       locale: 'fr_FR',
       siteName: 'RejectCheck',
-      images: [{ url: `${SITE_URL}/fr/opengraph-image/main`, width: 1200, height: 630, alt: 'RejectCheck' }],
+      images: [{ url: `${SITE_URL}/og?lang=fr`, width: 1200, height: 630, alt: 'RejectCheck' }],
       type: 'article',
     },
     twitter: {
       card: 'summary_large_image',
       title: TITLE,
       description: DESCRIPTION,
-      images: [`${SITE_URL}/fr/opengraph-image/main`],
+      images: [`${SITE_URL}/og?lang=fr`],
     },
   }
 }

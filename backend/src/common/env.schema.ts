@@ -44,10 +44,14 @@ export const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: nonEmpty,
   STRIPE_SHORTLISTED_PRICE_ID: nonEmpty,
   STRIPE_HIRED_PRICE_ID: nonEmpty,
-  // One-time price (mode=payment) for analysis credits. 2 EUR per credit at
-  // ship; quantity is chosen by the user in our Tailwind modal and passed
-  // through Stripe Checkout as line_items[0].quantity.
-  STRIPE_CREDIT_PRICE_ID: nonEmpty,
+  // NB: credit packs use inline `price_data` (see credits/domain/credit-packs.ts),
+  // so there is no STRIPE_CREDIT_PRICE_ID — don't reintroduce it.
+
+  // RevenueCat (mobile in-app purchases). Optional so the backend boots before
+  // mobile billing is configured. The webhook fails closed (rejects every
+  // event) while unset. Set this to the exact value RevenueCat is configured to
+  // send in the webhook's Authorization header.
+  REVENUECAT_WEBHOOK_SECRET: z.string().optional(),
 
 
   SENTRY_DSN: z.string().optional(),

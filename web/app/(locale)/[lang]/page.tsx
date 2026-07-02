@@ -423,7 +423,6 @@ export default function Home() {
 
   const testimonials = [
     { quote: "Best job search tool I've ever used. Went from 0 callbacks to 3 in a week.", name: "Raphael", role: "Fullstack Engineer", img: "/testimonials/raphael.png" },
-    { quote: "Actual game changer. 3 interviews in 2 weeks after fixing the gaps it flagged.", name: "Arshiyaa Rai", role: "Co-Founder, RejectCheck", img: "/testimonials/arshiyaa.jpeg" },
     { quote: "The advice is really good.", name: "Sheryll", role: "Software Eng. Student", initials: "S" },
     { quote: "This is a really great tool!", name: "Yasbira", role: "ISE Student", initials: "Y" },
   ] as const;
@@ -439,7 +438,7 @@ export default function Home() {
         <BlueprintBackdrop variant="light" />
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px", position: "relative", zIndex: 1 }}>
           {/* 3-col top */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1.1fr 460px", gap: 32, alignItems: "start" }}>
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "80px 1.1fr 460px", gap: 32, alignItems: "start" }}>
             {/* Left — margin gutter (kept empty to align with the dropzone row below) */}
             <div aria-hidden />
 
@@ -470,7 +469,7 @@ export default function Home() {
           </div>
 
           {/* Drop zone row */}
-          <div style={{ marginTop: 80, display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, alignItems: "stretch" }}>
+          <div className="rc-mstack" style={{ marginTop: 80, display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, alignItems: "stretch" }}>
             <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", paddingTop: 4 }}>
               → TRY YOURS
             </div>
@@ -591,7 +590,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
           {/* Section head */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
             <div style={NUM}>
               § 02<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s02.smallLabel}</small>
             </div>
@@ -605,7 +604,7 @@ export default function Home() {
           </div>
 
           {/* 2-col grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0 64px" }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0 64px" }}>
             {t.landing.s02.items.map((item) => (
               <div key={item.n} style={{ display: "grid", gridTemplateColumns: "56px 1fr", gap: 24, padding: "28px 0", borderTop: "1px solid var(--rc-border)" }}>
                 <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.12em", color: "var(--rc-hint)", paddingTop: 4 }}>{item.n}</span>
@@ -627,7 +626,7 @@ export default function Home() {
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.5, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(192,57,43,0.06), transparent 50%)" }} />
         <div style={{ ...WRAP, position: "relative" }}>
           {/* Section head — 3 cols */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: 32, alignItems: "end", marginBottom: 48 }}>
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: 32, alignItems: "end", marginBottom: 48 }}>
             <div style={NUM}>
               § 03<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s03.smallLabel}</small>
             </div>
@@ -658,13 +657,13 @@ export default function Home() {
                 borderRadius: 4, padding: "5px 12px",
                 fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)",
               }}>
-                rejectcheck.io/analyze/9k4f-stripe-backend
+                rejectcheck.com/analyze/9k4f-stripe-backend
               </div>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", color: "var(--rc-hint)" }}>{t.landing.s03.browserSaved}</div>
             </div>
 
             {/* Browser body */}
-            <div style={{ padding: "48px 56px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 56 }}>
+            <div className="rc-mstack-lg" style={{ padding: "48px 56px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 56 }}>
               {/* Left */}
               <div>
                 <h3 style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "0 0 12px", fontWeight: 700 }}>Candidate</h3>
@@ -712,7 +711,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
           {/* Section head */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
             <div style={NUM}>
               § 04<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s04.smallLabel}</small>
             </div>
@@ -721,8 +720,9 @@ export default function Home() {
             </h2>
           </div>
 
-          {/* Comparison table */}
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          {/* Comparison table — scrolls horizontally on narrow screens */}
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <table style={{ width: "100%", minWidth: 620, borderCollapse: "collapse" }}>
             <thead>
               <tr>
                 <th style={{ padding: "18px 16px", textAlign: "left", verticalAlign: "top", borderBottom: "1px solid var(--rc-text)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}></th>
@@ -755,6 +755,7 @@ export default function Home() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -762,7 +763,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
           {/* Section head */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
             <div style={NUM}>
               § 05<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s05.smallLabel}</small>
             </div>
@@ -792,7 +793,7 @@ export default function Home() {
           </div>
 
           {/* 4-col testimonials */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)" }}>
             {testimonials.map((item, i) => (
               <div
                 key={item.name}
@@ -834,7 +835,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px", background: "var(--rc-surface)" }}>
         <div style={WRAP}>
           {/* Section head */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
             <div style={NUM}>
               § 06<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s06.smallLabel}</small>
             </div>
@@ -849,7 +850,7 @@ export default function Home() {
           </div>
 
           {/* Pricing grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", borderTop: "1px solid var(--rc-text)" }}>
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", borderTop: "1px solid var(--rc-text)" }}>
             {/* Free */}
             <div style={{ padding: "36px 28px 32px", borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 14 }}>{t.pricing.plans.free.name}</div>
@@ -949,7 +950,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px", background: "var(--rc-surface)" }}>
         <div style={WRAP}>
           {/* Section head */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
             <div style={NUM}>§ 07</div>
             <div>
               <h2 style={{
@@ -983,7 +984,7 @@ export default function Home() {
       {/* ═══ § 08 CLOSING MANIFESTO ══════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "140px 0 120px" }}>
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32 }}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32 }}>
             <div style={NUM}>
               § 08<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s07.smallLabel}</small>
             </div>
@@ -1013,7 +1014,7 @@ export default function Home() {
       <footer style={{ background: "var(--rc-text)", color: "#f4f1ec", padding: "56px 0 32px", position: "relative", overflow: "hidden", isolation: "isolate" }}>
         <BlueprintBackdrop variant="dark" bloom={false} />
         <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1.6fr 1fr 1fr 1fr", gap: 32 }}>
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "80px 1.6fr 1fr 1fr 1fr", gap: 32 }}>
             {/* END label */}
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", borderTop: "1px solid rgba(255,255,255,0.5)", paddingTop: 10 }}>END</span>
 
@@ -1086,7 +1087,7 @@ export default function Home() {
               {t.landing.footer.copyright}
             </span>
             <div style={{ display: "flex", gap: 14 }}>
-              <a href="https://github.com/rejectcheck" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style={{ color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center" }}>
+              <a href="https://github.com/GarnierLenny/RejectCheck" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style={{ color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center" }}>
                 <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor">
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
                 </svg>

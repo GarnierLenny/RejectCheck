@@ -51,6 +51,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.startsWith('/ingest') ||
+    pathname === '/og' ||
     pathname.startsWith('/og/') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/debug-sentry') ||

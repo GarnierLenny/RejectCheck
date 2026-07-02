@@ -12,10 +12,14 @@ import { SkipThrottle } from '@nestjs/throttler';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { SupabaseGuard } from '../auth/supabase.guard';
+import { OptionalSupabaseGuard } from '../auth/optional-supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
+import { OptionalAuthEmail } from '../auth/optional-auth.decorator';
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
+import { CreatePortalSessionUseCase } from './application/create-portal-session.use-case';
+import { CheckSubscriptionUseCase } from './application/check-subscription.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
 import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 
@@ -25,19 +29,48 @@ export class StripeController {
     private readonly createCheckout: CreateCheckoutSessionUseCase,
     private readonly createCreditsCheckout: CreateCreditsCheckoutSessionUseCase,
     private readonly createAnalysisUnlockCheckout: CreateAnalysisUnlockCheckoutSessionUseCase,
+    private readonly createPortal: CreatePortalSessionUseCase,
+    private readonly checkSubscription: CheckSubscriptionUseCase,
     private readonly getSubscription: GetSubscriptionUseCase,
     private readonly handleWebhookUc: HandleWebhookUseCase,
   ) {}
 
-  /** Public — creates a checkout session (email is optional, used for pre-filling the Stripe form). */
+  /**
+   * Creates a subscription Checkout session. Works anonymously (pricing page),
+   * but when a valid JWT is present we trust that email over the body.
+   *
+   * Guard against double billing: if the authenticated user already has an
+   * active subscription, we return a Billing Portal URL instead of a second
+   * Checkout — so "Get Hired" on an existing sub sends them to upgrade (Stripe
+   * prorates) rather than creating a parallel, separately-charged subscription.
+   */
+  @UseGuards(OptionalSupabaseGuard)
   @Post('checkout')
   async createCheckoutSession(
+    @OptionalAuthEmail() authedEmail: string | undefined,
     @Body() body: { plan: 'shortlisted' | 'hired'; email?: string },
   ) {
+    if (authedEmail && (await this.checkSubscription.isPremium(authedEmail))) {
+      return this.createPortal.execute({ email: authedEmail });
+    }
     return this.createCheckout.execute({
       plan: body.plan,
-      customerEmail: body.email,
+      customerEmail: authedEmail ?? body.email,
     });
+  }
+
+  /**
+   * Protected — opens a Stripe Billing Portal session for self-service
+   * cancellation, payment-method changes, invoices and plan changes. Email
+   * comes from the JWT; the customer id is resolved server-side.
+   */
+  @UseGuards(SupabaseGuard)
+  @Post('portal')
+  async createPortalSession(
+    @AuthEmail() email: string,
+    @Body() body: { returnUrl?: string },
+  ) {
+    return this.createPortal.execute({ email, returnUrl: body?.returnUrl });
   }
 
   /** Protected — returns the authenticated user's own subscription only. */

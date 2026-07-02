@@ -136,7 +136,7 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const { t, localePath } = useLanguage();
+  const { t, locale, localePath } = useLanguage();
 
   const { user, loading: authLoading } = useAuth();
   const { data: profile } = useProfile();
@@ -320,7 +320,7 @@ function DashboardContent() {
     .filter(item => new Date(item.createdAt) >= homeCutoff)
     .reverse()
     .map(item => ({
-      dateLabel: new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      dateLabel: new Date(item.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" }),
       score: item.result?.score ?? 0,
     }));
 
@@ -349,7 +349,7 @@ function DashboardContent() {
   ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   const evoChartData = evoDateStrings.map(ds => {
     const row: Record<string, any> = {
-      dateLabel: new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      dateLabel: new Date(ds).toLocaleDateString(locale, { month: "short", day: "numeric" }),
       dateRaw: new Date(ds).getTime(),
     };
     for (const key of evoKeys) {
@@ -411,13 +411,13 @@ function DashboardContent() {
       >
         {/* ── HOME ─────────────────────────────────────────────────────── */}
         {activeTab === "home" && (
-          <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 320px" }}>
+          <div className="grid gap-4 rc-mstack-lg" style={{ gridTemplateColumns: "1fr 320px" }}>
 
             {/* LEFT */}
             <div className="flex flex-col gap-4">
 
               {/* KPI strip */}
-              <div className={`grid ${AI_INTERVIEW_ENABLED ? "grid-cols-4" : "grid-cols-3"} gap-3`}>
+              <div className={`grid grid-cols-2 ${AI_INTERVIEW_ENABLED ? "md:grid-cols-4" : "md:grid-cols-3"} gap-3`}>
                 {[
                   {
                     label: t.account.home.avgScore,
@@ -560,7 +560,7 @@ function DashboardContent() {
                             </span>
                           )}
                           <span className="font-mono text-[10px] text-rc-hint shrink-0">
-                            {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            {new Date(item.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })}
                           </span>
                         </Link>
                       );
@@ -688,7 +688,7 @@ function DashboardContent() {
           <div className="space-y-4">
 
             {/* Top row */}
-            <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 240px", height: 260 }}>
+            <div className="grid gap-3 rc-mstack-lg rc-hauto-lg" style={{ gridTemplateColumns: "1fr 240px", height: 260 }}>
 
               {/* Evo chart */}
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden flex flex-col">
@@ -764,7 +764,7 @@ function DashboardContent() {
                     label: "Best run",
                     value: bestRun ? String(bestRun.result?.score ?? "—") : "—",
                     sub: bestRun
-                      ? `${new Date(bestRun.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${bestRun.jobLabel || bestRun.result?.job_details?.title || ""}`
+                      ? `${new Date(bestRun.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${bestRun.jobLabel || bestRun.result?.job_details?.title || ""}`
                       : undefined,
                     good: true,
                   },
@@ -772,7 +772,7 @@ function DashboardContent() {
                     label: "Worst run",
                     value: worstRun ? String(worstRun.result?.score ?? "—") : "—",
                     sub: worstRun
-                      ? `${new Date(worstRun.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })} · ${worstRun.jobLabel || worstRun.result?.job_details?.title || ""}`
+                      ? `${new Date(worstRun.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${worstRun.jobLabel || worstRun.result?.job_details?.title || ""}`
                       : undefined,
                     good: false,
                   },
@@ -841,9 +841,11 @@ function DashboardContent() {
                   </Link>
                 </div>
 
+                {/* Table — scrolls horizontally on narrow screens */}
+                <div className="overflow-x-auto">
                 {/* Header */}
                 <div
-                  className="grid font-mono text-[9px] text-rc-hint font-bold tracking-[0.12em] uppercase px-4 py-2.5 bg-rc-surface-hero"
+                  className="grid font-mono text-[9px] text-rc-hint font-bold tracking-[0.12em] uppercase px-4 py-2.5 bg-rc-surface-hero min-w-[600px]"
                   style={{ gridTemplateColumns: "40px 1.6fr 1fr 110px 100px 110px 70px" }}
                 >
                   <div>{analysisTypeFilter === "cv-review" ? "Quality" : "Score"}</div>
@@ -885,7 +887,7 @@ function DashboardContent() {
                       return (
                         <div
                           key={item.id}
-                          className="grid items-center px-4 py-3 hover:bg-[#faf9f7] transition-colors text-[12px]"
+                          className="grid items-center px-4 py-3 hover:bg-[#faf9f7] transition-colors text-[12px] min-w-[600px]"
                           style={{ gridTemplateColumns: "40px 1.6fr 1fr 110px 100px 110px 70px" }}
                         >
                           <ScoreCircle score={score} />
@@ -894,7 +896,7 @@ function DashboardContent() {
                           </Link>
                           <span className="text-rc-muted truncate pr-2">{company || "—"}</span>
                           <span className="font-mono text-[10px] text-rc-hint">
-                            {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                            {new Date(item.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric", year: "2-digit" })}
                           </span>
                           <span className={`font-mono text-[10px] font-bold ${appStatus === "interviewing" ? "text-rc-amber" : "text-rc-hint"}`}>
                             {appStatus ? appStatus.charAt(0).toUpperCase() + appStatus.slice(1) : "—"}
@@ -914,6 +916,7 @@ function DashboardContent() {
                     })}
                   </div>
                 )}
+                </div>
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between px-4 py-3 border-t border-[rgba(0,0,0,0.05)]">

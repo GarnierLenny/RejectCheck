@@ -118,6 +118,23 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — collapse the landing's inline-style grid layouts on small
+   screens. The grid columns are declared in inline styles (so they can't
+   carry @media), hence the !important overrides here, toggled by a marker
+   class on each grid. `.rc-mstack` collapses on phones (<768px);
+   `.rc-mstack-lg` also collapses on tablets (<1024px) for the wide grids
+   (hero, pricing, testimonials, footer) that overflow before then.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .rc-mstack { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 1023px) {
+  .rc-mstack-lg { grid-template-columns: 1fr !important; }
+  /* Drop a fixed inline height when a grid stacks, so stacked rows can breathe. */
+  .rc-hauto-lg { height: auto !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    PREMIUM LANDING — design system from /mnt/c/Users/Lenny/Downloads
    ═══════════════════════════════════════════════════════════════════════ */
 

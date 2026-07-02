@@ -399,7 +399,7 @@ export async function generateMetadata({
       url: canonical,
       locale: lang === 'fr' ? 'fr_FR' : 'en_US',
       siteName: 'RejectCheck',
-      images: [{ url: `${SITE_URL}/${lang}/opengraph-image/main`, width: 1200, height: 630, alt: 'RejectCheck' }],
+      images: [{ url: `${SITE_URL}/og?lang=${lang}`, width: 1200, height: 630, alt: 'RejectCheck' }],
       type: 'article',
     },
     twitter: {
@@ -407,7 +407,7 @@ export async function generateMetadata({
       title: c.title,
       description: c.description,
       // Re-declared so X renders an image (custom twitter object suppresses the auto card image).
-      images: [`${SITE_URL}/${lang}/opengraph-image/main`],
+      images: [`${SITE_URL}/og?lang=${lang}`],
     },
   }
 }
