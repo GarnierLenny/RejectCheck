@@ -424,26 +424,26 @@ function DashboardContent() {
                     label: t.account.home.avgScore,
                     value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—",
                     sub: overviewAvgRisk !== null
-                      ? overviewAvgRisk < 40 ? "Low risk" : overviewAvgRisk < 70 ? "Moderate" : "High risk"
-                      : "No data yet",
+                      ? overviewAvgRisk < 40 ? t.dashboardShell.riskLow : overviewAvgRisk < 70 ? t.dashboardShell.riskModerate : t.dashboardShell.riskHigh
+                      : t.dashboardShell.noData,
                     subColor: overviewAvgRisk !== null && overviewAvgRisk < 40 ? "text-rc-green" : overviewAvgRisk !== null && overviewAvgRisk >= 70 ? "text-rc-red" : "text-rc-hint",
                   },
                   {
                     label: t.account.home.activeApplications,
                     value: String(activeApplications.length),
-                    sub: interviewingApps.length > 0 ? `${interviewingApps.length} interviewing` : undefined,
+                    sub: interviewingApps.length > 0 ? `${interviewingApps.length} ${t.dashboardShell.interviewingSuffix}` : undefined,
                     subColor: "text-rc-amber",
                   },
                   {
-                    label: "Response rate",
+                    label: t.dashboardShell.responseRate,
                     value: `${responseRate}%`,
-                    sub: `${repliedApps.length} of ${applications.length} replied`,
+                    sub: t.dashboardShell.repliedFormat.replace("{replied}", String(repliedApps.length)).replace("{total}", String(applications.length)),
                     subColor: "text-rc-hint",
                   },
                   ...(AI_INTERVIEW_ENABLED ? [{
                     label: t.account.home.aiInterviews,
                     value: String(totalInterviews),
-                    sub: totalInterviews === 0 ? "None yet" : undefined,
+                    sub: totalInterviews === 0 ? t.dashboardShell.noneYet : undefined,
                     subColor: "text-rc-hint",
                   }] : []),
                 ].map(({ label, value, sub, subColor }) => (
@@ -526,7 +526,7 @@ function DashboardContent() {
                     onClick={() => handleTabChange("analyses")}
                     className="font-mono text-[10px] text-rc-red tracking-[0.1em] hover:opacity-70 transition-opacity"
                   >
-                    {totalAnalyses} total · See all →
+                    {totalAnalyses} {t.dashboardShell.totalSeeAll}
                   </button>
                 </div>
                 {recentAnalyses.length === 0 ? (
@@ -756,9 +756,9 @@ function DashboardContent() {
               <div className="grid gap-2.5" style={{ gridTemplateRows: "1fr 1fr 1fr" }}>
                 {[
                   {
-                    label: "Avg score",
+                    label: t.account.home.avgScore,
                     value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—",
-                    sub: overviewAvgRisk !== null && overviewAvgRisk < 40 ? "Low risk" : undefined,
+                    sub: overviewAvgRisk !== null && overviewAvgRisk < 40 ? t.dashboardShell.riskLow : undefined,
                     good: overviewAvgRisk !== null && overviewAvgRisk < 40,
                   },
                   {
@@ -807,7 +807,7 @@ function DashboardContent() {
                       onClick={() => setAnalysisTypeFilter(type)}
                       className={`relative px-5 py-2.5 font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${analysisTypeFilter === type ? "text-rc-red" : "text-rc-hint hover:text-rc-text"}`}
                     >
-                      {type === "vs-job" ? "Analyses vs. JD" : "Audits CV"}
+                      {type === "vs-job" ? t.dashboardShell.analysesTable.toggleVsJob : t.dashboardShell.analysesTable.toggleCvReview}
                       {analysisTypeFilter === type && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-rc-red" />}
                     </button>
                   ))}
@@ -831,14 +831,14 @@ function DashboardContent() {
                       onClick={() => setAnalysisSearch("")}
                       className="px-4 py-3 font-mono text-[10px] text-rc-hint hover:text-rc-text transition-colors border-l border-[rgba(0,0,0,0.06)]"
                     >
-                      Clear
+                      {t.dashboardShell.analysesTable.clear}
                     </button>
                   )}
                   <Link
                     href={localePath("/analyze")}
                     className="px-4 py-3 font-mono text-[10px] font-bold tracking-[0.1em] text-rc-red no-underline hover:opacity-70 transition-opacity border-l border-[rgba(0,0,0,0.06)]"
                   >
-                    + New analysis
+                    {t.dashboardShell.newAnalysis}
                   </Link>
                 </div>
 
@@ -849,16 +849,16 @@ function DashboardContent() {
                   className="grid font-mono text-[9px] text-rc-hint font-bold tracking-[0.12em] uppercase px-4 py-2.5 bg-rc-surface-hero min-w-[600px]"
                   style={{ gridTemplateColumns: "40px 1.6fr 1fr 110px 100px 110px 70px" }}
                 >
-                  <div>{analysisTypeFilter === "cv-review" ? "Quality" : "Score"}</div>
-                  <div>{analysisTypeFilter === "cv-review" ? "Profile" : "Position"}</div>
-                  <div>{analysisTypeFilter === "cv-review" ? "—" : "Company"}</div>
-                  <div>Date</div><div>{t.dashboardShell.outcomes.header}</div><div>Note</div><div />
+                  <div>{analysisTypeFilter === "cv-review" ? t.dashboardShell.analysesTable.colQuality : t.dashboardShell.analysesTable.colScore}</div>
+                  <div>{analysisTypeFilter === "cv-review" ? t.dashboardShell.analysesTable.colProfile : t.dashboardShell.analysesTable.colPosition}</div>
+                  <div>{analysisTypeFilter === "cv-review" ? "—" : t.dashboardShell.analysesTable.colCompany}</div>
+                  <div>{t.dashboardShell.analysesTable.colDate}</div><div>{t.dashboardShell.outcomes.header}</div><div>{t.dashboardShell.analysesTable.colNote}</div><div />
                 </div>
 
                 {/* Rows */}
                 {loadingHistory ? (
                   <div className="p-8 text-center">
-                    <span className="font-mono text-[11px] text-rc-hint animate-pulse">Loading…</span>
+                    <span className="font-mono text-[11px] text-rc-hint animate-pulse">{t.dashboardShell.loading}</span>
                   </div>
                 ) : totalAnalyses === 0 ? (
                   <div className="p-16 flex flex-col items-center gap-4">
@@ -882,8 +882,8 @@ function DashboardContent() {
                       const company = isCvReview ? null : (item.company ?? item.result?.job_details?.company ?? null);
                       const score = isCvReview ? (item.result?.cv_quality?.overall ?? 0) : (item.result?.score ?? 0);
                       const aiNote = isCvReview
-                        ? { text: item.result?.projected_profile?.profile_type ?? "Audit", color: "text-rc-muted" }
-                        : (score > 60 ? { text: "Tailor CV", color: "text-rc-red" } : { text: "Strong match", color: "text-rc-green" });
+                        ? { text: item.result?.projected_profile?.profile_type ?? t.dashboardShell.analysesTable.noteAudit, color: "text-rc-muted" }
+                        : (score > 60 ? { text: t.dashboardShell.analysesTable.noteTailor, color: "text-rc-red" } : { text: t.dashboardShell.analysesTable.noteStrong, color: "text-rc-green" });
                       return (
                         <div
                           key={item.id}
@@ -919,7 +919,7 @@ function DashboardContent() {
                 {/* Pagination */}
                 <div className="flex items-center justify-between px-4 py-3 border-t border-[rgba(0,0,0,0.05)]">
                   <span className="font-mono text-[10px] uppercase tracking-widest text-rc-hint">
-                    Page {analysisPage} / {Math.max(1, totalAnalysisPages)}
+                    {t.dashboardShell.analysesTable.page} {analysisPage} / {Math.max(1, totalAnalysisPages)}
                   </span>
                   <div className="flex gap-2">
                     <button
@@ -927,14 +927,14 @@ function DashboardContent() {
                       onClick={() => setAnalysisPage(p => p - 1)}
                       className="px-3.5 py-1.5 rounded-lg border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      ← Prev
+                      {t.dashboardShell.analysesTable.prev}
                     </button>
                     <button
                       disabled={analysisPage >= Math.max(1, totalAnalysisPages)}
                       onClick={() => setAnalysisPage(p => p + 1)}
                       className="px-3.5 py-1.5 rounded-lg border border-rc-border bg-white font-mono text-[10px] tracking-widest uppercase text-rc-hint hover:text-rc-text hover:border-rc-red/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      Next →
+                      {t.dashboardShell.analysesTable.next}
                     </button>
                   </div>
                 </div>

@@ -1339,6 +1339,34 @@
     "there": "there.",
     "buyCredits": "Buy credits",
     "newAnalysis": "+ New analysis",
+    "loading": "Loading…",
+    "riskLow": "Low risk",
+    "riskModerate": "Moderate risk",
+    "riskHigh": "High risk",
+    "noData": "No data yet",
+    "responseRate": "Response rate",
+    "interviewingSuffix": "interviewing",
+    "repliedFormat": "{replied} of {total} replied",
+    "noneYet": "None yet",
+    "totalSeeAll": "total · See all →",
+    "analysesTable": {
+      "toggleVsJob": "Analyses vs. JD",
+      "toggleCvReview": "CV audits",
+      "clear": "Clear",
+      "colScore": "Score",
+      "colQuality": "Quality",
+      "colPosition": "Position",
+      "colProfile": "Profile",
+      "colCompany": "Company",
+      "colDate": "Date",
+      "colNote": "Note",
+      "noteAudit": "Audit",
+      "noteTailor": "Tailor CV",
+      "noteStrong": "Strong match",
+      "page": "Page",
+      "prev": "← Prev",
+      "next": "Next →"
+    },
     "outcomes": {
       "header": "Outcome",
       "hint": "What happened after you applied? Helps calibrate your risk score.",
@@ -1349,6 +1377,21 @@
       "offer": "Offer",
       "rejected": "Rejected"
     }
+  },
+  "toasts": {
+    "goodProfileTitle": "You've got a great profile for this role!",
+    "goodProfileDesc": "Share your results — it only takes 2 seconds.",
+    "share": "Share",
+    "shareLinkFailed": "Couldn't generate the share link.",
+    "paymentFailed": "Couldn't start the payment. Please try again.",
+    "rewriteUnlocked": "Rewrite unlocked for this CV ✅",
+    "rewriteSignupPrompt": "Create a free account (30s, no card) to unlock the rewrite.",
+    "rewriteFailed": "Rewrite failed. Please try again.",
+    "rewriteFailedShort": "Rewrite failed.",
+    "rewriteNoResult": "Rewrite returned no result. Please try again.",
+    "markdownDownloaded": "Markdown report downloaded",
+    "pdfGenerated": "PDF report generated",
+    "pdfFailed": "Failed to generate PDF"
   },
   "account": {
     "title": "Account",
@@ -2240,6 +2283,23 @@
     "parsedCv": {
       "summary": "▸ See what an ATS reads from your PDF",
       "hint": "This is the plain text an ATS extracts from your file. If it looks garbled or out of order, the recruiter's software sees the same — fix your PDF's structure (avoid tables, columns, headers/footers, and images for text)."
+    },
+    "heroHeadline": {
+      "below": "You're below the line for this one.",
+      "competitive": "Competitive — with a few gaps to close.",
+      "strong": "Strong match. Polish and apply."
+    },
+    "report": {
+      "positioningSub": "Before a single bullet is read, two things set the first impression: the level you project, and the voice you write in.",
+      "strengthPrefix": "Strength ·",
+      "toneLabel": "b · Writing tone",
+      "patternDetected": "Pattern detected",
+      "auditTitle": "Every issue, ranked by what it costs you",
+      "auditSub": "issues across the document. Each opens with the fix and the time it takes.",
+      "severity": "Severity",
+      "inYourFavour": "In your favour",
+      "redFlagsSub": "patterns a reviewer spots in the first 8 seconds — before reading a single bullet.",
+      "requirementsSub": "Every required skill from the job description, checked against what your CV actually demonstrates."
     },
     "deepPending": "Generating your detailed fixes…",
     "deepLocked": {

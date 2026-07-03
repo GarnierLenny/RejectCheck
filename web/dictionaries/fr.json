@@ -1340,6 +1340,34 @@
     "there": "toi.",
     "buyCredits": "Acheter des crédits",
     "newAnalysis": "+ Nouvelle analyse",
+    "loading": "Chargement…",
+    "riskLow": "Risque faible",
+    "riskModerate": "Risque modéré",
+    "riskHigh": "Risque élevé",
+    "noData": "Pas encore de données",
+    "responseRate": "Taux de réponse",
+    "interviewingSuffix": "en entretien",
+    "repliedFormat": "{replied} réponses sur {total}",
+    "noneYet": "Aucun pour l'instant",
+    "totalSeeAll": "au total · Tout voir →",
+    "analysesTable": {
+      "toggleVsJob": "Analyses vs offre",
+      "toggleCvReview": "Audits CV",
+      "clear": "Effacer",
+      "colScore": "Score",
+      "colQuality": "Qualité",
+      "colPosition": "Poste",
+      "colProfile": "Profil",
+      "colCompany": "Entreprise",
+      "colDate": "Date",
+      "colNote": "Note",
+      "noteAudit": "Audit",
+      "noteTailor": "Adapter le CV",
+      "noteStrong": "Bon match",
+      "page": "Page",
+      "prev": "← Préc.",
+      "next": "Suiv. →"
+    },
     "outcomes": {
       "header": "Résultat",
       "hint": "Qu'est-il arrivé après ta candidature ? Aide à calibrer ton score de risque.",
@@ -1350,6 +1378,21 @@
       "offer": "Offre",
       "rejected": "Rejeté"
     }
+  },
+  "toasts": {
+    "goodProfileTitle": "Tu as un excellent profil pour ce poste !",
+    "goodProfileDesc": "Partage tes résultats — ça ne prend que 2 secondes.",
+    "share": "Partager",
+    "shareLinkFailed": "Impossible de générer le lien de partage.",
+    "paymentFailed": "Impossible de lancer le paiement. Réessaie.",
+    "rewriteUnlocked": "Réécriture débloquée pour ce CV ✅",
+    "rewriteSignupPrompt": "Crée un compte gratuit (30s, sans carte) pour débloquer la réécriture.",
+    "rewriteFailed": "La réécriture a échoué. Réessaie.",
+    "rewriteFailedShort": "La réécriture a échoué.",
+    "rewriteNoResult": "La réécriture n'a rien renvoyé. Réessaie.",
+    "markdownDownloaded": "Rapport Markdown téléchargé",
+    "pdfGenerated": "Rapport PDF généré",
+    "pdfFailed": "Échec de la génération du PDF"
   },
   "account": {
     "title": "Compte",
@@ -2241,6 +2284,23 @@
     "parsedCv": {
       "summary": "▸ Vois ce qu'un ATS lit de ton PDF",
       "hint": "Voici le texte brut qu'un ATS extrait de ton fichier. S'il paraît brouillé ou dans le désordre, le logiciel du recruteur voit la même chose — corrige la structure de ton PDF (évite tableaux, colonnes, en-têtes/pieds de page et images pour le texte)."
+    },
+    "heroHeadline": {
+      "below": "Tu es sous la barre pour celle-ci.",
+      "competitive": "Compétitif — avec quelques écarts à combler.",
+      "strong": "Bon match. Peaufine et postule."
+    },
+    "report": {
+      "positioningSub": "Avant même qu'une ligne soit lue, deux choses fixent la première impression : le niveau que tu projettes et la voix que tu emploies.",
+      "strengthPrefix": "Atout ·",
+      "toneLabel": "b · Ton d'écriture",
+      "patternDetected": "Schéma détecté",
+      "auditTitle": "Chaque problème, classé par ce qu'il te coûte",
+      "auditSub": "problèmes dans le document. Chaque point s'ouvre sur le correctif et le temps nécessaire.",
+      "severity": "Sévérité",
+      "inYourFavour": "En ta faveur",
+      "redFlagsSub": "schémas qu'un relecteur repère dans les 8 premières secondes — avant même de lire une ligne.",
+      "requirementsSub": "Chaque compétence exigée par l'offre, vérifiée contre ce que ton CV démontre réellement."
     },
     "deepPending": "Génération de tes corrections détaillées en cours…",
     "deepLocked": {

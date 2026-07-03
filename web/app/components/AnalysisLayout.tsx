@@ -59,8 +59,10 @@ const R_MD = "8px";
 const SHADOW_XS = "0 1px 2px rgba(26,22,18,0.06)";
 const SHADOW_SM = "0 1px 3px rgba(26,22,18,0.08), 0 1px 2px rgba(26,22,18,0.04)";
 
-const heroHeadline = (n: number) =>
-  n >= 50 ? "You're below the line for this one." : n >= 35 ? "Competitive — with a few gaps to close." : "Strong match. Polish and apply.";
+const heroHeadline = (
+  n: number,
+  hl: { below: string; competitive: string; strong: string },
+) => (n >= 50 ? hl.below : n >= 35 ? hl.competitive : hl.strong);
 
 const sevColor = (s: string) =>
   s === "critical" ? "var(--rc-red)" : s === "major" ? "var(--rc-amber)" : "var(--rc-hint)";
@@ -343,7 +345,7 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <Mono style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--rc-text)" }}>{s.name}</Mono>
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: R_SM, color: ok ? "var(--rc-green)" : "var(--rc-amber)", background: ok ? "var(--rc-green-bg)" : "var(--rc-amber-bg)", border: `1px solid ${ok ? "var(--rc-green-border)" : "var(--rc-amber-border)"}` }}>
-                        {ok ? "TARGET MET" : "GAP"}
+                        {ok ? t.technicalRadar.targetMet : t.technicalRadar.gap}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
@@ -538,12 +540,12 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
       {/* 01 — Positioning */}
       <section>
         <SecHead title={t.analysisLayout.cv.positioningTitle}
-          sub="Before a single bullet is read, two things set the first impression: the level you project, and the voice you write in." rule />
+          sub={t.analysisLayout.report.positioningSub} rule />
 
         {/* a · Seniority */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
           <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.cv.seniorityLabel}</Eyebrow>
-          {sen.strength && <StrengthPill>Strength · {sen.strength}</StrengthPill>}
+          {sen.strength && <StrengthPill>{t.analysisLayout.report.strengthPrefix} {sen.strength}</StrengthPill>}
         </div>
         <Compare leftLabel={t.analysisLayout.cv.roleExpects} left={sen.expected} rightLabel={t.analysisLayout.cv.cvSignals} right={sen.detected} rightColor="var(--rc-red)" />
         <div style={{ marginTop: 18 }}>
@@ -558,7 +560,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
 
         {/* b · Tone */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, gap: 16, flexWrap: "wrap" }}>
-          <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>b · Writing tone</Eyebrow>
+          <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.report.toneLabel}</Eyebrow>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", padding: "4px 11px", borderRadius: R_SM, color: toneColor, background: `color-mix(in srgb, ${toneColor} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${toneColor} 25%, transparent)` }}>
             {tone.detected} {t.analysisLayout.cv.toneVoice}
           </span>
@@ -584,7 +586,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
               <path d="M6 10l4-4M5.5 4.5l1-1a2.5 2.5 0 013.5 3.5l-1 1M10.5 11.5l-1 1a2.5 2.5 0 01-3.5-3.5l1-1" />
             </svg>
             <div>
-              <Eyebrow color="var(--rc-amber)" style={{ display: "block", marginBottom: 7 }}>Pattern detected</Eyebrow>
+              <Eyebrow color="var(--rc-amber)" style={{ display: "block", marginBottom: 7 }}>{t.analysisLayout.report.patternDetected}</Eyebrow>
               <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.65, maxWidth: 620 }}>
                 <MD>{correlation.explanation}</MD>
               </div>
@@ -595,8 +597,8 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
 
       {/* 02 — Forensic audit */}
       <section>
-        <SecHead title="Every issue, ranked by what it costs you"
-          sub={`${cv.issues.length} finding${cv.issues.length !== 1 ? "s" : ""} across the document. Each opens with the fix and the time it takes.`}
+        <SecHead title={t.analysisLayout.report.auditTitle}
+          sub={`${cv.issues.length} ${t.analysisLayout.report.auditSub}`}
           meta={
             <div style={{ textAlign: "right" }}>
               <Eyebrow style={{ display: "block", marginBottom: 6 }}>{t.analysisLayout.cv.auditHealthLabel}</Eyebrow>
@@ -610,11 +612,11 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
           } rule />
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 2 }}>Severity</Mono>
+            <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 2 }}>{t.analysisLayout.report.severity}</Mono>
             <CountPill n={counts.critical} sev="critical" /><CountPill n={counts.major} sev="major" /><CountPill n={counts.minor} sev="minor" />
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 2 }}>In your favour</Mono>
+            <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 2 }}>{t.analysisLayout.report.inYourFavour}</Mono>
             {(cv.strengths ?? []).map((s) => <StrengthPill key={s}>{s}</StrengthPill>)}
           </div>
         </div>
@@ -627,7 +629,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
       {flags?.length > 0 && (
         <section>
           <SecHead title={t.analysisLayout.flags.redFlagsTitle}
-            sub={`${flags.length} pattern${flags.length !== 1 ? "s" : ""} a reviewer spots in the first 8 seconds — before reading a single bullet.`} rule />
+            sub={`${flags.length} ${t.analysisLayout.report.redFlagsSub}`} rule />
           <Sheet>
             {flags.map((f, i) => (
               <div key={i}
@@ -656,7 +658,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
       {jd && sortedSkills.length > 0 && (
         <section>
           <SecHead title={t.analysisLayout.flags.requirementsTitle}
-            sub="Every required skill from the job description, checked against what your CV actually demonstrates."
+            sub={t.analysisLayout.report.requirementsSub}
             meta={
               <div style={{ textAlign: "right" }}>
                 <Mono style={{ fontSize: 26, fontWeight: 600, color: found === total ? "var(--rc-green)" : found >= total * 0.7 ? "var(--rc-amber)" : "var(--rc-red)" }}>
@@ -930,7 +932,7 @@ export function AnalysisLayout({
 
             {/* §01 — Rejection risk */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
-              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score)} sectionNo="01" />
+              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo="01" />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
                   <MD>{result.technical_analysis.reasoning}</MD>

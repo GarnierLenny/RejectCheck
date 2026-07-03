@@ -324,9 +324,9 @@ function AnalyzeContent() {
     if (shareToastShownRef.current === analysisId) return;
     shareToastShownRef.current = analysisId;
     const timer = setTimeout(() => {
-      toast("Tu as un excellent profil pour ce poste !", {
-        description: "Partage tes résultats — ça ne prend que 2 secondes.",
-        action: { label: "Partager", onClick: shareAnalysis },
+      toast(t.toasts.goodProfileTitle, {
+        description: t.toasts.goodProfileDesc,
+        action: { label: t.toasts.share, onClick: shareAnalysis },
         duration: 8000,
       });
     }, 3500);
@@ -748,7 +748,7 @@ function AnalyzeContent() {
       setShareUrl(url);
       posthog.capture("analysis_shared", { analysis_id: analysisId });
     } catch {
-      toast.error("Impossible de générer le lien de partage.");
+      toast.error(t.toasts.shareLinkFailed);
     } finally {
       setIsSharing(false);
     }
@@ -774,7 +774,7 @@ function AnalyzeContent() {
       setShareUrl(url);
       posthog.capture("analysis_shared", { anonymous: true });
     } catch {
-      toast.error("Impossible de générer le lien de partage.");
+      toast.error(t.toasts.shareLinkFailed);
     } finally {
       setIsSharing(false);
     }
@@ -789,7 +789,7 @@ function AnalyzeContent() {
     posthog.capture("rewrite_unlock_clicked", { analysis_id: analysisId, logged_in: !!user });
     if (!user || !session?.access_token) {
       if (anonClaimToken) setPendingClaim(anonClaimToken);
-      toast.message("Crée un compte gratuit (30s, sans carte) pour débloquer la réécriture.");
+      toast.message(t.toasts.rewriteSignupPrompt);
       router.push(localePath("/login"));
       return;
     }
@@ -805,7 +805,7 @@ function AnalyzeContent() {
       if (url) window.location.href = url;
       else throw new Error("no url");
     } catch {
-      toast.error("Impossible de lancer le paiement. Réessaie.");
+      toast.error(t.toasts.paymentFailed);
       setIsUnlocking(false);
     }
   }
@@ -837,7 +837,7 @@ function AnalyzeContent() {
     if (unlockToastShownRef.current) return;
     if (searchParams.get("unlock_success") === "true") {
       unlockToastShownRef.current = true;
-      toast.success("Réécriture débloquée pour ce CV ✅");
+      toast.success(t.toasts.rewriteUnlocked);
       posthog.capture("rewrite_unlock_succeeded");
       const params = new URLSearchParams(Array.from(searchParams.entries()));
       params.delete("unlock_success");
@@ -863,7 +863,7 @@ function AnalyzeContent() {
       });
 
       if (!res.ok || !res.body) {
-        toast.error("Rewrite failed. Please try again.");
+        toast.error(t.toasts.rewriteFailed);
         return;
       }
 
@@ -882,18 +882,18 @@ function AnalyzeContent() {
           received = true;
           reconstructedCvFromStream = payload.reconstructed_cv ?? null;
         } else if (payload.step === "error") {
-          toast.error(payload.message || "Rewrite failed.");
+          toast.error(payload.message || t.toasts.rewriteFailedShort);
         }
       });
 
       if (received) {
         setReconstructedCv(reconstructedCvFromStream);
       } else {
-        toast.error("Rewrite returned no result. Please try again.");
+        toast.error(t.toasts.rewriteNoResult);
       }
     } catch (err) {
       console.error("[Rewrite] failed:", err);
-      toast.error("Rewrite failed. Please try again.");
+      toast.error(t.toasts.rewriteFailed);
     } finally {
       setIsRewriting(false);
     }
@@ -937,7 +937,7 @@ function AnalyzeContent() {
     const names = getExportFilenames(result);
     triggerDownload(md, names.md, "text/markdown");
     posthog.capture("analysis_exported", { format: "markdown", analysis_id: analysisId });
-    toast.success("Markdown report downloaded");
+    toast.success(t.toasts.markdownDownloaded);
   };
 
   const exportToPdf = async () => {
@@ -947,10 +947,10 @@ function AnalyzeContent() {
     try {
       await generatePdf(result, names.pdf);
       posthog.capture("analysis_exported", { format: "pdf", analysis_id: analysisId });
-      toast.success("PDF report generated");
+      toast.success(t.toasts.pdfGenerated);
     } catch (err) {
       console.error("PDF Export failed:", err);
-      toast.error("Failed to generate PDF");
+      toast.error(t.toasts.pdfFailed);
     }
     setIsExportingPdf(false);
   };
@@ -1127,7 +1127,7 @@ function AnalyzeContent() {
                       className="flex items-center gap-1.5 font-mono text-[11px] text-rc-hint hover:text-rc-text transition-colors px-3 py-1.5 border border-rc-border bg-rc-surface uppercase tracking-wider disabled:opacity-50"
                     >
                       <Share2 size={12} />
-                      {isSharing ? "…" : "Share"}
+                      {isSharing ? "…" : t.toasts.share}
                     </button>
                   )}
                 </>}
