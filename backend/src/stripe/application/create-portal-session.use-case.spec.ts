@@ -1,13 +1,13 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadGatewayException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreatePortalSessionUseCase } from './create-portal-session.use-case';
 import type { StripeClient } from '../ports/stripe-client';
 import type { SubscriptionRepository } from '../ports/subscription.repository';
 
-function makeUseCase(customerId: string | null) {
-  const create = jest
-    .fn()
-    .mockResolvedValue({ url: 'https://billing.stripe.com/session/xyz' });
+function makeUseCase(customerId: string | null, createImpl?: jest.Mock) {
+  const create =
+    createImpl ??
+    jest.fn().mockResolvedValue({ url: 'https://billing.stripe.com/session/xyz' });
   const stripe = {
     billingPortal: { sessions: { create } },
   } as unknown as StripeClient;
@@ -47,6 +47,28 @@ describe('CreatePortalSessionUseCase', () => {
     const { uc } = makeUseCase(null);
     await expect(uc.execute({ email: 'a@b.com' })).rejects.toBeInstanceOf(
       NotFoundException,
+    );
+  });
+
+  it('maps a Stripe resource_missing error to a clean NotFound (test customer vs live key)', async () => {
+    const create = jest.fn().mockRejectedValue(
+      Object.assign(new Error('No such customer: cus_test123'), {
+        code: 'resource_missing',
+      }),
+    );
+    const { uc } = makeUseCase('cus_test123', create);
+    await expect(uc.execute({ email: 'a@b.com' })).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('maps other Stripe errors to a 502 rather than an opaque 500', async () => {
+    const create = jest
+      .fn()
+      .mockRejectedValue(Object.assign(new Error('api down'), { code: 'api_error' }));
+    const { uc } = makeUseCase('cus_1', create);
+    await expect(uc.execute({ email: 'a@b.com' })).rejects.toBeInstanceOf(
+      BadGatewayException,
     );
   });
 });

@@ -1,7 +1,9 @@
 import {
+  BadGatewayException,
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -26,6 +28,8 @@ export type CreatePortalSessionResult = { url: string };
  */
 @Injectable()
 export class CreatePortalSessionUseCase {
+  private readonly logger = new Logger(CreatePortalSessionUseCase.name);
+
   constructor(
     @Inject(STRIPE_CLIENT) private readonly stripe: StripeClient,
     @Inject(SUBSCRIPTION_REPOSITORY)
@@ -50,10 +54,30 @@ export class CreatePortalSessionUseCase {
     const frontendUrl =
       this.config.get<string>('FRONTEND_URL') || 'https://rejectcheck.com';
 
-    const session = await this.stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: cmd.returnUrl || `${frontendUrl}/dashboard`,
-    });
+    let session: { url: string | null };
+    try {
+      session = await this.stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: cmd.returnUrl || `${frontendUrl}/dashboard`,
+      });
+    } catch (err) {
+      const code = (err as { code?: string }).code;
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `billingPortal.sessions.create failed for customer=${customerId}: ${message}`,
+      );
+      if (code === 'resource_missing') {
+        // The stored customer id doesn't exist in the active Stripe mode —
+        // e.g. a subscription created in test mode, queried with a live key.
+        // A clear 404 beats an opaque 500 on the "Manage billing" button.
+        throw new NotFoundException(
+          'Billing account not found in Stripe. If this subscription was created in test mode, it is not available in live mode.',
+        );
+      }
+      throw new BadGatewayException(
+        'Could not open the billing portal. Please try again or contact support.',
+      );
+    }
 
     if (!session.url) {
       throw new ConflictException('Stripe did not return a portal URL');
