@@ -12,9 +12,9 @@ import { Navbar } from "../../../components/Navbar";
 // Prices mirror the backend source of truth (backend/src/credits/domain/credit-packs.ts).
 // Keep in sync when repricing.
 const PACKS = [
-  { quantity: 500,  price: "8,99 €",  sub: "= 5× analyse JD · 10× audit CV",          badge: null,   popular: false },
-  { quantity: 1000, price: "15,99 €", sub: "= 10× analyse JD · 20× audit CV  · -11%", badge: "-11%", popular: true  },
-  { quantity: 2000, price: "27,99 €", sub: "= 20× analyse JD · 40× audit CV  · -22%", badge: "-22%", popular: false },
+  { quantity: 500,  price: "8,99 €",  badge: null,   popular: false },
+  { quantity: 1000, price: "15,99 €", badge: "-11%", popular: true  },
+  { quantity: 2000, price: "27,99 €", badge: "-22%", popular: false },
 ] as const;
 
 const MOCK_HISTORY: { id: number; event: string; date: string; delta: number; type: string }[] = [];
@@ -31,7 +31,7 @@ function CreditsContent() {
   const { user, loading: authLoading } = useAuth();
   const { data: quota } = useQuota();
   const { data: sub } = useSubscription();
-  const { localePath } = useLanguage();
+  const { t, locale, localePath } = useLanguage();
   const buyCredits = useBuyCredits();
   const [loadingQty, setLoadingQty] = useState<number | null>(null);
 
@@ -49,7 +49,7 @@ function CreditsContent() {
   const _now = new Date();
   const _nextMonth = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth() + 1, 1));
   const resetDays = Math.ceil((_nextMonth.getTime() - _now.getTime()) / 86400000);
-  const resetDate = _nextMonth.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const resetDate = _nextMonth.toLocaleDateString(locale, { day: "numeric", month: "long" });
 
   const handleBuy = (quantity: number) => {
     setLoadingQty(quantity);
@@ -70,18 +70,18 @@ function CreditsContent() {
             {/* Breadcrumb + title */}
             <div>
               <p className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-hint mb-3">
-                <Link href={localePath("/dashboard")} className="no-underline hover:text-rc-text transition-colors">Compte</Link>
+                <Link href={localePath("/dashboard")} className="no-underline hover:text-rc-text transition-colors">{t.credits.breadcrumbAccount}</Link>
                 <span className="mx-2">·</span>
-                Crédits
+                {t.credits.breadcrumbCredits}
               </p>
               <h1 className="font-serif text-[56px] font-normal leading-none m-0" style={{ letterSpacing: -1 }}>
-                Tes crédits<span className="text-rc-red">.</span>
+                {t.credits.title}<span className="text-rc-red">.</span>
               </h1>
             </div>
 
             {/* Balance card */}
             <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-6">
-              <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-4">Solde actuel</p>
+              <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-4">{t.credits.currentBalance}</p>
 
               <div className="flex items-end justify-between gap-4 mb-4">
                 {/* Big number */}
@@ -94,8 +94,8 @@ function CreditsContent() {
 
                 {/* Reset info */}
                 <div className="text-right pb-1">
-                  <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-rc-hint mb-1">Reset gratuit</p>
-                  <p className="font-serif text-[28px] font-medium leading-none text-rc-text">{resetDays} jours</p>
+                  <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-rc-hint mb-1">{t.credits.freeReset}</p>
+                  <p className="font-serif text-[28px] font-medium leading-none text-rc-text">{resetDays} {t.credits.days}</p>
                   <p className="font-mono text-[11px] text-rc-hint mt-1">{resetDate}</p>
                 </div>
               </div>
@@ -110,10 +110,10 @@ function CreditsContent() {
 
               {/* Footer */}
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] text-rc-hint">{quota?.monthlyCap ?? 300} crédits / mois</span>
+                <span className="font-mono text-[11px] text-rc-hint">{quota?.monthlyCap ?? 300} {t.credits.creditsPerMonth}</span>
                 {!isHired && (
                   <Link href={localePath("/pricing")} className="font-mono text-[11px] text-rc-hint hover:text-rc-text no-underline transition-colors">
-                    Jusqu'à 3 000 crédits/mois dès 19,99 €
+                    {t.credits.upsellLink}
                   </Link>
                 )}
               </div>
@@ -121,7 +121,7 @@ function CreditsContent() {
 
             {/* Recharge */}
             <div>
-              <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-3">Recharge instantanée</p>
+              <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint font-bold mb-3">{t.credits.instantTopup}</p>
               <div className="grid grid-cols-3 gap-3">
                 {PACKS.map((pack) => (
                   <div
@@ -137,15 +137,15 @@ function CreditsContent() {
                       </span>
                     )}
                     <div>
-                      <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-rc-hint mb-1">Pack</p>
+                      <p className="font-mono text-[9px] tracking-[0.15em] uppercase text-rc-hint mb-1">{t.credits.pack}</p>
                       <div className="flex items-baseline gap-1">
                         <span className="font-serif text-[36px] font-medium leading-none text-rc-text">{pack.quantity}</span>
-                        <span className="font-mono text-[12px] text-rc-hint ml-1">crédit{pack.quantity > 1 ? "s" : ""}</span>
+                        <span className="font-mono text-[12px] text-rc-hint ml-1">{pack.quantity > 1 ? t.credits.creditPlural : t.credits.creditSingular}</span>
                       </div>
                     </div>
                     <div>
                       <p className="text-[20px] font-bold text-rc-text">{pack.price}</p>
-                      <p className="font-mono text-[11px] text-rc-hint">{pack.sub}</p>
+                      <p className="font-mono text-[11px] text-rc-hint">{t.credits.packSubs[`${pack.quantity}`]}</p>
                     </div>
                     <button
                       type="button"
@@ -157,12 +157,12 @@ function CreditsContent() {
                           : "bg-rc-bg border border-rc-border text-rc-text hover:border-rc-red/40"
                       }`}
                     >
-                      {loadingQty === pack.quantity ? "…" : "Acheter →"}
+                      {loadingQty === pack.quantity ? "…" : t.credits.buy}
                     </button>
                   </div>
                 ))}
               </div>
-              <p className="mt-3 font-mono text-[10px] text-rc-hint text-center">Paiement unique · Stripe · pas d'abonnement</p>
+              <p className="mt-3 font-mono text-[10px] text-rc-hint text-center">{t.credits.oneTime}</p>
             </div>
 
             {/* Pro plan */}
@@ -170,25 +170,25 @@ function CreditsContent() {
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-serif text-[22px] font-normal text-rc-text">Plan Shortlisted</span>
+                    <span className="font-serif text-[22px] font-normal text-rc-text">{t.credits.shortlistedPlan}</span>
                     <span className="font-mono text-[9px] tracking-[0.1em] uppercase border border-rc-green/40 text-rc-green px-2 py-0.5 rounded">
-                      1 500 crédits/mois
+                      {t.credits.shortlistedCredits}
                     </span>
                   </div>
                   <p className="text-[13px] text-rc-hint leading-relaxed">
-                    1 500 crédits/mois + crédits à la demande, dashboard pro, entretien IA, réécriture CV. Annulation à tout moment.
+                    {t.credits.shortlistedDesc}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-3 flex-shrink-0">
                   <div className="text-right">
                     <span className="font-serif text-[36px] font-medium leading-none text-rc-text">19,99 €</span>
-                    <p className="font-mono text-[11px] text-rc-hint mt-0.5">/ mois</p>
+                    <p className="font-mono text-[11px] text-rc-hint mt-0.5">{t.credits.perMonth}</p>
                   </div>
                   <Link
                     href={localePath("/pricing")}
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white font-mono text-[10px] tracking-[0.14em] uppercase font-bold rounded-lg no-underline hover:opacity-80 transition-opacity"
                   >
-                    Passer Pro →
+                    {t.credits.goPro}
                   </Link>
                 </div>
               </div>
@@ -199,25 +199,25 @@ function CreditsContent() {
           <div>
             <div className="flex items-baseline justify-between mb-5">
               <h2 className="font-serif text-[32px] font-normal leading-none" style={{ letterSpacing: -0.5 }}>
-                Historique
+                {t.credits.history}
               </h2>
               <button className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-hint hover:text-rc-text transition-colors">
-                Tout exporter →
+                {t.credits.exportAll}
               </button>
             </div>
 
             <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl overflow-hidden">
               {/* Table header */}
               <div className="grid px-4 py-3 border-b border-rc-border/60" style={{ gridTemplateColumns: "1fr auto auto" }}>
-                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint">Évènement</span>
-                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint pr-4">Date</span>
+                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint">{t.credits.event}</span>
+                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint pr-4">{t.credits.date}</span>
                 <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint w-8 text-right">Δ</span>
               </div>
 
               {/* Rows */}
               {MOCK_HISTORY.length === 0 ? (
                 <div className="px-4 py-10 text-center">
-                  <p className="font-mono text-[11px] text-rc-hint">Aucun évènement pour l'instant.</p>
+                  <p className="font-mono text-[11px] text-rc-hint">{t.credits.noEvents}</p>
                 </div>
               ) : MOCK_HISTORY.map((row, i) => (
                 <div

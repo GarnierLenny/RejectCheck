@@ -546,6 +546,7 @@
       }
     },
     "github": {
+      "label": "GitHub username",
       "hint": "repos · languages · activity",
       "precision": "+precision"
     },
@@ -559,7 +560,9 @@
       "label": "Portfolio",
       "hint": "case studies · process · craft",
       "placeholder": "your-domain.com",
-      "precision": "+precision"
+      "precision": "+precision",
+      "pingOk": "URL reachable — the site responds correctly.",
+      "pingError": "URL unreachable — check the address."
     },
     "pills": {
       "recommended": "Recommended",
@@ -654,7 +657,9 @@
         "cvFormat": "PDF · DOCX · 5MB max",
         "saveHint": "Save CVs for quick reuse in Settings",
         "jobPlaceholder": "Paste the posting: title, must-haves, nice-to-haves, salary if shown...",
-        "pasteUrl": "Paste a URL instead"
+        "pasteUrl": "Paste a URL instead",
+        "clear": "Clear",
+        "jobHint": "Add it to compare your CV against this role — or paste a post with no CV to just vet the offer for scams & red flags."
       },
       "ghost": {
         "addCv": "Add your CV",
@@ -682,6 +687,26 @@
         "analysesLeft": "analyses left",
         "noCard": "No card required",
         "comingSoon": "Coming soon",
+        "armed": "● Armed",
+        "removeJob": "Remove job",
+        "addCv": "Add CV",
+        "addBoth": "Add both",
+        "addJob": "Add job",
+        "addInputsToRun": "Add inputs to run",
+        "runCvAudit": "Run CV audit",
+        "runComparison": "Run comparison",
+        "armedPrefix": "Armed:",
+        "modeCvAudit": "CV audit",
+        "modeCompare": "Compare",
+        "modeVet": "Vet the offer",
+        "addCvOrJob": "Add your CV or a job post",
+        "descAudit": "6-dimension quality read + public signals · ~60s",
+        "descCompare": "Skill gap, ATS, signals, red flags, negotiation · ~90s",
+        "descVet": "Scam signals, pay vs market, ghost-job likelihood · ~30s",
+        "fillBay": "Fill a bay to see which analysis is available",
+        "publicSignalsOptional": "Public signals · optional",
+        "signalsAdded": "added",
+        "check": "Check",
         "analyzing": "Analyzing..."
       },
       "privacy": "Stays private, auto-deleted after 30 days, never used for training"
@@ -1392,6 +1417,37 @@
     "markdownDownloaded": "Markdown report downloaded",
     "pdfGenerated": "PDF report generated",
     "pdfFailed": "Failed to generate PDF"
+  },
+  "credits": {
+    "breadcrumbAccount": "Account",
+    "breadcrumbCredits": "Credits",
+    "title": "Your credits",
+    "currentBalance": "Current balance",
+    "freeReset": "Free reset",
+    "days": "days",
+    "creditsPerMonth": "credits / month",
+    "upsellLink": "Up to 3,000 credits/month from €19.99",
+    "instantTopup": "Instant top-up",
+    "pack": "Pack",
+    "creditSingular": "credit",
+    "creditPlural": "credits",
+    "buy": "Buy →",
+    "oneTime": "One-time payment · Stripe · no subscription",
+    "shortlistedPlan": "Shortlisted plan",
+    "shortlistedCredits": "1,500 credits/month",
+    "shortlistedDesc": "1,500 credits/month + on-demand credits, pro dashboard, CV rewrite, saved CVs. Cancel anytime.",
+    "perMonth": "/ month",
+    "goPro": "Go Pro →",
+    "history": "History",
+    "exportAll": "Export all →",
+    "event": "Event",
+    "date": "Date",
+    "noEvents": "No events yet.",
+    "packSubs": {
+      "500": "= 5× JD analysis · 10× CV audit",
+      "1000": "= 10× JD analysis · 20× CV audit · -11%",
+      "2000": "= 20× JD analysis · 40× CV audit · -22%"
+    }
   },
   "account": {
     "title": "Account",

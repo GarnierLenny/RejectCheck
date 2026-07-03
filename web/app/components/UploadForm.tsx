@@ -172,31 +172,32 @@ export function UploadForm({
 
   /* ── Arm state text ────────────────────────────────────────── */
   function auditArmState() {
-    if (armedMode === "audit") return "● Armed";
-    if (hasCv && hasJob) return "Remove job";
-    return "Add CV";
+    if (armedMode === "audit") return i.actionBar.armed;
+    if (hasCv && hasJob) return i.actionBar.removeJob;
+    return i.actionBar.addCv;
   }
   function compareArmState() {
-    if (armedMode === "compare") return "● Armed";
-    if (!hasCv && !hasJob) return "Add both";
-    if (!hasCv) return "Add CV";
-    return "Add job";
+    if (armedMode === "compare") return i.actionBar.armed;
+    if (!hasCv && !hasJob) return i.actionBar.addBoth;
+    if (!hasCv) return i.actionBar.addCv;
+    return i.actionBar.addJob;
   }
   /* ── CTA label & description ───────────────────────────────── */
-  const ctaLabel = armedMode === "audit" ? "Run CV audit"
-    : armedMode === "compare" ? "Run comparison"
+  const ctaLabel = armedMode === "audit" ? i.actionBar.runCvAudit
+    : armedMode === "compare" ? i.actionBar.runComparison
     : armedMode === "vet" ? i.actionBar.comingSoon
-    : "Add inputs to run";
+    : i.actionBar.addInputsToRun;
 
-  const footerTitle = armedMode === "audit" ? <>Armed: <em style={{ fontFamily: "var(--font-serif, Georgia, serif)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" }}>CV audit</em></>
-    : armedMode === "compare" ? <>Armed: <em style={{ fontFamily: "var(--font-serif, Georgia, serif)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" }}>Compare</em></>
-    : armedMode === "vet" ? <>Armed: <em style={{ fontFamily: "var(--font-serif, Georgia, serif)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" }}>Vet the offer</em></>
-    : "Add your CV or a job post";
+  const armedEm = (label: string) => <>{i.actionBar.armedPrefix} <em style={{ fontFamily: "var(--font-serif, Georgia, serif)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" }}>{label}</em></>;
+  const footerTitle = armedMode === "audit" ? armedEm(i.actionBar.modeCvAudit)
+    : armedMode === "compare" ? armedEm(i.actionBar.modeCompare)
+    : armedMode === "vet" ? armedEm(i.actionBar.modeVet)
+    : i.actionBar.addCvOrJob;
 
-  const footerDesc = armedMode === "audit" ? "6-dimension quality read + public signals · ~60s"
-    : armedMode === "compare" ? "Skill gap, ATS, signals, red flags, negotiation · ~90s"
-    : armedMode === "vet" ? "Scam signals, pay vs market, ghost-job likelihood · ~30s"
-    : "Fill a bay to see which analysis is available";
+  const footerDesc = armedMode === "audit" ? i.actionBar.descAudit
+    : armedMode === "compare" ? i.actionBar.descCompare
+    : armedMode === "vet" ? i.actionBar.descVet
+    : i.actionBar.fillBay;
 
   /* ── Arm class helper ──────────────────────────────────────── */
   const armCls = (mode: "audit" | "compare" | "vet") =>
@@ -335,7 +336,7 @@ export function UploadForm({
                   <span className="rc-bay__num">1</span>
                   {t.uploadForm.cv.label}
                 </span>
-                <span className="rc-tag rc-tag--reco">Recommended</span>
+                <span className="rc-tag rc-tag--reco">{t.uploadForm.pills.recommended}</span>
               </div>
               <div className="rc-bay__body">
 
@@ -414,9 +415,9 @@ export function UploadForm({
                 {/* Signals chips */}
                 <div className="rc-signals">
                   <div className="rc-signals__lab">
-                    <span>Public signals · optional</span>
+                    <span>{i.actionBar.publicSignalsOptional}</span>
                     {signalCount > 0 && (
-                      <span style={{ color: "var(--rc-green)" }}>{signalCount} added</span>
+                      <span style={{ color: "var(--rc-green)" }}>{signalCount} {i.actionBar.signalsAdded}</span>
                     )}
                   </div>
                   <div className="rc-chips">
@@ -459,7 +460,7 @@ export function UploadForm({
                           setOpenSignal(openSignal === "cover" ? null : "cover");
                         }}>
                         <IcoMail size={13} />
-                        Cover letter
+                        {t.uploadForm.coverLetter.label}
                       </button>
                     )}
                   </div>
@@ -467,7 +468,7 @@ export function UploadForm({
                   {/* Expanded signal inputs */}
                   {openSignal === "github" && (
                     <div className="rc-signal-expand">
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-2">GitHub username</p>
+                      <p className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-2">{t.uploadForm.github.label}</p>
                       <div className="relative">
                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none">github.com/</span>
                         <input
@@ -532,8 +533,8 @@ export function UploadForm({
                           onBlur={() => { if (portfolioUrl.trim()) setOpenSignal(null); }}
                           className="flex-1 bg-rc-bg border border-rc-border rounded py-2 px-3 text-rc-text font-mono text-[11px] outline-none focus:border-rc-red/30 transition-colors placeholder:text-rc-hint/50"
                         />
-                        {pingStatus === "ok" && <Tooltip text="URL accessible — le site répond correctement."><CheckCircle2 size={14} className="text-rc-green shrink-0 cursor-help" /></Tooltip>}
-                        {pingStatus === "error" && <Tooltip text="URL inaccessible — vérifiez l'adresse."><XCircle size={14} className="text-rc-red shrink-0 cursor-help" /></Tooltip>}
+                        {pingStatus === "ok" && <Tooltip text={t.uploadForm.portfolio.pingOk}><CheckCircle2 size={14} className="text-rc-green shrink-0 cursor-help" /></Tooltip>}
+                        {pingStatus === "error" && <Tooltip text={t.uploadForm.portfolio.pingError}><XCircle size={14} className="text-rc-red shrink-0 cursor-help" /></Tooltip>}
                         <button
                           type="button"
                           disabled={!portfolioUrl.trim() || pingStatus === "checking"}
@@ -545,7 +546,7 @@ export function UploadForm({
                           }}
                           className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1.5 border border-rc-border text-rc-hint hover:text-rc-text hover:border-rc-text/30 transition-colors disabled:opacity-40 shrink-0"
                         >
-                          {pingStatus === "checking" ? "..." : "Check"}
+                          {pingStatus === "checking" ? "..." : i.actionBar.check}
                         </button>
                       </div>
                     </div>
@@ -600,7 +601,7 @@ export function UploadForm({
                   <span className="rc-bay__num">2</span>
                   {i.slots.jobLabel}
                 </span>
-                <span className="rc-tag rc-tag--opt">Optional</span>
+                <span className="rc-tag rc-tag--opt">{t.uploadForm.pills.optional}</span>
               </div>
               <div className="rc-bay__body">
                 <div className="rc-ta-wrap" style={{ flex: 1 }}>
@@ -622,7 +623,7 @@ export function UploadForm({
                       <button type="button"
                         onClick={() => setJobDescription("")}
                         className="text-rc-hint hover:text-rc-red font-mono text-[10px] transition-colors bg-transparent border-0">
-                        Clear
+                        {i.slots.clear}
                       </button>
                     )}
                   </div>
@@ -631,7 +632,7 @@ export function UploadForm({
                 <div className="rc-bay__hint">
                   <IcoShield size={15} />
                   <span style={{ fontSize: "12px" }}>
-                    Add it to <b style={{ color: "var(--rc-text)", fontWeight: 600 }}>compare</b> your CV against this role — or paste a post with <b style={{ color: "var(--rc-text)", fontWeight: 600 }}>no CV</b> to just vet the offer for scams &amp; red flags.
+                    {i.slots.jobHint}
                   </span>
                 </div>
               </div>

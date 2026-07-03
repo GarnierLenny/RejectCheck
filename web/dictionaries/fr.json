@@ -546,6 +546,7 @@
       }
     },
     "github": {
+      "label": "Nom d'utilisateur GitHub",
       "hint": "repos · langages · activité",
       "precision": "+précision"
     },
@@ -559,7 +560,9 @@
       "label": "Portfolio",
       "hint": "case studies · process · craft",
       "placeholder": "ton-domaine.com",
-      "precision": "+précision"
+      "precision": "+précision",
+      "pingOk": "URL accessible — le site répond correctement.",
+      "pingError": "URL inaccessible — vérifie l'adresse."
     },
     "pills": {
       "recommended": "Recommandé",
@@ -654,7 +657,9 @@
         "cvFormat": "PDF · DOCX · 5 Mo max",
         "saveHint": "Sauvegardez vos CVs pour les réutiliser dans les Paramètres",
         "jobPlaceholder": "Collez l'offre : titre, indispensables, nice-to-haves, salaire si indiqué...",
-        "pasteUrl": "Coller une URL"
+        "pasteUrl": "Coller une URL",
+        "clear": "Effacer",
+        "jobHint": "Ajoute-la pour comparer ton CV à ce poste — ou colle une offre sans CV pour juste vérifier les arnaques et red flags."
       },
       "ghost": {
         "addCv": "Ajouter votre CV",
@@ -682,6 +687,26 @@
         "analysesLeft": "analyses restantes",
         "noCard": "Pas de carte requise",
         "comingSoon": "Bientôt disponible",
+        "armed": "● Armé",
+        "removeJob": "Retirer l'offre",
+        "addCv": "Ajouter le CV",
+        "addBoth": "Ajouter les deux",
+        "addJob": "Ajouter l'offre",
+        "addInputsToRun": "Ajoute des éléments pour lancer",
+        "runCvAudit": "Lancer l'audit CV",
+        "runComparison": "Lancer la comparaison",
+        "armedPrefix": "Armé :",
+        "modeCvAudit": "audit CV",
+        "modeCompare": "Comparaison",
+        "modeVet": "Vérifier l'offre",
+        "addCvOrJob": "Ajoute ton CV ou une offre",
+        "descAudit": "Lecture qualité 6 dimensions + signaux publics · ~60s",
+        "descCompare": "Écart de compétences, ATS, signaux, red flags, négociation · ~90s",
+        "descVet": "Signaux d'arnaque, salaire vs marché, probabilité d'offre fantôme · ~30s",
+        "fillBay": "Remplis un emplacement pour voir l'analyse disponible",
+        "publicSignalsOptional": "Signaux publics · optionnel",
+        "signalsAdded": "ajouté(s)",
+        "check": "Vérifier",
         "analyzing": "Analyse en cours..."
       },
       "privacy": "Données privées, supprimées automatiquement après 30 jours, jamais utilisées pour l'entraînement"
@@ -1393,6 +1418,37 @@
     "markdownDownloaded": "Rapport Markdown téléchargé",
     "pdfGenerated": "Rapport PDF généré",
     "pdfFailed": "Échec de la génération du PDF"
+  },
+  "credits": {
+    "breadcrumbAccount": "Compte",
+    "breadcrumbCredits": "Crédits",
+    "title": "Tes crédits",
+    "currentBalance": "Solde actuel",
+    "freeReset": "Renouvellement gratuit",
+    "days": "jours",
+    "creditsPerMonth": "crédits / mois",
+    "upsellLink": "Jusqu'à 3 000 crédits/mois dès 19,99 €",
+    "instantTopup": "Recharge instantanée",
+    "pack": "Pack",
+    "creditSingular": "crédit",
+    "creditPlural": "crédits",
+    "buy": "Acheter →",
+    "oneTime": "Paiement unique · Stripe · pas d'abonnement",
+    "shortlistedPlan": "Plan Shortlisted",
+    "shortlistedCredits": "1 500 crédits/mois",
+    "shortlistedDesc": "1 500 crédits/mois + crédits à la demande, dashboard pro, réécriture CV, CV sauvegardés. Annulation à tout moment.",
+    "perMonth": "/ mois",
+    "goPro": "Passer Pro →",
+    "history": "Historique",
+    "exportAll": "Tout exporter →",
+    "event": "Évènement",
+    "date": "Date",
+    "noEvents": "Aucun évènement pour l'instant.",
+    "packSubs": {
+      "500": "= 5× analyse JD · 10× audit CV",
+      "1000": "= 10× analyse JD · 20× audit CV · -11%",
+      "2000": "= 20× analyse JD · 40× audit CV · -22%"
+    }
   },
   "account": {
     "title": "Compte",
