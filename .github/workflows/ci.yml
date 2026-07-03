@@ -55,3 +55,41 @@ jobs:
       - run: npm ci
       - run: npx prisma generate
       - run: npm test
+
+  build:
+    name: Build (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web, backend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    env:
+      # Placeholder public env so `next build` can inline NEXT_PUBLIC_* without
+      # real secrets — the build only needs them to be present, not valid.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder-publishable-key
+      NEXT_PUBLIC_API_URL: https://placeholder.example.com
+      NEXT_PUBLIC_POSTHOG_HOST: https://us.i.posthog.com
+      NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: placeholder-token
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+      - run: npm ci
+      # `npm run build` (backend) already runs `prisma generate`; `next build`
+      # (web) doesn't need Prisma. Catches route conflicts, SSR/RSC errors and
+      # config problems that `tsc --noEmit` misses, before they hit deploy.
+      - run: npm run build
+
+  # TODO (needs GitHub secrets): a Playwright e2e job running the revenue-safety
+  # specs (smoke, premium-gating, payment, revenuecat-webhook). It requires a
+  # Postgres service plus test-mode Supabase and Stripe keys as repo secrets, so
+  # it can't be enabled here without provisioning those first. See
+  # web/playwright.config.ts (already CI-ready) and backend/.env.test.example.

@@ -1,3 +1,4 @@
+import type { AnalysisOutcome } from '@prisma/client';
 import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
 import type {
   AnalyzeResponse,
@@ -180,4 +181,15 @@ export interface AnalysisRepository {
 
   /** Increments the CV-rewrite generation counter for this analysis (cost cap). */
   incrementRewriteCount(analysisId: number, email: string): Promise<void>;
+
+  /**
+   * Records the real-world outcome the user reports for their analysis (moat
+   * signal). Scoped by (id, email). Returns true if a row was updated (false if
+   * the analysis doesn't belong to the email).
+   */
+  setOutcome(
+    id: number,
+    email: string,
+    outcome: AnalysisOutcome,
+  ): Promise<boolean>;
 }

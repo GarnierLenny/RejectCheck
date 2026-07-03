@@ -49,8 +49,13 @@ const FR_ONLY_ROUTES: RoutePath[] = [
   { path: '/cv-developpeur', changeFrequency: 'monthly', priority: 0.8 },
 ]
 
+// Fixed content-revision date. Using `new Date()` here stamps every URL with
+// the build time on each deploy, which reads as fake freshness to crawlers.
+// Bump this only when the marketing/content pages actually change.
+const LAST_CONTENT_REVISION = new Date('2026-07-03T00:00:00Z')
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date()
+  const lastModified = LAST_CONTENT_REVISION
   const entries: MetadataRoute.Sitemap = []
 
   for (const route of ROUTES) {

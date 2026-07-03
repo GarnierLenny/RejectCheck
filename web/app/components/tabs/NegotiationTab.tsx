@@ -1,12 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Loader2, Copy, Check, Sparkles, AlertTriangle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult, NegotiationAnalysis, LeveragePoint } from "../types";
 import { SectionHeader } from "../SectionHeader";
 import { PremiumPaywall } from "../PremiumFeature";
-import { SalaryRangeChart } from "../SalaryRangeChart";
+// Lazy: recharts (~5 MB) only loads when the negotiation playbook is opened,
+// keeping it out of the initial /analyze bundle.
+const SalaryRangeChart = dynamic(
+  () => import("../SalaryRangeChart").then((m) => m.SalaryRangeChart),
+  { ssr: false },
+);
 import { useLanguage } from "../../../context/language";
 import { useGenerateNegotiation } from "../../../lib/mutations";
 

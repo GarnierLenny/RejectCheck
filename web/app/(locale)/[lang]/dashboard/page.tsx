@@ -35,6 +35,7 @@ import {
   Cell,
 } from "recharts";
 import { DashboardShell } from "../../../components/dashboard/DashboardShell";
+import { OutcomeSelect } from "../../../components/dashboard/OutcomeSelect";
 
 type HistoryItem = {
   id: number;
@@ -851,7 +852,7 @@ function DashboardContent() {
                   <div>{analysisTypeFilter === "cv-review" ? "Quality" : "Score"}</div>
                   <div>{analysisTypeFilter === "cv-review" ? "Profile" : "Position"}</div>
                   <div>{analysisTypeFilter === "cv-review" ? "—" : "Company"}</div>
-                  <div>Date</div><div>Status</div><div>Note</div><div />
+                  <div>Date</div><div>{t.dashboardShell.outcomes.header}</div><div>Note</div><div />
                 </div>
 
                 {/* Rows */}
@@ -880,7 +881,6 @@ function DashboardContent() {
                         : (item.jobLabel || item.result?.job_details?.title || "Developer");
                       const company = isCvReview ? null : (item.company ?? item.result?.job_details?.company ?? null);
                       const score = isCvReview ? (item.result?.cv_quality?.overall ?? 0) : (item.result?.score ?? 0);
-                      const appStatus = isCvReview ? undefined : applications.find(a => a.company?.toLowerCase() === company?.toLowerCase())?.status;
                       const aiNote = isCvReview
                         ? { text: item.result?.projected_profile?.profile_type ?? "Audit", color: "text-rc-muted" }
                         : (score > 60 ? { text: "Tailor CV", color: "text-rc-red" } : { text: "Strong match", color: "text-rc-green" });
@@ -898,9 +898,7 @@ function DashboardContent() {
                           <span className="font-mono text-[10px] text-rc-hint">
                             {new Date(item.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric", year: "2-digit" })}
                           </span>
-                          <span className={`font-mono text-[10px] font-bold ${appStatus === "interviewing" ? "text-rc-amber" : "text-rc-hint"}`}>
-                            {appStatus ? appStatus.charAt(0).toUpperCase() + appStatus.slice(1) : "—"}
-                          </span>
+                          <OutcomeSelect id={item.id} value={item.outcome ?? "not_applied"} />
                           <span className={`font-mono text-[10px] ${aiNote.color}`}>{aiNote.text}</span>
                           <div className="flex items-center gap-3 justify-end">
                             <Link href={localePath(`/analyze?id=${item.id}`)} className="text-rc-hint hover:text-rc-red transition-colors no-underline text-[14px]">→</Link>

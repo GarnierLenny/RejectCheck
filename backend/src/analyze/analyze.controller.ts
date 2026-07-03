@@ -61,6 +61,7 @@ import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { LlmJobsService } from '../queue/llm-jobs.service';
 import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
 import { ANALYSIS_REPOSITORY } from './ports/tokens';
+import { AnalysisNotFoundException } from '../common/exceptions';
 import type { AnalysisRepository } from './ports/analysis.repository';
 import { ListHistoryUseCase } from './application/list-history.use-case';
 import { GetAnalysisUseCase } from './application/get-analysis.use-case';
@@ -630,6 +631,40 @@ export class AnalyzeController {
     if (!parsed.success) throw new BadRequestException('Invalid payload');
     await this.analysisRepo.saveCompletedSteps(id, email, parsed.data.completed_steps);
     return { ok: true };
+  }
+
+  @UseGuards(SupabaseGuard)
+  @Patch(':id/outcome')
+  @ApiOperation({
+    summary: "Set the real-world outcome the user reports for their analysis",
+  })
+  async setOutcome(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Body() body: unknown,
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    const parsed = z
+      .object({
+        outcome: z.enum([
+          'not_applied',
+          'applied',
+          'no_response',
+          'interview',
+          'offer',
+          'rejected',
+        ]),
+      })
+      .safeParse(body);
+    if (!parsed.success) throw new BadRequestException('Invalid outcome');
+    const updated = await this.analysisRepo.setOutcome(
+      id,
+      email,
+      parsed.data.outcome,
+    );
+    if (!updated) throw new AnalysisNotFoundException();
+    return { ok: true, outcome: parsed.data.outcome };
   }
 
   @UseGuards(SupabaseGuard)

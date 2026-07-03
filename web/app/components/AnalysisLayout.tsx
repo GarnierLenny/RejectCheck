@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { AnalysisResult, Fix } from "./types";
 import { Eyebrow, Mono } from "./resultAtoms";
+import { ParsedCvDisclosure } from "./ParsedCvDisclosure";
 import { RiskMeter } from "./RiskMeter";
 import { AnalysisShell, type HighlightMap, type HighlightEntry } from "./AnalysisShell";
 import { RadarChart } from "./RadarChart";
@@ -46,6 +47,7 @@ export type AnalysisLayoutProps = {
   email?: string | null;
   accessToken?: string | null;
   completedSteps?: number[];
+  cvTextFormatted?: string | null;
 };
 
 type DocTab = "cv" | "cover" | "linkedin";
@@ -742,6 +744,7 @@ export function AnalysisLayout({
   email,
   accessToken,
   completedSteps,
+  cvTextFormatted = null,
 }: AnalysisLayoutProps) {
   const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState("risk");
@@ -980,6 +983,7 @@ export function AnalysisLayout({
             {/* §03 — CV */}
             <section id="sec-cv" style={SEC}>
               {secHead("03", t.analysisLayout.tabs.cv)}
+              <ParsedCvDisclosure text={cvTextFormatted} />
               <CVBody result={result} onIssueClick={() => focusDoc("cv", true)} />
             </section>
 

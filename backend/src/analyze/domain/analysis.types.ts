@@ -1,8 +1,20 @@
+import type { AnalysisOutcome } from '@prisma/client';
 import type {
   AnalyzeResponse,
   DeepAnalyzeResponse,
 } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+
+export type { AnalysisOutcome };
+/** Outcomes the user can set (all enum values are user-selectable). */
+export const ANALYSIS_OUTCOMES: readonly AnalysisOutcome[] = [
+  'not_applied',
+  'applied',
+  'no_response',
+  'interview',
+  'offer',
+  'rejected',
+] as const;
 
 /**
  * Domain-level snapshot of a stored analysis. Mirrors the persistence row
@@ -38,6 +50,8 @@ export type StoredAnalysis = {
   deepAnalysis: DeepAnalyzeResponse | null;
   negotiationAnalysis: NegotiationAnalysis | null;
   rewriteCount: number;
+  outcome: AnalysisOutcome;
+  outcomeUpdatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };

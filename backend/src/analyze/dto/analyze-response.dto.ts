@@ -471,8 +471,37 @@ export type IssueHot = z.infer<typeof IssueHotSchema>;
 export type Fix = z.infer<typeof FixSchema>;
 
 /**
+ * Attach positional deep `fix` blocks onto their owning hot issues.
+ *
+ * The deep pass returns fixes as flat arrays that MUST be the same length and
+ * order as the hot issues (enforced only by the prompt). If the model returns a
+ * mismatched length, attaching by index would silently bind the WRONG fix to an
+ * issue — the exact trust defect we must avoid. So on any length mismatch we
+ * drop the fixes for that section (a missing fix degrades gracefully to a
+ * skeleton; a wrong fix does not) and log a warning for observability.
+ */
+export function attachFixes<I, F>(
+  issues: readonly I[],
+  fixes: readonly F[] | undefined,
+  label: string,
+): (I & { fix: F | undefined })[] {
+  if (!fixes) {
+    return issues.map((issue) => ({ ...issue, fix: undefined }));
+  }
+  if (fixes.length !== issues.length) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[MERGE_ALIGN] ${label}: deep fixes length ${fixes.length} != hot issues length ${issues.length} — dropping fixes for this section to avoid misattachment`,
+    );
+    return issues.map((issue) => ({ ...issue, fix: undefined }));
+  }
+  return issues.map((issue, i) => ({ ...issue, fix: fixes[i] }));
+}
+
+/**
  * Merge hot pass + deep pass into the full AnalyzeResponse shape that the
- * frontend consumes. Re-injects `fix` blocks into their owners by index.
+ * frontend consumes. Re-injects `fix` blocks into their owners positionally,
+ * guarding against length mismatches (see `attachFixes`).
  *
  * If `deep` is null/undefined, returns the hot result with deep fields absent
  * — the frontend handles missing deep fields with skeleton placeholders.
@@ -519,31 +548,35 @@ export function mergeHotAndDeep(
     audit: {
       cv: {
         ...hot.audit.cv,
-        issues: hot.audit.cv.issues.map((issue, i) => ({
-          ...issue,
-          fix: deep?.fixes.audit_cv_issues?.[i],
-        })),
+        issues: attachFixes(
+          hot.audit.cv.issues,
+          deep?.fixes.audit_cv_issues,
+          'audit_cv_issues',
+        ),
       },
       github: {
         ...hot.audit.github,
-        issues: hot.audit.github.issues.map((issue, i) => ({
-          ...issue,
-          fix: deep?.fixes.audit_github_issues?.[i],
-        })),
+        issues: attachFixes(
+          hot.audit.github.issues,
+          deep?.fixes.audit_github_issues,
+          'audit_github_issues',
+        ),
       },
       linkedin: {
         ...hot.audit.linkedin,
-        issues: hot.audit.linkedin.issues.map((issue, i) => ({
-          ...issue,
-          fix: deep?.fixes.audit_linkedin_issues?.[i],
-        })),
+        issues: attachFixes(
+          hot.audit.linkedin.issues,
+          deep?.fixes.audit_linkedin_issues,
+          'audit_linkedin_issues',
+        ),
       },
       jd_match: hot.audit.jd_match,
     },
-    hidden_red_flags: hot.hidden_red_flags.map((flag, i) => ({
-      ...flag,
-      fix: deep?.fixes.hidden_red_flags?.[i],
-    })),
+    hidden_red_flags: attachFixes(
+      hot.hidden_red_flags,
+      deep?.fixes.hidden_red_flags,
+      'hidden_red_flags',
+    ),
     // correlation is optional now — only present on legacy analyses.
     correlation: hot.correlation,
     job_details: hot.job_details,

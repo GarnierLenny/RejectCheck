@@ -245,6 +245,14 @@ export type SavedCv = {
   createdAt: string;
 };
 
+export type AnalysisOutcome =
+  | "not_applied"
+  | "applied"
+  | "no_response"
+  | "interview"
+  | "offer"
+  | "rejected";
+
 export type HistoryItem = {
   id: number;
   jobDescription: string;
@@ -252,6 +260,8 @@ export type HistoryItem = {
   company?: string;
   createdAt: string;
   result: any;
+  outcome?: AnalysisOutcome;
+  outcomeUpdatedAt?: string | null;
 };
 
 export type PaginatedResponse<T> = {

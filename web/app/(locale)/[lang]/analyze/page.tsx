@@ -1055,6 +1055,7 @@ function AnalyzeContent() {
           email={user?.email || null}
           accessToken={session?.access_token ?? null}
           completedSteps={savedAnalysis?.completedSteps}
+          cvTextFormatted={savedAnalysis?.cvTextFormatted ?? null}
         />
       ) : (
         <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>

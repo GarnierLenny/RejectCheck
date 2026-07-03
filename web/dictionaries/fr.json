@@ -1339,7 +1339,17 @@
     "yourApplications": "candidatures.",
     "there": "toi.",
     "buyCredits": "Acheter des crédits",
-    "newAnalysis": "+ Nouvelle analyse"
+    "newAnalysis": "+ Nouvelle analyse",
+    "outcomes": {
+      "header": "Résultat",
+      "hint": "Qu'est-il arrivé après ta candidature ? Aide à calibrer ton score de risque.",
+      "not_applied": "Pas encore postulé",
+      "applied": "Postulé",
+      "no_response": "Sans réponse",
+      "interview": "Entretien",
+      "offer": "Offre",
+      "rejected": "Rejeté"
+    }
   },
   "account": {
     "title": "Compte",
@@ -1837,7 +1847,7 @@
       },
       {
         "question": "C'est quoi un ATS et comment RejectCheck le simule ?",
-        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour filtrer les CV avant qu'un humain les lise. RejectCheck scanne ton CV contre les mots-clés exacts de la fiche de poste et te renvoie un score plus les mots-clés manquants pondérés par importance - pour que tu saches quoi ajouter pour passer le filtre."
+        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour stocker et classer les candidatures. Contrairement à un mythe répandu, la plupart des ATS ne te rejettent pas automatiquement sur un score de mots-clés — c'est un recruteur humain qui décide, en général en 6 secondes. RejectCheck fait donc les deux : il vérifie la couche lisible par la machine (parsing + mots-clés pondérés par la fiche de poste) ET te dit pourquoi un humain écarterait ton CV. On te montre les vraies raisons, pas un taux de passage magique."
       },
       {
         "question": "RejectCheck est-il gratuit ?",
@@ -1853,7 +1863,7 @@
       },
       {
         "question": "En quoi RejectCheck est différent des autres outils CV ?",
-        "answer": "La plupart des outils CV utilisent un seul LLM et renvoient une liste générique de mots-clés. RejectCheck exécute deux modèles complémentaires en parallèle, visualise les lacunes sur un radar chart face au poste visé, audite GitHub et LinkedIn comme signaux complémentaires, et te dit exactement ce qui ferait rejeter ta candidature. Il est bilingue (anglais et français).",
+        "answer": "La plupart des outils CV vendent un « score ATS » magique et s'arrêtent à une liste générique de mots-clés. RejectCheck juge ton risque de rejet face à la fiche de poste précise, visualise les lacunes sur un radar chart, audite GitHub et LinkedIn comme signaux complémentaires, recommande un projet concret (avec un starter repo généré) pour combler les vraies lacunes, et te dit pourquoi un recruteur humain écarterait ta candidature. Il est bilingue (anglais et français).",
         "seeAlso": [
           {
             "label": "Alternatives à Jobscan",
@@ -2228,6 +2238,10 @@
     "strongestSignal": "Signal le plus fort"
   },
   "analysisLayout": {
+    "parsedCv": {
+      "summary": "▸ Vois ce qu'un ATS lit de ton PDF",
+      "hint": "Voici le texte brut qu'un ATS extrait de ton fichier. S'il paraît brouillé ou dans le désordre, le logiciel du recruteur voit la même chose — corrige la structure de ton PDF (évite tableaux, colonnes, en-têtes/pieds de page et images pour le texte)."
+    },
     "deepPending": "Génération de tes corrections détaillées en cours…",
     "deepLocked": {
       "eyebrow": "Corrections détaillées",

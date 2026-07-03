@@ -37,6 +37,7 @@ type Props = {
   accessToken?: string | null;
   completedSteps?: number[];
   isAnonymous?: boolean;
+  cvTextFormatted?: string | null;
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ export function DiagnosticResult({
   accessToken = null,
   completedSteps,
   isAnonymous = false,
+  cvTextFormatted = null,
 }: Props) {
   const { t, localePath } = useLanguage();
 
@@ -144,6 +146,7 @@ export function DiagnosticResult({
         email={email}
         accessToken={accessToken}
         completedSteps={completedSteps}
+        cvTextFormatted={cvTextFormatted}
       />
 
       {isAnonymous && <ResultSignupNudge />}

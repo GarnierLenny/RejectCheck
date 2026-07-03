@@ -50,6 +50,7 @@ Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
 ## Ce qui différencie RejectCheck
 
+- **Pas de mythe du score ATS** - La plupart des outils vendent un « taux de passage ATS » magique. En réalité, la plupart des ATS ne te rejettent pas automatiquement sur un score de mots-clés — c'est un recruteur humain qui décide. RejectCheck vérifie la couche lisible par la machine ET te dit pourquoi un humain écarterait ton CV, ancré sur le poste précis.
 - **Verdict ancré sur une vraie fiche de poste** - Au lieu d'un score de CV générique, RejectCheck juge ton risque de rejet face à la JD précise que tu colles : le retour porte sur ce poste, pas sur les CV en général.
 - **Analyse multi-passes, pas un simple prompt** - Un diagnostic scoré streamé, une passe profonde pour des corrections groundées problème par problème, et un digest Haiku qui recoupe CV vs LinkedIn vs GitHub pour les incohérences — bien plus de couverture qu'une réécriture en un coup.
 - **Radar chart pour les lacunes** - Au lieu d'une liste de "compétences manquantes", RejectCheck visualise l'écart entre ton profil et le poste sur un radar chart, pour voir la forme de la lacune d'un coup d'œil.

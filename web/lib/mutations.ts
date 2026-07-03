@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/auth';
 import { apiFetch, authHeaders } from './api';
-import type { Profile, Application, PublicProfile } from './queries';
+import type {
+  Profile,
+  Application,
+  PublicProfile,
+  AnalysisOutcome,
+} from './queries';
 import type { NegotiationAnalysis } from '../app/components/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.rejectcheck.com';
@@ -568,6 +573,51 @@ export function useSaveStepProgress() {
       ),
     onSuccess: (_, { analysisId }) => {
       queryClient.invalidateQueries({ queryKey: ['analysis', analysisId] });
+    },
+  });
+}
+
+/**
+ * Records the real-world outcome the user reports for an analysis (moat signal).
+ * Optimistically patches every cached history page so the badge updates
+ * instantly, then reconciles on settle.
+ */
+export function useSetOutcome() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+  const userId = session?.user?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, outcome }: { id: number; outcome: AnalysisOutcome }) =>
+      apiFetch<{ ok: boolean; outcome: AnalysisOutcome }>(
+        `/api/analyze/${id}/outcome`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...authHeaders(token!) },
+          body: JSON.stringify({ outcome }),
+        },
+      ),
+    onMutate: async ({ id, outcome }) => {
+      const key = ['analysis-history', userId];
+      await queryClient.cancelQueries({ queryKey: key });
+      const snapshots = queryClient.getQueriesData<{ data?: { id: number; outcome?: AnalysisOutcome }[] }>({ queryKey: key });
+      for (const [qKey, page] of snapshots) {
+        if (!page?.data) continue;
+        queryClient.setQueryData(qKey, {
+          ...page,
+          data: page.data.map((it) =>
+            it.id === id ? { ...it, outcome } : it,
+          ),
+        });
+      }
+      return { snapshots };
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots?.forEach(([qKey, prev]) => queryClient.setQueryData(qKey, prev));
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['analysis-history', userId] });
     },
   });
 }

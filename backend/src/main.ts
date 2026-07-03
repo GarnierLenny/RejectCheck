@@ -7,6 +7,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ZodValidationPipe, cleanupOpenApiDoc } from 'nestjs-zod';
 import helmet from 'helmet';
+import compression from 'compression';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
@@ -27,6 +28,21 @@ async function bootstrap() {
   app.set('trust proxy', 1);
 
   app.use(helmet());
+
+  // gzip API responses — the analysis JSON payloads are large and highly
+  // redundant. Skip Server-Sent Events (the streamed analyze endpoints): the
+  // compressor would buffer the stream and break incremental delivery.
+  app.use(
+    compression({
+      filter: (req, res) => {
+        const type = res.getHeader('Content-Type');
+        if (typeof type === 'string' && type.includes('text/event-stream')) {
+          return false;
+        }
+        return compression.filter(req, res);
+      },
+    }),
+  );
 
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new GlobalExceptionFilter());
@@ -57,6 +73,10 @@ async function bootstrap() {
     const cleanedDocument = cleanupOpenApiDoc(document);
     SwaggerModule.setup('docs', app, cleanedDocument);
   }
+
+  // Drain BullMQ workers, close SSE streams and disconnect Prisma on SIGTERM
+  // (Railway sends it on every deploy) instead of dropping in-flight work.
+  app.enableShutdownHooks();
 
   await app.listen(process.env.PORT ?? 8888);
 }

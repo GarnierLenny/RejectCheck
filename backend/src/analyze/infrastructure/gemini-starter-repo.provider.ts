@@ -41,7 +41,28 @@ export class GeminiStarterRepoProvider {
     if (!this.client) {
       throw new InternalServerErrorException('GEMINI_API_KEY is not configured');
     }
-    return this.client.getGenerativeModel({ model: MODEL_NAME });
+    // Hard 45s timeout: this call runs inside the POST /starter-repo request, so
+    // a hung Gemini response would otherwise pin the HTTP worker indefinitely
+    // (Node fetch has no default timeout).
+    return this.client.getGenerativeModel(
+      { model: MODEL_NAME },
+      { timeout: 45_000 },
+    );
+  }
+
+  /** One retry: the starter-repo call is synchronous in the request, so a single
+   * transient failure shouldn't cost the user the whole generation. */
+  private async generateOnceWithRetry(prompt: string) {
+    try {
+      return await this.model().generateContent(prompt);
+    } catch (e) {
+      this.logger.warn(
+        `Gemini starter-repo attempt failed (${
+          e instanceof Error ? e.message : String(e)
+        }); retrying once`,
+      );
+      return await this.model().generateContent(prompt);
+    }
   }
 
   async generate(project: ProjectRecommendation): Promise<StarterRepo> {
@@ -79,7 +100,7 @@ Respond with ONLY a JSON object matching this exact shape, no prose before or af
 
     this.logger.log(`Generating starter repo for project: ${project.name}`);
 
-    const result = await this.model().generateContent(prompt);
+    const result = await this.generateOnceWithRetry(prompt);
     const raw = stripJsonFences(result.response.text());
 
     let parsed: unknown;

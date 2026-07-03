@@ -13,6 +13,16 @@ const securityHeaders = [
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
   },
+  // Minimal, non-breaking CSP: block clickjacking (beyond X-Frame-Options),
+  // plugin/object embeds, and <base> injection. These directives don't touch
+  // script/style/connect, so they can't break Stripe, Supabase, Sentry or the
+  // app's heavy inline styles. A full script-src/connect-src policy should be
+  // rolled out in Content-Security-Policy-Report-Only and verified against the
+  // live third-party flows before enforcing.
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'",
+  },
 ];
 
 const nextConfig: NextConfig = {

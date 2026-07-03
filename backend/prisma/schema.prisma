@@ -43,6 +43,20 @@ enum ApplicationStatus {
   rejected
 }
 
+// Real-world outcome the user reports for an analysis. Lightweight, per-analysis
+// signal (distinct from the heavier Application tracker). Default `not_applied`
+// because analyses are usually run BEFORE applying (analyze → fix → apply). Only
+// the terminal states (no_response/interview/offer/rejected) feed score
+// calibration; not_applied/applied are pending.
+enum AnalysisOutcome {
+  not_applied
+  applied
+  no_response
+  interview
+  offer
+  rejected
+}
+
 enum CreditLedgerType {
   grant
   consume
@@ -110,6 +124,8 @@ model Analysis {
   premiumUnlockedAt     DateTime? // One-time "unlock this CV" purchase: when set, the CV rewrite is unlocked for THIS analysis without a subscription. Set by the analysis_unlock Stripe webhook.
   rewriteCount          Int                @default(0) // CV rewrites generated for this analysis. Capped (REWRITE_REGEN_CAP) to bound LLM cost — applies to subscribers AND one-time unlocks.
   creditCost            Int                @default(100) // credits deducted from monthly allowance: 100 = analyze JD, 50 = CV audit
+  outcome               AnalysisOutcome    @default(not_applied) // real-world result reported by the user (moat: calibrates the risk score against actual outcomes)
+  outcomeUpdatedAt      DateTime? // when the user last set the outcome (null = never touched, still the default)
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
   application           Application?

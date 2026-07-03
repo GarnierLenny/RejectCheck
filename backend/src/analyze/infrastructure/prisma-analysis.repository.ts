@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, type AnalysisOutcome } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AnalysisNotFoundException } from '../../common/exceptions';
 import type {
@@ -39,6 +39,8 @@ type AnalysisRow = {
   deepAnalysis: Prisma.JsonValue | null;
   negotiationAnalysis: Prisma.JsonValue | null;
   rewriteCount: number;
+  outcome: AnalysisOutcome;
+  outcomeUpdatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -286,10 +288,56 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
+        // The history list only renders id/label/company/date/score, so select
+        // just those columns + `result` (for the score). This drops the heavy
+        // per-row payload — deepAnalysis, negotiationAnalysis, the raw CV/JD/
+        // LinkedIn/GitHub text, and the `ip` field — from a 10-row page that
+        // previously shipped megabytes. The full analysis is fetched by id.
+        select: {
+          id: true,
+          email: true,
+          jobDescription: true,
+          jobLabel: true,
+          company: true,
+          jdLanguage: true,
+          result: true,
+          rewriteCount: true,
+          outcome: true,
+          outcomeUpdatedAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       }),
       this.prisma.analysis.count({ where }),
     ]);
-    return { data: rows.map((r) => this.toDomain(r)), total };
+    const data: StoredAnalysis[] = rows.map((r) => ({
+      id: r.id,
+      email: r.email,
+      ip: null,
+      jobDescription: r.jobDescription,
+      jobLabel: r.jobLabel,
+      company: r.company,
+      jdLanguage: r.jdLanguage,
+      cvText: null,
+      cvTextFormatted: null,
+      linkedinText: null,
+      linkedinTextFormatted: null,
+      githubInfo: null,
+      motivationLetter: null,
+      coverLetter: null,
+      cvFileUrl: null,
+      liFileUrl: null,
+      mlFileUrl: null,
+      result: r.result as AnalyzeResponse | null,
+      deepAnalysis: null,
+      negotiationAnalysis: null,
+      rewriteCount: r.rewriteCount ?? 0,
+      outcome: r.outcome,
+      outcomeUpdatedAt: r.outcomeUpdatedAt,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+    return { data, total };
   }
 
   async attachRewrite(
@@ -535,6 +583,8 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       negotiationAnalysis:
         (row.negotiationAnalysis as NegotiationAnalysis | null) ?? null,
       rewriteCount: row.rewriteCount ?? 0,
+      outcome: row.outcome,
+      outcomeUpdatedAt: row.outcomeUpdatedAt,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -545,5 +595,19 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       where: { id: analysisId, email },
       data: { rewriteCount: { increment: 1 } },
     });
+  }
+
+  async setOutcome(
+    id: number,
+    email: string,
+    outcome: AnalysisOutcome,
+  ): Promise<boolean> {
+    // Scoped by (id, email) — a user can only set the outcome of their own
+    // analysis. updateMany returns count so callers can 404 on a non-match.
+    const { count } = await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: { outcome, outcomeUpdatedAt: new Date() },
+    });
+    return count > 0;
   }
 }

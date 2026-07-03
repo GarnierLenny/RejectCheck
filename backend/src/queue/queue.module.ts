@@ -40,7 +40,9 @@ export class QueueModule {
           {
             name: DEEP_ANALYSIS_QUEUE,
             defaultJobOptions: {
-              attempts: 2,
+              // 3 attempts: the deep pass is the paid value — one extra retry
+              // buys resilience against a transient 529 from Anthropic.
+              attempts: 3,
               backoff: { type: 'exponential', delay: 5000 },
               removeOnComplete: { count: 100 },
               removeOnFail: { count: 200 },

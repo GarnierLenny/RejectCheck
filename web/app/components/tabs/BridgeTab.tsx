@@ -290,7 +290,9 @@ function MermaidDiagram({ diagram, fallback }: { diagram: string; fallback: stri
           fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
           fontSize: "13px",
         },
-        securityLevel: "loose",
+        // 'strict' (not 'loose'): the diagram source is LLM-generated from the
+        // user's CV/JD, so it must not be trusted to emit HTML/click handlers.
+        securityLevel: "strict",
       });
       mermaid.render(id.current, diagram)
         .then(({ svg: rendered }) => setSvg(rendered))

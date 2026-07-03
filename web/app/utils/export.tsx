@@ -1,9 +1,10 @@
 import type { AnalysisResult } from "../components/types";
-import { pdf } from "@react-pdf/renderer";
 import React from "react";
-import { ExportTemplatePdf } from "../components/ExportTemplate";
-import { CvRewritePdf } from "../components/CvRewritePdf";
-import { CoverLetterPdf } from "../components/CoverLetterPdf";
+
+// @react-pdf/renderer (~3 MB) and the PDF template components are imported
+// dynamically inside the generate*Pdf functions below, so importing this module
+// for generateMarkdown / triggerDownload doesn't drag the PDF engine into the
+// /analyze bundle. It loads only when the user actually exports a PDF.
 
 /**
  * Generates a Markdown representation of the analysis result.
@@ -334,6 +335,10 @@ export function triggerDownload(content: string, filename: string, mimeType: str
 export async function generatePdf(result: AnalysisResult, filename: string) {
   try {
     const logoUrl = typeof window !== "undefined" ? window.location.origin + "/RejectCheck_500_bg_less.png" : "";
+    const [{ pdf }, { ExportTemplatePdf }] = await Promise.all([
+      import("@react-pdf/renderer"),
+      import("../components/ExportTemplate"),
+    ]);
     const blob = await pdf(<ExportTemplatePdf result={result} logoUrl={logoUrl} />).toBlob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -354,6 +359,10 @@ export async function generatePdf(result: AnalysisResult, filename: string) {
  */
 export async function generateCoverLetterPdf(text: string, filename: string) {
   try {
+    const [{ pdf }, { CoverLetterPdf }] = await Promise.all([
+      import("@react-pdf/renderer"),
+      import("../components/CoverLetterPdf"),
+    ]);
     const blob = await pdf(<CoverLetterPdf text={text} />).toBlob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -374,6 +383,10 @@ export async function generateCoverLetterPdf(text: string, filename: string) {
  */
 export async function generateCvPdf(cvText: string, filename: string) {
   try {
+    const [{ pdf }, { CvRewritePdf }] = await Promise.all([
+      import("@react-pdf/renderer"),
+      import("../components/CvRewritePdf"),
+    ]);
     const blob = await pdf(<CvRewritePdf cvText={cvText} />).toBlob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
