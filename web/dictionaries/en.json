@@ -353,10 +353,10 @@
     },
     "s01": {
       "smallLabel": "The promise",
-      "h1Part1": "Find out why your CV",
-      "h1Italic": "got rejected",
+      "h1Part1": "Your",
+      "h1Italic": "last rejection.",
       "h1Part2": "",
-      "h1Faded": "before it does.",
+      "h1Faded": "",
       "subtitle": "You send 80 applications. 78 disappear into silence. RejectCheck reads your CV the way a recruiter would — and tells you, before you apply, exactly what would have killed it.",
       "stat1Value": "~1 min",
       "stat1Label": "to first diagnosis",

@@ -353,10 +353,10 @@
     },
     "s01": {
       "smallLabel": "La promesse",
-      "h1Part1": "Découvrez pourquoi votre CV a été",
-      "h1Italic": "rejeté",
+      "h1Part1": "Votre",
+      "h1Italic": "dernier refus.",
       "h1Part2": "",
-      "h1Faded": "avant que ce soit le cas.",
+      "h1Faded": "",
       "subtitle": "Vous envoyez 80 candidatures. 78 disparaissent dans le silence. RejectCheck lit votre CV comme un recruteur le lirait — et vous dit, avant de postuler, exactement ce qui l'aurait tué.",
       "stat1Value": "~1 min",
       "stat1Label": "avant le diagnostic",
