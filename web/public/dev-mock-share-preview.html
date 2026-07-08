@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RejectCheck : état actuel du lien partagé (mock)</title>
+<meta name="robots" content="noindex, nofollow" />
+<style>
+  :root {
+    --cream: #f7f5f2;
+    --ink: #1a1917;
+    --red: #C93A39;
+    --muted: #6b6860;
+    --subtext: #3a3834;
+    --border: #d4cfc9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #e8e6e1;
+    color: #1a1917;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; }
+  header.page-header {
+    margin-bottom: 40px;
+  }
+  header.page-header h1 {
+    font-size: 26px;
+    margin: 0 0 8px;
+  }
+  header.page-header p {
+    margin: 0;
+    color: #55524c;
+    font-size: 14px;
+    max-width: 760px;
+    line-height: 1.5;
+  }
+  .meta-box {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #d8d5cf;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #333;
+    max-width: 760px;
+  }
+  .meta-box code {
+    background: #f3f1ec;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .meta-box .label {
+    color: var(--red);
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: inline-block;
+    width: 130px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .app-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    border: 1px solid #ddd9d2;
+  }
+  .app-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #857f74;
+    border-bottom: 1px solid #eee9e1;
+  }
+  .app-label .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .app-body { padding: 0; }
+
+  /* ---- shared OG card recreation (matches app/og-render.tsx exactly) ---- */
+  .og-card {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 6.4% 7%;
+    color: var(--ink);
+    position: relative;
+  }
+  .og-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .og-brand .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); }
+  .og-brand .word {
+    font-family: monospace;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .og-headline {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-top: 4%;
+  }
+  .og-headline .accent {
+    color: var(--red);
+    font-style: italic;
+    font-family: Georgia, serif;
+    display: block;
+  }
+  .og-sub {
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--subtext);
+    margin-top: 12px;
+    max-width: 92%;
+  }
+  .og-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 10px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .og-footer .tags span.sep { color: var(--border); margin: 0 6px; }
+  .og-footer .tags { text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ---------- OG card v3 (proposition, Linear-inspired) ---------- */
+  .og-card-v2 {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    background:
+      radial-gradient(ellipse 75% 55% at 50% 118%, rgba(201,58,57,0.32), transparent 70%),
+      #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4.5%;
+    padding: 0 9%;
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .og-card-v2 .og-watermark { display: none; }
+  .og-card-v2 .og-brand img { display: none; }
+  .og-card-v2 .og-brand {
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .og-card-v2 .og-headline { display: none; }
+  .og-card-v2 .og-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 1;
+  }
+  .og-card-v2 .stat-number {
+    font-size: 68px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .og-card-v2 .stat-number .pct { color: var(--red); }
+  .og-card-v2 .stat-sub {
+    font-size: 15px;
+    color: var(--subtext);
+    text-align: center;
+    max-width: 230px;
+    line-height: 1.35;
+  }
+  .og-card-v2 .og-brand .word {
+    font-family: -apple-system, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    color: var(--ink);
+  }
+  .og-card-v2 .og-brand .word .check {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--red);
+  }
+  .og-card-v2 .og-sub {
+    font-size: 16px;
+    line-height: 1.4;
+    color: var(--subtext);
+    max-width: 85%;
+  }
+
+  /* ---------- iMessage ---------- */
+  .imessage { background: #ffffff; padding: 18px 14px 22px; }
+  .imsg-bubble-wrap { display: flex; justify-content: flex-end; }
+  .imsg-bubble {
+    max-width: 78%;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #0b84fe;
+  }
+  .imsg-bubble .og-card { border-radius: 12px 12px 0 0; }
+  .imsg-caption {
+    padding: 8px 12px 10px;
+    color: #fff;
+  }
+  .imsg-caption .title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .imsg-caption .domain { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+  .imsg-text {
+    margin-top: 6px;
+    max-width: 60%;
+    background: #0b84fe;
+    color: #fff;
+    padding: 7px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    align-self: flex-end;
+    margin-left: auto;
+  }
+
+  /* ---------- WhatsApp ---------- */
+  .whatsapp {
+    background: #e5ddd5;
+    padding: 18px 14px;
+  }
+  .wa-bubble-wrap { display: flex; justify-content: flex-end; }
+  .wa-bubble {
+    max-width: 82%;
+    background: #d9fdd3;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+  }
+  .wa-bubble .og-card.square { border-radius: 6px 6px 0 0; }
+  .wa-text-block { padding: 6px 8px 4px; }
+  .wa-text-block .title { font-size: 13.5px; font-weight: 600; color: #111b21; line-height: 1.3; }
+  .wa-text-block .desc { font-size: 12.5px; color: #3f4a4f; line-height: 1.35; margin-top: 2px; }
+  .wa-text-block .domain { font-size: 11px; color: #667781; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.03em; }
+  .wa-msg-line { font-size: 13px; color: #111b21; padding: 2px 8px 8px; }
+  .wa-time { font-size: 10.5px; color: #667781; text-align: right; padding: 0 8px 6px; }
+
+  /* ---------- Slack ---------- */
+  .slack { background: #fff; padding: 16px 18px; }
+  .slack-msg-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .slack-avatar { width: 34px; height: 34px; border-radius: 6px; background: linear-gradient(135deg,#4a154b,#611f69); flex-shrink: 0; }
+  .slack-name { font-weight: 900; font-size: 14px; }
+  .slack-time { font-size: 11px; color: #616061; }
+  .slack-link-line { font-size: 14px; color: #1264a3; margin: 2px 0 8px 42px; }
+  .slack-unfurl {
+    margin-left: 42px;
+    border-left: 4px solid #d3d3d3;
+    padding-left: 12px;
+    max-width: 460px;
+  }
+  .slack-unfurl .site { font-size: 12px; color: #616061; margin-bottom: 2px; }
+  .slack-unfurl .title { font-size: 15px; color: #1264a3; font-weight: 700; margin-bottom: 4px; }
+  .slack-unfurl .desc { font-size: 13px; color: #1d1c1d; line-height: 1.45; margin-bottom: 8px; }
+  .slack-unfurl .og-card { border-radius: 4px; border: 1px solid #ececec; }
+
+  /* ---------- X / Twitter ---------- */
+  .xtwitter { background: #fff; padding: 16px 18px; }
+  .x-head { display: flex; gap: 10px; margin-bottom: 10px; }
+  .x-avatar { width: 40px; height: 40px; border-radius: 50%; background: #C93A39; flex-shrink: 0; }
+  .x-name { font-weight: 800; font-size: 14.5px; }
+  .x-handle { color: #71767b; font-size: 13.5px; }
+  .x-text { font-size: 14.5px; margin: 8px 0 10px; line-height: 1.4; }
+  .x-card { border: 1px solid #cfd9de; border-radius: 16px; overflow: hidden; }
+  .x-card .og-card { }
+  .x-card-foot { padding: 10px 12px; }
+  .x-card-foot .domain { font-size: 13px; color: #71767b; }
+  .x-card-foot .title { font-size: 14.5px; color: #0f1419; font-weight: 500; margin-top: 1px; }
+
+  /* ---------- LinkedIn ---------- */
+  .linkedin { background: #f4f2ee; padding: 16px 18px; }
+  .li-head { display: flex; gap: 10px; margin-bottom: 8px; }
+  .li-avatar { width: 42px; height: 42px; border-radius: 50%; background: #0a66c2; flex-shrink: 0; }
+  .li-name { font-weight: 700; font-size: 14px; }
+  .li-sub { font-size: 12px; color: #666; }
+  .li-text { font-size: 14px; margin: 6px 0 10px; line-height: 1.4; }
+  .li-card { border: 1px solid #e3e1de; border-radius: 8px; overflow: hidden; background: #fff; }
+  .li-card-foot { padding: 10px 14px; border-top: 1px solid #eee; }
+  .li-card-foot .title { font-size: 15px; font-weight: 600; color: #000; line-height: 1.3; }
+  .li-card-foot .domain { font-size: 12px; color: #666; margin-top: 3px; }
+
+  /* ---------- Discord ---------- */
+  .discord { background: #313338; padding: 18px; color: #dbdee1; }
+  .dc-msg-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .dc-avatar { width: 34px; height: 34px; border-radius: 50%; background: #C93A39; display: inline-block; vertical-align: middle; margin-right: 10px; }
+  .dc-row { display: flex; }
+  .dc-name { color: #f2f3f5; font-weight: 600; font-size: 14.5px; }
+  .dc-time { font-size: 11px; color: #949ba4; }
+  .dc-link { color: #00a8fc; font-size: 14px; margin: 2px 0 8px; }
+  .dc-embed {
+    border-left: 4px solid #4880ea;
+    background: #2b2d31;
+    border-radius: 4px;
+    padding: 10px 12px;
+    max-width: 460px;
+  }
+  .dc-embed .site { font-size: 11.5px; color: #949ba4; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .dc-embed .title { color: #00a8fc; font-weight: 700; font-size: 14.5px; margin-bottom: 4px; }
+  .dc-embed .desc { font-size: 13px; color: #dbdee1; line-height: 1.4; margin-bottom: 8px; }
+  .dc-embed .og-card { border-radius: 4px; }
+
+  footer.page-footer {
+    max-width: 760px;
+    margin: 48px auto 0;
+    font-size: 12.5px;
+    color: #665;
+    line-height: 1.6;
+  }
+
+  /* ---------- OG card v5 (proposition, crop de la vraie landing) ---------- */
+  .og-card-v5 {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    background: var(--cream);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 6.5% 6%;
+    gap: 5%;
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .v5-left { flex: 1 1 56%; display: flex; flex-direction: column; gap: 5%; min-width: 0; }
+  .v5-brand { display: flex; align-items: center; gap: 8px; }
+  .v5-brand .word {
+    font-family: -apple-system, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .v5-brand .word .check { font-style: italic; font-weight: 500; color: var(--red); }
+  .v5-headline {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .v5-headline .accent { color: var(--red); font-style: italic; font-family: Georgia, serif; }
+  .v5-sub { font-size: 12.5px; line-height: 1.42; color: var(--subtext); }
+
+  .v5-right {
+    flex: 0 0 38%;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5% 6%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    min-width: 0;
+  }
+  .v5-right .row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .v5-right .row-top .live { color: var(--red); display: flex; align-items: center; gap: 4px; }
+  .v5-right .row-top .live .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--red); }
+  .v5-right .name { font-size: 13px; font-weight: 700; margin-top: 2px; }
+  .v5-right .role {
+    font-family: monospace;
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .v5-right .score-row { display: flex; align-items: baseline; gap: 3px; margin-top: 2px; }
+  .v5-right .score-num { font-size: 44px; font-weight: 800; color: #c47f00; line-height: 1; }
+  .v5-right .score-pct { font-size: 17px; color: #c47f00; opacity: 0.6; }
+  .v5-right .risk-label {
+    font-family: monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #c4661f;
+    text-transform: uppercase;
+  }
+  .v5-right .bar { height: 4px; border-radius: 3px; background: #eee; overflow: hidden; margin-top: 3px; }
+  .v5-right .bar-fill { height: 100%; width: 74%; background: #c47f00; }
+
+  /* ---------- OG card v7 (v1 + glow + duo-police + sans footer) ---------- */
+  .og-card-v7 {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    background:
+      radial-gradient(ellipse 75% 55% at 50% 118%, rgba(201,58,57,0.32), transparent 70%),
+      #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5%;
+    padding: 0 9%;
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .og-card-v7 .og-brand { z-index: 1; }
+  .og-card-v7 .og-brand .word {
+    font-family: -apple-system, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    color: var(--ink);
+  }
+  .og-card-v7 .og-brand .word .check { font-style: italic; font-weight: 500; color: var(--red); }
+  .og-card-v7 .og-headline { margin-top: 0; z-index: 1; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-header">
+    <h1>RejectCheck : état actuel du lien partagé</h1>
+    <p>Mock statique (pas connecté au code) reconstituant exactement le rendu de <code>app/og-render.tsx</code> + les métadonnées de <code>app/(locale)/[lang]/layout.tsx</code>, pour voir ce que voit quelqu'un qui colle <strong>rejectcheck.com</strong> dans chaque app. Sert de base "avant" pour le redesign.</p>
+    <div class="meta-box">
+      <div><span class="label">og:title</span> RejectCheck - Find out why your CV got rejected</div>
+      <div><span class="label">og:description</span> AI ATS + resume checker for engineering roles, works for any job. Scores ATS fit, skill gaps, GitHub &amp; LinkedIn in 60 seconds. Free.</div>
+      <div><span class="label">og:image</span> <code>rejectcheck.com/og?lang=en</code> (1200×630, généré à la volée via next/og)</div>
+      <div><span class="label">twitter:card</span> summary_large_image</div>
+      <div><span class="label">domain</span> rejectcheck.com/en</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- iMessage -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0b84fe"></span> iMessage</div>
+      <div class="app-body">
+        <div class="imessage">
+          <div class="imsg-bubble-wrap">
+            <div class="imsg-bubble">
+              <div class="og-card">
+                <div class="og-brand"><span class="dot"></span><span class="word">RejectCheck</span></div>
+                <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+                <div class="og-footer">
+                  <span>rejectcheck.com/en</span>
+                  <span class="tags">ATS<span class="sep">·</span>Claude<span class="sep">·</span>EN · FR</span>
+                </div>
+              </div>
+              <div class="imsg-caption">
+                <div class="title">RejectCheck - Find out why your CV got rejected</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+            </div>
+          </div>
+          <div class="imsg-text">tiens check ce truc 👀</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#25d366"></span> WhatsApp</div>
+      <div class="app-body">
+        <div class="whatsapp">
+          <div class="wa-bubble-wrap">
+            <div class="wa-bubble">
+              <div class="og-card" style="border-radius: 6px 6px 0 0;">
+                <div class="og-brand"><span class="dot"></span><span class="word">RejectCheck</span></div>
+                <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+                <div class="og-footer">
+                  <span>rejectcheck.com/en</span>
+                  <span class="tags">ATS<span class="sep">·</span>Claude<span class="sep">·</span>EN · FR</span>
+                </div>
+              </div>
+              <div class="wa-text-block">
+                <div class="title">RejectCheck - Find out why your CV got rejected</div>
+                <div class="desc">AI ATS + resume checker for engineering roles, works for any job. Scores ATS fit, skill gaps, GitHub &amp; LinkedIn in 60 seconds. Free.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+              <div class="wa-msg-line">check ça 👇</div>
+              <div class="wa-time">14:32 ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slack -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#611f69"></span> Slack</div>
+      <div class="app-body">
+        <div class="slack">
+          <div class="slack-msg-head">
+            <div class="slack-avatar"></div>
+            <div>
+              <span class="slack-name">Lenny Garnier</span>
+              <span class="slack-time">2:32 PM</span>
+            </div>
+          </div>
+          <div class="slack-link-line">https://rejectcheck.com/en</div>
+          <div class="slack-unfurl">
+            <div class="site">RejectCheck</div>
+            <div class="title">RejectCheck - Find out why your CV got rejected</div>
+            <div class="desc">AI ATS + resume checker for engineering roles, works for any job. Scores ATS fit, skill gaps, GitHub &amp; LinkedIn in 60 seconds. Free.</div>
+            <div class="og-card">
+              <div class="og-brand"><span class="dot"></span><span class="word">RejectCheck</span></div>
+              <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+              <div class="og-footer">
+                <span>rejectcheck.com/en</span>
+                <span class="tags">ATS<span class="sep">·</span>Claude<span class="sep">·</span>EN · FR</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- X / Twitter -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#000"></span> X (Twitter)</div>
+      <div class="app-body">
+        <div class="xtwitter">
+          <div class="x-head">
+            <div class="x-avatar"></div>
+            <div>
+              <div class="x-name">Lenny Garnier</div>
+              <div class="x-handle">@lennygarnier</div>
+            </div>
+          </div>
+          <div class="x-text">Built an AI tool that tells you exactly why your CV keeps getting rejected 👇</div>
+          <div class="x-card">
+            <div class="og-card">
+              <div class="og-brand"><span class="dot"></span><span class="word">RejectCheck</span></div>
+              <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+              <div class="og-footer">
+                <span>rejectcheck.com/en</span>
+                <span class="tags">ATS<span class="sep">·</span>Claude<span class="sep">·</span>EN · FR</span>
+              </div>
+            </div>
+            <div class="x-card-foot">
+              <div class="domain">rejectcheck.com</div>
+              <div class="title">RejectCheck - Find out why your CV got rejected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LinkedIn -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0a66c2"></span> LinkedIn</div>
+      <div class="app-body">
+        <div class="linkedin">
+          <div class="li-head">
+            <div class="li-avatar"></div>
+            <div>
+              <div class="li-name">Lenny Garnier</div>
+              <div class="li-sub">Founder @ RejectCheck · 1st</div>
+            </div>
+          </div>
+          <div class="li-text">J'ai lancé un outil IA qui te dit exactement pourquoi ton CV se fait rejeter.</div>
+          <div class="li-card">
+            <div class="og-card">
+              <div class="og-brand"><span class="dot"></span><span class="word">RejectCheck</span></div>
+              <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+              <div class="og-footer">
+                <span>rejectcheck.com/en</span>
+                <span class="tags">ATS<span class="sep">·</span>Claude<span class="sep">·</span>EN · FR</span>
+              </div>
+            </div>
+            <div class="li-card-foot">
+              <div class="title">RejectCheck - Find out why your CV got rejected</div>
+              <div class="domain">rejectcheck.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discord -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#5865f2"></span> Discord</div>
+      <div class="app-body">
+        <div class="discord">
+          <div class="dc-row">
+            <div class="dc-avatar"></div>
+            <div>
+              <div class="dc-msg-head">
+                <span class="dc-name">lenny</span>
+                <span class="dc-time">Today at 14:32</span>
+              </div>
+              <div class="dc-link">https://rejectcheck.com/en</div>
+              <div class="dc-embed">
+                <div class="site">RejectCheck</div>
+                <div class="title">RejectCheck - Find out why your CV got rejected</div>
+                <div class="desc">AI ATS + resume checker for engineering roles, works for any job. Scores ATS fit, skill gaps, GitHub &amp; LinkedIn in 60 seconds. Free.</div>
+                <div class="og-card">
+                  <div class="og-brand"><span class="dot"></span><span class="word">RejectCheck</span></div>
+                  <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+                  <div class="og-footer">
+                    <span>rejectcheck.com/en</span>
+                    <span class="tags">ATS<span class="sep">·</span>Claude<span class="sep">·</span>EN · FR</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <header class="page-header" style="margin-top:56px;">
+    <h1>Proposition v4 (à valider) — le chiffre choc</h1>
+    <p>Idée n°1 testée : le wordmark (identique au dashboard) devient un petit "kicker" au-dessus d'un chiffre énorme — "78%" — repris de l'accroche de la home ("Vous envoyez 80 candidatures. 78 disparaissent dans le silence."), avec une ligne de contexte courte en dessous. Même fond blanc + glow rouge que la v3. L'idée : un chiffre précis arrête le scroll mieux qu'un nom de marque inconnu.</p>
+    <div class="meta-box">
+      <div><span class="label">og:title</span> RejectCheck: Your last rejection. <span style="color:#999">(caption hors-image, inchangé — dis-moi si ça doit bouger aussi)</span></div>
+      <div><span class="label">og:description</span> Find out why. Before you apply again. <span style="color:#999">(idem)</span></div>
+      <div><span class="label">image</span> wordmark petit + "78%" énorme + "of resumes disappear in silence."</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- iMessage v2 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0b84fe"></span> iMessage</div>
+      <div class="app-body">
+        <div class="imessage">
+          <div class="imsg-bubble-wrap">
+            <div class="imsg-bubble">
+              <div class="og-card-v2">
+                <img class="og-watermark" src="/dev-mock-logo-small.png" alt="">
+                <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="og-headline">Your last<span class="accent">rejection.</span></div>
+                <div class="og-stat">
+                  <div class="stat-number">78<span class="pct">%</span></div>
+                  <div class="stat-sub">of resumes disappear in silence.</div>
+                </div>
+              </div>
+              <div class="imsg-caption">
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+            </div>
+          </div>
+          <div class="imsg-text">tiens check ce truc 👀</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp v2 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#25d366"></span> WhatsApp</div>
+      <div class="app-body">
+        <div class="whatsapp">
+          <div class="wa-bubble-wrap">
+            <div class="wa-bubble">
+              <div class="og-card-v2" style="border-radius: 6px 6px 0 0;">
+                <img class="og-watermark" src="/dev-mock-logo-small.png" alt="">
+                <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="og-headline">Your last<span class="accent">rejection.</span></div>
+                <div class="og-stat">
+                  <div class="stat-number">78<span class="pct">%</span></div>
+                  <div class="stat-sub">of resumes disappear in silence.</div>
+                </div>
+              </div>
+              <div class="wa-text-block">
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="desc">Find out why. Before you apply again.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+              <div class="wa-msg-line">check ça 👇</div>
+              <div class="wa-time">14:32 ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slack v2 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#611f69"></span> Slack</div>
+      <div class="app-body">
+        <div class="slack">
+          <div class="slack-msg-head">
+            <div class="slack-avatar"></div>
+            <div>
+              <span class="slack-name">Lenny Garnier</span>
+              <span class="slack-time">2:32 PM</span>
+            </div>
+          </div>
+          <div class="slack-link-line">https://rejectcheck.com/en</div>
+          <div class="slack-unfurl">
+            <div class="site">RejectCheck</div>
+            <div class="title">RejectCheck: Your last rejection.</div>
+            <div class="desc">Find out why. Before you apply again.</div>
+            <div class="og-card-v2">
+              <img class="og-watermark" src="/dev-mock-logo-small.png" alt="">
+              <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+              <div class="og-headline">Your last<span class="accent">rejection.</span></div>
+                <div class="og-stat">
+                  <div class="stat-number">78<span class="pct">%</span></div>
+                  <div class="stat-sub">of resumes disappear in silence.</div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- X / Twitter v2 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#000"></span> X (Twitter)</div>
+      <div class="app-body">
+        <div class="xtwitter">
+          <div class="x-head">
+            <div class="x-avatar"></div>
+            <div>
+              <div class="x-name">Lenny Garnier</div>
+              <div class="x-handle">@lennygarnier</div>
+            </div>
+          </div>
+          <div class="x-text">Built an AI tool that tells you exactly why your CV keeps getting rejected 👇</div>
+          <div class="x-card">
+            <div class="og-card-v2">
+              <img class="og-watermark" src="/dev-mock-logo-small.png" alt="">
+              <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+              <div class="og-headline">Your last<span class="accent">rejection.</span></div>
+                <div class="og-stat">
+                  <div class="stat-number">78<span class="pct">%</span></div>
+                  <div class="stat-sub">of resumes disappear in silence.</div>
+                </div>
+            </div>
+            <div class="x-card-foot">
+              <div class="domain">rejectcheck.com</div>
+              <div class="title">RejectCheck: Your last rejection.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LinkedIn v2 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0a66c2"></span> LinkedIn</div>
+      <div class="app-body">
+        <div class="linkedin">
+          <div class="li-head">
+            <div class="li-avatar"></div>
+            <div>
+              <div class="li-name">Lenny Garnier</div>
+              <div class="li-sub">Founder @ RejectCheck · 1st</div>
+            </div>
+          </div>
+          <div class="li-text">J'ai lancé un outil IA qui te dit exactement pourquoi ton CV se fait rejeter.</div>
+          <div class="li-card">
+            <div class="og-card-v2">
+              <img class="og-watermark" src="/dev-mock-logo-small.png" alt="">
+              <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+              <div class="og-headline">Your last<span class="accent">rejection.</span></div>
+                <div class="og-stat">
+                  <div class="stat-number">78<span class="pct">%</span></div>
+                  <div class="stat-sub">of resumes disappear in silence.</div>
+                </div>
+            </div>
+            <div class="li-card-foot">
+              <div class="title">RejectCheck: Your last rejection.</div>
+              <div class="domain">rejectcheck.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discord v2 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#5865f2"></span> Discord</div>
+      <div class="app-body">
+        <div class="discord">
+          <div class="dc-row">
+            <div class="dc-avatar"></div>
+            <div>
+              <div class="dc-msg-head">
+                <span class="dc-name">lenny</span>
+                <span class="dc-time">Today at 14:32</span>
+              </div>
+              <div class="dc-link">https://rejectcheck.com/en</div>
+              <div class="dc-embed">
+                <div class="site">RejectCheck</div>
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="desc">Find out why. Before you apply again.</div>
+                <div class="og-card-v2">
+                  <img class="og-watermark" src="/dev-mock-logo-small.png" alt="">
+                  <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                  <div class="og-headline">Your last<span class="accent">rejection.</span></div>
+                <div class="og-stat">
+                  <div class="stat-number">78<span class="pct">%</span></div>
+                  <div class="stat-sub">of resumes disappear in silence.</div>
+                </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <header class="page-header" style="margin-top:56px;">
+    <h1>Proposition v5 (à valider) — crop de la vraie landing</h1>
+    <p>Le "chiffre choc" abstrait (v4) sonnait creux. Ici on montre littéralement ce que le produit fait : le vrai headline de la home, le vrai texte ("You send 80 applications. 78 disappear into silence.") et une version compacte de la carte "Sample Diagnosis" réelle (Sarah K., 74%, high risk) — recadrés en 1200×630. Ça prouve la valeur au lieu de la raconter.</p>
+    <div class="meta-box">
+      <div><span class="label">og:title</span> RejectCheck: Your last rejection.</div>
+      <div><span class="label">og:description</span> You send 80 applications. 78 disappear into silence. <span style="color:#999">(texte réel de la home, plus de "78%" inventé)</span></div>
+      <div><span class="label">image</span> headline + sous-titre home à gauche, mini carte "Sample Diagnosis" réelle à droite</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- iMessage v5 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0b84fe"></span> iMessage</div>
+      <div class="app-body">
+        <div class="imessage">
+          <div class="imsg-bubble-wrap">
+            <div class="imsg-bubble">
+              <div class="og-card-v5">
+                <div class="v5-left">
+                  <div class="v5-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                  <div class="v5-headline">Your last <span class="accent">rejection.</span></div>
+                  <div class="v5-sub">You send 80 applications. 78 disappear into silence.</div>
+                </div>
+                <div class="v5-right">
+                  <div class="row-top"><span>Sample diagnosis</span><span class="live"><span class="dot"></span>Live</span></div>
+                  <div class="name">Sarah K. · 4 yrs exp.</div>
+                  <div class="role">Staff Backend Engineer @ Stripe</div>
+                  <div class="score-row"><span class="score-num">74</span><span class="score-pct">%</span></div>
+                  <div class="risk-label">High risk · rejection likely</div>
+                  <div class="bar"><div class="bar-fill"></div></div>
+                </div>
+              </div>
+              <div class="imsg-caption">
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+            </div>
+          </div>
+          <div class="imsg-text">tiens check ce truc 👀</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp v5 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#25d366"></span> WhatsApp</div>
+      <div class="app-body">
+        <div class="whatsapp">
+          <div class="wa-bubble-wrap">
+            <div class="wa-bubble">
+              <div class="og-card-v5" style="border-radius: 6px 6px 0 0;">
+                <div class="v5-left">
+                  <div class="v5-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                  <div class="v5-headline">Your last <span class="accent">rejection.</span></div>
+                  <div class="v5-sub">You send 80 applications. 78 disappear into silence.</div>
+                </div>
+                <div class="v5-right">
+                  <div class="row-top"><span>Sample diagnosis</span><span class="live"><span class="dot"></span>Live</span></div>
+                  <div class="name">Sarah K. · 4 yrs exp.</div>
+                  <div class="role">Staff Backend Engineer @ Stripe</div>
+                  <div class="score-row"><span class="score-num">74</span><span class="score-pct">%</span></div>
+                  <div class="risk-label">High risk · rejection likely</div>
+                  <div class="bar"><div class="bar-fill"></div></div>
+                </div>
+              </div>
+              <div class="wa-text-block">
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="desc">You send 80 applications. 78 disappear into silence.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+              <div class="wa-msg-line">check ça 👇</div>
+              <div class="wa-time">14:32 ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slack v5 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#611f69"></span> Slack</div>
+      <div class="app-body">
+        <div class="slack">
+          <div class="slack-msg-head">
+            <div class="slack-avatar"></div>
+            <div>
+              <span class="slack-name">Lenny Garnier</span>
+              <span class="slack-time">2:32 PM</span>
+            </div>
+          </div>
+          <div class="slack-link-line">https://rejectcheck.com/en</div>
+          <div class="slack-unfurl">
+            <div class="site">RejectCheck</div>
+            <div class="title">RejectCheck: Your last rejection.</div>
+            <div class="desc">You send 80 applications. 78 disappear into silence.</div>
+            <div class="og-card-v5">
+              <div class="v5-left">
+                <div class="v5-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="v5-headline">Your last <span class="accent">rejection.</span></div>
+                <div class="v5-sub">You send 80 applications. 78 disappear into silence.</div>
+              </div>
+              <div class="v5-right">
+                <div class="row-top"><span>Sample diagnosis</span><span class="live"><span class="dot"></span>Live</span></div>
+                <div class="name">Sarah K. · 4 yrs exp.</div>
+                <div class="role">Staff Backend Engineer @ Stripe</div>
+                <div class="score-row"><span class="score-num">74</span><span class="score-pct">%</span></div>
+                <div class="risk-label">High risk · rejection likely</div>
+                <div class="bar"><div class="bar-fill"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- X / Twitter v5 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#000"></span> X (Twitter)</div>
+      <div class="app-body">
+        <div class="xtwitter">
+          <div class="x-head">
+            <div class="x-avatar"></div>
+            <div>
+              <div class="x-name">Lenny Garnier</div>
+              <div class="x-handle">@lennygarnier</div>
+            </div>
+          </div>
+          <div class="x-text">Built an AI tool that tells you exactly why your CV keeps getting rejected 👇</div>
+          <div class="x-card">
+            <div class="og-card-v5">
+              <div class="v5-left">
+                <div class="v5-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="v5-headline">Your last <span class="accent">rejection.</span></div>
+                <div class="v5-sub">You send 80 applications. 78 disappear into silence.</div>
+              </div>
+              <div class="v5-right">
+                <div class="row-top"><span>Sample diagnosis</span><span class="live"><span class="dot"></span>Live</span></div>
+                <div class="name">Sarah K. · 4 yrs exp.</div>
+                <div class="role">Staff Backend Engineer @ Stripe</div>
+                <div class="score-row"><span class="score-num">74</span><span class="score-pct">%</span></div>
+                <div class="risk-label">High risk · rejection likely</div>
+                <div class="bar"><div class="bar-fill"></div></div>
+              </div>
+            </div>
+            <div class="x-card-foot">
+              <div class="domain">rejectcheck.com</div>
+              <div class="title">RejectCheck: Your last rejection.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LinkedIn v5 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0a66c2"></span> LinkedIn</div>
+      <div class="app-body">
+        <div class="linkedin">
+          <div class="li-head">
+            <div class="li-avatar"></div>
+            <div>
+              <div class="li-name">Lenny Garnier</div>
+              <div class="li-sub">Founder @ RejectCheck · 1st</div>
+            </div>
+          </div>
+          <div class="li-text">J'ai lancé un outil IA qui te dit exactement pourquoi ton CV se fait rejeter.</div>
+          <div class="li-card">
+            <div class="og-card-v5">
+              <div class="v5-left">
+                <div class="v5-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="v5-headline">Your last <span class="accent">rejection.</span></div>
+                <div class="v5-sub">You send 80 applications. 78 disappear into silence.</div>
+              </div>
+              <div class="v5-right">
+                <div class="row-top"><span>Sample diagnosis</span><span class="live"><span class="dot"></span>Live</span></div>
+                <div class="name">Sarah K. · 4 yrs exp.</div>
+                <div class="role">Staff Backend Engineer @ Stripe</div>
+                <div class="score-row"><span class="score-num">74</span><span class="score-pct">%</span></div>
+                <div class="risk-label">High risk · rejection likely</div>
+                <div class="bar"><div class="bar-fill"></div></div>
+              </div>
+            </div>
+            <div class="li-card-foot">
+              <div class="title">RejectCheck: Your last rejection.</div>
+              <div class="domain">rejectcheck.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discord v5 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#5865f2"></span> Discord</div>
+      <div class="app-body">
+        <div class="discord">
+          <div class="dc-row">
+            <div class="dc-avatar"></div>
+            <div>
+              <div class="dc-msg-head">
+                <span class="dc-name">lenny</span>
+                <span class="dc-time">Today at 14:32</span>
+              </div>
+              <div class="dc-link">https://rejectcheck.com/en</div>
+              <div class="dc-embed">
+                <div class="site">RejectCheck</div>
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="desc">You send 80 applications. 78 disappear into silence.</div>
+                <div class="og-card-v5">
+                  <div class="v5-left">
+                    <div class="v5-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                    <div class="v5-headline">Your last <span class="accent">rejection.</span></div>
+                    <div class="v5-sub">You send 80 applications. 78 disappear into silence.</div>
+                  </div>
+                  <div class="v5-right">
+                    <div class="row-top"><span>Sample diagnosis</span><span class="live"><span class="dot"></span>Live</span></div>
+                    <div class="name">Sarah K. · 4 yrs exp.</div>
+                    <div class="role">Staff Backend Engineer @ Stripe</div>
+                    <div class="score-row"><span class="score-num">74</span><span class="score-pct">%</span></div>
+                    <div class="risk-label">High risk · rejection likely</div>
+                    <div class="bar"><div class="bar-fill"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <header class="page-header" style="margin-top:56px;">
+    <h1>Proposition v6 — vraie capture d'écran de la landing (pas une recréation)</h1>
+    <p>Ceci n'est <strong>pas</strong> du CSS qui imite le design : c'est un vrai screenshot Playwright de <code>https://rejectcheck.com/en</code> (le même outil que les tests e2e du repo), recadré en 1200×630 depuis le bas de la nav. Pixel pour pixel ce que la page affichait au moment de la capture.</p>
+    <div class="meta-box">
+      <div><span class="label">source</span> screenshot réel, <code>web/public/dev-mock-real-landing-crop.png</code></div>
+      <div><span class="label">attention</span> le score de la carte "Sample Diagnosis" tourne en carrousel (74% → 70% → 71% selon la capture) — à figer sur un exemple fixe si ça devient l'image de prod</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- iMessage v6 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0b84fe"></span> iMessage</div>
+      <div class="app-body">
+        <div class="imessage">
+          <div class="imsg-bubble-wrap">
+            <div class="imsg-bubble">
+              <img class="og-card" style="object-fit:cover;" src="/dev-mock-real-landing-crop.png" alt="">
+              <div class="imsg-caption">
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+            </div>
+          </div>
+          <div class="imsg-text">tiens check ce truc 👀</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp v6 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#25d366"></span> WhatsApp</div>
+      <div class="app-body">
+        <div class="whatsapp">
+          <div class="wa-bubble-wrap">
+            <div class="wa-bubble">
+              <img class="og-card" style="object-fit:cover; border-radius:6px 6px 0 0;" src="/dev-mock-real-landing-crop.png" alt="">
+              <div class="wa-text-block">
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="desc">You send 80 applications. 78 disappear into silence.</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+              <div class="wa-msg-line">check ça 👇</div>
+              <div class="wa-time">14:32 ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slack v6 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#611f69"></span> Slack</div>
+      <div class="app-body">
+        <div class="slack">
+          <div class="slack-msg-head">
+            <div class="slack-avatar"></div>
+            <div>
+              <span class="slack-name">Lenny Garnier</span>
+              <span class="slack-time">2:32 PM</span>
+            </div>
+          </div>
+          <div class="slack-link-line">https://rejectcheck.com/en</div>
+          <div class="slack-unfurl">
+            <div class="site">RejectCheck</div>
+            <div class="title">RejectCheck: Your last rejection.</div>
+            <div class="desc">You send 80 applications. 78 disappear into silence.</div>
+            <img class="og-card" style="object-fit:cover;" src="/dev-mock-real-landing-crop.png" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- X / Twitter v6 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#000"></span> X (Twitter)</div>
+      <div class="app-body">
+        <div class="xtwitter">
+          <div class="x-head">
+            <div class="x-avatar"></div>
+            <div>
+              <div class="x-name">Lenny Garnier</div>
+              <div class="x-handle">@lennygarnier</div>
+            </div>
+          </div>
+          <div class="x-text">Built an AI tool that tells you exactly why your CV keeps getting rejected 👇</div>
+          <div class="x-card">
+            <img class="og-card" style="object-fit:cover;" src="/dev-mock-real-landing-crop.png" alt="">
+            <div class="x-card-foot">
+              <div class="domain">rejectcheck.com</div>
+              <div class="title">RejectCheck: Your last rejection.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LinkedIn v6 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0a66c2"></span> LinkedIn</div>
+      <div class="app-body">
+        <div class="linkedin">
+          <div class="li-head">
+            <div class="li-avatar"></div>
+            <div>
+              <div class="li-name">Lenny Garnier</div>
+              <div class="li-sub">Founder @ RejectCheck · 1st</div>
+            </div>
+          </div>
+          <div class="li-text">J'ai lancé un outil IA qui te dit exactement pourquoi ton CV se fait rejeter.</div>
+          <div class="li-card">
+            <img class="og-card" style="object-fit:cover;" src="/dev-mock-real-landing-crop.png" alt="">
+            <div class="li-card-foot">
+              <div class="title">RejectCheck: Your last rejection.</div>
+              <div class="domain">rejectcheck.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discord v6 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#5865f2"></span> Discord</div>
+      <div class="app-body">
+        <div class="discord">
+          <div class="dc-row">
+            <div class="dc-avatar"></div>
+            <div>
+              <div class="dc-msg-head">
+                <span class="dc-name">lenny</span>
+                <span class="dc-time">Today at 14:32</span>
+              </div>
+              <div class="dc-link">https://rejectcheck.com/en</div>
+              <div class="dc-embed">
+                <div class="site">RejectCheck</div>
+                <div class="title">RejectCheck: Your last rejection.</div>
+                <div class="desc">You send 80 applications. 78 disappear into silence.</div>
+                <img class="og-card" style="object-fit:cover;" src="/dev-mock-real-landing-crop.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <header class="page-header" style="margin-top:56px;">
+    <h1>Proposition v7 (à valider) — retour v1 + glow + duo-police, sans footer</h1>
+    <p>Retour à la structure et au vrai copy actuel de production ("Find out why your CV got rejected / before it does.") — mais avec le glow rouge en bas de cadre (v3), le wordmark en duo-police du dashboard ("Reject" sans-serif + "Check" italique rouge, sans le point rouge ni la casse majuscule monospace), et sans le footer <code>rejectcheck.com/en</code> / <code>ATS · Claude · EN · FR</code>.</p>
+    <div class="meta-box">
+      <div><span class="label">og:title</span> RejectCheck - Find out why your CV got rejected <span style="color:#999">(retour au titre actuel)</span></div>
+      <div><span class="label">image</span> wordmark duo-police + headline + glow rouge bas de cadre, plus rien en dessous</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- iMessage v7 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0b84fe"></span> iMessage</div>
+      <div class="app-body">
+        <div class="imessage">
+          <div class="imsg-bubble-wrap">
+            <div class="imsg-bubble">
+              <div class="og-card-v7">
+                <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+              </div>
+              <div class="imsg-caption">
+                <div class="title">RejectCheck - Find out why your CV got rejected</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+            </div>
+          </div>
+          <div class="imsg-text">tiens check ce truc 👀</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp v7 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#25d366"></span> WhatsApp</div>
+      <div class="app-body">
+        <div class="whatsapp">
+          <div class="wa-bubble-wrap">
+            <div class="wa-bubble">
+              <div class="og-card-v7" style="border-radius: 6px 6px 0 0;">
+                <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+              </div>
+              <div class="wa-text-block">
+                <div class="title">RejectCheck - Find out why your CV got rejected</div>
+                <div class="domain">rejectcheck.com</div>
+              </div>
+              <div class="wa-msg-line">check ça 👇</div>
+              <div class="wa-time">14:32 ✓✓</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slack v7 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#611f69"></span> Slack</div>
+      <div class="app-body">
+        <div class="slack">
+          <div class="slack-msg-head">
+            <div class="slack-avatar"></div>
+            <div>
+              <span class="slack-name">Lenny Garnier</span>
+              <span class="slack-time">2:32 PM</span>
+            </div>
+          </div>
+          <div class="slack-link-line">https://rejectcheck.com/en</div>
+          <div class="slack-unfurl">
+            <div class="site">RejectCheck</div>
+            <div class="title">RejectCheck - Find out why your CV got rejected</div>
+            <div class="og-card-v7">
+              <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+              <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- X / Twitter v7 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#000"></span> X (Twitter)</div>
+      <div class="app-body">
+        <div class="xtwitter">
+          <div class="x-head">
+            <div class="x-avatar"></div>
+            <div>
+              <div class="x-name">Lenny Garnier</div>
+              <div class="x-handle">@lennygarnier</div>
+            </div>
+          </div>
+          <div class="x-text">Built an AI tool that tells you exactly why your CV keeps getting rejected 👇</div>
+          <div class="x-card">
+            <div class="og-card-v7">
+              <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+              <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+            </div>
+            <div class="x-card-foot">
+              <div class="domain">rejectcheck.com</div>
+              <div class="title">RejectCheck - Find out why your CV got rejected</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LinkedIn v7 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#0a66c2"></span> LinkedIn</div>
+      <div class="app-body">
+        <div class="linkedin">
+          <div class="li-head">
+            <div class="li-avatar"></div>
+            <div>
+              <div class="li-name">Lenny Garnier</div>
+              <div class="li-sub">Founder @ RejectCheck · 1st</div>
+            </div>
+          </div>
+          <div class="li-text">J'ai lancé un outil IA qui te dit exactement pourquoi ton CV se fait rejeter.</div>
+          <div class="li-card">
+            <div class="og-card-v7">
+              <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+              <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+            </div>
+            <div class="li-card-foot">
+              <div class="title">RejectCheck - Find out why your CV got rejected</div>
+              <div class="domain">rejectcheck.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discord v7 -->
+    <div class="app-card">
+      <div class="app-label"><span class="dot" style="background:#5865f2"></span> Discord</div>
+      <div class="app-body">
+        <div class="discord">
+          <div class="dc-row">
+            <div class="dc-avatar"></div>
+            <div>
+              <div class="dc-msg-head">
+                <span class="dc-name">lenny</span>
+                <span class="dc-time">Today at 14:32</span>
+              </div>
+              <div class="dc-link">https://rejectcheck.com/en</div>
+              <div class="dc-embed">
+                <div class="site">RejectCheck</div>
+                <div class="title">RejectCheck - Find out why your CV got rejected</div>
+                <div class="og-card-v7">
+                  <div class="og-brand"><span class="word">Reject<span class="check">Check</span></span></div>
+                  <div class="og-headline">Find out why your CV got rejected<span class="accent">before it does.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="page-footer">
+    Fichier temporaire : <code>web/public/dev-mock-share-preview.html</code>. Pas lié au code de prod, à supprimer une fois la revue terminée. Le rendu réel de chaque plateforme peut varier légèrement (cache d'unfurl, crawler user-agent, versions d'app) mais les textes/couleurs/image sont ceux réellement servis aujourd'hui.
+  </footer>
+
+</div>
+</body>
+</html>

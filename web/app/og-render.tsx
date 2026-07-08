@@ -9,22 +9,16 @@ export const ogSize = { width: 1200, height: 630 }
 export const ogContentType = 'image/png'
 
 export function ogAlt(lang: string): string {
-  return lang === 'fr'
-    ? 'RejectCheck - Comprends pourquoi ton CV a été rejeté'
-    : 'RejectCheck - Find out why your CV got rejected'
+  return lang === 'fr' ? 'RejectCheck : Votre dernier refus.' : 'RejectCheck: Your last rejection.'
 }
 
+// Headline mirrors the live homepage h1 word-for-word (see app/(locale)/[lang]/page.tsx)
+// so the share card never drifts from what people land on after clicking.
 export function renderOgImage(lang: string): ImageResponse {
   const isFr = lang === 'fr'
 
-  const headline = isFr
-    ? 'Comprends pourquoi ton CV a été rejeté'
-    : 'Find out why your CV got rejected'
-  const headlineAccent = isFr ? 'avant que ce soit le cas.' : 'before it does.'
-  const subtitle = isFr
-    ? 'Diagnostic IA (Claude) : vérification ATS, radar des lacunes, audit GitHub & LinkedIn, croisement multi-source - en une minute environ.'
-    : 'AI CV diagnosis (Claude): ATS check, skill gap radar, GitHub & LinkedIn audit, multi-source cross-check - in about a minute.'
-  const langTag = isFr ? 'FR · EN' : 'EN · FR'
+  const lead = isFr ? 'Votre' : 'Your'
+  const accent = isFr ? 'dernier refus.' : 'last rejection.'
 
   return new ImageResponse(
     (
@@ -34,93 +28,56 @@ export function renderOgImage(lang: string): ImageResponse {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
-          background: '#f7f5f2',
-          padding: '64px 80px',
+          justifyContent: 'center',
+          backgroundColor: '#ffffff',
+          backgroundImage:
+            'radial-gradient(ellipse 75% 55% at 50% 118%, rgba(201,58,57,0.28), rgba(201,58,57,0) 70%)',
+          padding: '0 108px',
           fontFamily: 'sans-serif',
           color: '#1a1917',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 8, height: 8, borderRadius: 9999, background: '#C93A39' }} />
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 0, marginBottom: 32 }}>
+          <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em', color: '#1a1917' }}>
+            Reject
+          </div>
           <div
             style={{
-              fontFamily: 'monospace',
-              fontSize: 20,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
+              fontSize: 26,
+              fontWeight: 500,
+              fontStyle: 'italic',
+              fontFamily: 'Georgia, serif',
               color: '#C93A39',
             }}
           >
-            RejectCheck
+            Check
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 1000 }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div
             style={{
-              fontSize: 68,
-              fontWeight: 700,
+              fontSize: 84,
+              fontWeight: 800,
               lineHeight: 1.05,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.03em',
               color: '#1a1917',
             }}
           >
-            {headline}
+            {lead}
           </div>
           <div
             style={{
-              fontSize: 68,
-              fontWeight: 700,
+              fontSize: 84,
+              fontWeight: 800,
               lineHeight: 1.05,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.02em',
               color: '#C93A39',
               fontStyle: 'italic',
               fontFamily: 'Georgia, serif',
             }}
           >
-            {headlineAccent}
-          </div>
-          <div style={{ fontSize: 24, lineHeight: 1.45, color: '#3a3834', marginTop: 20 }}>
-            {subtitle}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderTop: '1px solid #d4cfc9',
-            paddingTop: 24,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'monospace',
-              fontSize: 18,
-              color: '#6b6860',
-              letterSpacing: '0.08em',
-            }}
-          >
-            {`rejectcheck.com/${isFr ? 'fr' : 'en'}`}
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              fontFamily: 'monospace',
-              fontSize: 16,
-              color: '#6b6860',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-            }}
-          >
-            <span>ATS</span>
-            <span style={{ color: '#d4cfc9' }}>·</span>
-            <span>Claude</span>
-            <span style={{ color: '#d4cfc9' }}>·</span>
-            <span>{langTag}</span>
+            {accent}
           </div>
         </div>
       </div>

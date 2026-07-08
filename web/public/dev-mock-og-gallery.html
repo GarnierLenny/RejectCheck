@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Galerie OG - inspiration (mock)</title>
+<meta name="robots" content="noindex, nofollow" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #e8e6e1;
+    color: #1a1917;
+    padding: 40px 24px 80px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  header h1 { font-size: 26px; margin: 0 0 8px; }
+  header p { margin: 0 0 32px; color: #55524c; font-size: 14px; max-width: 760px; line-height: 1.5; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    border: 1px solid #ddd9d2;
+    display: flex;
+    flex-direction: column;
+  }
+  .card .shot {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    object-fit: cover;
+    background: #f0efec;
+    display: block;
+  }
+  .card .meta { padding: 12px 16px 16px; }
+  .card .name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C93A39;
+    margin-bottom: 4px;
+  }
+  .card .title { font-size: 13.5px; font-weight: 700; line-height: 1.3; color: #111; }
+  .card .desc { font-size: 12px; color: #666; margin-top: 3px; line-height: 1.4; }
+  .card .why { font-size: 12px; color: #857f74; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e3e0da; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Galerie OG : cartes de produits connus pour leur design</h1>
+    <p>Vraies images og:image en production (hotlink direct depuis leur site), pas des mockups Mobbin. Choisis celle(s) qui te parlent, je décline ensuite pour RejectCheck.</p>
+  </header>
+  <div class="grid">
+
+    <div class="card">
+      <img class="shot" src="https://linear.app/static/og/homepage.jpg" alt="Linear">
+      <div class="meta">
+        <div class="name">Linear</div>
+        <div class="title">The system for product development</div>
+        <div class="desc">Purpose-built for planning and building products with AI agents.</div>
+        <div class="why">Dark, produit affiché en contexte réel (screenshot d'app stylisé), zéro texte marketing dans l'image.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://resend.com/static/cover.png" alt="Resend">
+      <div class="meta">
+        <div class="name">Resend</div>
+        <div class="title">Email for developers</div>
+        <div class="desc">The best way to reach humans instead of spam folders.</div>
+        <div class="why">Fond noir, un seul mot-clé énorme + un visuel de code/produit minimal.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://www.raycast.com/opengraph-image-pwu6ef.png?7385e23163a01717" alt="Raycast">
+      <div class="meta">
+        <div class="name">Raycast</div>
+        <div class="title">Your shortcut to everything</div>
+        <div class="desc">A collection of powerful productivity tools all within an extendable launcher.</div>
+        <div class="why">Gradient coloré signature + UI produit flottante, très reconnaissable même en miniature.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://arc.net/og.png" alt="Arc">
+      <div class="meta">
+        <div class="name">Arc (The Browser Company)</div>
+        <div class="title">Arc from The Browser Company</div>
+        <div class="desc">Experience a calmer, more personal internet in this browser designed for you.</div>
+        <div class="why">Wallpaper artistique plein cadre, marque en petit, zéro promesse écrite dans l'image.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://ppl-ai-public.s3.amazonaws.com/static/img/pplx-default-preview.png" alt="Perplexity">
+      <div class="meta">
+        <div class="name">Perplexity</div>
+        <div class="title">Perplexity</div>
+        <div class="desc">A free AI-powered answer engine that provides accurate, trusted, real-time answers.</div>
+        <div class="why">Ultra minimal : logo + nom, presque rien d'autre. Mise sur la notoriété de marque.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://posthog.com/images/og/default.png" alt="PostHog">
+      <div class="meta">
+        <div class="name">PostHog</div>
+        <div class="title">We make dev tools for product engineers</div>
+        <div class="desc">All your developer tools in one place.</div>
+        <div class="why">Mascotte illustrée + typo bold, ton potache/humain plutôt que corporate.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://a.storyblok.com/f/234930/1200x630/df480627b4/attio-og-image.jpg" alt="Attio">
+      <div class="meta">
+        <div class="name">Attio</div>
+        <div class="title">Ask more from CRM</div>
+        <div class="desc">Powerful, flexible and data-driven, Attio makes it easy to build the exact CRM your business needs.</div>
+        <div class="why">Vrai UI produit (tableau/données) mis en scène avec de la profondeur, prouve la valeur direct.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://superhumanstatic.com/super-funnel/main/public/images/v3/social-share.png" alt="Superhuman">
+      <div class="meta">
+        <div class="name">Superhuman</div>
+        <div class="title">Docs, Mail, and AI That Work Everywhere</div>
+        <div class="desc">The AI productivity suite that gives you superpowers everywhere you work.</div>
+        <div class="why">Photo/rendu premium + wordmark discret, positionnement haut de gamme.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <img class="shot" src="https://framerusercontent.com/images/qAuYmOzzj4F8wIEJiqfcOgjFdiY.png" alt="Framer">
+      <div class="meta">
+        <div class="name">Framer</div>
+        <div class="title">AI website builder for professional sites</div>
+        <div class="desc">Create a professional website with Framer's no-code AI website builder.</div>
+        <div class="why">Couleurs vives multiples, compositions produit imbriquées, très énergique.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
