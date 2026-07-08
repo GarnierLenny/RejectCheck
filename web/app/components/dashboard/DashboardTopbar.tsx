@@ -60,7 +60,7 @@ export function DashboardTopbar({ activeTab, firstName, onBuyCredits, onOpenNav 
             style={{ fontSize: "clamp(26px, 3vw, 38px)", letterSpacing: -0.5 }}
           >
             {headingPrefix}
-            <span className="font-serif italic text-rc-red" style={{ fontWeight: 400 }}>
+            <span className="font-serif text-rc-red" style={{ fontWeight: 700 }}>
               {headingItalic}
             </span>
           </h1>

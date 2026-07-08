@@ -11,7 +11,7 @@ import { PremiumPaywall } from "../PremiumFeature";
 const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
 const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
 const DISPLAY_ITALIC: React.CSSProperties = {
-  fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)",
+  fontWeight: 700, color: "var(--rc-red)",
 };
 
 const LANGUAGE_OPTIONS = [

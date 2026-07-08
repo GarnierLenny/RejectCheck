@@ -179,7 +179,7 @@ export function RewriteTab({ result, reconstructedCv, isRewriting, onRewrite, an
         <div style={{ marginBottom: 24 }}>
           <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12, letterSpacing: "0.16em" }}>{t.rewriteTab.cv.eyebrow}</Eyebrow>
           <h1 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 44, fontWeight: 400, letterSpacing: "-0.02em", color: "var(--rc-text)", lineHeight: 1.05 }}>
-            {t.rewriteTab.cv.title} <span style={{ fontStyle: "italic", color: "var(--rc-red)" }}>{t.rewriteTab.cv.titleItalic}</span>
+            {t.rewriteTab.cv.title} <span style={{ fontWeight: 700, color: "var(--rc-red)" }}>{t.rewriteTab.cv.titleItalic}</span>
           </h1>
           <div style={{ fontFamily: "var(--font-sans)", fontSize: 15.5, color: "var(--rc-muted)", lineHeight: 1.6, marginTop: 12, maxWidth: 560 }}>
             {t.rewriteTab.cv.subtitle}
@@ -274,7 +274,7 @@ export function RewriteTab({ result, reconstructedCv, isRewriting, onRewrite, an
         <div style={{ marginBottom: 22 }}>
           <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12, letterSpacing: "0.16em" }}>{t.rewriteTab.coverLetter.eyebrow}</Eyebrow>
           <h2 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 36, fontWeight: 400, letterSpacing: "-0.02em", color: "var(--rc-text)", lineHeight: 1.1 }}>
-            {t.rewriteTab.coverLetter.title} <span style={{ fontStyle: "italic", color: "var(--rc-red)" }}>{t.rewriteTab.coverLetter.titleItalic}</span>
+            {t.rewriteTab.coverLetter.title} <span style={{ fontWeight: 700, color: "var(--rc-red)" }}>{t.rewriteTab.coverLetter.titleItalic}</span>
           </h2>
           <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, color: "var(--rc-muted)", lineHeight: 1.6, marginTop: 12, maxWidth: 560 }}>
             {t.rewriteTab.coverLetter.subtitle}

@@ -588,13 +588,13 @@ function DashboardContent() {
                     <p className="font-sans text-[14px] leading-snug text-rc-text mb-4">
                       Average risk at{" "}
                       <span
-                        className="font-serif italic font-medium"
+                        className="font-semibold"
                         style={{ color: overviewAvgRisk < 40 ? "var(--rc-green)" : overviewAvgRisk < 70 ? "var(--rc-amber)" : "var(--rc-red)" }}
                       >
                         {overviewAvgRisk}%
                       </span>
                       {topRiskItem && (
-                        <>. Watch <span className="font-serif italic text-rc-red font-medium">{topRiskItem.company || topRiskItem.result?.job_details?.company} ({topRiskItem.result?.score})</span>.</>
+                        <>. Watch <span className="text-rc-red font-semibold">{topRiskItem.company || topRiskItem.result?.job_details?.company} ({topRiskItem.result?.score})</span>.</>
                       )}
                     </p>
                   ) : (
@@ -628,7 +628,7 @@ function DashboardContent() {
                   <>
                     <p className="font-sans font-semibold text-[18px] leading-none mb-2" style={{ letterSpacing: -0.2 }}>
                       {xpData.tierLabel.split(" ").slice(0, -1).join(" ")}{" "}
-                      <span className="font-serif italic text-rc-red" style={{ fontWeight: 500 }}>
+                      <span className="text-rc-red" style={{ fontWeight: 700 }}>
                         {xpData.tierLabel.split(" ").slice(-1)[0]}
                       </span>
                     </p>

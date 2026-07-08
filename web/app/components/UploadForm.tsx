@@ -188,7 +188,7 @@ export function UploadForm({
     : armedMode === "vet" ? i.actionBar.comingSoon
     : i.actionBar.addInputsToRun;
 
-  const armedEm = (label: string) => <>{i.actionBar.armedPrefix} <em style={{ fontFamily: "var(--font-serif, Georgia, serif)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)" }}>{label}</em></>;
+  const armedEm = (label: string) => <>{i.actionBar.armedPrefix} <em style={{ fontWeight: 700, color: "var(--rc-red)", fontStyle: "normal" }}>{label}</em></>;
   const footerTitle = armedMode === "audit" ? armedEm(i.actionBar.modeCvAudit)
     : armedMode === "compare" ? armedEm(i.actionBar.modeCompare)
     : armedMode === "vet" ? armedEm(i.actionBar.modeVet)

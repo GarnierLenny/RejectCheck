@@ -126,7 +126,7 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits, mobileO
       >
         <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={28} height={28} className="flex-shrink-0" />
         <span className="font-sans text-[15px] font-semibold leading-none text-rc-text" style={{ letterSpacing: -0.2 }}>
-          Reject<span className="font-serif italic text-rc-red" style={{ fontWeight: 500 }}>Check</span>
+          Reject<span className="font-serif text-rc-red" style={{ fontWeight: 700 }}>Check</span>
         </span>
       </Link>
 

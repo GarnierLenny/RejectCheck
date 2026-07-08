@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { Inter, IBM_Plex_Mono, DM_Serif_Display } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import { getDictionary, hasLocale } from './dictionaries'
@@ -13,24 +13,6 @@ const inter = Inter({
   weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-sans',
-})
-
-// preload:false on the non-LCP families — the hero text is Inter (still
-// preloaded), so the mono labels and the display-serif accents can swap in
-// without their woff2 racing the LCP paint.
-const ibmPlexMono = IBM_Plex_Mono({
-  weight: ['400', '500', '700'],
-  subsets: ['latin'],
-  variable: '--font-mono',
-  preload: false,
-})
-
-const dmSerifDisplay = DM_Serif_Display({
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  variable: '--font-display',
-  preload: false,
 })
 
 export async function generateStaticParams() {
@@ -49,13 +31,13 @@ export async function generateMetadata({
 
   const isEn = lang === 'en'
 
-  const title = isEn
-    ? 'RejectCheck - Find out why your CV got rejected'
-    : 'RejectCheck - Comprends pourquoi ton CV a été rejeté'
+  // Sourced from the same dictionary key as the homepage hero (landing.s01)
+  // so the <title>/og:title/twitter:title never drift from the real h1.
+  const dict = await getDictionary(lang)
+  const { h1Part1, h1Italic, subtitle } = dict.landing.s01
 
-  const description = isEn
-    ? 'AI ATS + resume checker for engineering roles, works for any job. Scores ATS fit, skill gaps, GitHub & LinkedIn in 60 seconds. Free.'
-    : 'Diagnostic IA de CV optimisé pour développeurs, fonctionne pour tous métiers. Score ATS, lacunes, audit GitHub & LinkedIn en 60s. Gratuit.'
+  const title = isEn ? `RejectCheck: ${h1Part1} ${h1Italic}` : `RejectCheck : ${h1Part1} ${h1Italic}`
+  const description = subtitle
 
   const ogLocale = isEn ? 'en_US' : 'fr_FR'
   const canonical = `${SITE_URL}/${lang}`
@@ -130,7 +112,7 @@ export default async function LocaleRootLayout({
   return (
     <html
       lang={lang}
-      className={`${inter.variable} ${ibmPlexMono.variable} ${dmSerifDisplay.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>

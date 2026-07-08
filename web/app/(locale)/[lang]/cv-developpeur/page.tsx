@@ -191,10 +191,7 @@ export default async function CvDeveloppeurPage({
           </div>
           <h1 className="text-[40px] md:text-[58px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[860px] mb-6">
             Le checker de CV développeur qui lit{' '}
-            <span
-              className="text-rc-red italic"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
+            <span className="text-rc-red font-semibold">
               ton GitHub
             </span>
             , pas juste tes mots-clés.

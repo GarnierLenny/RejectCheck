@@ -458,10 +458,7 @@ export default async function SoftwareEngineerResumeTipsPage({
 
           <h1 className="text-[36px] md:text-[52px] font-semibold leading-[1.1] tracking-[-0.025em] text-rc-text mb-6">
             {c.h1Pre}{' '}
-            <span
-              className="text-rc-red italic"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
+            <span className="text-rc-red font-semibold">
               {c.h1Em}
             </span>{' '}
             {c.h1Post}

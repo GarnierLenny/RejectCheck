@@ -41,17 +41,7 @@ export function renderOgImage(lang: string): ImageResponse {
           <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em', color: '#1a1917' }}>
             Reject
           </div>
-          <div
-            style={{
-              fontSize: 26,
-              fontWeight: 500,
-              fontStyle: 'italic',
-              fontFamily: 'Georgia, serif',
-              color: '#C93A39',
-            }}
-          >
-            Check
-          </div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: '#C93A39' }}>Check</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -73,8 +63,6 @@ export function renderOgImage(lang: string): ImageResponse {
               lineHeight: 1.05,
               letterSpacing: '-0.02em',
               color: '#C93A39',
-              fontStyle: 'italic',
-              fontFamily: 'Georgia, serif',
             }}
           >
             {accent}

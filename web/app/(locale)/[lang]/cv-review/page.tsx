@@ -452,12 +452,7 @@ export default async function CvReviewPage({
           </div>
           <h1 className="text-[40px] md:text-[58px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[860px] mb-6">
             {c.h1Pre}{' '}
-            <span
-              className="text-rc-red italic"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
-              {c.h1Em}
-            </span>{' '}
+            <span className="text-rc-red font-semibold">{c.h1Em}</span>{' '}
             {c.h1Post}
           </h1>
           <p className="text-rc-muted text-[16px] md:text-[17px] leading-[1.7] max-w-[640px] mb-10">

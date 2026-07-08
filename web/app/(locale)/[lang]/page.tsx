@@ -24,7 +24,7 @@ const NUM: React.CSSProperties = {
   borderTop: "1px solid var(--rc-border)", paddingTop: 10,
 };
 const IT: React.CSSProperties = {
-  fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "#C0392B",
+  fontWeight: 700, color: "#C0392B", fontStyle: "normal",
 };
 
 /* ─── Inline SVG icons ───────────────────────────────────────────────── */
@@ -506,7 +506,7 @@ export default function Home() {
                   />
                   <div>
                     <div style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 500, color: "var(--rc-text)" }}>
-                      {t.landing.s01.dropLabel} <em style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "#C0392B" }}>{t.landing.s01.dropItalic}</em>
+                      {t.landing.s01.dropLabel} <em style={{ fontWeight: 700, color: "#C0392B", fontStyle: "normal" }}>{t.landing.s01.dropItalic}</em>
                     </div>
                     <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)", letterSpacing: "0.04em", marginTop: 4 }}>
                       {t.landing.s01.dropHint}
@@ -990,7 +990,7 @@ export default function Home() {
             </div>
             <div>
               <p style={{
-                fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400,
+                fontWeight: 700,
                 fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 1.1,
                 letterSpacing: "-0.025em", color: "var(--rc-text)", margin: "0 0 32px",
                 maxWidth: 880,

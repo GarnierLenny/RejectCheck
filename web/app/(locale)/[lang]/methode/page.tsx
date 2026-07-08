@@ -233,7 +233,7 @@ export default async function MethodePage({
           </div>
           <h1 className="text-[38px] md:text-[54px] font-semibold leading-[1.08] tracking-[-0.025em] text-rc-text max-w-[840px] mb-6">
             {c.h1Pre}{' '}
-            <span className="text-rc-red italic" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+            <span className="text-rc-red font-semibold">
               {c.h1Em}
             </span>
           </h1>

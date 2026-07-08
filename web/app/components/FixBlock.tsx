@@ -28,7 +28,7 @@ export function FixBlock({ fix }: { fix: Fix }) {
               <ReactMarkdown>{`"${fix.example.before}"`}</ReactMarkdown>
             </div>
           </div>
-          <span className="text-[11px] uppercase tracking-wider text-rc-green font-mono italic">Reframed:</span>
+          <span className="text-[11px] uppercase tracking-wider text-rc-green font-mono font-semibold">Reframed:</span>
           <div className="text-[16px] text-rc-text font-medium prose-sm prose-invert max-w-none leading-[1.7]">
             <ReactMarkdown>{fix.example.after}</ReactMarkdown>
           </div>

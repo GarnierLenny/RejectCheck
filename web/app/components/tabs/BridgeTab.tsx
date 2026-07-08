@@ -17,7 +17,7 @@ import { useGenerateStarterRepo, useSaveStepProgress } from "../../../lib/mutati
 const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
 const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
 const DISPLAY_ITALIC: React.CSSProperties = {
-  fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-red)",
+  fontWeight: 700, color: "var(--rc-red)",
 };
 
 // ── Stack logos via simple-icons (inline SVG, no CDN) ────────────────────────

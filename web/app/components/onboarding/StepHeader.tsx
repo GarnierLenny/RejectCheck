@@ -35,7 +35,7 @@ export function StepHeader({
         style={{ fontSize: "clamp(28px, 3.6vw, 44px)" }}
       >
         {title}{" "}
-        <em className="italic text-rc-red font-semibold">{titleAccent}</em>
+        <em className="text-rc-red font-semibold not-italic">{titleAccent}</em>
         {titleSuffix ? <span> {titleSuffix}</span> : null}
       </h1>
       {children ? (

@@ -84,9 +84,7 @@ function timeAgo(date: Date): string {
 const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
 const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
 const DISPLAY_ITALIC: React.CSSProperties = {
-  fontFamily: "var(--font-display)",
-  fontStyle: "italic",
-  fontWeight: 400,
+  fontWeight: 600,
   color: "var(--rc-red)",
 };
 
@@ -544,7 +542,7 @@ export function CvAuditResult({
 
             {/* Verdict sentence */}
             {result.projected_profile?.narrative && (
-              <p style={{ ...{ fontFamily: "var(--font-display)" }, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(18px,2vw,26px)", lineHeight: 1.4, letterSpacing: "-0.015em", color: "var(--rc-text)", margin: 0, maxWidth: 680 }}>
+              <p style={{ fontWeight: 600, fontSize: "clamp(18px,2vw,26px)", lineHeight: 1.4, letterSpacing: "-0.015em", color: "var(--rc-text)", margin: 0, maxWidth: 680 }}>
                 {result.projected_profile.narrative}
               </p>
             )}
