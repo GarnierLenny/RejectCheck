@@ -9,6 +9,7 @@ import { SAMPLE_JDS } from "../../../lib/sample-jds";
 import { Navbar } from "../../components/Navbar";
 import { FadeInSection } from "../../components/FadeInSection";
 import { BlueprintBackdrop } from "../../components/BlueprintBackdrop";
+import { GithubIcon, LinkedinIcon } from "../../components/SocialIcons";
 import { useLanguage } from "../../../context/language";
 import {
   JsonLd,
@@ -46,284 +47,747 @@ function hl(text: string) {
   return <>{m[1]}<span style={{ color: "var(--rc-red)", fontWeight: 700 }}>{m[2]}</span>{m[3]}</>;
 }
 
-/* ─── DiagCard — hero animated diagnosis card ────────────────────────── */
-function scoreColor(n: number): string {
-  if (!Number.isFinite(n)) return "rgb(59,130,246)";
-  // blue #3b82f6 → green #16a34a → orange #ea580c → red #C0392B
-  const stops = [
-    [0x3b, 0x82, 0xf6],
-    [0x16, 0xa3, 0x4a],
-    [0xea, 0x58, 0x0c],
-    [0xC0, 0x39, 0x2B],
-  ];
-  const t = Math.max(0, Math.min(1, n / 100)) * (stops.length - 1);
-  const lo = Math.floor(t), hi = Math.min(stops.length - 1, lo + 1);
-  const u = t - lo;
-  const [r, g, b] = stops[lo].map((c, i) => Math.round(c + (stops[hi][i] - c) * u));
-  return `rgb(${r},${g},${b})`;
+/* ─── HeroAnalysisScreen — tilted, auto-scrolling full-report mock ─────── */
+/* A faithful miniature of a real RejectCheck analysis: score + signal
+   breakdown, ATS check, skill radar, GitHub & LinkedIn reports, cross-profile
+   timeline of inconsistencies, and the salary negotiation band. The
+   illustrative content is intentionally hard-coded — this is a product
+   screenshot, not a localized surface. */
+function matchColor(pct: number): string {
+  return pct >= 70 ? "var(--rc-green)" : pct >= 45 ? "var(--rc-amber)" : "var(--rc-red)";
 }
 
-const DIAG_PROFILES = [
-  {
-    name: "Sarah K.", expYears: 4, targetRole: "Staff Backend Engineer", company: "Stripe",
-    score: 74, riskLabel: "High risk · rejection likely",
-    findings: [
-      { mark: "×", color: "var(--rc-red)", text: <>3 keywords missing: <b>distributed systems</b>, <b>gRPC</b>, <b>observability</b>.</> },
-      { mark: "!", color: "#d97706", text: "6-month employment gap not addressed in the timeline." },
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: "TypeScript and React signal is strong - keep this section." },
-    ],
-  },
-  {
-    name: "Marcus R.", expYears: 7, targetRole: "Staff Engineer", company: "Vercel",
-    score: 28, riskLabel: "Low risk · strong match",
-    findings: [
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: <>Next.js, Edge Runtime and monorepo experience directly match the JD.</> },
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: "Seniority level and title align with the posted role." },
-      { mark: "!", color: "#d97706", text: "No mention of on-call or incident-response ownership." },
-    ],
-  },
-  {
-    name: "Tom H.", expYears: 6, targetRole: "Senior Software Engineer", company: "Notion",
-    score: 5, riskLabel: "Excellent match · apply now",
-    findings: [
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: <>Experience, stack and seniority are a near-perfect fit for the role.</> },
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: "Leadership and cross-functional work align with Notion's eng culture." },
-      { mark: "!", color: "#d97706", text: "Mobile experience absent - minor gap, not a blocker." },
-    ],
-  },
-  {
-    name: "Jade T.", expYears: 2, targetRole: "Senior Frontend Engineer", company: "Linear",
-    score: 89, riskLabel: "Very high risk · tailor CV",
-    findings: [
-      { mark: "×", color: "var(--rc-red)", text: <>Role requires <b>5+ years</b> - seniority gap is the primary blocker.</> },
-      { mark: "×", color: "var(--rc-red)", text: "No design-system ownership or Figma handoff mentioned." },
-      { mark: "!", color: "#d97706", text: "Strong React skills but missing testing (Playwright, Vitest)." },
-    ],
-  },
-  {
-    name: "Priya M.", expYears: 5, targetRole: "Senior Data Engineer", company: "Databricks",
-    score: 41, riskLabel: "Moderate risk · some gaps",
-    findings: [
-      { mark: "✓", color: "var(--rc-green, #16a34a)", text: "Spark and Airflow experience aligns well with the stack." },
-      { mark: "!", color: "#d97706", text: <>Delta Lake not mentioned - add it, it&apos;s used daily here.</> },
-      { mark: "×", color: "var(--rc-red)", text: "No ML pipeline or feature-store exposure listed." },
-    ],
-  },
+/** Brand colors for each profile source — mirrors SourceTimeline. */
+const SRC_COLOR = { cv: "#C0392B", linkedin: "#0077B5", github: "#24292e", portfolio: "#0d9488" } as const;
+
+const HERO_SIGNALS = [
+  { label: "Keyword match", pct: 48 },
+  { label: "Tech-stack fit", pct: 65 },
+  { label: "Experience level", pct: 85 },
+  { label: "GitHub signal", pct: 72 },
+  { label: "LinkedIn signal", pct: 58 },
 ];
 
-function DiagCard() {
-  const [profileIdx, setProfileIdx] = useState(0);
-  const [phase, setPhase] = useState<"idle" | "leaving" | "entering">("idle");
-  const [score, setScore] = useState(0);
-  const [expCount, setExpCount] = useState(DIAG_PROFILES[0].expYears);
-  const [barGo, setBarGo] = useState(false);
-  const [animKey, setAnimKey] = useState(0);
-  const [barKey, setBarKey] = useState(0);
-  const profileIdxRef = useRef(0);
-  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+const HERO_RADAR = [
+  { label: "System",      score: 46, expected: 75 },
+  { label: "Backend",     score: 82, expected: 70 },
+  { label: "Testing",     score: 66, expected: 60 },
+  { label: "Distributed", score: 34, expected: 72 },
+  { label: "Cloud",       score: 40, expected: 65 },
+  { label: "Ownership",   score: 55, expected: 70 },
+];
 
-  const profile = DIAG_PROFILES[profileIdx];
+const HERO_GH_LANGS = [
+  { name: "TypeScript", pct: 58, color: "#3178c6" },
+  { name: "Go",         pct: 24, color: "#00add8" },
+  { name: "Python",     pct: 12, color: "#f4c15d" },
+  { name: "Other",      pct: 6,  color: "var(--rc-border)" },
+];
 
-  function startInterval() {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      setBarKey(k => k + 1);
-      const next = (profileIdxRef.current + 1) % DIAG_PROFILES.length;
-      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
-      setPhase("leaving");
-      leaveTimerRef.current = setTimeout(() => {
-        profileIdxRef.current = next;
-        setProfileIdx(next);
-        setAnimKey(k => k + 1);
-        setPhase("entering");
-        requestAnimationFrame(() => requestAnimationFrame(() => setPhase("idle")));
-      }, 420);
-    }, 9000);
-  }
+type Severity = "critical" | "major" | "minor";
+const SEV_COLOR: Record<Severity, string> = {
+  critical: "var(--rc-red)", major: "var(--rc-amber)", minor: "var(--rc-hint)",
+};
 
-  function advanceTo(next: number) {
-    setBarKey(k => k + 1);
-    startInterval();
-    if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
-    setPhase("leaving");
-    leaveTimerRef.current = setTimeout(() => {
-      profileIdxRef.current = next;
-      setProfileIdx(next);
-      setAnimKey(k => k + 1);
-      setPhase("entering");
-      requestAnimationFrame(() => requestAnimationFrame(() => setPhase("idle")));
-    }, 420);
-  }
+/** Cross-profile inconsistencies — sorted critical → major → minor. `at` ties
+    each one to its conflict pin on the timeline. */
+const HERO_DIVERGENCES: {
+  sev: Severity; field: string; sources: [string, string]; date: string; subject: string; perception: string;
+}[] = [
+  { sev: "critical", field: "seniority", sources: ["CV", "LinkedIn"], date: "Sep 2022", subject: "“Senior” on CV, “Backend Engineer” on LinkedIn — same Acme role", perception: "Title inflation — I’d verify the real level in a screening call." },
+  { sev: "major", field: "ownership", sources: ["CV", "GitHub"], date: "Mar 2023", subject: "“Led the payments rewrite (solo)” vs 14 contributors on the repo", perception: "Overstated ownership; the contribution graph says otherwise." },
+  { sev: "minor", field: "dates", sources: ["CV", "LinkedIn"], date: "Feb 2021", subject: "DataCorp dates differ by ~4 months across CV and LinkedIn", perception: "Small mismatch — tidy it up so nothing reads as sloppy." },
+];
 
+const HERO_ATS_MISSING = [
+  { kw: "Kubernetes", freq: 4, required: true,  impact: 12 },
+  { kw: "CI/CD",      freq: 3, required: true,  impact: 8 },
+  { kw: "Terraform",  freq: 2, required: false, impact: 4 },
+];
+
+const HERO_PROJECT = {
+  level: "Intermediate",
+  time: "~2 weekends",
+  name: "Rate-limited Payments API",
+  pitch: "A production-grade payments gateway with idempotency keys, distributed rate limiting and full observability — the exact distributed-systems signal your target roles keep asking for.",
+  tech: ["Go", "Redis", "gRPC", "Kubernetes"],
+  proves: ["Distributed systems", "Service ownership"],
+  bullet: "Built a rate-limited payments API handling 40k req/s at 99.9% uptime, with idempotent retries and Prometheus SLOs.",
+};
+
+const HERO_FINDINGS: { sev: string; color: string; text: React.ReactNode }[] = [
+  { sev: "Critical", color: "var(--rc-red)",   text: <>No <b>distributed-systems ownership</b> — required in 4 of 5 similar postings.</> },
+  { sev: "Major",    color: "var(--rc-amber)", text: "8-month gap (2021–22) isn’t addressed anywhere on the CV." },
+  { sev: "Good",     color: "var(--rc-green)", text: "Strong open-source track record — 12 repos, 400+ stars. Keep it featured." },
+];
+
+/* — Section heading — */
+function HeroHeading({ children, sub }: { children: React.ReactNode; sub?: string }) {
+  return (
+    <div style={{ margin: "26px 0 12px", paddingTop: 18, borderTop: "1px solid var(--rc-border)" }}>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>{children}</div>
+      {sub && <div style={{ fontFamily: "var(--font-sans)", fontSize: 11.5, color: "var(--rc-hint)", marginTop: 5, lineHeight: 1.4 }}>{sub}</div>}
+    </div>
+  );
+}
+
+/* — Skill radar (current vs role-expected), geometry mirrors RadarChart — */
+const RCX = 150, RCY = 104, RR = 74;
+function rPolar(i: number, n: number, r: number): [number, number] {
+  const a = (2 * Math.PI * i) / n - Math.PI / 2;
+  return [RCX + r * Math.cos(a), RCY + r * Math.sin(a)];
+}
+function rPoly(n: number, r: number): string {
+  return Array.from({ length: n }, (_, i) => rPolar(i, n, r).join(",")).join(" ");
+}
+function rScore(key: "score" | "expected"): string {
+  return HERO_RADAR.map((ax, i) => rPolar(i, HERO_RADAR.length, (ax[key] / 100) * RR).join(",")).join(" ");
+}
+function HeroRadar() {
+  const n = HERO_RADAR.length;
+  const [hi, setHi] = useState<number | null>(null);
+  return (
+    <svg viewBox="0 0 300 214" width="100%" role="img" aria-label="Skill radar: your experience vs target role">
+      {[33, 66, 100].map((p) => (
+        <polygon key={p} points={rPoly(n, (p / 100) * RR)} fill="none" stroke="var(--rc-border)" strokeOpacity="0.6" strokeWidth="1" />
+      ))}
+      {HERO_RADAR.map((_, i) => {
+        const [x, y] = rPolar(i, n, RR);
+        return <line key={i} x1={RCX} y1={RCY} x2={x} y2={y} stroke="var(--rc-border)" strokeOpacity="0.4" strokeWidth="1" />;
+      })}
+      <polygon points={rScore("expected")} fill="var(--rc-amber)" fillOpacity="0.05" stroke="var(--rc-amber)" strokeOpacity="0.75" strokeWidth="1.5" strokeDasharray="4 3" strokeLinejoin="round" />
+      <polygon points={rScore("score")} fill="var(--rc-red)" fillOpacity="0.13" stroke="var(--rc-red)" strokeOpacity="0.7" strokeWidth="1.5" strokeLinejoin="round" />
+      {HERO_RADAR.map((ax, i) => {
+        const [ex, ey] = rPolar(i, n, (ax.expected / 100) * RR);
+        return <circle key={`e${i}`} cx={ex} cy={ey} r={2.5} fill="var(--rc-amber)" opacity={hi === i ? 1 : 0.55} />;
+      })}
+      {HERO_RADAR.map((ax, i) => {
+        const [x, y] = rPolar(i, n, (ax.score / 100) * RR);
+        return <circle key={i} cx={x} cy={y} r={hi === i ? 4.5 : 3} fill="var(--rc-red)" />;
+      })}
+      {HERO_RADAR.map((ax, i) => {
+        const [lx, ly] = rPolar(i, n, RR + 18);
+        const cos = Math.cos((2 * Math.PI * i) / n - Math.PI / 2);
+        const anchor = Math.abs(cos) < 0.2 ? "middle" : cos > 0 ? "start" : "end";
+        return (
+          <text key={i} x={lx} y={ly} textAnchor={anchor} dominantBaseline="central" fontSize="9.5" fontFamily="var(--font-mono)" fontWeight={hi === i ? 700 : 600} fill={hi === i ? "var(--rc-text)" : "var(--rc-muted)"}>
+            {ax.label}
+          </text>
+        );
+      })}
+      {/* Hover hit-areas (one per vertex) */}
+      {HERO_RADAR.map((ax, i) => {
+        const [vx, vy] = rPolar(i, n, (ax.score / 100) * RR);
+        return (
+          <circle key={`h${i}`} cx={vx} cy={vy} r={17} fill="transparent" style={{ cursor: "pointer" }}
+            onMouseEnter={() => setHi(i)} onMouseLeave={() => setHi(null)} />
+        );
+      })}
+      {/* Tooltip */}
+      {hi !== null && (() => {
+        const ax = HERO_RADAR[hi];
+        const [vx, vy] = rPolar(hi, n, (ax.score / 100) * RR);
+        const boxW = 128, boxH = 48;
+        let bx = vx + 12; if (bx + boxW > 300) bx = vx - 12 - boxW; if (bx < 2) bx = 2;
+        let by = vy - boxH - 6; if (by < 2) by = vy + 10; if (by + boxH > 214) by = 214 - boxH;
+        return (
+          <g pointerEvents="none">
+            <rect x={bx} y={by} width={boxW} height={boxH} rx={5} fill="var(--rc-text)" />
+            <text x={bx + 10} y={by + 14} fontSize="9" fontFamily="var(--font-mono)" fontWeight="700" fill="var(--rc-bg)" letterSpacing="0.5">{ax.label.toUpperCase()}</text>
+            <circle cx={bx + 12} cy={by + 26} r="3" fill="var(--rc-red)" />
+            <text x={bx + 20} y={by + 29} fontSize="8.5" fontFamily="var(--font-sans)" fill="var(--rc-bg)">Your experience · {ax.score}</text>
+            <circle cx={bx + 12} cy={by + 38} r="3" fill="var(--rc-amber)" />
+            <text x={bx + 20} y={by + 41} fontSize="8.5" fontFamily="var(--font-sans)" fill="var(--rc-bg)">Target role · {ax.expected}</text>
+          </g>
+        );
+      })()}
+    </svg>
+  );
+}
+
+/* — Portfolio globe glyph (matches the Globe icon used in ConsistencyTab) — */
+function GlobeGlyph({ size = 15, style }: { size?: number; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={style} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18" />
+    </svg>
+  );
+}
+
+/* — GitHub / LinkedIn / Portfolio source report card — */
+const SOURCE_NAME: Record<"github" | "linkedin" | "portfolio", string> = {
+  github: "GitHub", linkedin: "LinkedIn", portfolio: "Portfolio",
+};
+function HeroSourceCard({
+  kind, score, strengths, issue, langs,
+}: {
+  kind: "github" | "linkedin" | "portfolio";
+  score: number;
+  strengths: string[];
+  issue: { sev: "critical" | "major" | "minor"; text: string };
+  langs?: { name: string; pct: number; color: string }[];
+}) {
+  const Icon = kind === "github" ? GithubIcon : kind === "linkedin" ? LinkedinIcon : GlobeGlyph;
+  const brand = SRC_COLOR[kind];
+  const sc = matchColor(score);
+  const sevColor = issue.sev === "critical" ? "var(--rc-red)" : issue.sev === "major" ? "var(--rc-amber)" : "var(--rc-hint)";
+  return (
+    <div style={{ border: "1px solid var(--rc-border)", borderRadius: 8, padding: "13px 14px", background: "var(--rc-surface)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Icon size={15} style={{ color: brand, flexShrink: 0 }} />
+        <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 600, color: "var(--rc-text)" }}>
+          {SOURCE_NAME[kind]}
+        </span>
+        <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: sc }}>
+          {score}<span style={{ color: "var(--rc-hint)", fontWeight: 400 }}> / 100</span>
+        </span>
+      </div>
+
+      {langs && (
+        <>
+          <div style={{ display: "flex", height: 5, borderRadius: 99, overflow: "hidden", marginTop: 11 }}>
+            {langs.map((l) => <span key={l.name} style={{ width: `${l.pct}%`, background: l.color }} />)}
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 10px", marginTop: 7 }}>
+            {langs.map((l) => (
+              <span key={l.name} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)" }}>
+                <span style={{ width: 6, height: 6, borderRadius: 99, background: l.color }} />{l.name} {l.pct}%
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+
+      <ul style={{ listStyle: "none", margin: "11px 0 0", padding: 0, display: "flex", flexDirection: "column", gap: 5 }}>
+        {strengths.map((s) => (
+          <li key={s} style={{ display: "flex", gap: 7, alignItems: "start", fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.4 }}>
+            <span style={{ color: "var(--rc-green)", flexShrink: 0, fontWeight: 700 }}>✓</span>{s}
+          </li>
+        ))}
+        <li style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 7, alignItems: "start", marginTop: 2 }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", padding: "2px 5px", borderRadius: 3, color: sevColor, background: `color-mix(in srgb, ${sevColor} 8%, transparent)`, border: `1px solid color-mix(in srgb, ${sevColor} 30%, transparent)`, height: "fit-content" }}>
+            {issue.sev}
+          </span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.4 }}>{issue.text}</span>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+/* — Cross-profile chronology (parallel lanes + conflict pins) — */
+const TL = {
+  start: 2019, end: 2027, today: 2026.5,
+  ticks: [2020, 2022, 2024, 2026],
+  lanes: [
+    { src: "cv" as const, label: "CV", bars: [
+      { title: "Backend · DataCorp", s: 2020.0, e: 2021.67 },
+      { title: "Senior Backend · Acme", s: 2022.25, e: 2026.5 },
+    ]},
+    { src: "linkedin" as const, label: "LinkedIn", bars: [
+      { title: "Backend · DataCorp", s: 2020.5, e: 2021.95 },
+      { title: "Backend Eng · Acme", s: 2022.0, e: 2026.5 },
+    ]},
+    { src: "github" as const, label: "GitHub", bars: [
+      { title: "payments-rewrite", s: 2022.9, e: 2023.6 },
+    ]},
+  ],
+  markers: [
+    { at: 2021.08, sev: "minor" as const },
+    { at: 2022.67, sev: "critical" as const },
+    { at: 2023.17, sev: "major" as const },
+  ],
+};
+const CONFLICT_H = 18, LANE_H = 26, BAR_H = 18, TICK_H = 16;
+function tlx(y: number): number {
+  return Math.max(0, Math.min(100, ((y - TL.start) / (TL.end - TL.start)) * 100));
+}
+function HeroTimeline() {
+  const chartH = CONFLICT_H + TL.lanes.length * LANE_H + TICK_H;
+  return (
+    <div style={{ border: "1px solid var(--rc-border)", borderRadius: 8, overflow: "hidden", background: "var(--rc-surface)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderBottom: "1px solid var(--rc-border)" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)" }}>Career chronology</span>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 9 }}>
+          {TL.lanes.map((l) => (
+            <span key={l.src} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "var(--font-mono)", fontSize: 8, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--rc-muted)" }}>
+              <span style={{ width: 7, height: 7, borderRadius: 2, background: SRC_COLOR[l.src] }} />{l.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "flex" }}>
+        <div style={{ width: 58, flexShrink: 0, paddingTop: CONFLICT_H }}>
+          {TL.lanes.map((l) => (
+            <div key={l.src} style={{ height: LANE_H, display: "flex", alignItems: "center", paddingLeft: 10, fontFamily: "var(--font-mono)", fontSize: 8.5, textTransform: "uppercase", letterSpacing: "0.1em", color: SRC_COLOR[l.src], fontWeight: 700 }}>
+              {l.label}
+            </div>
+          ))}
+        </div>
+        <div style={{ flex: 1, position: "relative", height: chartH, borderLeft: "1px solid var(--rc-border)" }}>
+          {TL.ticks.map((y) => (
+            <div key={y}>
+              <div style={{ position: "absolute", top: 0, bottom: TICK_H, left: `${tlx(y)}%`, width: 1, background: "var(--rc-border)", opacity: 0.5 }} />
+              <div style={{ position: "absolute", bottom: 1, left: `${tlx(y)}%`, transform: "translateX(-50%)", fontFamily: "var(--font-mono)", fontSize: 8.5, color: "var(--rc-hint)" }}>{y}</div>
+            </div>
+          ))}
+          <div style={{ position: "absolute", top: 0, bottom: TICK_H, left: `${tlx(TL.today)}%`, width: 0, borderLeft: "1px dashed var(--rc-red)", opacity: 0.55 }} />
+          {TL.markers.map((m, i) => (
+            <div key={i} style={{ position: "absolute", top: 5, left: `${tlx(m.at)}%`, width: 9, height: 9, transform: "translateX(-50%) rotate(-45deg)", borderRadius: "50% 50% 50% 0", background: m.sev === "minor" ? "var(--rc-amber)" : "var(--rc-red)", boxShadow: "0 0 0 2px var(--rc-surface)" }} />
+          ))}
+          <div style={{ position: "absolute", left: 0, right: 0, top: CONFLICT_H, borderTop: "1px solid var(--rc-border)", opacity: 0.6 }} />
+          {TL.lanes.map((l, li) =>
+            l.bars.map((b, bi) => {
+              const left = tlx(b.s), width = tlx(b.e) - tlx(b.s);
+              return (
+                <div key={`${li}-${bi}`} style={{
+                  position: "absolute", top: CONFLICT_H + li * LANE_H + (LANE_H - BAR_H) / 2, height: BAR_H,
+                  left: `${left}%`, width: `${width}%`,
+                  background: SRC_COLOR[l.src], color: "#fff", borderRadius: 3,
+                  padding: "0 6px", display: "flex", alignItems: "center", overflow: "hidden",
+                }}>
+                  <span style={{ fontSize: 9, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.title}</span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* — Salary negotiation band (candidate vs market vs offer) — */
+function Marker({ left, color, glyph }: { left: number; color: string; glyph: string }) {
+  return (
+    <div style={{ position: "absolute", top: 0, bottom: 0, left: `${left}%`, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center", pointerEvents: "none" }}>
+      <span style={{ fontSize: 9, lineHeight: 1, color, marginTop: 2 }}>{glyph}</span>
+      <div style={{ flex: 1, width: 2, background: color }} />
+    </div>
+  );
+}
+function HeroNegotiation() {
+  const dMin = 58000, dMax = 96000;
+  const pct = (v: number) => ((v - dMin) / (dMax - dMin)) * 100;
+  const market = { min: 62000, max: 82000 };
+  const cand = { min: 74000, max: 92000, mid: 83000 };
+  const offer = { min: 68000, max: 76000, mid: 72000 };
+  const candColor = cand.mid > market.max ? "var(--rc-green)" : cand.mid < market.min ? "var(--rc-red)" : "var(--rc-amber)";
+  const fmtK = (n: number) => `€${Math.round(n / 1000)}k`;
+  const ticks = [60000, 70000, 80000, 90000];
+  return (
+    <div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginBottom: 9 }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: candColor }}>You</b> <span style={{ color: candColor }}>{fmtK(cand.min)}–{fmtK(cand.max)}</span></span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: "var(--rc-amber)" }}>Market</b> <span style={{ color: "var(--rc-amber)" }}>{fmtK(market.min)}–{fmtK(market.max)}</span></span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: "var(--rc-text)" }}>Offer</b> <span style={{ color: "var(--rc-muted)" }}>{fmtK(offer.min)}–{fmtK(offer.max)}</span></span>
+      </div>
+      <div style={{ position: "relative", height: 44, borderRadius: 5, overflow: "hidden", border: "1px solid var(--rc-border)" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex" }}>
+          <span style={{ width: `${pct(market.min)}%`, background: "var(--rc-red)", opacity: 0.12 }} />
+          <span style={{ width: `${pct(market.max) - pct(market.min)}%`, background: "var(--rc-amber)", opacity: 0.2 }} />
+          <span style={{ flex: 1, background: "var(--rc-green)", opacity: 0.12 }} />
+        </div>
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: `${pct(market.min)}%`, borderLeft: "1px dashed var(--rc-amber)" }} />
+        <div style={{ position: "absolute", top: 0, bottom: 0, left: `${pct(market.max)}%`, borderLeft: "1px dashed var(--rc-amber)" }} />
+        <div style={{ position: "absolute", top: 27, height: 5, left: `${pct(cand.min)}%`, width: `${pct(cand.max) - pct(cand.min)}%`, background: candColor, opacity: 0.35, borderRadius: 99 }} />
+        <Marker left={pct(cand.mid)} color={candColor} glyph="▼" />
+        <Marker left={pct(offer.mid)} color="var(--rc-text)" glyph="◆" />
+      </div>
+      <div style={{ position: "relative", height: 13, marginTop: 3 }}>
+        {ticks.map((t) => (
+          <span key={t} style={{ position: "absolute", left: `${pct(t)}%`, transform: "translateX(-50%)", fontFamily: "var(--font-mono)", fontSize: 8.5, color: "var(--rc-hint)" }}>{fmtK(t)}</span>
+        ))}
+      </div>
+      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.45, margin: "10px 0 0" }}>
+        <b style={{ color: "var(--rc-green)" }}>↑ €11k above market.</b> Their offer tops out at €76k — <b style={{ color: "var(--rc-text)" }}>anchor at €92k</b>.
+      </p>
+      <div style={{ display: "flex", gap: 8, alignItems: "start", marginTop: 10, padding: "9px 11px", border: "1px solid var(--rc-border)", borderRadius: 6, background: "var(--rc-surface)" }}>
+        <span style={{ marginTop: 4, width: 6, height: 6, borderRadius: 99, background: "var(--rc-green)", flexShrink: 0 }} />
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--rc-green)" }}>High leverage</span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, padding: "1px 6px", borderRadius: 99, color: "var(--rc-green)", background: "var(--rc-green-bg)" }}>+€8k</span>
+          </div>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-text)", margin: "3px 0 0", lineHeight: 1.4 }}>7 yrs distributed systems vs 5 required — “led monolith → 12 microservices at 40k req/s”.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroAnalysisScreen() {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const tiltRef = useRef<HTMLDivElement>(null);
+
+  /* Cursor parallax — the card leans a few degrees toward the pointer. */
   useEffect(() => {
-    let fromScore: number = 0, fromExp: number = 0;
-    setScore(prev => { fromScore = prev; return prev; });
-    setExpCount(prev => { fromExp = prev; return prev; });
+    const stage = stageRef.current;
+    const tilt = tiltRef.current;
+    if (!stage || !tilt) return;
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
 
-    const targetScore = profile.score;
-    const targetExp = profile.expYears;
-    const dur = 1400;
-    let start: number | null = null;
-    let raf: number;
-
-    function tick(t: number) {
-      if (start === null) start = t;
-      const p = Math.min(1, (t - start) / dur);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setScore(Math.round(fromScore + (targetScore - fromScore) * eased));
-      setExpCount(Math.round(fromExp + (targetExp - fromExp) * eased));
-      if (p < 1) { raf = requestAnimationFrame(tick); }
-    }
-
-    raf = requestAnimationFrame(tick);
-    setBarGo(true);
-
-    return () => cancelAnimationFrame(raf);
-  }, [profileIdx, profile.score, profile.expYears]);
-
-  useEffect(() => {
-    startInterval();
+    const BASE_RX = 4, BASE_RY = -9, RANGE_X = 3, RANGE_Y = 4.5;
+    // Cache the stage centre so mousemove never triggers layout reads.
+    let cx = 0, cy = 0;
+    const measure = () => {
+      const r = stage.getBoundingClientRect();
+      cx = r.left + r.width / 2;
+      cy = r.top + r.height / 2;
+    };
+    measure();
+    const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+    const onMove = (e: MouseEvent) => {
+      const nx = clamp((e.clientX - cx) / (window.innerWidth / 2));
+      const ny = clamp((e.clientY - cy) / (window.innerHeight / 2));
+      tilt.style.transform = `rotateX(${(BASE_RX - ny * RANGE_X).toFixed(2)}deg) rotateY(${(BASE_RY + nx * RANGE_Y).toFixed(2)}deg)`;
+    };
+    const reset = () => { tilt.style.transform = `rotateX(${BASE_RX}deg) rotateY(${BASE_RY}deg)`; };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("scroll", measure, { passive: true });
+    window.addEventListener("resize", measure);
+    document.addEventListener("mouseleave", reset);
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", measure);
+      window.removeEventListener("resize", measure);
+      document.removeEventListener("mouseleave", reset);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const SPEED = 52;          // px/s — calm, continuous drift
+    const EDGE_PAUSE = 1600;   // ms hold at each end before reversing
+    const START_DELAY = 2000;  // ms of stillness when the page first loads
+
+    let dir: 1 | -1 = 1;
+    let paused = false;
+    let raf = 0;
+    let prev = 0;
+    let holdUntil = (typeof performance !== "undefined" ? performance.now() : 0) + START_DELAY;
+
+    // rAF + delta-time gives frame-synced, sub-pixel scrolling (no stepping).
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      const dt = prev ? now - prev : 0;
+      prev = now;
+      if (paused || now < holdUntil) return;
+      const max = el.scrollHeight - el.clientHeight;
+      if (max <= 0) return;
+      el.scrollTop += dir * SPEED * (dt / 1000);
+      if (dir === 1 && el.scrollTop >= max - 0.5) {
+        el.scrollTop = max; dir = -1; holdUntil = now + EDGE_PAUSE;
+      } else if (dir === -1 && el.scrollTop <= 0.5) {
+        el.scrollTop = 0; dir = 1; holdUntil = now + EDGE_PAUSE;
+      }
+    };
+    raf = requestAnimationFrame(tick);
+
+    const onEnter = () => { paused = true; };
+    const onLeave = () => { paused = false; prev = 0; };
+    el.addEventListener("mouseenter", onEnter);
+    el.addEventListener("mouseleave", onLeave);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("mouseenter", onEnter);
+      el.removeEventListener("mouseleave", onLeave);
     };
   }, []);
 
   return (
-    <div style={{
-      background: "var(--rc-surface)",
-      border: "1px solid var(--rc-border)",
-      borderRadius: 6,
-      padding: "24px 26px 26px",
-      boxShadow: "0 30px 80px -20px rgba(40,30,30,0.18), 0 1px 0 rgba(255,255,255,0.6) inset",
-      position: "relative",
-    }}>
-      {/* Head */}
-      <div style={{
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        paddingBottom: 14, marginBottom: 18,
-        borderBottom: "1px solid var(--rc-border)",
-        fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em",
-        textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700,
-      }}>
-        <span>Sample diagnosis</span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--rc-red)" }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: 99, background: "var(--rc-red)",
-            animation: "rc-blink 1.6s ease-in-out infinite",
-          }} />
-          Live
-        </span>
-      </div>
-
-      {/* Candidate */}
-      <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 18, letterSpacing: "-0.01em", margin: 0 }}>
-        <span style={{
-          display: "inline-block",
-          opacity: phase === "idle" ? 1 : 0,
-          transform: phase === "leaving" ? "translateY(-6px)" : phase === "entering" ? "translateY(6px)" : "translateY(0)",
-          transitionProperty: phase !== "entering" ? "opacity, transform" : "none",
-          transitionDuration: "0.2s",
-          transitionTimingFunction: "ease",
-          transitionDelay: phase !== "entering" ? "0ms" : "0ms",
-        }}>{profile.name}</span>
-        {" · "}
-        <span style={{ fontVariantNumeric: "tabular-nums" }}>{expCount}</span>
-        {" yrs exp."}
-      </p>
-      <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "4px 0 22px" }}>
-        <span style={{ color: "var(--rc-border)", marginRight: 4 }}>Targeted position ·</span>
-        <span style={{
-          display: "inline-block",
-          opacity: phase === "idle" ? 1 : 0,
-          transform: phase === "leaving" ? "translateY(-6px)" : phase === "entering" ? "translateY(6px)" : "translateY(0)",
-          transitionProperty: phase !== "entering" ? "opacity, transform" : "none",
-          transitionDuration: "0.2s",
-          transitionTimingFunction: "ease",
-          transitionDelay: phase !== "entering" ? "40ms" : "0ms",
-        }}>{profile.targetRole} @ {profile.company}</span>
-      </p>
-
-      {/* Score */}
-      <div style={{ display: "flex", alignItems: "baseline", gap: 4, fontFamily: "var(--font-mono)", fontWeight: 700, color: scoreColor(score), fontVariantNumeric: "tabular-nums" }}>
-        <span style={{ fontSize: 96, lineHeight: 0.9, letterSpacing: "-0.055em" }}>{score}</span>
-        <span style={{ fontSize: 36, opacity: 0.55, marginLeft: 12 }}>%</span>
-      </div>
-      <div style={{
-        fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: scoreColor(profile.score), margin: "8px 0 18px", fontWeight: 700,
-        opacity: phase === "idle" ? 1 : 0,
-        transform: phase === "leaving" ? "translateY(-6px)" : phase === "entering" ? "translateY(6px)" : "translateY(0)",
-        transitionProperty: phase !== "entering" ? "opacity, transform" : "none",
-        transitionDuration: "0.2s",
-        transitionTimingFunction: "ease",
-        transitionDelay: phase !== "entering" ? "80ms" : "0ms",
-      }}>
-        {profile.riskLabel}
-      </div>
-
-      {/* Bar */}
-      <div style={{ height: 4, background: "var(--rc-bg)", borderRadius: 99, overflow: "hidden" }}>
-        <div style={{
-          display: "block", height: "100%",
-          background: scoreColor(profile.score),
-          borderRadius: 99,
-          width: barGo ? `${profile.score}%` : "0%",
-          transition: "width 1.4s cubic-bezier(.25,.46,.45,.94)",
-        }} />
-      </div>
-
-      {/* Findings */}
-      <ul style={{
-        listStyle: "none", padding: "18px 0 0", margin: "18px 0 0",
-        borderTop: "1px solid var(--rc-border)",
-        display: "flex", flexDirection: "column", gap: 12,
-        minHeight: 138,
-      }}>
-        {profile.findings.map((f, i) => (
-          <li key={i} style={{
-            display: "grid", gridTemplateColumns: "18px 1fr",
-            gap: 10, fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5,
-            color: "var(--rc-muted)",
-            opacity: phase === "idle" ? 1 : 0,
-            transform: phase === "leaving" ? "translateY(-6px)" : phase === "entering" ? "translateY(6px)" : "translateY(0)",
-            transitionProperty: phase !== "entering" ? "opacity, transform" : "none",
-            transitionDuration: "0.2s",
-            transitionTimingFunction: "ease",
-            transitionDelay: phase !== "entering" ? `${120 + i * 40}ms` : "0ms",
+    <div ref={stageRef} style={{ padding: "16px 6px 34px", minWidth: 0, perspective: 1200, position: "relative" }}>
+      {/* Soft red gradient glow bleeding out from behind the report card */}
+      <div aria-hidden="true" style={{
+        position: "absolute", inset: "-16% -16% -18% -14%", zIndex: 0, pointerEvents: "none",
+        background: "radial-gradient(54% 48% at 52% 46%, rgba(201,58,57,0.60), rgba(201,58,57,0.28) 50%, transparent 76%)",
+        filter: "blur(44px)",
+      }} />
+      <div ref={tiltRef} className="rc-hero-tilt" style={{ minWidth: 0, position: "relative", zIndex: 1 }}>
+      <div className="rc-hero-float" style={{ position: "relative", minWidth: 0 }}>
+        <div className="rc-hero-card" style={{
+          background: "var(--rc-surface)",
+          border: "1px solid var(--rc-border)",
+          borderRadius: 10,
+          overflow: "hidden",
+          boxShadow: "0 60px 120px -30px rgba(40,30,30,0.22), 0 1px 0 rgba(255,255,255,0.7) inset",
+          minWidth: 0,
+        }}>
+        {/* Chrome bar */}
+        <div style={{ background: "var(--rc-bg)", borderBottom: "1px solid var(--rc-border)", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
+            {[0, 1, 2].map((i) => <i key={i} style={{ width: 7, height: 7, borderRadius: 99, background: "var(--rc-border)", display: "block" }} />)}
+          </div>
+          <div style={{
+            flex: 1, minWidth: 0,
+            background: "var(--rc-surface)", border: "1px solid var(--rc-border)",
+            borderRadius: 4, padding: "4px 10px",
+            fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--rc-hint)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
-            <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 14, flexShrink: 0, color: f.color }}>{f.mark}</span>
-            <span>{f.text}</span>
-          </li>
-        ))}
-      </ul>
+            rejectcheck.com/analyze/7g2k-owen-marsh
+          </div>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, flexShrink: 0 }}>
+            <span style={{ width: 5, height: 5, borderRadius: 99, background: "var(--rc-red)", animation: "rc-blink 1.6s ease-in-out infinite" }} />
+            Live
+          </span>
+        </div>
 
-      {/* Profile dots */}
-      <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 18 }}>
-        {DIAG_PROFILES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => advanceTo(i)}
-            style={{
-              width: i === profileIdx ? 16 : 5, height: 5, borderRadius: 99, border: "none",
-              background: i === profileIdx ? "var(--rc-red)" : "var(--rc-border)",
-              cursor: "pointer", padding: 0,
-              transition: "width 0.3s ease, background 0.3s ease",
-            }}
-          />
-        ))}
+        {/* Scrollable content viewport */}
+        <div style={{ position: "relative" }}>
+          <div ref={viewportRef} className="rc-hero-scroll" style={{ height: 520, overflowY: "auto", padding: "22px 24px 26px" }}>
+            {/* Candidate header */}
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 8 }}>
+              Candidate
+            </div>
+            <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 18, letterSpacing: "-0.01em", margin: 0 }}>Owen Marsh</p>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "4px 0 0" }}>
+              Target · Senior Backend Engineer @ Airbnb
+            </p>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10,
+              padding: "3px 8px", borderRadius: 4,
+              background: "var(--rc-green-bg)",
+              border: "1px solid var(--rc-green-border)",
+              fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--rc-green)", fontWeight: 700,
+            }}>
+              ✓ CV · LinkedIn · GitHub cross-referenced
+            </div>
+
+            {/* Score */}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--rc-amber)", fontVariantNumeric: "tabular-nums", marginTop: 22 }}>
+              <span style={{ fontSize: 56, lineHeight: 0.9, letterSpacing: "-0.04em" }}>62</span>
+              <span style={{ fontSize: 22, opacity: 0.55, marginLeft: 8 }}>%</span>
+            </div>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-amber)", margin: "6px 0 14px", fontWeight: 700 }}>
+              Moderate risk · 3 blockers · 3 profile conflicts
+            </div>
+            <div style={{ height: 4, background: "var(--rc-bg)", borderRadius: 99, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: "62%", background: "var(--rc-amber)", borderRadius: 99 }} />
+            </div>
+
+            {/* Signal breakdown */}
+            <HeroHeading>Signal breakdown</HeroHeading>
+            {HERO_SIGNALS.map((s) => (
+              <div key={s.label} style={{ display: "grid", gridTemplateColumns: "1fr 90px 28px", gap: 10, alignItems: "center", padding: "7px 0" }}>
+                <span style={{ fontFamily: "var(--font-sans)", fontSize: 12.5, color: "var(--rc-muted)" }}>{s.label}</span>
+                <div style={{ height: 4, background: "var(--rc-bg)", borderRadius: 99, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${s.pct}%`, background: matchColor(s.pct), borderRadius: 99 }} />
+                </div>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, textAlign: "right", color: matchColor(s.pct), fontVariantNumeric: "tabular-nums" }}>{s.pct}</span>
+              </div>
+            ))}
+
+            {/* ATS simulation */}
+            <HeroHeading sub="How an applicant-tracking filter would score this résumé">ATS simulation</HeroHeading>
+            <div style={{ borderRadius: 8, background: "var(--rc-red-bg)", border: "1px solid var(--rc-red-border)", padding: "12px 13px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#fff", background: "var(--rc-red)", padding: "2px 6px", borderRadius: 3 }}>Would not pass</span>
+                <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--rc-red)" }}>58<span style={{ color: "var(--rc-hint)", fontWeight: 400 }}> / 70 to pass</span></span>
+              </div>
+              {/* score vs threshold bar */}
+              <div style={{ position: "relative", height: 5, borderRadius: 99, background: "var(--rc-surface)", marginTop: 10 }}>
+                <div style={{ position: "absolute", inset: 0, width: "58%", background: "var(--rc-red)", borderRadius: 99 }} />
+                <div style={{ position: "absolute", top: -3, bottom: -3, left: "70%", borderLeft: "1px dashed var(--rc-text)" }} />
+                <span style={{ position: "absolute", left: "70%", top: -14, transform: "translateX(-50%)", fontFamily: "var(--font-mono)", fontSize: 8, color: "var(--rc-hint)" }}>pass 70</span>
+              </div>
+              {/* critical missing keywords */}
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "16px 0 7px" }}>
+                Critical missing keywords
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {HERO_ATS_MISSING.map((k) => (
+                  <div key={k.kw} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "center" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", minWidth: 0 }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, color: "var(--rc-text)" }}>{k.kw}</span>
+                      {k.required && <span style={{ fontFamily: "var(--font-mono)", fontSize: 7.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--rc-red)", border: "1px solid var(--rc-red-border)", borderRadius: 3, padding: "1px 4px" }}>required</span>}
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)" }}>×{k.freq} in JD</span>
+                    </span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "var(--rc-red)", whiteSpace: "nowrap" }}>−{k.impact} pts</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Skill radar */}
+            <HeroHeading sub="Your level vs what the role expects">Skill radar</HeroHeading>
+            <div style={{ display: "flex", gap: 14, marginBottom: 4 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--rc-muted)" }}>
+                <span style={{ width: 12, borderTop: "1.5px dashed var(--rc-amber)" }} /> Role expects
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-mono)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--rc-muted)" }}>
+                <span style={{ width: 8, height: 8, borderRadius: 99, background: "var(--rc-red)" }} /> You
+              </span>
+            </div>
+            <HeroRadar />
+
+            {/* GitHub report */}
+            <HeroHeading>GitHub report</HeroHeading>
+            <HeroSourceCard
+              kind="github"
+              score={72}
+              langs={HERO_GH_LANGS}
+              strengths={["12 public repos · 400+ combined stars", "3-year commit streak, no gaps"]}
+              issue={{ sev: "major", text: "Top repos ship no README — recruiters can’t gauge impact." }}
+            />
+
+            {/* LinkedIn report */}
+            <HeroHeading>LinkedIn report</HeroHeading>
+            <HeroSourceCard
+              kind="linkedin"
+              score={58}
+              strengths={[
+                "Headline matches the target role",
+                "Recommendations from 2 senior engineers",
+                "Skills section endorsed 40+ times",
+              ]}
+              issue={{ sev: "major", text: "Title reads “Backend Engineer” — one band below the CV." }}
+            />
+
+            {/* Portfolio report */}
+            <HeroHeading>Portfolio report</HeroHeading>
+            <HeroSourceCard
+              kind="portfolio"
+              score={64}
+              strengths={[
+                "Live demo + write-up for 2 flagship projects",
+                "Fast, clean, mobile-friendly build",
+              ]}
+              issue={{ sev: "minor", text: "Case studies quote no metrics — impact is hard to gauge." }}
+            />
+
+            {/* Cross-profile consistency */}
+            <HeroHeading sub="What a senior recruiter spots in 30 seconds">Cross-profile consistency</HeroHeading>
+            <HeroTimeline />
+
+            {/* Inconsistencies — one per conflict pin above, grouped by severity */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "13px 0 9px" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)" }}>3 inconsistencies</span>
+              <span style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
+                {([["critical", 1], ["major", 1], ["minor", 1]] as const).map(([s, cnt]) => (
+                  <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: "var(--font-mono)", fontSize: 9, textTransform: "uppercase", letterSpacing: "0.06em", color: SEV_COLOR[s], fontWeight: 700 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 99, background: SEV_COLOR[s] }} />{cnt} {s}
+                  </span>
+                ))}
+              </span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {HERO_DIVERGENCES.map((d, i) => {
+                const c = SEV_COLOR[d.sev];
+                return (
+                  <div key={i} style={{ border: "1px solid var(--rc-border)", borderLeft: `3px solid ${c}`, borderRadius: 6, padding: "9px 11px", background: "var(--rc-surface)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: d.sev === "minor" ? "var(--rc-muted)" : "#fff", background: d.sev === "minor" ? "var(--rc-border)" : c, padding: "2px 5px", borderRadius: 3 }}>{d.sev}</span>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--rc-text)" }}>Inconsistency · {d.field}</span>
+                      <span style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-muted)" }}>{d.sources[0]} ↔ {d.sources[1]}</span>
+                    </div>
+                    <p style={{ fontFamily: "var(--font-sans)", fontSize: 12.5, color: "var(--rc-text)", fontWeight: 500, margin: "6px 0 4px", lineHeight: 1.4 }}>{d.subject}</p>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{d.date}</span>
+                      <p style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 12, color: "var(--rc-muted)", margin: 0, lineHeight: 1.45 }}>« {d.perception} »</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Salary & negotiation */}
+            <HeroHeading sub="Where you sit vs the market — and vs their offer">Salary &amp; negotiation</HeroHeading>
+            <HeroNegotiation />
+
+            {/* Bridge the gap — recommended portfolio project */}
+            <HeroHeading sub="A project that closes your biggest gap: distributed systems">Bridge the gap</HeroHeading>
+            <div style={{ border: "1px solid var(--rc-border)", borderRadius: 8, overflow: "hidden", background: "var(--rc-surface)" }}>
+              <div style={{ padding: "11px 14px", background: "var(--rc-red-bg)", borderBottom: "1px solid var(--rc-border)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#fff", background: "var(--rc-red)", padding: "2px 6px", borderRadius: 3 }}>Recommended project</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--rc-hint)" }}>{HERO_PROJECT.level} · {HERO_PROJECT.time}</span>
+                </div>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em", margin: "8px 0 0" }}>{HERO_PROJECT.name}</p>
+              </div>
+              <div style={{ padding: "12px 14px" }}>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 12.5, color: "var(--rc-muted)", lineHeight: 1.5, margin: 0 }}>{HERO_PROJECT.pitch}</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 11 }}>
+                  {HERO_PROJECT.tech.map((tch) => (
+                    <span key={tch} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, padding: "3px 8px", borderRadius: 99, border: "1px solid var(--rc-border)", color: "var(--rc-muted)" }}>{tch}</span>
+                  ))}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap", marginTop: 10 }}>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--rc-hint)" }}>Proves</span>
+                  {HERO_PROJECT.proves.map((p) => (
+                    <span key={p} style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, padding: "3px 8px", borderRadius: 99, color: "var(--rc-green)", background: "var(--rc-green-bg)", border: "1px solid var(--rc-green-border)" }}>{p}</span>
+                  ))}
+                </div>
+                <div style={{ marginTop: 12, paddingTop: 11, borderTop: "1px solid var(--rc-border)" }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--rc-hint)", marginBottom: 5 }}>New CV bullet</div>
+                  <p style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 12.5, color: "var(--rc-text)", lineHeight: 1.5, margin: 0 }}>“{HERO_PROJECT.bullet}”</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key findings */}
+            <HeroHeading>Key findings</HeroHeading>
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+              {HERO_FINDINGS.map((f, i) => (
+                <li key={i} style={{ display: "grid", gridTemplateColumns: "62px 1fr", gap: 10, alignItems: "start" }}>
+                  <span style={{
+                    fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
+                    padding: "2px 6px", borderRadius: 4, textAlign: "center", height: "fit-content",
+                    color: f.color,
+                    background: `color-mix(in srgb, ${f.color} 8%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${f.color} 30%, transparent)`,
+                  }}>{f.sev}</span>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-muted)" }}>{f.text}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Recruiter read */}
+            <HeroHeading>Recruiter read</HeroHeading>
+            <p style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 13.5, lineHeight: 1.55, color: "var(--rc-text)", margin: 0 }}>
+              &ldquo;Solid engineer, but the CV, LinkedIn and GitHub don&apos;t tell the same story yet. I&apos;d clear up the title and the gap before I champion this one.&rdquo;
+            </p>
+
+            {/* Footer */}
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid var(--rc-border)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.08em", color: "var(--rc-hint)" }}>
+              Full report · 42 checks · 6 sources cross-referenced
+            </div>
+          </div>
+
+          {/* Fade masks — sell the scrollable depth */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 22, background: "linear-gradient(var(--rc-surface), transparent)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 34, background: "linear-gradient(transparent, var(--rc-surface))", pointerEvents: "none" }} />
+        </div>
+        </div>
       </div>
-
-      {/* Timer bar */}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, borderRadius: "0 0 6px 6px", overflow: "hidden", background: "var(--rc-border)" }}>
-        <div key={barKey} style={{ height: "100%", background: "var(--rc-red)", animation: "rc-timer 9s linear forwards" }} />
       </div>
 
       <style>{`
         @keyframes rc-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-        @keyframes rc-rise { to { opacity: 1; transform: translateY(0); } }
-        @keyframes rc-rise-text { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes rc-timer { from { width: 100%; } to { width: 0%; } }
+        @keyframes rc-hero-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        /* Rotation layer — resting tilt; JS eases it toward the cursor. */
+        .rc-hero-tilt {
+          transform: rotateX(4deg) rotateY(-9deg);
+          transition: transform 220ms ease-out;
+          will-change: transform;
+        }
+        /* Float layer — gentle idle bob, independent of the cursor tilt. */
+        .rc-hero-float { animation: rc-hero-float 7s ease-in-out infinite; }
+        .rc-hero-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+        .rc-hero-scroll::-webkit-scrollbar { display: none; }
+        @media (prefers-reduced-motion: reduce) {
+          .rc-hero-float { animation: none; }
+          .rc-hero-tilt { transition: none; transform: rotateX(4deg) rotateY(-9deg); }
+        }
       `}</style>
     </div>
   );
@@ -438,7 +902,7 @@ export default function Home() {
         <BlueprintBackdrop variant="light" />
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px", position: "relative", zIndex: 1 }}>
           {/* 3-col top */}
-          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "80px 1.1fr 460px", gap: 32, alignItems: "start" }}>
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "80px 1fr 560px", gap: 32, alignItems: "start" }}>
             {/* Left — margin gutter (kept empty to align with the dropzone row below) */}
             <div aria-hidden />
 
@@ -446,15 +910,29 @@ export default function Home() {
             <div>
               <h1 style={{
                 fontFamily: "var(--font-sans)", fontWeight: 500,
-                fontSize: "clamp(48px, 6vw, 88px)", lineHeight: 0.98,
-                letterSpacing: "-0.04em", margin: "0 0 32px",
+                fontSize: "clamp(42px, 5vw, 66px)", lineHeight: 1.0,
+                letterSpacing: "-0.04em", margin: "0 0 30px",
               }}>
                 {t.landing.s01.h1Part1} <em style={IT}>{t.landing.s01.h1Italic}</em><br />
                 {t.landing.s01.h1Part2} <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-hint)" }}>{t.landing.s01.h1Faded}</span>
               </h1>
-              <p style={{ fontFamily: "var(--font-sans)", fontSize: 17, lineHeight: 1.6, color: "var(--rc-muted)", maxWidth: 480, margin: "0 0 36px" }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 17, lineHeight: 1.6, color: "var(--rc-muted)", maxWidth: 480, margin: "0 0 26px" }}>
                 {t.landing.s01.subtitle}
               </p>
+              <Link
+                href={localePath("/analyze")}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 15,
+                  padding: "13px 26px", borderRadius: 6,
+                  background: "linear-gradient(180deg, #C0392B, #A93226)",
+                  color: "#fff", textDecoration: "none",
+                  boxShadow: "0 10px 28px rgba(192,57,43,0.28)",
+                  marginBottom: 34,
+                }}
+              >
+                {t.landing.s01.dropCta}
+              </Link>
               <div style={{ display: "flex", gap: 24, alignItems: "center", fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.06em", color: "var(--rc-hint)" }}>
                 <span><b style={{ color: "var(--rc-text)", fontWeight: 600 }}>{t.landing.s01.stat1Value}</b> {t.landing.s01.stat1Label}</span>
                 <span style={{ width: 1, height: 12, background: "var(--rc-border)" }} />
@@ -464,8 +942,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right — DiagCard */}
-            <DiagCard />
+            {/* Right — tilted, scrollable analysis mockup */}
+            <HeroAnalysisScreen />
           </div>
 
           {/* Drop zone row */}
