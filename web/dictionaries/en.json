@@ -1236,6 +1236,7 @@
       "priceNote": "/mo · −50%, forever",
       "subtitle": "Everything in Hired, at half the price. Reserved for the first 100 members.",
       "seatsLeft": "{remaining} of 100 seats left",
+      "regularPrice": "Regular price:",
       "soldOut": "All 100 founder seats are taken.",
       "cta": "Become a founder"
     },

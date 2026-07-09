@@ -26,47 +26,76 @@ function PricingContent() {
 
   const activePlan = subscription?.status === 'active' ? subscription.plan : null;
 
+  // Founder deal lives inside the Hired card: when configured, seats remain,
+  // and the visitor isn't already on a paid plan, Hired shows the discounted
+  // 19.99€ (real 39.99€ struck through) and checks out on the founder price.
+  const founderActive = Boolean(founder?.enabled && !founder.soldOut && !activePlan);
+
   const plans = [
     {
       id: 'free' as const,
       name: t.pricing.plans.free.name,
       price: '0€',
+      regularPrice: null as string | null,
       period: t.pricing.plans.free.period,
       description: t.pricing.plans.free.description,
       icon: <Zap className="w-5 h-5 text-rc-hint" />,
       features: t.pricing.plans.free.features as string[],
       cta: t.pricing.plans.free.cta,
+      checkoutPlan: null as 'shortlisted' | 'hired' | 'founder' | null,
       href: localePath('/analyze'),
       popular: false,
+      guarantee: null as string | null,
+      founderBadge: null as string | null,
+      seatsLeft: null as string | null,
     },
     {
       id: 'shortlisted' as const,
       name: t.pricing.plans.shortlisted.name,
       price: '19.99€',
+      regularPrice: null as string | null,
       period: t.pricing.plans.shortlisted.period,
       description: t.pricing.plans.shortlisted.description,
       icon: <Star className="w-5 h-5 text-rc-red" />,
       features: t.pricing.plans.shortlisted.features as string[],
       cta: t.pricing.plans.shortlisted.cta,
+      checkoutPlan: 'shortlisted' as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
       // Recommended tier — kept consistent with the landing page (§06), which
       // highlights Shortlisted as the entry paid plan.
       popular: true,
+      guarantee: null as string | null,
+      founderBadge: null as string | null,
+      seatsLeft: null as string | null,
     },
     {
       id: 'hired' as const,
       name: t.pricing.plans.hired.name,
-      price: '39.99€',
+      price: founderActive ? '19.99€' : '39.99€',
+      regularPrice: founderActive ? '39.99€' : null,
       period: t.pricing.plans.hired.period,
       description: t.pricing.plans.hired.description,
       icon: <Trophy className="w-5 h-5 text-amber-500" />,
       features: t.pricing.plans.hired.features as string[],
-      cta: t.pricing.plans.hired.cta,
+      cta: founderActive ? t.pricing.founder.cta : t.pricing.plans.hired.cta,
+      checkoutPlan: (founderActive ? 'founder' : 'hired') as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
       popular: false,
       guarantee: t.pricing.plans.hired.guarantee,
+      founderBadge: founderActive ? t.pricing.founder.badge : null,
+      seatsLeft: founderActive
+        ? t.pricing.founder.seatsLeft.replace('{remaining}', String(founder!.remaining))
+        : null,
     },
   ];
+
+  // While the founder deal is live, Hired costs the same 19.99€ as Shortlisted
+  // but gives strictly more — so Shortlisted is dominated. Hide it until the
+  // founder seats run out (Hired reverts to 39.99€ and Shortlisted makes sense
+  // again).
+  const visiblePlans = plans.filter((plan) => !(founderActive && plan.id === 'shortlisted'));
+  const gridCols =
+    visiblePlans.length === 2 ? 'lg:grid-cols-2 max-w-[760px] mx-auto' : 'lg:grid-cols-3';
 
   useEffect(() => {
     if (searchParams.get("error") === "true") {
@@ -204,8 +233,8 @@ function PricingContent() {
         )}
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative items-stretch">
-          {plans.map((plan) => (
+        <div className={`grid grid-cols-1 ${gridCols} gap-8 relative items-stretch`}>
+          {visiblePlans.map((plan) => (
             <div
               key={plan.id}
               className={`group relative flex flex-col p-8 rounded-[24px] transition-all duration-500 hover:-translate-y-1 border ${
@@ -217,6 +246,13 @@ function PricingContent() {
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-full shadow-lg shadow-rc-red/20 z-20">
                   {t.pricing.recommended}
+                </div>
+              )}
+
+              {plan.founderBadge && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-full shadow-lg shadow-rc-red/20 z-20 whitespace-nowrap">
+                  <Star className="w-3 h-3" fill="currentColor" />
+                  {plan.founderBadge}
                 </div>
               )}
 
@@ -236,6 +272,19 @@ function PricingContent() {
                     </span>
                     <span className="text-rc-hint font-mono text-sm">{plan.period}</span>
                   </div>
+                  {plan.regularPrice && (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-rc-hint">
+                      <span>{t.pricing.founder.regularPrice}</span>
+                      <span className="line-through decoration-rc-red/50 decoration-2">
+                        {plan.regularPrice}
+                      </span>
+                    </div>
+                  )}
+                  {plan.seatsLeft && (
+                    <p className="mt-2 font-mono text-[11px] tracking-widest uppercase text-rc-red">
+                      {plan.seatsLeft}
+                    </p>
+                  )}
                   <p className="mt-3 text-sm text-rc-muted leading-relaxed font-medium">
                     {plan.description}
                   </p>
@@ -285,7 +334,7 @@ function PricingContent() {
                   </Link>
                 ) : (
                   <button
-                    onClick={() => handlePaidPlan(plan.id as 'shortlisted' | 'hired')}
+                    onClick={() => plan.checkoutPlan && handlePaidPlan(plan.checkoutPlan)}
                     disabled={loadingPlan !== null || activePlan === plan.id}
                     className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase transition-all duration-300 group/btn font-bold cursor-pointer ${
                       activePlan === plan.id
@@ -296,7 +345,11 @@ function PricingContent() {
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     <span className="relative z-10">
-                      {activePlan === plan.id ? t.pricing.currentPlan : loadingPlan === plan.id ? t.common.processing : plan.cta}
+                      {activePlan === plan.id
+                        ? t.pricing.currentPlan
+                        : loadingPlan === plan.checkoutPlan
+                          ? t.common.processing
+                          : plan.cta}
                     </span>
                     {activePlan !== plan.id && (
                       <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
