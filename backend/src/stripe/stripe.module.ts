@@ -16,6 +16,7 @@ import { StripeSdkWebhookParser } from './infrastructure/stripe-webhook.parser';
 import { StripeSubscriptionGate } from './infrastructure/stripe-subscription.gate';
 
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
+import { GetFounderAvailabilityUseCase } from './application/get-founder-availability.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
 import { CreatePortalSessionUseCase } from './application/create-portal-session.use-case';
@@ -45,6 +46,7 @@ import { PremiumGuard } from './guards/premium.guard';
 
     // Use cases
     CreateCheckoutSessionUseCase,
+    GetFounderAvailabilityUseCase,
     CreateCreditsCheckoutSessionUseCase,
     CreateAnalysisUnlockCheckoutSessionUseCase,
     CreatePortalSessionUseCase,

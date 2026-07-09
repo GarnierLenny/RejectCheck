@@ -71,7 +71,7 @@
       "bridgePremiumNote": "Feuille de route complète, étapes actionnables et conseil recruteur avec Premium",
       "platformLabel": "Un seul verdict",
       "platformTitle": "Pourquoi vous seriez rejeté. Avant de postuler.",
-      "platformSubtitle": "Une seule lecture de votre CV face à l'offre exacte — les failles qu'un recruteur repère en six secondes, scorées avant que vous n'envoyiez.",
+      "platformSubtitle": "Une seule lecture de votre CV face à l'offre exacte : les failles qu'un recruteur repère en six secondes, scorées avant que vous n'envoyiez.",
       "founderLabel": "Co-Fondateur",
       "cancelAnytime": "Résiliation possible à tout moment",
       "hiredRefund": "Embauché ? On rembourse ton dernier mois. Sans formulaire. Dis-le nous."
@@ -329,7 +329,7 @@
         },
         {
           "label": "Données invité supprimées sous 7 jours",
-          "claim": "Pour les analyses en mode invité, ton CV, l'offre et le résultat sont automatiquement supprimés de notre base sous 7 jours — ensuite seuls ton IP et un horodatage restent, pour faire respecter la limite d'1 analyse par invité. Les analyses des utilisateurs enregistrés sont conservées dans leur dashboard jusqu'à ce qu'ils choisissent de les supprimer, et aucune donnée n'est jamais utilisée pour entraîner des modèles IA.",
+          "claim": "Pour les analyses en mode invité, ton CV, l'offre et le résultat sont automatiquement supprimés de notre base sous 7 jours. Ensuite, seuls ton IP et un horodatage restent, pour faire respecter la limite d'1 analyse par invité. Les analyses des utilisateurs enregistrés sont conservées dans leur dashboard jusqu'à ce qu'ils choisissent de les supprimer, et aucune donnée n'est jamais utilisée pour entraîner des modèles IA.",
           "source": "Politique de confidentialité, section traitement des données",
           "sourceLinks": [
             {
@@ -357,7 +357,11 @@
       "h1Italic": "dernier refus.",
       "h1Part2": "",
       "h1Faded": "",
-      "subtitle": "Vous envoyez 80 candidatures. 78 disparaissent dans le silence. RejectCheck lit votre CV comme un recruteur le lirait — et vous dit, avant de postuler, exactement ce qui l'aurait tué.",
+      "subtitleLine1": "Vous envoyez 100 candidatures. 96 disparaissent dans le silence.",
+      "subtitleLine2": "RejectCheck audite tout ce qu'un recruteur voit de vous :",
+      "subtitleLine3": "CV, lettre de motivation, LinkedIn, GitHub, portfolio.",
+      "subtitleLine4": "Il repère ce qui vous vaudrait un refus, et ce qui vous rendrait ",
+      "subtitleEmphasis": "impossible à ignorer",
       "stat1Value": "~1 min",
       "stat1Label": "avant le diagnostic",
       "stat2Value": "2 gratuites",
@@ -365,9 +369,10 @@
       "stat3Value": "Sans compte",
       "stat3Label": "pour commencer",
       "dropLabel": "Déposez votre CV ici",
-      "dropItalic": "— ou collez un lien d'offre.",
+      "dropItalic": "ou collez un lien d'offre.",
       "dropHint": "PDF ou DOCX jusqu'à 5 Mo · sans inscription pour la première analyse",
-      "dropCta": "Obtenir mon diagnostic →"
+      "dropCta": "Obtenir mon diagnostic →",
+      "founderSeatsLabel": "places founder restantes"
     },
     "s02": {
       "smallLabel": "La méthode",
@@ -379,7 +384,7 @@
           "n": "01",
           "title": "Filtre",
           "it": "ATS",
-          "desc": "On simule les 4 ATS les plus utilisés et on vous dit exactement quels termes requis manquent — variantes singulier/pluriel et synonymes inclus."
+          "desc": "On simule les 4 ATS les plus utilisés et on vous dit exactement quels termes requis manquent, variantes singulier/pluriel et synonymes inclus."
         },
         {
           "n": "02",
@@ -391,13 +396,13 @@
           "n": "03",
           "title": "Résultats",
           "it": "quantifiés",
-          "desc": "Les bullets sans chiffres se fondent. On signale chaque bullet sans métrique et suggère où en ajouter une — honnêtement."
+          "desc": "Les bullets sans chiffres se fondent. On signale chaque bullet sans métrique et suggère où en ajouter une, honnêtement."
         },
         {
           "n": "04",
           "title": "Signaux",
           "it": "d'alerte",
-          "desc": "Gaps inexpliqués, titres vagues, incohérences. Ce qu'un recruteur repère en deux secondes — on le remonte avant lui."
+          "desc": "Gaps inexpliqués, titres vagues, incohérences. Ce qu'un recruteur repère en deux secondes. On le remonte avant lui."
         },
         {
           "n": "05",
@@ -409,7 +414,7 @@
           "n": "06",
           "title": "Ton &",
           "it": "style",
-          "desc": "Densité de buzzwords, cohérence de voix, ratio longueur/impact. On vous dit où ça sonne comme un template — et où ça sonne comme vous."
+          "desc": "Densité de buzzwords, cohérence de voix, ratio longueur/impact. On vous dit où ça sonne comme un template, et où ça sonne comme vous."
         }
       ]
     },
@@ -417,11 +422,16 @@
       "smallLabel": "Le rapport",
       "h2Part1": "Pas un score. Un",
       "h2Italic": "briefing.",
-      "subtitle": "Le rapport que vous recevez n'est pas un pouce levé ou baissé. C'est un document actionnable — le genre pour lequel vous paieriez 300 € à un recruteur senior.",
+      "subtitle": "Le rapport que vous recevez n'est pas un pouce levé ou baissé. C'est un document actionnable, le genre pour lequel vous paieriez 300 € à un recruteur senior.",
       "browserSaved": "ENREGISTRÉ · IL Y A 2 MIN",
       "topFixTitle": "La correction qui vous fait gagner le plus",
       "topFixBody": "Ajoutez distributed systems, gRPC et observability dans vos bullets là où c'est vrai. Impact estimé sur le score : −22 points.",
-      "skillMapLabel": "Cartographie compétences · 4 sur 6 matchés"
+      "skillMapLabel": "Cartographie compétences · 4 sur 6 matchés",
+      "preparedFor": "Préparé pour",
+      "verdict": "Risque élevé · rejet probable",
+      "priorityFixLabel": "Correctif prioritaire",
+      "contentsLabel": "Dans ce briefing",
+      "contents": ["Manques de mots-clés", "Signaux de séniorité", "Réécriture des bullets", "Red flags cachés"]
     },
     "s04": {
       "smallLabel": "Honnêtement",
@@ -438,7 +448,7 @@
         },
         {
           "feat": "Croisement multi-source",
-          "sub": "Ton CV, ton LinkedIn et ton GitHub recoupés face à une offre — pas un simple scan de mots-clés."
+          "sub": "Ton CV, ton LinkedIn et ton GitHub recoupés face à une offre, pas un simple scan de mots-clés."
         },
         {
           "feat": "Réécriture bullet par bullet",
@@ -473,7 +483,7 @@
       "coFounders": "Co-Fondateurs"
     },
     "footerBrand": {
-      "tagline": "Vous dit pourquoi vous seriez rejeté — avant de postuler. Conçu pour les devs, marche pour tous les métiers."
+      "tagline": "Vous dit pourquoi vous seriez rejeté, avant de postuler. Conçu pour les devs, marche pour tous les métiers."
     },
     "whatsNew": {
       "badge": "Plus dans RejectCheck",
@@ -1193,7 +1203,7 @@
         "features": [
           "Tout dans Gratuit",
           "15 analyses complètes / mois",
-          "Analyses supplémentaires à tout moment — sans expiration",
+          "Analyses supplémentaires à tout moment, sans expiration",
           "Suivi d'évolution du score",
           "Historique des analyses",
           "Mode Réécriture CV",
@@ -1208,7 +1218,7 @@
         "features": [
           "Tout dans PRÉSÉLECTIONNÉ",
           "30 analyses complètes / mois",
-          "Analyses supplémentaires à tout moment — sans expiration",
+          "Analyses supplémentaires à tout moment, sans expiration",
           "Score de fit via URL (bientôt)",
           "Roadmaps RejectCheck (bientôt)",
           "Générateur de lettre de motivation",
@@ -1220,6 +1230,15 @@
         "cta": "Être recruté",
         "guarantee": "Recruté ? Nous remboursons votre mois en cours."
       }
+    },
+    "founder": {
+      "badge": "Offre Founder",
+      "title": "Hired, verrouillé à vie",
+      "priceNote": "/mois · −50%, à vie",
+      "subtitle": "Tout Hired, à moitié prix. Réservé aux 100 premiers membres.",
+      "seatsLeft": "{remaining} places sur 100 restantes",
+      "soldOut": "Les 100 places founder sont prises.",
+      "cta": "Devenir founder"
     },
     "errors": {
       "paymentCancelled": "Paiement annulé. Vous pouvez réessayer quand vous êtes prêt.",
@@ -1253,7 +1272,7 @@
         },
         {
           "question": "Comment RejectCheck se compare à Jobscan, Rezi, et les autres ?",
-          "answer": "À 19,99 €/mois, Shortlisted se situe dans la même gamme que des outils comme Rezi (29 $/mois), Jobscan ou Enhancv — sans en être le plus cher. Ce qui distingue RejectCheck, ce n'est pas le prix : c'est la profondeur. Vous obtenez un pipeline Claude multi-passe (Sonnet + Haiku) avec un croisement GitHub/LinkedIn complet, le type d'analyse que les autres ne font à aucun palier. Vous payez l'analyse, pas la marque."
+          "answer": "À 19,99 €/mois, Shortlisted se situe dans la même gamme que des outils comme Rezi (29 $/mois), Jobscan ou Enhancv, sans en être le plus cher. Ce qui distingue RejectCheck, ce n'est pas le prix : c'est la profondeur. Vous obtenez un pipeline Claude multi-passe (Sonnet + Haiku) avec un croisement GitHub/LinkedIn complet, le type d'analyse que les autres ne font à aucun palier. Vous payez l'analyse, pas la marque."
         }
       ]
     }
@@ -1946,7 +1965,7 @@
       },
       {
         "question": "C'est quoi un ATS et comment RejectCheck le simule ?",
-        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour stocker et classer les candidatures. Contrairement à un mythe répandu, la plupart des ATS ne te rejettent pas automatiquement sur un score de mots-clés — c'est un recruteur humain qui décide, en général en 6 secondes. RejectCheck fait donc les deux : il vérifie la couche lisible par la machine (parsing + mots-clés pondérés par la fiche de poste) ET te dit pourquoi un humain écarterait ton CV. On te montre les vraies raisons, pas un taux de passage magique."
+        "answer": "Un ATS (Applicant Tracking System) est le logiciel que les recruteurs utilisent pour stocker et classer les candidatures. Contrairement à un mythe répandu, la plupart des ATS ne te rejettent pas automatiquement sur un score de mots-clés. C'est un recruteur humain qui décide, en général en 6 secondes. RejectCheck fait donc les deux : il vérifie la couche lisible par la machine (parsing + mots-clés pondérés par la fiche de poste) ET te dit pourquoi un humain écarterait ton CV. On te montre les vraies raisons, pas un taux de passage magique."
       },
       {
         "question": "RejectCheck est-il gratuit ?",
@@ -1958,7 +1977,7 @@
       },
       {
         "question": "Quels modèles IA utilise RejectCheck ?",
-        "answer": "RejectCheck fonctionne avec Anthropic Claude — Sonnet pour le diagnostic (vérification mots-clés/format ATS, audit CV, détection de red flags, radar des lacunes techniques) et Haiku pour le digest de profil multi-source (recoupement GitHub/LinkedIn) — plus Google Gemini pour la génération optionnelle de starter-repo. La politique de confidentialité documente quel fournisseur traite quelle donnée."
+        "answer": "RejectCheck fonctionne avec Anthropic Claude : Sonnet pour le diagnostic (vérification mots-clés/format ATS, audit CV, détection de red flags, radar des lacunes techniques) et Haiku pour le digest de profil multi-source (recoupement GitHub/LinkedIn), plus Google Gemini pour la génération optionnelle de starter-repo. La politique de confidentialité documente quel fournisseur traite quelle donnée."
       },
       {
         "question": "En quoi RejectCheck est différent des autres outils CV ?",

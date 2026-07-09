@@ -34,10 +34,10 @@ export async function generateMetadata({
   // Sourced from the same dictionary key as the homepage hero (landing.s01)
   // so the <title>/og:title/twitter:title never drift from the real h1.
   const dict = await getDictionary(lang)
-  const { h1Part1, h1Italic, subtitle } = dict.landing.s01
+  const { h1Part1, h1Italic, subtitleLine1 } = dict.landing.s01
 
   const title = isEn ? `RejectCheck: ${h1Part1} ${h1Italic}` : `RejectCheck : ${h1Part1} ${h1Italic}`
-  const description = subtitle
+  const description = subtitleLine1
 
   const ogLocale = isEn ? 'en_US' : 'fr_FR'
   const canonical = `${SITE_URL}/${lang}`
