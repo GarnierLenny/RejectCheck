@@ -1237,6 +1237,7 @@
       "priceNote": "/mois · −50%, à vie",
       "subtitle": "Tout Hired, à moitié prix. Réservé aux 100 premiers membres.",
       "seatsLeft": "{remaining} places sur 100 restantes",
+      "regularPrice": "Prix normal :",
       "soldOut": "Les 100 places founder sont prises.",
       "cta": "Devenir founder"
     },
