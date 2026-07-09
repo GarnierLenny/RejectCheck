@@ -320,6 +320,28 @@ export function useSubscription() {
   });
 }
 
+export type FounderAvailability = {
+  enabled: boolean;
+  taken: number;
+  cap: number;
+  remaining: number;
+  soldOut: boolean;
+};
+
+/**
+ * Public — how many capped Founder-deal seats remain. Backs the pricing page's
+ * scarcity counter. Anonymous (no auth), so it runs for logged-out visitors
+ * too. `enabled: false` means the deal isn't configured — hide the offer.
+ */
+export function useFounderAvailability() {
+  return useQuery({
+    queryKey: ['founder-availability'],
+    queryFn: () =>
+      apiFetch<FounderAvailability>('/api/stripe/founder-availability'),
+    staleTime: 60 * 1000,
+  });
+}
+
 export type Quota = {
   plan: 'free' | 'shortlisted' | 'hired';
   status: string;

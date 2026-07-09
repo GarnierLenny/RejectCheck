@@ -4,6 +4,7 @@ import type { SubscriptionRepository } from '../ports/subscription.repository';
 
 const PRICE_SHORTLISTED = 'price_short';
 const PRICE_HIRED = 'price_hired';
+const PRICE_FOUNDER = 'price_founder';
 
 function makeUseCase() {
   const repo = {
@@ -16,7 +17,9 @@ function makeUseCase() {
         ? PRICE_SHORTLISTED
         : key === 'STRIPE_HIRED_PRICE_ID'
           ? PRICE_HIRED
-          : undefined,
+          : key === 'STRIPE_FOUNDER_PRICE_ID'
+            ? PRICE_FOUNDER
+            : undefined,
   } as unknown as ConfigService;
 
   return {
@@ -55,6 +58,21 @@ describe('HandleSubscriptionUpdatedUseCase', () => {
       status: 'active',
       currentPeriodEnd: new Date(periodEnd * 1000),
       plan: 'shortlisted',
+    });
+  });
+
+  it('resolves the founder price to the hired plan on renewal', async () => {
+    const { uc, repo } = makeUseCase();
+    await uc.execute({
+      customer: 'cus_founder',
+      status: 'active',
+      current_period_end: periodEnd,
+      items: { data: [{ price: { id: PRICE_FOUNDER } }] },
+    });
+    expect(repo.refreshByCustomerId).toHaveBeenCalledWith('cus_founder', {
+      status: 'active',
+      currentPeriodEnd: new Date(periodEnd * 1000),
+      plan: 'hired',
     });
   });
 

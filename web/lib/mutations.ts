@@ -296,8 +296,16 @@ export function useUpdatePublicSettings() {
 
 export function useCreateCheckout() {
   return useMutation({
-    mutationFn: ({ plan, email }: { plan: 'shortlisted' | 'hired'; email?: string }) =>
-      apiFetch<{ url: string }>('/api/stripe/checkout', {
+    mutationFn: ({
+      plan,
+      email,
+    }: {
+      plan: 'shortlisted' | 'hired' | 'founder';
+      email?: string;
+    }) =>
+      // `soldOut` is only returned for the founder plan (deal unavailable or
+      // all seats taken) — url is null in that case.
+      apiFetch<{ url: string | null; soldOut?: boolean }>('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, email }),

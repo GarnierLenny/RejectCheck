@@ -44,6 +44,13 @@ export const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: nonEmpty,
   STRIPE_SHORTLISTED_PRICE_ID: nonEmpty,
   STRIPE_HIRED_PRICE_ID: nonEmpty,
+  // Founder deal: a cheaper recurring price on the SAME Hired product. A
+  // founder subscription is stored as plan='hired' (it grants identical
+  // access) — this price id only (a) selects the discounted price at checkout
+  // and (b) lets us count how many of the capped founder seats are taken.
+  // Optional so the backend boots before the price exists; while unset the
+  // founder plan is simply unavailable (checkout + pricing card hide it).
+  STRIPE_FOUNDER_PRICE_ID: z.string().optional(),
   // NB: credit packs use inline `price_data` (see credits/domain/credit-packs.ts),
   // so there is no STRIPE_CREDIT_PRICE_ID — don't reintroduce it.
 

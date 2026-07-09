@@ -95,7 +95,12 @@ export class HandleSubscriptionUpdatedUseCase {
     if (!priceId) return undefined;
     const shortlisted = this.config.get<string>('STRIPE_SHORTLISTED_PRICE_ID');
     const hired = this.config.get<string>('STRIPE_HIRED_PRICE_ID');
-    if (priceId === hired) return SubscriptionPlan.hired;
+    const founder = this.config.get<string>('STRIPE_FOUNDER_PRICE_ID');
+    // Founder is a discounted Hired price — it resolves to the hired plan so
+    // renewals keep granting hired-tier access.
+    if (priceId === hired || (founder && priceId === founder)) {
+      return SubscriptionPlan.hired;
+    }
     if (priceId === shortlisted) return SubscriptionPlan.shortlisted;
     return undefined;
   }

@@ -11,6 +11,7 @@ import { FadeInSection } from "../../components/FadeInSection";
 import { BlueprintBackdrop } from "../../components/BlueprintBackdrop";
 import { GithubIcon, LinkedinIcon } from "../../components/SocialIcons";
 import { useLanguage } from "../../../context/language";
+import { useFounderAvailability } from "../../../lib/queries";
 import {
   JsonLd,
   softwareApplicationSchema,
@@ -19,13 +20,14 @@ import {
 
 /* ─── Layout constants ───────────────────────────────────────────────── */
 const WRAP: React.CSSProperties = { maxWidth: 1240, margin: "0 auto", padding: "0 32px" };
-const NUM: React.CSSProperties = {
-  fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.16em",
-  textTransform: "uppercase", color: "var(--rc-border)",
-  borderTop: "1px solid var(--rc-border)", paddingTop: 10,
-};
 const IT: React.CSSProperties = {
   fontWeight: 700, color: "#C0392B", fontStyle: "normal",
+};
+// Subtle emphasis for a phrase inside muted body copy: lifted color + faint brand underline.
+const EMPH: React.CSSProperties = {
+  color: "var(--rc-text)", fontWeight: 500,
+  textDecoration: "underline", textDecorationColor: "var(--rc-red-border)",
+  textDecorationThickness: "1.5px", textUnderlineOffset: "3px",
 };
 
 /* ─── Inline SVG icons ───────────────────────────────────────────────── */
@@ -94,9 +96,9 @@ const SEV_COLOR: Record<Severity, string> = {
 const HERO_DIVERGENCES: {
   sev: Severity; field: string; sources: [string, string]; date: string; subject: string; perception: string;
 }[] = [
-  { sev: "critical", field: "seniority", sources: ["CV", "LinkedIn"], date: "Sep 2022", subject: "“Senior” on CV, “Backend Engineer” on LinkedIn — same Acme role", perception: "Title inflation — I’d verify the real level in a screening call." },
+  { sev: "critical", field: "seniority", sources: ["CV", "LinkedIn"], date: "Sep 2022", subject: "“Senior” on CV, “Backend Engineer” on LinkedIn (same Acme role)", perception: "Title inflation: I’d verify the real level in a screening call." },
   { sev: "major", field: "ownership", sources: ["CV", "GitHub"], date: "Mar 2023", subject: "“Led the payments rewrite (solo)” vs 14 contributors on the repo", perception: "Overstated ownership; the contribution graph says otherwise." },
-  { sev: "minor", field: "dates", sources: ["CV", "LinkedIn"], date: "Feb 2021", subject: "DataCorp dates differ by ~4 months across CV and LinkedIn", perception: "Small mismatch — tidy it up so nothing reads as sloppy." },
+  { sev: "minor", field: "dates", sources: ["CV", "LinkedIn"], date: "Feb 2021", subject: "DataCorp dates differ by ~4 months across CV and LinkedIn", perception: "Small mismatch. Tidy it up so nothing reads as sloppy." },
 ];
 
 const HERO_ATS_MISSING = [
@@ -109,16 +111,16 @@ const HERO_PROJECT = {
   level: "Intermediate",
   time: "~2 weekends",
   name: "Rate-limited Payments API",
-  pitch: "A production-grade payments gateway with idempotency keys, distributed rate limiting and full observability — the exact distributed-systems signal your target roles keep asking for.",
+  pitch: "A production-grade payments gateway with idempotency keys, distributed rate limiting and full observability: the exact distributed-systems signal your target roles keep asking for.",
   tech: ["Go", "Redis", "gRPC", "Kubernetes"],
   proves: ["Distributed systems", "Service ownership"],
   bullet: "Built a rate-limited payments API handling 40k req/s at 99.9% uptime, with idempotent retries and Prometheus SLOs.",
 };
 
 const HERO_FINDINGS: { sev: string; color: string; text: React.ReactNode }[] = [
-  { sev: "Critical", color: "var(--rc-red)",   text: <>No <b>distributed-systems ownership</b> — required in 4 of 5 similar postings.</> },
+  { sev: "Critical", color: "var(--rc-red)",   text: <>No <b>distributed-systems ownership</b>. Required in 4 of 5 similar postings.</> },
   { sev: "Major",    color: "var(--rc-amber)", text: "8-month gap (2021–22) isn’t addressed anywhere on the CV." },
-  { sev: "Good",     color: "var(--rc-green)", text: "Strong open-source track record — 12 repos, 400+ stars. Keep it featured." },
+  { sev: "Good",     color: "var(--rc-green)", text: "Strong open-source track record: 12 repos, 400+ stars. Keep it featured." },
 ];
 
 /* — Section heading — */
@@ -289,8 +291,8 @@ const TL = {
       { title: "Backend · DataCorp", s: 2020.5, e: 2021.95 },
       { title: "Backend Eng · Acme", s: 2022.0, e: 2026.5 },
     ]},
-    { src: "github" as const, label: "GitHub", bars: [
-      { title: "payments-rewrite", s: 2022.9, e: 2023.6 },
+    { src: "portfolio" as const, label: "Portfolio", bars: [
+      { title: "Payments API · case study", s: 2022.9, e: 2023.6 },
     ]},
   ],
   markers: [
@@ -318,7 +320,7 @@ function HeroTimeline() {
         </div>
       </div>
       <div style={{ display: "flex" }}>
-        <div style={{ width: 58, flexShrink: 0, paddingTop: CONFLICT_H }}>
+        <div style={{ width: 72, flexShrink: 0, paddingTop: CONFLICT_H }}>
           {TL.lanes.map((l) => (
             <div key={l.src} style={{ height: LANE_H, display: "flex", alignItems: "center", paddingLeft: 10, fontFamily: "var(--font-mono)", fontSize: 8.5, textTransform: "uppercase", letterSpacing: "0.1em", color: SRC_COLOR[l.src], fontWeight: 700 }}>
               {l.label}
@@ -401,7 +403,7 @@ function HeroNegotiation() {
         ))}
       </div>
       <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.45, margin: "10px 0 0" }}>
-        <b style={{ color: "var(--rc-green)" }}>↑ €11k above market.</b> Their offer tops out at €76k — <b style={{ color: "var(--rc-text)" }}>anchor at €92k</b>.
+        <b style={{ color: "var(--rc-green)" }}>↑ €11k above market.</b> Their offer tops out at €76k. <b style={{ color: "var(--rc-text)" }}>Anchor at €92k</b>.
       </p>
       <div style={{ display: "flex", gap: 8, alignItems: "start", marginTop: 10, padding: "9px 11px", border: "1px solid var(--rc-border)", borderRadius: 6, background: "var(--rc-surface)" }}>
         <span style={{ marginTop: 4, width: 6, height: 6, borderRadius: 99, background: "var(--rc-green)", flexShrink: 0 }} />
@@ -410,7 +412,7 @@ function HeroNegotiation() {
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--rc-green)" }}>High leverage</span>
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, padding: "1px 6px", borderRadius: 99, color: "var(--rc-green)", background: "var(--rc-green-bg)" }}>+€8k</span>
           </div>
-          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-text)", margin: "3px 0 0", lineHeight: 1.4 }}>7 yrs distributed systems vs 5 required — “led monolith → 12 microservices at 40k req/s”.</p>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-text)", margin: "3px 0 0", lineHeight: 1.4 }}>7 yrs distributed systems vs 5 required: “led monolith → 12 microservices at 40k req/s”.</p>
         </div>
       </div>
     </div>
@@ -634,7 +636,7 @@ function HeroAnalysisScreen() {
               score={72}
               langs={HERO_GH_LANGS}
               strengths={["12 public repos · 400+ combined stars", "3-year commit streak, no gaps"]}
-              issue={{ sev: "major", text: "Top repos ship no README — recruiters can’t gauge impact." }}
+              issue={{ sev: "major", text: "Top repos ship no README. Recruiters can’t gauge impact." }}
             />
 
             {/* LinkedIn report */}
@@ -647,7 +649,7 @@ function HeroAnalysisScreen() {
                 "Recommendations from 2 senior engineers",
                 "Skills section endorsed 40+ times",
               ]}
-              issue={{ sev: "major", text: "Title reads “Backend Engineer” — one band below the CV." }}
+              issue={{ sev: "major", text: "Title reads “Backend Engineer” (one band below the CV)." }}
             />
 
             {/* Portfolio report */}
@@ -659,7 +661,7 @@ function HeroAnalysisScreen() {
                 "Live demo + write-up for 2 flagship projects",
                 "Fast, clean, mobile-friendly build",
               ]}
-              issue={{ sev: "minor", text: "Case studies quote no metrics — impact is hard to gauge." }}
+              issue={{ sev: "minor", text: "Case studies quote no metrics. Impact is hard to gauge." }}
             />
 
             {/* Cross-profile consistency */}
@@ -698,7 +700,7 @@ function HeroAnalysisScreen() {
             </div>
 
             {/* Salary & negotiation */}
-            <HeroHeading sub="Where you sit vs the market — and vs their offer">Salary &amp; negotiation</HeroHeading>
+            <HeroHeading sub="Where you sit vs the market, and vs their offer">Salary &amp; negotiation</HeroHeading>
             <HeroNegotiation />
 
             {/* Bridge the gap — recommended portfolio project */}
@@ -796,6 +798,7 @@ function HeroAnalysisScreen() {
 /* ─── Landing page ───────────────────────────────────────────────────── */
 export default function Home() {
   const { t, locale, localePath } = useLanguage();
+  const { data: founder } = useFounderAvailability();
 
   /* hero upload widget */
   const router = useRouter();
@@ -916,8 +919,11 @@ export default function Home() {
                 {t.landing.s01.h1Part1} <em style={IT}>{t.landing.s01.h1Italic}</em><br />
                 {t.landing.s01.h1Part2} <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: 400, color: "var(--rc-hint)" }}>{t.landing.s01.h1Faded}</span>
               </h1>
-              <p style={{ fontFamily: "var(--font-sans)", fontSize: 17, lineHeight: 1.6, color: "var(--rc-muted)", maxWidth: 480, margin: "0 0 26px" }}>
-                {t.landing.s01.subtitle}
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 17, lineHeight: 1.5, color: "var(--rc-muted)", maxWidth: 480, margin: "0 0 26px", display: "flex", flexDirection: "column", gap: "0.5em" }}>
+                <span>{t.landing.s01.subtitleLine1}</span>
+                <span>{t.landing.s01.subtitleLine2}</span>
+                <span>{t.landing.s01.subtitleLine3}</span>
+                <span>{t.landing.s01.subtitleLine4}<span style={EMPH}>{t.landing.s01.subtitleEmphasis}</span>.</span>
               </p>
               <Link
                 href={localePath("/analyze")}
@@ -933,6 +939,26 @@ export default function Home() {
               >
                 {t.landing.s01.dropCta}
               </Link>
+              {/* Founder scarcity encart — shown only while the deal is live and
+                  has seats left; links to the pricing page for the full offer.
+                  Wrapped in a block so it drops below the inline-flex CTA. */}
+              {founder?.enabled && !founder.soldOut && (
+                <div style={{ marginTop: -16, marginBottom: 30 }}>
+                  <Link
+                    href={localePath("/pricing")}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 8,
+                      fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.04em",
+                      color: "#A93226", textDecoration: "none",
+                      padding: "7px 13px", borderRadius: 999,
+                      border: "1px solid var(--rc-red-border)", background: "#fbf1f0",
+                    }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--rc-red)", flexShrink: 0, boxShadow: "0 0 0 3px rgba(192,57,43,0.15)" }} />
+                    <span><b style={{ fontWeight: 700 }}>{founder.remaining}/{founder.cap}</b> {t.landing.s01.founderSeatsLabel} · Hired 19.99€</span>
+                  </Link>
+                </div>
+              )}
               <div style={{ display: "flex", gap: 24, alignItems: "center", fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.06em", color: "var(--rc-hint)" }}>
                 <span><b style={{ color: "var(--rc-text)", fontWeight: 600 }}>{t.landing.s01.stat1Value}</b> {t.landing.s01.stat1Label}</span>
                 <span style={{ width: 1, height: 12, background: "var(--rc-border)" }} />
@@ -1069,9 +1095,7 @@ export default function Home() {
         <div style={WRAP}>
           {/* Section head */}
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
-            <div style={NUM}>
-              § 02<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s02.smallLabel}</small>
-            </div>
+            <div aria-hidden />
             <h2 style={{
               fontFamily: "var(--font-sans)", fontWeight: 500,
               fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05,
@@ -1105,9 +1129,7 @@ export default function Home() {
         <div style={{ ...WRAP, position: "relative" }}>
           {/* Section head — 3 cols */}
           <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr", gap: 32, alignItems: "end", marginBottom: 48 }}>
-            <div style={NUM}>
-              § 03<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s03.smallLabel}</small>
-            </div>
+            <div aria-hidden />
             <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0 }}>
               {t.landing.s03.h2Part1} <em style={IT}>{t.landing.s03.h2Italic}</em>
             </h2>
@@ -1142,25 +1164,40 @@ export default function Home() {
 
             {/* Browser body */}
             <div className="rc-mstack-lg" style={{ padding: "48px 56px", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 56 }}>
-              {/* Left */}
+              {/* Left — the briefing itself. The score is demoted to a small
+                  verdict chip so the actionable document leads, not the number. */}
               <div>
-                <h3 style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "0 0 12px", fontWeight: 700 }}>Candidate</h3>
-                <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 22, letterSpacing: "-0.015em", margin: 0 }}>Sarah K.</p>
-                <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.1em", color: "var(--rc-hint)", marginTop: 4 }}>Senior Backend Engineer · Stripe</p>
-                <div style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 144, lineHeight: 0.85, letterSpacing: "-0.06em", color: "var(--rc-red)", margin: "28px 0 6px", display: "flex", alignItems: "baseline", gap: 2, fontVariantNumeric: "tabular-nums" }}>
-                  <span>74</span><span style={{ fontSize: 56, opacity: 0.5, marginLeft: 12 }}>%</span>
-                </div>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 28 }}>High risk · rejection likely</div>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "12px 16px", background: "rgba(192,57,43,0.06)",
-                  border: "1px solid rgba(192,57,43,0.18)", borderRadius: 4, marginBottom: 24,
-                }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 30 }}>
                   <div>
-                    <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 13, color: "var(--rc-red)", margin: 0 }}>{t.landing.s03.topFixTitle}</p>
-                    <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.45, margin: "4px 0 0" }}>
-                      {t.landing.s03.topFixBody}
-                    </p>
+                    <h3 style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "0 0 12px", fontWeight: 700 }}>{t.landing.s03.preparedFor}</h3>
+                    <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 20, letterSpacing: "-0.015em", margin: 0 }}>Sarah K.</p>
+                    <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, letterSpacing: "0.08em", color: "var(--rc-hint)", marginTop: 4 }}>Senior Backend Engineer · Stripe</p>
+                  </div>
+                  {/* Verdict chip — honest number, demoted */}
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 9, padding: "7px 13px", border: "1px solid rgba(192,57,43,0.22)", background: "rgba(192,57,43,0.06)", borderRadius: 999, flexShrink: 0 }}>
+                    <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 15, color: "var(--rc-red)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>74%</span>
+                    <span style={{ width: 1, height: 11, background: "rgba(192,57,43,0.3)" }} />
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700 }}>{t.landing.s03.verdict}</span>
+                  </div>
+                </div>
+
+                {/* Priority fix — the centerpiece */}
+                <div style={{ borderLeft: "2px solid var(--rc-red)", paddingLeft: 18, marginBottom: 28 }}>
+                  <h4 style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-red)", margin: "0 0 9px", fontWeight: 700 }}>{t.landing.s03.priorityFixLabel}</h4>
+                  <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 17, letterSpacing: "-0.01em", color: "var(--rc-text)", margin: "0 0 7px", lineHeight: 1.3 }}>{t.landing.s03.topFixTitle}</p>
+                  <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-muted)", lineHeight: 1.55, margin: 0 }}>{t.landing.s03.topFixBody}</p>
+                </div>
+
+                {/* Briefing contents — signals a multi-section document */}
+                <div>
+                  <h4 style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", margin: "0 0 13px", fontWeight: 700 }}>{t.landing.s03.contentsLabel}</h4>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {t.landing.s03.contents.map((c) => (
+                      <span key={c} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-muted)", padding: "5px 11px", border: "1px solid var(--rc-border)", borderRadius: 999, background: "var(--rc-surface)" }}>
+                        <IconCheck size={11} />
+                        {c}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -1190,9 +1227,7 @@ export default function Home() {
         <div style={WRAP}>
           {/* Section head */}
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
-            <div style={NUM}>
-              § 04<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s04.smallLabel}</small>
-            </div>
+            <div aria-hidden />
             <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 760 }}>
               {t.landing.s04.h2Part1} <em style={IT}>{t.landing.s04.h2Italic}</em>
             </h2>
@@ -1242,9 +1277,7 @@ export default function Home() {
         <div style={WRAP}>
           {/* Section head */}
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
-            <div style={NUM}>
-              § 05<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s05.smallLabel}</small>
-            </div>
+            <div aria-hidden />
             <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0 }}>
               {t.landing.s05.h2Part1} <em style={IT}>{t.landing.s05.h2Italic}</em>
             </h2>
@@ -1314,9 +1347,7 @@ export default function Home() {
         <div style={WRAP}>
           {/* Section head */}
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
-            <div style={NUM}>
-              § 06<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s06.smallLabel}</small>
-            </div>
+            <div aria-hidden />
             <div>
               <h2 style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 700 }}>
                 {t.pricing.title} <em style={IT}>{t.pricing.titleHighlight}</em>
@@ -1429,7 +1460,7 @@ export default function Home() {
         <div style={WRAP}>
           {/* Section head */}
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 48 }}>
-            <div style={NUM}>§ 07</div>
+            <div aria-hidden />
             <div>
               <h2 style={{
                 fontFamily: "var(--font-sans)", fontWeight: 500,
@@ -1463,9 +1494,7 @@ export default function Home() {
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "140px 0 120px" }}>
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px" }}>
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32 }}>
-            <div style={NUM}>
-              § 08<small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 4, textTransform: "none", letterSpacing: 0, fontFamily: "var(--font-sans)" }}>{t.landing.s07.smallLabel}</small>
-            </div>
+            <div aria-hidden />
             <div>
               <p style={{
                 fontWeight: 700,

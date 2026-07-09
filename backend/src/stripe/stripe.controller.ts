@@ -16,6 +16,7 @@ import { OptionalSupabaseGuard } from '../auth/optional-supabase.guard';
 import { AuthEmail } from '../auth/auth-email.decorator';
 import { OptionalAuthEmail } from '../auth/optional-auth.decorator';
 import { CreateCheckoutSessionUseCase } from './application/create-checkout-session.use-case';
+import { GetFounderAvailabilityUseCase } from './application/get-founder-availability.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
 import { CreatePortalSessionUseCase } from './application/create-portal-session.use-case';
@@ -27,6 +28,7 @@ import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
 export class StripeController {
   constructor(
     private readonly createCheckout: CreateCheckoutSessionUseCase,
+    private readonly founderAvailability: GetFounderAvailabilityUseCase,
     private readonly createCreditsCheckout: CreateCreditsCheckoutSessionUseCase,
     private readonly createAnalysisUnlockCheckout: CreateAnalysisUnlockCheckoutSessionUseCase,
     private readonly createPortal: CreatePortalSessionUseCase,
@@ -48,7 +50,7 @@ export class StripeController {
   @Post('checkout')
   async createCheckoutSession(
     @OptionalAuthEmail() authedEmail: string | undefined,
-    @Body() body: { plan: 'shortlisted' | 'hired'; email?: string },
+    @Body() body: { plan: 'shortlisted' | 'hired' | 'founder'; email?: string },
   ) {
     if (authedEmail && (await this.checkSubscription.isPremium(authedEmail))) {
       return this.createPortal.execute({ email: authedEmail });
@@ -57,6 +59,15 @@ export class StripeController {
       plan: body.plan,
       customerEmail: authedEmail ?? body.email,
     });
+  }
+
+  /**
+   * Public — how many capped founder seats remain, for the pricing page's
+   * scarcity counter. Anonymous (no subscription data leaked, just a count).
+   */
+  @Get('founder-availability')
+  async getFounderAvailability() {
+    return this.founderAvailability.execute();
   }
 
   /**

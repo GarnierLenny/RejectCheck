@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth";
 import { AuthNavLink } from "../../../components/AuthNavLink";
-import { useSubscription } from "../../../../lib/queries";
+import { useSubscription, useFounderAvailability } from "../../../../lib/queries";
 import { useCreateCheckout } from "../../../../lib/mutations";
 import { useLanguage } from "../../../../context/language";
 import { Check, ShieldCheck, Zap, Star, Trophy, ArrowRight } from "lucide-react";
@@ -18,9 +18,10 @@ function PricingContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { t, localePath } = useLanguage();
-  const [loadingPlan, setLoadingPlan] = useState<'shortlisted' | 'hired' | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<'shortlisted' | 'hired' | 'founder' | null>(null);
 
   const { data: subscription } = useSubscription();
+  const { data: founder } = useFounderAvailability();
   const createCheckout = useCreateCheckout();
 
   const activePlan = subscription?.status === 'active' ? subscription.plan : null;
@@ -73,7 +74,7 @@ function PricingContent() {
     }
   }, [searchParams]);
 
-  async function handlePaidPlan(plan: 'shortlisted' | 'hired') {
+  async function handlePaidPlan(plan: 'shortlisted' | 'hired' | 'founder') {
     if (!user) {
       router.push(localePath('/login?redirect=/pricing'));
       return;
@@ -87,6 +88,10 @@ function PricingContent() {
       const data = await createCheckout.mutateAsync({ plan, email: user.email });
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.soldOut) {
+        // Founder deal ran out between page load and click.
+        toast.error(t.pricing.founder.soldOut);
+        setLoadingPlan(null);
       } else {
         toast.error("Failed to get checkout URL. Please try again.");
         setLoadingPlan(null);
@@ -134,6 +139,69 @@ function PricingContent() {
             {t.pricing.subtitle} <br className="hidden md:block" /> {t.pricing.subtitleLine2}
           </p>
         </div>
+
+        {/* ═══ Founder deal ═══ Discounted Hired for the first 100 members.
+            Shown only when the deal is configured (STRIPE_FOUNDER_PRICE_ID set)
+            and the visitor isn't already on a paid plan. */}
+        {founder?.enabled && !activePlan && (
+          <div className="mb-8 relative overflow-hidden rounded-[24px] border border-rc-red/20 bg-gradient-to-br from-rc-red/[0.07] via-rc-red/[0.03] to-transparent p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="space-y-2.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/10 border border-rc-red/20">
+                  <Star className="w-3.5 h-3.5 text-rc-red" fill="currentColor" />
+                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">
+                    {t.pricing.founder.badge}
+                  </span>
+                </div>
+                <h2 className="text-[24px] md:text-[30px] font-black tracking-tight text-rc-text leading-tight">
+                  {t.pricing.founder.title}
+                </h2>
+                {/* Founder price: the real Hired price (39.99€) struck through
+                    next to the locked-in 19.99€. Prices mirror the cards below. */}
+                <div className="flex items-baseline gap-2.5">
+                  <span className="text-[20px] font-bold text-rc-hint line-through decoration-rc-red/50 decoration-2">
+                    39.99€
+                  </span>
+                  <span className="text-[34px] md:text-[40px] font-black tracking-tight text-rc-text leading-none">
+                    19.99€
+                  </span>
+                  <span className="font-mono text-[12px] tracking-wide text-rc-muted">
+                    {t.pricing.founder.priceNote}
+                  </span>
+                </div>
+                <p className="text-sm text-rc-muted font-medium max-w-[520px] leading-relaxed">
+                  {t.pricing.founder.subtitle}
+                </p>
+              </div>
+
+              <div className="flex flex-col items-stretch gap-3 shrink-0 md:w-[240px]">
+                {!founder.soldOut && (
+                  <div className="space-y-2">
+                    <span className="block font-mono text-[11px] tracking-widest uppercase text-rc-red text-center md:text-right">
+                      {t.pricing.founder.seatsLeft.replace('{remaining}', String(founder.remaining))}
+                    </span>
+                    <div className="h-1.5 w-full rounded-full bg-rc-border/60 overflow-hidden">
+                      <div
+                        className="h-full bg-rc-red rounded-full transition-all"
+                        style={{ width: `${Math.min(100, (founder.taken / founder.cap) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => handlePaidPlan('founder')}
+                  disabled={founder.soldOut || loadingPlan !== null}
+                  className="relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase transition-all duration-300 font-bold cursor-pointer bg-rc-red text-white shadow-lg shadow-rc-red/25 hover:shadow-rc-red/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {founder.soldOut ? t.pricing.founder.soldOut
+                    : loadingPlan === 'founder'
+                      ? t.common.processing
+                      : t.pricing.founder.cta}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Pricing Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative items-stretch">
