@@ -74,6 +74,7 @@ function toQuotaPlan(legacyPlan: 'rejected' | 'shortlisted' | 'hired'): Plan {
 
 export type AnalyzeCvCommand = {
   cvBuffer?: Buffer;
+  cvMimeType?: string;
   jobDescription: string;
   jobLabel?: string;
   linkedinBuffer?: Buffer;
@@ -186,10 +187,9 @@ export class AnalyzeCvUseCase {
     const jobText = cmd.jobDescription.trim().slice(0, 8000);
 
     const parseStart = Date.now();
-    const [cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, motivationLetterText, githubSnapshot] =
+    const [cvSource, linkedinText, linkedinTextFormatted, motivationLetterText, githubSnapshot] =
       await Promise.all([
-        this.pdf.parse(cmd.cvBuffer),
-        this.pdf.parseFormatted(cmd.cvBuffer),
+        this.extractCvSource(cmd.cvBuffer, cmd.cvMimeType),
         this.tryParse(cmd.linkedinBuffer),
         this.tryParseFormatted(cmd.linkedinBuffer),
         this.resolveMotivationLetter(
@@ -200,6 +200,8 @@ export class AnalyzeCvUseCase {
           ? this.github.fetchProfile(cmd.githubUsername)
           : Promise.resolve(null),
       ]);
+    const cvText = cvSource.text;
+    const cvTextFormatted = cvSource.formatted;
     timings.parse_inputs_ms = Date.now() - parseStart;
 
     // Minimum-evidence gate: a real CV yields hundreds of chars of extracted
@@ -208,7 +210,7 @@ export class AnalyzeCvUseCase {
     // score + ATS verdict + red flags on no input. Also saves the LLM spend.
     if (cvText.trim().length < MIN_CV_TEXT_CHARS) {
       throw new BadRequestException(
-        "We couldn't read enough text from your CV. It may be an image or scanned PDF — please upload a text-based PDF.",
+        "We couldn't read enough text from your CV. It may be an image or scanned PDF. Please upload a text-based PDF.",
       );
     }
 
@@ -243,9 +245,16 @@ export class AnalyzeCvUseCase {
     // provider as before. The digest contains a synthesized version of CV +
     // LinkedIn + GitHub + portfolio and unlocks cross-profile mismatch
     // detection in the analysis output.
+    // Profile digest (cross-source synthesis powering the Consistency + Timeline
+    // views) is behind a flag, OFF by default. When disabled the analysis runs
+    // on the raw CV / LinkedIn / GitHub sources directly, with no cross-profile
+    // enrichment. See PROFILE_DIGEST_ENABLED.
+    const digestEnabled =
+      this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
+
     const digestStart = Date.now();
     let digest: ProfileDigest | null = null;
-    if (cmd.email && cmd.isRegistered) {
+    if (digestEnabled && cmd.email && cmd.isRegistered) {
       digest = await this.resolveDigest({
         email: cmd.email,
         cvBuffer: cmd.cvBuffer,
@@ -466,6 +475,42 @@ export class AnalyzeCvUseCase {
       plan: isHired ? 'hired' : 'shortlisted',
       hasActiveSubscription: true,
     };
+  }
+
+  /**
+   * Resolve the CV's text + formatted text from the upload, transparently
+   * handling image-based sources via Claude vision OCR:
+   *  - image/* upload → OCR directly (pdf-parse can't read it).
+   *  - PDF → pdf-parse; if it yields too little text (image-based / scanned
+   *    PDF, e.g. a screenshot exported to PDF), fall back to OCR.
+   * The min-evidence gate in execute() still rejects the result if even OCR
+   * comes back near-empty.
+   */
+  private async extractCvSource(
+    buffer: Buffer,
+    mimeType?: string,
+  ): Promise<{ text: string; formatted: string }> {
+    if ((mimeType ?? '').startsWith('image/')) {
+      const text = await this.claude
+        .transcribeDocument({ buffer, mediaType: mimeType as string })
+        .catch(() => '');
+      return { text, formatted: text };
+    }
+
+    const [text, formatted] = await Promise.all([
+      this.pdf.parse(buffer).catch(() => ''),
+      this.pdf.parseFormatted(buffer).catch(() => ''),
+    ]);
+
+    if (text.trim().length < MIN_CV_TEXT_CHARS) {
+      const ocr = await this.claude
+        .transcribeDocument({ buffer, mediaType: 'application/pdf' })
+        .catch(() => '');
+      if (ocr.trim().length > text.trim().length) {
+        return { text: ocr, formatted: ocr };
+      }
+    }
+    return { text, formatted };
   }
 
   private async tryParse(buffer?: Buffer): Promise<string> {

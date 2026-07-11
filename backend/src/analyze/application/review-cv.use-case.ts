@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
 import { createHash } from 'crypto';
 import {
@@ -37,8 +38,20 @@ function toQuotaPlan(legacyPlan: 'rejected' | 'shortlisted' | 'hired'): Plan {
   return legacyPlan === 'rejected' ? 'free' : legacyPlan;
 }
 
+/**
+ * Below this many characters of extracted CV text, the upload is almost
+ * certainly an image-only / scanned / corrupt PDF rather than a real CV.
+ * Mirrors the identical gate in AnalyzeCvUseCase. Without it, an unreadable
+ * PDF (e.g. a screenshot exported to PDF, which parses to a bare page marker
+ * like "-- 1 of 1 --") would sail through and the review would be synthesised
+ * entirely from the profile digest — i.e. an audit of the logged-in user's own
+ * profile rather than the uploaded document.
+ */
+const MIN_CV_TEXT_CHARS = 200;
+
 export type ReviewCvCommand = {
   cvBuffer?: Buffer;
+  cvMimeType?: string;
   linkedinBuffer?: Buffer;
   githubUsername?: string;
   email?: string;
@@ -82,6 +95,7 @@ export class ReviewCvUseCase {
     @Inject(PORTFOLIO_SCRAPER)
     private readonly portfolioScraper: PortfolioScraper,
     private readonly generateDigestUc: GenerateProfileDigestUseCase,
+    private readonly config: ConfigService,
   ) {}
 
   async execute(
@@ -103,15 +117,26 @@ export class ReviewCvUseCase {
     emitStep('parsing_cv');
     if (cmd.githubUsername) emitStep('analyzing_github');
 
-    const [cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubSnapshot] = await Promise.all([
-      this.pdf.parse(cmd.cvBuffer),
-      this.pdf.parseFormatted(cmd.cvBuffer),
+    const [cvSource, linkedinText, linkedinTextFormatted, githubSnapshot] = await Promise.all([
+      this.extractCvSource(cmd.cvBuffer, cmd.cvMimeType),
       this.tryParse(cmd.linkedinBuffer),
       this.tryParseFormatted(cmd.linkedinBuffer),
       cmd.githubUsername
         ? this.github.fetchProfile(cmd.githubUsername).catch(() => null)
         : Promise.resolve(null),
     ]);
+    const cvText = cvSource.text;
+    const cvTextFormatted = cvSource.formatted;
+
+    // Minimum-evidence gate: a real CV yields hundreds of chars of extracted
+    // text. Near-empty output means an image-only / scanned / corrupt PDF — we
+    // refuse rather than let the model audit a profile with no CV to anchor on
+    // (which would otherwise fall back entirely to the profile digest).
+    if (cvText.trim().length < MIN_CV_TEXT_CHARS) {
+      throw new BadRequestException(
+        "We couldn't read enough text from your CV. It may be an image or scanned PDF. Please upload a text-based PDF.",
+      );
+    }
 
     const githubInfo = githubSnapshot
       ? JSON.stringify(githubSnapshot, null, 2)
@@ -130,8 +155,15 @@ export class ReviewCvUseCase {
           .catch(() => '')
       : '';
 
+    // Profile digest (cross-source synthesis powering the Consistency + Timeline
+    // views) is behind a flag, OFF by default. When disabled the review runs on
+    // the uploaded CV + GitHub + LinkedIn directly, with no cross-profile
+    // enrichment. See PROFILE_DIGEST_ENABLED.
+    const digestEnabled =
+      this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
+
     let digest: ProfileDigest | null = null;
-    if (cmd.email && cmd.isRegistered) {
+    if (digestEnabled && cmd.email && cmd.isRegistered) {
       digest = await this.resolveDigest({
         email: cmd.email,
         cvBuffer: cmd.cvBuffer,
@@ -218,6 +250,42 @@ export class ReviewCvUseCase {
       plan: isHired ? 'hired' : 'shortlisted',
       hasActiveSubscription: true,
     };
+  }
+
+  /**
+   * Resolve the CV's text + formatted text from the upload, transparently
+   * handling image-based sources via Claude vision OCR:
+   *  - image/* upload → OCR directly (pdf-parse can't read it).
+   *  - PDF → pdf-parse; if it yields too little text (image-based / scanned
+   *    PDF, e.g. a screenshot exported to PDF), fall back to OCR.
+   * The min-evidence gate in execute() still rejects the result if even OCR
+   * comes back near-empty.
+   */
+  private async extractCvSource(
+    buffer: Buffer,
+    mimeType?: string,
+  ): Promise<{ text: string; formatted: string }> {
+    if ((mimeType ?? '').startsWith('image/')) {
+      const text = await this.claude
+        .transcribeDocument({ buffer, mediaType: mimeType as string })
+        .catch(() => '');
+      return { text, formatted: text };
+    }
+
+    const [text, formatted] = await Promise.all([
+      this.pdf.parse(buffer).catch(() => ''),
+      this.pdf.parseFormatted(buffer).catch(() => ''),
+    ]);
+
+    if (text.trim().length < MIN_CV_TEXT_CHARS) {
+      const ocr = await this.claude
+        .transcribeDocument({ buffer, mediaType: 'application/pdf' })
+        .catch(() => '');
+      if (ocr.trim().length > text.trim().length) {
+        return { text: ocr, formatted: ocr };
+      }
+    }
+    return { text, formatted };
   }
 
   private async tryParse(buffer?: Buffer): Promise<string> {

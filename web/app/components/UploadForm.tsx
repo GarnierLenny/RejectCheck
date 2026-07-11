@@ -409,7 +409,7 @@ export function UploadForm({
                     </div>
                   )}
                 </div>
-                <input type="file" ref={fileRef} accept=".pdf" className="hidden"
+                <input type="file" ref={fileRef} accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" className="hidden"
                   onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
 
                 {/* Signals chips */}

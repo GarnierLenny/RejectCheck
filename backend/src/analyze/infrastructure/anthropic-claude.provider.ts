@@ -77,6 +77,9 @@ const MODEL = 'claude-sonnet-4-6';
 const HOT_MODEL = MODEL;
 const DIGEST_MODEL = 'claude-haiku-4-5-20251001';
 
+/** Cap on OCR-transcribed text, mirroring the pdf-parse MAX_TEXT_CHARS. */
+const TRANSCRIBE_MAX_CHARS = 12000;
+
 /**
  * Fence untrusted, user-supplied text (CV, scraped portfolio, LinkedIn export)
  * so the model treats it strictly as data. Any attempt by the content to close
@@ -168,6 +171,69 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
       apiKey: this.config.get<string>('ANTHROPIC_API_KEY'),
       maxRetries: 3,
       timeout: 10 * 60 * 1000,
+    });
+  }
+
+  /**
+   * OCR fallback via Claude's native vision. Used when `pdf-parse` extracts too
+   * little text (image-based / scanned PDF) or when the user uploads an image
+   * directly. Sends the raw document to Haiku as a document/image block and
+   * asks for a verbatim transcription. Cheap (Haiku, one short call) and only
+   * ever hit on the slow path — text PDFs never reach here.
+   */
+  async transcribeDocument(input: {
+    buffer: Buffer;
+    mediaType: string;
+  }): Promise<string> {
+    return this.withSentry('transcribe_document', async () => {
+      const base64 = input.buffer.toString('base64');
+      const isPdf = input.mediaType === 'application/pdf';
+
+      const documentBlock = isPdf
+        ? {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: base64,
+            },
+          }
+        : {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: input.mediaType,
+              data: base64,
+            },
+          };
+
+      const message = await this.anthropic.messages.create({
+        model: DIGEST_MODEL,
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            // The document/image block MUST precede the text instruction.
+            content: [
+              documentBlock,
+              {
+                type: 'text',
+                text: 'You are an OCR engine. Transcribe ALL text from this document (a CV / resume) verbatim, preserving reading order and line breaks. Output ONLY the raw transcribed text — no commentary, no headers, no markdown.',
+              },
+            ],
+          },
+        ] as unknown as Anthropic.MessageParam[],
+      });
+
+      this.logCacheUsage('transcribe_document', message.usage);
+
+      const text = message.content
+        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+        .map((b) => b.text)
+        .join('\n')
+        .trim();
+
+      return text.slice(0, TRANSCRIBE_MAX_CHARS);
     });
   }
 

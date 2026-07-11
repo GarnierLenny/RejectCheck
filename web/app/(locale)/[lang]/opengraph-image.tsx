@@ -1,7 +1,7 @@
 import { hasLocale } from './dictionaries'
 import { ogAlt, ogContentType, ogSize, renderOgImage } from '../../og-render'
 
-export const alt = 'RejectCheck - CV rejection diagnosis'
+export const alt = ogAlt('en')
 export const size = ogSize
 export const contentType = ogContentType
 

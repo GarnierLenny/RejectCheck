@@ -90,10 +90,22 @@ type SseResponse = {
 };
 
 /**
+ * Accepted upload MIME types. PDFs are text-extracted by pdf-parse; images (and
+ * image-based PDFs that parse to nothing) fall back to Claude vision OCR. See
+ * the CV-source extraction in the analyze / review use-cases.
+ */
+const ALLOWED_UPLOAD_MIMETYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
+
+/**
  * Shared upload guardrails for the public analyze endpoints: cap each file at
- * 10 MB and at most 3 files, and reject anything that isn't a PDF before it
- * reaches pdf-parse / Claude. Prevents memory exhaustion and cost-bleed from
- * oversized or junk uploads on the unauthenticated path.
+ * 10 MB and at most 3 files, and reject anything that isn't a PDF or supported
+ * image before it reaches pdf-parse / Claude. Prevents memory exhaustion and
+ * cost-bleed from oversized or junk uploads on the unauthenticated path.
  */
 const PDF_UPLOAD_OPTIONS = {
   limits: { fileSize: 10 * 1024 * 1024, files: 3 },
@@ -102,8 +114,13 @@ const PDF_UPLOAD_OPTIONS = {
     file: Express.Multer.File,
     cb: FileFilterCallback,
   ) => {
-    if (file.mimetype === 'application/pdf') cb(null, true);
-    else cb(new BadRequestException('Only PDF files are accepted'));
+    if (ALLOWED_UPLOAD_MIMETYPES.has(file.mimetype)) cb(null, true);
+    else
+      cb(
+        new BadRequestException(
+          'Only PDF or image (JPEG, PNG, WebP) files are accepted',
+        ),
+      );
   },
 };
 
@@ -207,6 +224,7 @@ export class AnalyzeController {
       const { result, analysisId } = await this.analyzeCv.execute(
         {
           cvBuffer: files.cv?.[0]?.buffer,
+          cvMimeType: files.cv?.[0]?.mimetype,
           jobDescription,
           jobLabel,
           linkedinBuffer: files.linkedin?.[0]?.buffer,
@@ -308,6 +326,7 @@ export class AnalyzeController {
       const { result, analysisId } = await this.reviewCvUc.execute(
         {
           cvBuffer: files.cv[0].buffer,
+          cvMimeType: files.cv[0].mimetype,
           linkedinBuffer: files.linkedin?.[0]?.buffer,
           githubUsername,
           email,

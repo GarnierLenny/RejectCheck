@@ -99,6 +99,13 @@ export type ReviewCvInput = {
   onDelta?: (chunk: string) => void;
 };
 
+export type TranscribeDocumentInput = {
+  /** Raw bytes of the uploaded document (image-based PDF, or a JPEG/PNG/WebP). */
+  buffer: Buffer;
+  /** MIME type: 'application/pdf' or an 'image/*' type. Drives the block kind. */
+  mediaType: string;
+};
+
 export type GenerateProfileDigestInput = {
   /**
    * Raw parsed text of the CV, or empty string if not available.
@@ -121,6 +128,12 @@ export type GenerateProfileDigestInput = {
 
 export interface ClaudeProvider {
   reviewCv(input: ReviewCvInput): Promise<CvReviewResponse>;
+  /**
+   * OCR fallback: extract the raw text of a document Claude can see but
+   * `pdf-parse` cannot read (image-based / scanned PDF, or a direct image
+   * upload). Returns the transcribed text (capped), or '' on failure.
+   */
+  transcribeDocument(input: TranscribeDocumentInput): Promise<string>;
   analyzeApplication(input: AnalyzeApplicationSingleInput): Promise<AnalyzeResponse>;
   analyzeApplicationHot(
     input: AnalyzeApplicationInput,

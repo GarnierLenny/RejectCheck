@@ -3,8 +3,11 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "web"],
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": [
+        "-c",
+        "PATH=/Users/lenny.garnier/.nvm/versions/node/v22.22.2/bin:$PATH npm run dev --prefix web"
+      ],
       "port": 3000,
       "autoPort": true
     }
