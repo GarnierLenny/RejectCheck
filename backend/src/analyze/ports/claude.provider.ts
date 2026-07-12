@@ -1,8 +1,4 @@
-import type {
-  AnalyzeResponse,
-  HotAnalyzeResponse,
-  DeepAnalyzeResponse,
-} from '../dto/analyze-response.dto';
+import type { AnalyzeResponse } from '../dto/analyze-response.dto';
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type { ProfileDigest } from '../dto/profile-digest.dto';
@@ -40,16 +36,6 @@ export type AnalyzeApplicationInput = {
    * "live thoughts" to the frontend.
    */
   onDelta?: (chunk: string) => void;
-};
-
-export type AnalyzeApplicationDeepInput = AnalyzeApplicationInput & {
-  /** Hot pass result, used as grounding for the deep pass. */
-  hot: HotAnalyzeResponse;
-  /**
-   * When false, Claude skips generating project_recommendation. Defaults to
-   * true. Set to false for free-tier users who cannot see §09 Bridge Project.
-   */
-  generateBridgeProject?: boolean;
 };
 
 export type AnalyzeApplicationSingleInput = AnalyzeApplicationInput & {
@@ -135,12 +121,6 @@ export interface ClaudeProvider {
    */
   transcribeDocument(input: TranscribeDocumentInput): Promise<string>;
   analyzeApplication(input: AnalyzeApplicationSingleInput): Promise<AnalyzeResponse>;
-  analyzeApplicationHot(
-    input: AnalyzeApplicationInput,
-  ): Promise<HotAnalyzeResponse>;
-  analyzeApplicationDeep(
-    input: AnalyzeApplicationDeepInput,
-  ): Promise<DeepAnalyzeResponse>;
   generateProfileDigest(
     input: GenerateProfileDigestInput,
   ): Promise<ProfileDigest>;

@@ -58,7 +58,6 @@ import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
-import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { LlmJobsService } from '../queue/llm-jobs.service';
 import { EnqueueEmailUseCase } from '../notifications/application/enqueue-email.use-case';
 import type { EmailLocale } from '../notifications/domain/email.types';
@@ -142,7 +141,6 @@ export class AnalyzeController {
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
     private readonly generateNegotiationUc: GenerateNegotiationUseCase,
     private readonly generateProfileDigestUc: GenerateProfileDigestUseCase,
-    private readonly regenerateDeepUc: RegenerateDeepUseCase,
     private readonly listHistory: ListHistoryUseCase,
     private readonly getAnalysisUc: GetAnalysisUseCase,
     private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
@@ -611,44 +609,6 @@ export class AnalyzeController {
       parsed.data.analysisId,
       parsed.data.language,
     );
-  }
-
-  @UseGuards(SupabaseGuard)
-  @Post(':id/regenerate-deep')
-  @ApiOperation({
-    summary:
-      'Regenerate the deep-pass content (fixes, project_recommendation, technical_analysis) for an analysis whose first deep pass failed.',
-  })
-  async regenerateDeep(
-    @AuthEmail() email: string,
-    @Param('id') rawId: string,
-  ) {
-    const id = parseInt(rawId, 10);
-    if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    const deep = await this.regenerateDeepUc.execute(id, email);
-    return { deep };
-  }
-
-  // ANALYSIS_SPLIT_V2 Phase 3-lite: on-demand DEEP generation. The split flow
-  // delivers the hot diagnostic only; the user triggers the fixes/project/ATS
-  // here. Enqueued ASYNC (non-blocking, ~166s in the background) so the request
-  // returns instantly — the client polls GET :id for the merged result. Email-
-  // scoped (own analysis only) and idempotent (RegenerateDeepUseCase no-ops if a
-  // deepAnalysis already exists), so it can't be spammed into extra LLM spend.
-  @UseGuards(SupabaseGuard)
-  @Post(':id/generate-deep')
-  @ApiOperation({
-    summary: 'Generate the deep pass on demand (async); poll GET :id for the result.',
-  })
-  async generateDeep(@AuthEmail() email: string, @Param('id') rawId: string) {
-    const id = parseInt(rawId, 10);
-    if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    await this.llmJobs.enqueueDeep({
-      analysisId: id,
-      email,
-      generateBridgeProject: true,
-    });
-    return { status: 'generating' };
   }
 
   @RequiresPremium('hired')

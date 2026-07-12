@@ -11,7 +11,6 @@ import { CreditsModule } from '../credits/credits.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ClaimAnalysisUseCase } from './application/claim-analysis.use-case';
 import { AnalysisCleanupCron } from './infrastructure/analysis-cleanup.cron';
-import { DeepAnalysisProcessor } from './infrastructure/queue/deep-analysis.processor';
 import { NegotiationProcessor } from './infrastructure/queue/negotiation.processor';
 
 // BullMQ processors create live Worker instances on module init — they only
@@ -19,7 +18,7 @@ import { NegotiationProcessor } from './infrastructure/queue/negotiation.process
 // registration when REDIS_URL is unset; the LlmJobsService falls back to
 // in-process execution via setImmediate.
 const queueProviders: Provider[] = QUEUE_ENABLED
-  ? [DeepAnalysisProcessor, NegotiationProcessor]
+  ? [NegotiationProcessor]
   : [];
 
 import {
@@ -49,7 +48,6 @@ import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
-import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
 import { GeminiStarterRepoProvider } from './infrastructure/gemini-starter-repo.provider';
 import { ListHistoryUseCase } from './application/list-history.use-case';
@@ -98,7 +96,6 @@ import {
     GenerateCoverLetterUseCase,
     GenerateNegotiationUseCase,
     GenerateProfileDigestUseCase,
-    RegenerateDeepUseCase,
     ListHistoryUseCase,
     GetAnalysisUseCase,
     DeleteAnalysisUseCase,
