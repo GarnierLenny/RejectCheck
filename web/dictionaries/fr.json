@@ -2378,12 +2378,7 @@
       "redFlagsSub": "schémas qu'un relecteur repère dans les 8 premières secondes — avant même de lire une ligne.",
       "requirementsSub": "Chaque compétence exigée par l'offre, vérifiée contre ce que ton CV démontre réellement."
     },
-    "deepPending": "Génération de tes corrections détaillées en cours…",
-    "deepLocked": {
-      "eyebrow": "Corrections détaillées",
-      "desc": "Comment corriger chaque point + ton projet bridge + les mots-clés ATS manquants. Généré à la demande.",
-      "cta": "Voir mes corrections"
-    },
+    "deepPending": "Rédaction de tes corrections, réécritures et projet bridge…",
     "verdicts": {
       "critical": "Risque critique",
       "high": "Risque élevé",

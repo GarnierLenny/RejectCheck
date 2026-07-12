@@ -404,6 +404,31 @@ export type AnalysisResult = {
     skills?: string[];
     weak?: Array<{ term: string; tooltip: string }>;
   };
+  /**
+   * Bullet-by-bullet CV review. `rewrite` is null on free payloads (redacted
+   * server-side) and on bullets the model judged already strong.
+   */
+  bullet_reviews?: {
+    bullets: Array<{
+      original: string;
+      section: string;
+      verdict: "strong" | "weak" | "fatal";
+      flags: string[];
+      why: string;
+      rewrite: string | null;
+    }>;
+  };
+  /**
+   * Present only on redacted (free) payloads: counts of premium content
+   * hidden server-side, so the UI can size its upsell CTAs without the
+   * content itself.
+   */
+  premium_locked?: {
+    fixes: number;
+    bullet_rewrites: number;
+    ats_keywords: number;
+    project: boolean;
+  };
 };
 
 

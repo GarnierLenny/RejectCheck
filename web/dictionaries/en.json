@@ -2377,12 +2377,7 @@
       "redFlagsSub": "patterns a reviewer spots in the first 8 seconds — before reading a single bullet.",
       "requirementsSub": "Every required skill from the job description, checked against what your CV actually demonstrates."
     },
-    "deepPending": "Generating your detailed fixes…",
-    "deepLocked": {
-      "eyebrow": "Detailed fixes",
-      "desc": "How to fix each issue + your bridge project + the missing ATS keywords. Generated on demand.",
-      "cta": "Show my fixes"
-    },
+    "deepPending": "Writing your fixes, bullet rewrites and bridge project…",
     "verdicts": {
       "critical": "Critical risk",
       "high": "High risk",
