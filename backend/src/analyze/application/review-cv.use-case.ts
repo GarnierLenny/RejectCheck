@@ -28,6 +28,11 @@ import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 import type { DigestSourceHashes, ProfileDigest } from '../dto/profile-digest.dto';
+import { SectionStreamParser } from '../infrastructure/section-stream.parser';
+import {
+  shapeCvReviewForPlan,
+  shapeSectionForPlan,
+} from '../domain/analysis-shaper';
 import { QuotaExceededException } from '../../common/exceptions';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
@@ -67,7 +72,10 @@ export type ReviewCvResult = {
 
 export type ReviewCvEvent =
   | { type: 'step'; step: string }
-  | { type: 'analysis_delta'; delta: string }
+  // A top-level section of the tool output started generating.
+  | { type: 'generating'; section: string }
+  // A top-level section completed — parsed and shaped for the requester.
+  | { type: 'section'; key: string; value: unknown }
   | {
       type: 'analysis_done';
       result: CvReviewResponse;
@@ -176,6 +184,22 @@ export class ReviewCvUseCase {
     }
 
     emitStep('reviewing_cv');
+    // Stream completed top-level sections as typed events, shaped for the
+    // requester's plan — the raw JSON deltas are never sent to the client.
+    const shapeCtx = {
+      premium: subscriptionState.hasActiveSubscription,
+      hired: subscriptionState.plan === 'hired',
+    };
+    const sectionParser = new SectionStreamParser({
+      onSectionStart: (key) => emit({ type: 'generating', section: key }),
+      onSection: (key, value) =>
+        emit({
+          type: 'section',
+          key,
+          value: shapeSectionForPlan(key, value, shapeCtx),
+        }),
+    });
+
     const result = await this.claude.reviewCv({
       cvText,
       githubInfo,
@@ -185,7 +209,7 @@ export class ReviewCvUseCase {
       digest,
       locale: cmd.locale,
       userRoleType: profile?.roleType ?? null,
-      onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
+      onDelta: (delta) => sectionParser.push(delta),
     });
 
     const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
@@ -194,8 +218,10 @@ export class ReviewCvUseCase {
       await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'review', amount: CREDIT_COSTS.review });
     }
 
-    emit({ type: 'analysis_done', result, analysisId, claimToken });
-    return { result, analysisId };
+    // Stored result stays complete; the emitted one is shaped for the plan.
+    const shapedResult = shapeCvReviewForPlan(result, shapeCtx);
+    emit({ type: 'analysis_done', result: shapedResult, analysisId, claimToken });
+    return { result: shapedResult, analysisId };
   }
 
   private async reserveQuotaIntent(

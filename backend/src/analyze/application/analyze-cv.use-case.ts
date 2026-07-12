@@ -29,12 +29,13 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import type { ChallengeStatsProvider } from '../ports/challenge-stats.provider';
 import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
-import type {
-  AnalyzeResponse,
-  HotAnalyzeResponse,
-} from '../dto/analyze-response.dto';
-import { mergeHotAndDeep } from '../dto/analyze-response.dto';
+import type { AnalyzeResponse } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import { SectionStreamParser } from '../infrastructure/section-stream.parser';
+import {
+  shapeAnalysisForPlan,
+  shapeSectionForPlan,
+} from '../domain/analysis-shaper';
 import type {
   DigestSourceHashes,
   ProfileDigest,
@@ -94,7 +95,13 @@ export type AnalyzeCvResult = {
 
 export type AnalyzeEvent =
   | { type: 'step'; step: string }
-  | { type: 'analysis_delta'; delta: string }
+  // A top-level section of the tool output started generating — drives the
+  // fine-grained progress display.
+  | { type: 'generating'; section: string }
+  // A top-level section completed: `value` is fully parsed AND already shaped
+  // for the requester's plan. Keys are the tool-schema property names, plus
+  // the assembled `breakdown`.
+  | { type: 'section'; key: string; value: unknown }
   | {
       type: 'analysis_done';
       result: AnalyzeResponse;
@@ -104,14 +111,9 @@ export type AnalyzeEvent =
       cvTextFormatted: string;
       linkedinTextFormatted: string;
       motivationLetterText: string;
-      /** ANALYSIS_SPLIT_V2: true when a deep_done will follow with the fixes. */
-      deepPending: boolean;
     }
   | { type: 'negotiation_delta'; delta: string }
-  | { type: 'negotiation_done'; negotiation: NegotiationAnalysis }
-  // ANALYSIS_SPLIT_V2: the deep pass (fixes/project/ats) finished after the hot
-  // diagnostic was already streamed. Carries the FULL merged result.
-  | { type: 'deep_done'; result: AnalyzeResponse };
+  | { type: 'negotiation_done'; negotiation: NegotiationAnalysis };
 
 /**
  * Orchestrates the full analyze flow:
@@ -160,7 +162,6 @@ export class AnalyzeCvUseCase {
       profile_ctx_ms: 0,
       digest_ms: 0,
       claude_ms: 0,
-      deep_ms: 0,
       persist_ms: 0,
       negotiation_ms: 0,
     };
@@ -314,34 +315,59 @@ export class AnalyzeCvUseCase {
       }
     };
 
-    // Hot/deep split:
-    //  - Registered + flag on  → HOT now (streamed), DEEP enqueued below so the
-    //    free diagnostic lands ~2-3x sooner and a deep failure can't kill it.
-    //  - Anonymous (any flag)  → HOT only. The deep (fixes / project / ATS
-    //    keyword list) unlocks at signup. This halves the COGS on the
-    //    unauthenticated, IP-only path — the most abusable surface — and the
-    //    frontend renders the absent deep fields as the existing "locked"
-    //    unlock CTA (deepPending=false → deepStatus "locked").
-    //  - Registered + flag off → legacy single pass (full result inline).
-    const splitFlag = this.config.get<string>('ANALYSIS_SPLIT_V2') === 'true';
-    const isAnonymous = !cmd.email || !cmd.isRegistered;
-    const useHotPass = splitFlag || isAnonymous;
-    const willEnqueueDeep = splitFlag && !isAnonymous;
+    // Single unified pass for everyone, guests included: premium content is
+    // generated for all and redacted at emission (see analysis-shaper), so an
+    // upgrade reveals it without re-analysis. The tool schema is ordered
+    // diagnostic-first and each completed top-level section streams to the
+    // client as a typed `section` event — never the raw JSON deltas, which
+    // would leak premium content to free clients.
+    const shapeCtx = {
+      premium: subscriptionState.hasActiveSubscription,
+      hired: subscriptionState.plan === 'hired',
+    };
 
-    let result: AnalyzeResponse;
-    if (useHotPass) {
-      const hot = await this.claude.analyzeApplicationHot({
-        ...claudeInput,
-        onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
-      });
-      result = mergeHotAndDeep(hot, null);
-    } else {
-      result = await this.claude.analyzeApplication({
-        ...claudeInput,
-        generateBridgeProject,
-        onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
-      });
-    }
+    // The 5 breakdown scalars stream as individual top-level values — buffer
+    // them and emit a single `breakdown` section when the last one closes
+    // (linkedin_signal is last in the schema order).
+    const BREAKDOWN_KEYS = [
+      'keyword_match',
+      'experience_level',
+      'tech_stack_fit',
+      'github_signal',
+      'linkedin_signal',
+    ];
+    const breakdownBuffer: Record<string, unknown> = {};
+    const sectionParser = new SectionStreamParser({
+      onSectionStart: (key) => {
+        if (!BREAKDOWN_KEYS.includes(key)) {
+          emit({ type: 'generating', section: key });
+        }
+      },
+      onSection: (key, value) => {
+        if (BREAKDOWN_KEYS.includes(key)) {
+          breakdownBuffer[key] = value;
+          if (key === 'linkedin_signal') {
+            emit({
+              type: 'section',
+              key: 'breakdown',
+              value: { ...breakdownBuffer },
+            });
+          }
+          return;
+        }
+        emit({
+          type: 'section',
+          key,
+          value: shapeSectionForPlan(key, value, shapeCtx),
+        });
+      },
+    });
+
+    const result = await this.claude.analyzeApplication({
+      ...claudeInput,
+      generateBridgeProject,
+      onDelta: (delta) => sectionParser.push(delta),
+    });
     timings.claude_ms = Date.now() - claudeStart;
     applyCrossRef(result);
 
@@ -362,20 +388,20 @@ export class AnalyzeCvUseCase {
       await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'analyze', amount: CREDIT_COSTS.analyze });
     }
 
-    // Deliver the HOT diagnostic immediately. For registered users the DEEP
-    // pass (fixes/project/ATS/highlights) is ENQUEUED (async, not inline) so it
-    // never holds the SSE idle for ~3 min — the frontend shows "pending"
-    // (deepPending) and polls GET :id for the merged result. Anonymous users
-    // get deepPending=false, which the frontend renders as the unlock CTA.
-    emit({ type: 'analysis_done', result, analysisId, claimToken, cvTextFormatted, linkedinTextFormatted, motivationLetterText, deepPending: willEnqueueDeep });
-
-    if (willEnqueueDeep && cmd.email && analysisId !== null) {
-      await this.llmJobs.enqueueDeep({
-        analysisId,
-        email: cmd.email,
-        generateBridgeProject: true,
-      });
-    }
+    // The stored result stays complete; everything sent to the client —
+    // streamed sections above, this final payload, and the controller's
+    // trailing `done` frame (which reuses the returned result) — is shaped
+    // for the requester's plan.
+    const shapedResult = shapeAnalysisForPlan(result, shapeCtx);
+    emit({
+      type: 'analysis_done',
+      result: shapedResult,
+      analysisId,
+      claimToken,
+      cvTextFormatted,
+      linkedinTextFormatted,
+      motivationLetterText,
+    });
 
     // Negotiation is now ON-DEMAND (generated when a hired user opens the
     // Negotiation tab → POST :id/negotiation, which is cache-or-generate). We
@@ -400,7 +426,7 @@ export class AnalyzeCvUseCase {
         `has_motiv=${!!(cmd.motivationLetterBuffer || cmd.motivationLetterText)}`,
     );
 
-    return { result, analysisId };
+    return { result: shapedResult, analysisId };
   }
 
   /**

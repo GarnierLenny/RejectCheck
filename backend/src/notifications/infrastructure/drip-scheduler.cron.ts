@@ -35,12 +35,13 @@ export class DripSchedulerCron {
     let cancelled = 0;
     for (const drip of due) {
       try {
-        // Active since this drip was scheduled? (ran a deep analysis → got an
-        // analysis_ready). If so, the "come back" nudge is unwanted → cancel.
-        const activity = await this.prisma.emailLog.count({
+        // Active since this drip was scheduled? Check the Analysis table
+        // directly — the analysis_ready email is no longer a reliable proxy
+        // (it only fires when the user closed the tab mid-analysis). If the
+        // user ran any analysis, the "come back" nudge is unwanted → cancel.
+        const activity = await this.prisma.analysis.count({
           where: {
             email: drip.email,
-            type: 'analysis_ready',
             createdAt: { gt: drip.createdAt },
           },
         });

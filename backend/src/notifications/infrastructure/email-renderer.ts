@@ -60,7 +60,8 @@ export class EmailRenderer {
         heading = s.analysisReady.heading;
         body = s.analysisReady.body(context.role);
         ctaLabel = s.analysisReady.cta;
-        ctaUrl = `${base}/${locale}/dashboard`;
+        // Deep-link straight to the finished report, not the dashboard.
+        ctaUrl = `${base}/${locale}/analyze?id=${context.analysisId}`;
         subNote = s.analysisReady.subNote;
         break;
       case 'drip_d1':

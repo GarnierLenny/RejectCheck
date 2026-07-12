@@ -6,6 +6,7 @@ import {
   Get,
   Headers,
   Inject,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -59,6 +60,8 @@ import { GenerateNegotiationUseCase } from './application/generate-negotiation.u
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { LlmJobsService } from '../queue/llm-jobs.service';
+import { EnqueueEmailUseCase } from '../notifications/application/enqueue-email.use-case';
+import type { EmailLocale } from '../notifications/domain/email.types';
 import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
 import { ANALYSIS_REPOSITORY } from './ports/tokens';
 import { AnalysisNotFoundException } from '../common/exceptions';
@@ -87,6 +90,8 @@ type SseResponse = {
   headersSent: boolean;
   status: (code: number) => SseResponse;
   json: (body: unknown) => SseResponse;
+  /** Node response events — used to detect a client disconnect mid-analysis. */
+  on: (event: 'close', cb: () => void) => void;
 };
 
 /**
@@ -127,6 +132,8 @@ const PDF_UPLOAD_OPTIONS = {
 @ApiTags('Analyze')
 @Controller('api/analyze')
 export class AnalyzeController {
+  private readonly logger = new Logger(AnalyzeController.name);
+
   constructor(
     private readonly analyzeCv: AnalyzeCvUseCase,
     private readonly reviewCvUc: ReviewCvUseCase,
@@ -148,8 +155,38 @@ export class AnalyzeController {
     private readonly createShareTokenUc: CreateShareTokenUseCase,
     private readonly generateStarterRepoUc: GenerateStarterRepoUseCase,
     private readonly llmJobs: LlmJobsService,
+    private readonly enqueueEmail: EnqueueEmailUseCase,
     @Inject(ANALYSIS_REPOSITORY) private readonly analysisRepo: AnalysisRepository,
   ) {}
+
+  /**
+   * "Report ready" email for users whose SSE connection closed before the
+   * analysis finished. Fire-and-forget + idempotent (dedupeKey
+   * analysis_ready:email:analysisId) — never blocks or fails the request.
+   */
+  private notifyReportReady(args: {
+    email: string;
+    analysisId: number;
+    locale: string | undefined;
+    role: string | null;
+  }): void {
+    void this.enqueueEmail
+      .execute({
+        to: args.email,
+        locale: args.locale === 'fr' ? 'fr' : ('en' as EmailLocale),
+        context: {
+          type: 'analysis_ready',
+          analysisId: args.analysisId,
+          role: args.role,
+        },
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `analysis_ready enqueue failed (analysisId=${args.analysisId}): ${msg}`,
+        );
+      });
+  }
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
   // Tight IP-based rate limit on top of the per-email/per-IP quota policy.
@@ -220,6 +257,14 @@ export class AnalyzeController {
     const write = (data: object) =>
       res.write(`data: ${JSON.stringify(data)}\n\n`);
 
+    // The analysis keeps running (and persists) after a client disconnect —
+    // res.write() becomes a no-op. Track the disconnect so we can email the
+    // user a "report ready" link once the run completes.
+    let clientGone = false;
+    res.on('close', () => {
+      if (!res.writableEnded) clientGone = true;
+    });
+
     try {
       const { result, analysisId } = await this.analyzeCv.execute(
         {
@@ -238,8 +283,10 @@ export class AnalyzeController {
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
-          else if (e.type === 'analysis_delta')
-            write({ step: 'analysis_delta', delta: e.delta });
+          else if (e.type === 'generating')
+            write({ step: 'generating', section: e.section });
+          else if (e.type === 'section')
+            write({ step: 'section', key: e.key, value: e.value });
           else if (e.type === 'analysis_done')
             write({
               step: 'analysis_done',
@@ -257,6 +304,15 @@ export class AnalyzeController {
       );
 
       write({ step: 'done', result, analysisId });
+
+      if (clientGone && email && analysisId !== null) {
+        this.notifyReportReady({
+          email,
+          analysisId,
+          locale,
+          role: result.job_details?.title ?? null,
+        });
+      }
     } catch (err: any) {
       if (res.writableEnded) return;
       write({
@@ -322,6 +378,13 @@ export class AnalyzeController {
     const write = (data: object) =>
       res.write(`data: ${JSON.stringify(data)}\n\n`);
 
+    // Same disconnect handling as the analyze endpoint — the review keeps
+    // running and we email the report link when the tab was closed.
+    let clientGone = false;
+    res.on('close', () => {
+      if (!res.writableEnded) clientGone = true;
+    });
+
     try {
       const { result, analysisId } = await this.reviewCvUc.execute(
         {
@@ -336,8 +399,10 @@ export class AnalyzeController {
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
-          else if (e.type === 'analysis_delta')
-            write({ step: 'analysis_delta', delta: e.delta });
+          else if (e.type === 'generating')
+            write({ step: 'generating', section: e.section });
+          else if (e.type === 'section')
+            write({ step: 'section', key: e.key, value: e.value });
           else if (e.type === 'analysis_done')
             write({
               step: 'analysis_done',
@@ -348,6 +413,10 @@ export class AnalyzeController {
       );
 
       write({ step: 'done', result, analysisId });
+
+      if (clientGone && email && analysisId !== null) {
+        this.notifyReportReady({ email, analysisId, locale, role: null });
+      }
     } catch (err: any) {
       if (res.writableEnded) return;
       write({
