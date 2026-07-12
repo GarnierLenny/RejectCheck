@@ -4,6 +4,7 @@ import type { AnalysisRepository } from '../ports/analysis.repository';
 import type { ProfileRepository } from '../ports/profile.repository';
 import { mergeHotAndDeep } from '../dto/analyze-response.dto';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import { shapeStoredResultForPlan } from '../domain/analysis-shaper';
 
 export type SharedAnalysis = {
   id: number;
@@ -28,8 +29,13 @@ export class GetSharedAnalysisUseCase {
     if (detail.result && detail.deepAnalysis) {
       detail.result = mergeHotAndDeep(detail.result, detail.deepAnalysis);
     }
-    if (detail.result && detail.negotiationAnalysis) {
-      (detail.result as any).negotiation_analysis = detail.negotiationAnalysis;
+    // Public share links are always shaped free, whatever the owner's plan —
+    // this both protects paid content and strips negotiation entirely.
+    if (detail.result) {
+      detail.result = shapeStoredResultForPlan(detail.result, {
+        premium: false,
+        hired: false,
+      });
     }
 
     let profile: { displayName: string | null; avatarUrl: string | null } | null = null;
