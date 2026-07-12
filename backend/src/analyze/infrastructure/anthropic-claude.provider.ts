@@ -271,7 +271,9 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
 
     const requestStartedAt = Date.now();
     let firstDeltaAt: number | null = null;
-    const MAX_TOKENS = 6000;
+    // Densified review (10 cv issues + 6+6 audits + bullet_reviews + 5 red
+    // flags) runs ~7-9k tokens typical; 12k leaves headroom.
+    const MAX_TOKENS = 12000;
 
     const systemPrompt = `You are an expert career consultant and CV reviewer with 15 years of recruiting experience. You evaluate CVs as a senior recruiter would — without any specific job offer — assessing quality, positioning, and red flags.
 
@@ -303,6 +305,9 @@ Use markdown in text fields (narrative, descriptions, issue text).`;
             {
               ...SUBMIT_CV_REVIEW_TOOL,
               cache_control: { type: 'ephemeral', ttl: '1h' },
+              // Stream large string values as they generate instead of
+              // buffering whole JSON tokens — smooths section streaming.
+              eager_input_streaming: true,
             },
           ],
           tool_choice: { type: 'tool', name: 'submit_cv_review' },
@@ -346,6 +351,7 @@ Use markdown in text fields (narrative, descriptions, issue text).`;
         ats_audit: i.ats_audit,
         seniority_analysis: i.seniority_analysis,
         cv_tone: i.cv_tone,
+        bullet_reviews: i.bullet_reviews,
         audit: {
           cv: i.audit_cv,
           github: i.audit_github,
@@ -463,7 +469,11 @@ Formatting rules:
 
     const requestStartedAt = Date.now();
     let firstDeltaAt: number | null = null;
-    const MAX_TOKENS = 16000;
+    // Densified single-pass output runs ~14-16k tokens typical, ~19k peak
+    // (10 cv issues + 6+6 github/linkedin + 5 red flags + bullet_reviews +
+    // 15 ATS keywords + highlights + project). 24k leaves headroom without
+    // letting a runaway generation go unbounded.
+    const MAX_TOKENS = 24000;
     const tool = buildAnalysisTool(input.generateBridgeProject ?? true);
 
     try {
@@ -483,6 +493,9 @@ Formatting rules:
             {
               ...tool,
               cache_control: { type: 'ephemeral', ttl: '1h' },
+              // Stream large string values as they generate instead of
+              // buffering whole JSON tokens — smooths section streaming.
+              eager_input_streaming: true,
             },
           ],
           tool_choice: { type: 'tool', name: 'submit_analysis' },
@@ -561,6 +574,7 @@ Formatting rules:
         challenge_analysis: i.challenge_analysis,
         project_recommendation: i.project_recommendation,
         highlight_terms: i.highlight_terms,
+        bullet_reviews: i.bullet_reviews,
       };
       assignIssueKeys(result);
       return AnalyzeResponseSchema.parse(result);

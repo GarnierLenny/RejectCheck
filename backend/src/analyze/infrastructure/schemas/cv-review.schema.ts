@@ -10,6 +10,7 @@ import {
   CROSS_PROFILE_INCONSISTENCY,
   TIMELINE_ENTRY,
 } from './claude-profile-digest.schema';
+import { BULLET_REVIEWS_PROPERTY } from './claude-analysis.schema';
 
 const ISSUE_SCHEMA = {
   type: 'object' as const,
@@ -36,7 +37,7 @@ const ISSUE_SCHEMA = {
   required: ['severity', 'category', 'what', 'why'],
 };
 
-const auditSchema = (description: string) => ({
+const auditSchema = (description: string, maxIssues: number) => ({
   type: 'object' as const,
   description,
   properties: {
@@ -48,9 +49,8 @@ const auditSchema = (description: string) => ({
     issues: {
       type: 'array' as const,
       items: ISSUE_SCHEMA,
-      maxItems: 5,
-      description:
-        'At most 5 issues ordered by severity (critical → minor). Only recruiter-relevant findings.',
+      maxItems: maxIssues,
+      description: `Up to ${maxIssues} issues ordered by severity (critical → minor). Be exhaustive within the cap — list every recruiter-relevant finding. Do not pad or repeat.`,
     },
   },
   required: ['score', 'issues'],
@@ -227,7 +227,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
           gaps: {
             type: 'array' as const,
             minItems: 1,
-            maxItems: 3,
+            maxItems: 5,
             description: 'Specific gaps ordered by impact. Each must name a concrete CV evidence.',
             items: {
               type: 'object' as const,
@@ -323,14 +323,14 @@ export const SUBMIT_CV_REVIEW_TOOL = {
           examples: {
             type: 'array' as const,
             items: { type: 'string' as const },
-            maxItems: 3,
+            maxItems: 6,
             description:
-              'Up to 3 verbatim passive phrases from the CV. Empty array when tone is active.',
+              'Up to 6 verbatim passive phrases from the CV. Empty array when tone is active.',
           },
           rewrites: {
             type: 'array' as const,
             items: { type: 'string' as const },
-            maxItems: 3,
+            maxItems: 6,
             description:
               'Rewritten version of each phrase in examples — same index, same length. Use a strong action verb + add a concrete quantification placeholder like "[X%]" or "[N users]" where relevant. Empty array when tone is active.',
           },
@@ -338,14 +338,19 @@ export const SUBMIT_CV_REVIEW_TOOL = {
         required: ['detected', 'examples', 'rewrites'],
       },
 
+      bullet_reviews: BULLET_REVIEWS_PROPERTY,
+
       audit_cv: auditSchema(
         'CV audit: structure, clarity, impact, completeness. Score always present (not null).',
+        10,
       ),
       audit_github: auditSchema(
         'GitHub profile audit: public repos, tech stack coherence with CV, contribution signals. Set score=null and issues=[] if no GitHub was provided.',
+        6,
       ),
       audit_linkedin: auditSchema(
         'LinkedIn audit: consistency with CV, completeness of profile. Set score=null and issues=[] if no LinkedIn was provided.',
+        6,
       ),
 
       timeline_entries: {
@@ -366,9 +371,9 @@ export const SUBMIT_CV_REVIEW_TOOL = {
 
       hidden_red_flags: {
         type: 'array' as const,
-        maxItems: 3,
+        maxItems: 5,
         description:
-          'Generic CV red flags a recruiter notices before reading any JD. Examples: unexplained employment gaps > 6 months, excessive job-hopping (< 1 yr average tenure), CV > 2 pages for < 10yr career, no quantifiable achievements anywhere, credential inflation. OMIT entirely if there are no meaningful red flags.',
+          'Generic CV red flags a recruiter notices before reading any JD, up to 5, ordered by damage. Examples: unexplained employment gaps > 6 months, excessive job-hopping (< 1 yr average tenure), CV > 2 pages for < 10yr career, no quantifiable achievements anywhere, credential inflation. OMIT entirely if there are no meaningful red flags — never pad.',
         items: {
           type: 'object' as const,
           properties: {
@@ -395,6 +400,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
       'ats_audit',
       'seniority_analysis',
       'cv_tone',
+      'bullet_reviews',
       'audit_cv',
       'audit_github',
       'audit_linkedin',
