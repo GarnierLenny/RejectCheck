@@ -155,20 +155,25 @@ export class ReviewCvUseCase {
         ? await this.profiles.findByEmail(cmd.email).catch(() => null)
         : null;
 
-    const portfolioUrl = profile?.portfolioUrl ?? null;
-    const portfolioMarkdown = portfolioUrl
-      ? await this.portfolioScraper
-          .fetch(portfolioUrl)
-          .then((s) => s?.markdown ?? '')
-          .catch(() => '')
-      : '';
-
     // Profile digest (cross-source synthesis powering the Consistency + Timeline
     // views) is behind a flag, OFF by default. When disabled the review runs on
     // the uploaded CV + GitHub + LinkedIn directly, with no cross-profile
     // enrichment. See PROFILE_DIGEST_ENABLED.
     const digestEnabled =
       this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
+
+    // The portfolio comes from the signed-in user's OWN profile, not from this
+    // upload. Feeding it as a source makes the model cross-check the uploaded
+    // CV against the owner's portfolio — which is wrong (and leaks the owner's
+    // data) whenever someone analyzes a CV that isn't theirs. It's a
+    // cross-profile source, so it follows the same switch as the digest.
+    const portfolioUrl = digestEnabled ? profile?.portfolioUrl ?? null : null;
+    const portfolioMarkdown = portfolioUrl
+      ? await this.portfolioScraper
+          .fetch(portfolioUrl)
+          .then((s) => s?.markdown ?? '')
+          .catch(() => '')
+      : '';
 
     let digest: ProfileDigest | null = null;
     if (digestEnabled && cmd.email && cmd.isRegistered) {

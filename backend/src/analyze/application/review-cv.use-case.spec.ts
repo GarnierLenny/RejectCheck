@@ -75,3 +75,82 @@ describe('ReviewCvUseCase — CV source extraction', () => {
     await expect(uc.execute(imgCmd)).rejects.toBeInstanceOf(BadRequestException);
   });
 });
+
+/**
+ * Regression: the signed-in user's OWN portfolio (from their profile, not this
+ * upload) must not be scraped and fed as a cross-check source when the
+ * cross-profile feature (PROFILE_DIGEST_ENABLED) is off — otherwise analyzing
+ * someone else's CV surfaces the owner's portfolio as fake "inconsistencies"
+ * and leaks the owner's data.
+ */
+describe('ReviewCvUseCase — portfolio is gated by PROFILE_DIGEST_ENABLED', () => {
+  function makeRegisteredUseCase(digestEnabled: boolean) {
+    const pdf = {
+      parse: jest.fn().mockResolvedValue('x'.repeat(300)),
+      parseFormatted: jest.fn().mockResolvedValue('x'.repeat(300)),
+    };
+    const config = {
+      get: jest.fn((k: string) =>
+        k === 'PROFILE_DIGEST_ENABLED' ? (digestEnabled ? 'true' : 'false') : undefined,
+      ),
+    };
+    const reviewCv = jest.fn().mockResolvedValue({ cv_quality: { overall: 60 } });
+    const claude = { transcribeDocument: jest.fn().mockResolvedValue(''), reviewCv };
+    const subs = {
+      getState: jest.fn().mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
+    };
+    const profiles = {
+      findByEmail: jest.fn().mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
+    };
+    const portfolioScraper = {
+      fetch: jest.fn().mockResolvedValue({ markdown: 'OWNER PORTFOLIO CONTENT' }),
+    };
+    const analyses = {
+      creditsSince: jest.fn().mockResolvedValue(0),
+      countByIp: jest.fn().mockResolvedValue(0),
+      saveRegistered: jest.fn().mockResolvedValue({ id: 1 }),
+    };
+    const creditLedger = {
+      getBalance: jest.fn().mockResolvedValue(0),
+      consume: jest.fn().mockResolvedValue(undefined),
+    };
+    const noop = {} as any;
+
+    const uc = new ReviewCvUseCase(
+      analyses as any,
+      claude as any,
+      noop, // github
+      pdf as any,
+      subs as any,
+      profiles as any,
+      noop, // digests
+      creditLedger as any,
+      portfolioScraper as any,
+      noop, // generateDigestUc
+      config as any,
+    );
+    return { uc, portfolioScraper, reviewCv };
+  }
+
+  const cmd = {
+    cvBuffer: Buffer.from('%PDF-fake'),
+    email: 'owner@example.com',
+    isRegistered: true,
+  };
+
+  it('does NOT scrape the profile portfolio when the digest is off', async () => {
+    const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase(false);
+    await uc.execute(cmd);
+    expect(portfolioScraper.fetch).not.toHaveBeenCalled();
+    expect(reviewCv.mock.calls[0][0].portfolioMarkdown).toBeFalsy();
+    expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
+  });
+
+  it('scrapes the profile portfolio when the digest is on', async () => {
+    const { uc, portfolioScraper } = makeRegisteredUseCase(true);
+    // The portfolio is scraped before the digest step; the digest repo is a
+    // noop here so execute() rejects afterwards — we only assert the scrape.
+    await uc.execute(cmd).catch(() => undefined);
+    expect(portfolioScraper.fetch).toHaveBeenCalledWith('https://lennygarnier.com');
+  });
+});
