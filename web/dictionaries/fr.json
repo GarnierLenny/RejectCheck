@@ -1429,6 +1429,7 @@
     "goodProfileDesc": "Partage tes résultats — ça ne prend que 2 secondes.",
     "share": "Partager",
     "shareLinkFailed": "Impossible de générer le lien de partage.",
+    "shareLinkReady": "Lien public prêt — copie-le ci-dessous.",
     "paymentFailed": "Impossible de lancer le paiement. Réessaie.",
     "rewriteUnlocked": "Réécriture débloquée pour ce CV ✅",
     "rewriteSignupPrompt": "Crée un compte gratuit (30s, sans carte) pour débloquer la réécriture.",

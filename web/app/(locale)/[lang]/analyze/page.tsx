@@ -124,6 +124,20 @@ function AnalyzeContent() {
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
+  // Owner "audit mode": lean teaser audit for strangers (Reddit) that
+  // auto-mints a public share link. `isOwner` (from a PUBLIC env list) only
+  // gates the UI toggle — the backend re-checks OWNER_EMAILS from the JWT, so a
+  // non-owner flipping this gets a normal analysis. Defaults on from ?audit=1.
+  const ownerEmails = (process.env.NEXT_PUBLIC_OWNER_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isOwner = !!user?.email && ownerEmails.includes(user.email.toLowerCase());
+  const [auditMode, setAuditMode] = useState(false);
+  useEffect(() => {
+    if (isOwner && searchParams.get("audit") === "1") setAuditMode(true);
+  }, [isOwner]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [streamText, setStreamText] = useState("");
@@ -363,6 +377,7 @@ function AnalyzeContent() {
     if (liFile) formData.append("linkedin", liFile);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("locale", locale);
+    if (auditMode) formData.append("auditMode", "true");
     // Identity is derived server-side from the JWT — we send the token, not email/isRegistered.
 
     posthog.capture("cv_review_submitted", {
@@ -401,6 +416,7 @@ function AnalyzeContent() {
         section?: string;
         key?: string;
         value?: unknown;
+        token?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
         claimToken?: string | null;
@@ -426,6 +442,8 @@ function AnalyzeContent() {
           if (payload.section) setStreamText((prev) => prev + `"${payload.section}"`);
         } else if (payload.step === "section") {
           if (payload.key) setStreamText((prev) => prev + `"${payload.key}"`);
+        } else if (payload.step === "share" && payload.token) {
+          openAuditShare(payload.token);
         } else if (payload.step === "analysis_done") {
           // Anonymous run: stash the claimToken so it attaches to the account
           // if the user signs up from the result screen (see AuthProvider).
@@ -516,6 +534,7 @@ function AnalyzeContent() {
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
     formData.append("locale", locale);
+    if (auditMode) formData.append("auditMode", "true");
     // Identity is derived server-side from the JWT — we send the token, not email/isRegistered.
 
     posthog.capture("cv_analysis_submitted", {
@@ -570,6 +589,7 @@ function AnalyzeContent() {
         section?: string;
         key?: string;
         value?: unknown;
+        token?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
         claimToken?: string | null;
@@ -664,6 +684,8 @@ function AnalyzeContent() {
             }
           }
           setVisualLoadingDone(true);
+        } else if (payload.step === "share" && payload.token) {
+          openAuditShare(payload.token);
         } else if (payload.step === "negotiation_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "negotiation_done") {
@@ -768,6 +790,15 @@ function AnalyzeContent() {
     }
     prevUrlIdRef.current = urlId;
   }, [urlId, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Owner audit mode: the backend streamed a `share` token — build the public
+  // URL and open the ShareModal so the link can be copied for the Reddit DM.
+  function openAuditShare(token: string) {
+    const base = `${window.location.origin}${localePath(`/share/${token}`)}`;
+    setShareToken(token);
+    setShareUrl(`${base}?utm_source=rejectcheck&utm_medium=share_card&utm_campaign=audit`);
+    toast.success(t.toasts?.shareLinkReady ?? "Public link ready — copy it below.");
+  }
 
   async function shareAnalysis() {
     if (!analysisId || !session?.access_token) return;
@@ -1099,6 +1130,17 @@ function AnalyzeContent() {
               />
             ) : (
               <div className="flex-1 flex flex-col min-h-0">
+                {isOwner && (
+                  <label className="mx-auto mb-3 flex items-center gap-2 text-[12px] font-mono text-rc-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={auditMode}
+                      onChange={(e) => setAuditMode(e.target.checked)}
+                      className="accent-rc-red"
+                    />
+                    Audit mode — lean teaser + public link (no quota, no portfolio)
+                  </label>
+                )}
                 <UploadForm
                   cvFile={cvFile} setCvFile={setCvFile}
                   liFile={liFile} setLiFile={setLiFile}

@@ -1428,6 +1428,7 @@
     "goodProfileDesc": "Share your results — it only takes 2 seconds.",
     "share": "Share",
     "shareLinkFailed": "Couldn't generate the share link.",
+    "shareLinkReady": "Public link ready — copy it below.",
     "paymentFailed": "Couldn't start the payment. Please try again.",
     "rewriteUnlocked": "Rewrite unlocked for this CV ✅",
     "rewriteSignupPrompt": "Create a free account (30s, no card) to unlock the rewrite.",
