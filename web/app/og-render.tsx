@@ -5,80 +5,105 @@ import { join } from 'node:path'
 // Shared 1200×630 brand OG image, rendered by both the file-convention
 // (app/opengraph-image.tsx, app/(locale)/[lang]/opengraph-image.tsx) and the
 // stable route handler (app/og/route.tsx). Keeping the JSX in one place means
-// the copy — and the content hash — never drift between the two.
+// the copy, and the content hash, never drift between the two.
 //
-// Design: "the verdict" — left headline, right a mock diagnosis card (score +
-// red flags) so the share card shows the product and opens a curiosity gap
-// ("what would MY score be?"). Headline is the share-card tagline picked in
-// July 2026; it intentionally reads as a pair with the landing promise but is
-// NOT the literal h1 (currently "Your last rejection.").
+// Design: "the anatomy". Clinical white, the real R! logo, hairline leader
+// lines from a schematic CV sheet to four mono findings (two flagged red),
+// print-proof crosshairs in the corners. Headline mirrors the live homepage
+// h1 so the card and the landing say the same thing.
 
 export const ogSize = { width: 1200, height: 630 }
 export const ogContentType = 'image/png'
 
-const BG = '#f0ebe2'
 const TEXT = '#1a1612'
 const TEXT_SOFT = '#6b6157'
 const TEXT_MUTED = '#8a837a'
 const RED = '#C93A39'
 const BORDER = '#d8d1c7'
-const BORDER_SOFT = '#e8e2d8'
-const SCORE_DIM = '#c5bdb2'
+const BAR = '#e8e2d8'
+const BAR_FLAG = '#f3c9c9'
+const HAIRLINE = '#c5bdb2'
 
 export function ogAlt(lang: string): string {
-  return lang === 'fr'
-    ? 'RejectCheck — Rejeté ici. Recruté là-bas.'
-    : 'RejectCheck — Get rejected here. Get hired out there.'
+  return lang === 'fr' ? 'RejectCheck : Votre dernier refus.' : 'RejectCheck: Your last rejection.'
 }
 
-// Latin-subset woffs (~75KB total) — well under the 500KB ImageResponse
-// bundle budget. process.cwd() is the Next.js project directory (web/).
-let fontsPromise: Promise<Buffer[]> | null = null
-function loadFonts() {
-  fontsPromise ??= Promise.all(
-    [
-      'inter-latin-400-normal.woff',
-      'inter-latin-700-normal.woff',
-      'ibm-plex-mono-latin-500-normal.woff',
-    ].map((f) => readFile(join(process.cwd(), 'assets/og-fonts', f))),
-  )
-  return fontsPromise
+// Latin-subset woffs (~75KB) + 128px logo (~8KB), read once per instance.
+// process.cwd() is the Next.js project directory (web/).
+let assetsPromise: Promise<{ fonts: Buffer[]; logo: string }> | null = null
+function loadAssets() {
+  assetsPromise ??= (async () => {
+    const [inter400, inter700, mono500, logoPng] = await Promise.all([
+      readFile(join(process.cwd(), 'assets/og-fonts', 'inter-latin-400-normal.woff')),
+      readFile(join(process.cwd(), 'assets/og-fonts', 'inter-latin-700-normal.woff')),
+      readFile(join(process.cwd(), 'assets/og-fonts', 'ibm-plex-mono-latin-500-normal.woff')),
+      readFile(join(process.cwd(), 'assets', 'og-logo.png')),
+    ])
+    return {
+      fonts: [inter400, inter700, mono500],
+      logo: `data:image/png;base64,${logoPng.toString('base64')}`,
+    }
+  })()
+  return assetsPromise
 }
 
-function FlagX() {
+function Crosshair({ x, y }: { x: number; y: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20">
-      <path d="M5 5 L15 15 M15 5 L5 15" stroke={RED} strokeWidth="2.6" strokeLinecap="round" />
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      style={{ position: 'absolute', left: x, top: y }}
+    >
+      <path d="M10 0 V20 M0 10 H20" stroke={BORDER} strokeWidth="1.5" />
     </svg>
+  )
+}
+
+function SheetBar({ width, flagged = false }: { width: string; flagged?: boolean }) {
+  return (
+    <div
+      style={{
+        height: 9,
+        borderRadius: 4,
+        width,
+        backgroundColor: flagged ? BAR_FLAG : BAR,
+      }}
+    />
   )
 }
 
 export async function renderOgImage(lang: string): Promise<ImageResponse> {
   const isFr = lang === 'fr'
-  const [inter400, inter700, mono500] = await loadFonts()
-
-  // FR lines are short; the EN "Get hired out there." needs a smaller size to
-  // hold one line in the left column.
-  const headlineSize = isFr ? 62 : 54
+  const { fonts, logo } = await loadAssets()
+  const [inter400, inter700, mono500] = fonts
 
   const t = isFr
     ? {
-        headlineDark: 'Rejeté ici.',
-        headlineRed: 'Recruté là-bas.',
-        sub: 'Diagnostic CV par IA — ATS, GitHub, LinkedIn — en une minute environ. Gratuit, sans inscription.',
-        cardLabel: 'DIAGNOSTIC',
-        cardRole: 'frontend · série B',
-        badge: 'RISQUE ÉLEVÉ',
-        flags: ['12 mots-clés ATS manquants', 'Ton passif dans 9 puces', 'GitHub contredit le CV'],
+        headlineLead: 'Votre',
+        headlineAccent: 'dernier refus.',
+        sub: 'Diagnostic complet de votre CV face à une vraie offre. ATS, ton, séniorité, GitHub, LinkedIn. Une minute environ, gratuit.',
+        sheetTitle: 'Développeur Frontend',
+        sections: ['EXPÉRIENCE', 'COMPÉTENCES'],
+        findings: [
+          { label: 'PARSING ATS · OK', flagged: false },
+          { label: 'MOTS-CLÉS · 12 MANQUANTS', flagged: true },
+          { label: 'SÉNIORITÉ · SOUS-VENDUE', flagged: true },
+          { label: 'GITHUB · RECOUPÉ', flagged: false },
+        ],
       }
     : {
-        headlineDark: 'Get rejected here.',
-        headlineRed: 'Get hired out there.',
-        sub: 'Free AI CV diagnosis — ATS, GitHub, LinkedIn — in about a minute. No signup.',
-        cardLabel: 'DIAGNOSIS',
-        cardRole: 'frontend · series B',
-        badge: 'HIGH RISK',
-        flags: ['12 ATS keywords missing', 'Passive voice in 9 bullets', 'GitHub contradicts the CV'],
+        headlineLead: 'Your',
+        headlineAccent: 'last rejection.',
+        sub: 'Full CV diagnosis against a real job. ATS, tone, seniority, GitHub, LinkedIn. About a minute, free.',
+        sheetTitle: 'Frontend Developer',
+        sections: ['EXPERIENCE', 'SKILLS'],
+        findings: [
+          { label: 'ATS PARSE · CLEAN', flagged: false },
+          { label: 'KEYWORDS · 12 MISSING', flagged: true },
+          { label: 'SENIORITY · UNDERSOLD', flagged: true },
+          { label: 'GITHUB · CROSS-CHECKED', flagged: false },
+        ],
       }
 
   return new ImageResponse(
@@ -88,65 +113,66 @@ export async function renderOgImage(lang: string): Promise<ImageResponse> {
           width: '100%',
           height: '100%',
           display: 'flex',
-          backgroundColor: BG,
-          padding: '52px 64px',
-          gap: 52,
+          position: 'relative',
+          backgroundColor: '#ffffff',
+          padding: '54px 64px',
+          gap: 48,
           fontFamily: 'Inter',
           color: TEXT,
         }}
       >
+        <Crosshair x={20} y={20} />
+        <Crosshair x={1160} y={20} />
+        <Crosshair x={20} y={590} />
+        <Crosshair x={1160} y={590} />
+
         <div
           style={{
-            flex: 1.12,
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 13, height: 13, borderRadius: 999, backgroundColor: RED }} />
-            <div
-              style={{
-                fontFamily: 'IBM Plex Mono',
-                fontSize: 22,
-                letterSpacing: '0.22em',
-                color: RED,
-              }}
-            >
-              REJECTCHECK
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logo} alt="" width={46} height={46} />
+            <div style={{ display: 'flex', fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em' }}>
+              <span style={{ color: TEXT }}>Reject</span>
+              <span style={{ color: RED }}>Check</span>
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div
               style={{
-                fontSize: headlineSize,
+                fontSize: 58,
                 fontWeight: 700,
                 lineHeight: 1.08,
                 letterSpacing: '-0.02em',
                 color: TEXT,
               }}
             >
-              {t.headlineDark}
+              {t.headlineLead}
             </div>
             <div
               style={{
-                fontSize: headlineSize,
+                fontSize: 58,
                 fontWeight: 700,
                 lineHeight: 1.08,
                 letterSpacing: '-0.02em',
                 color: RED,
               }}
             >
-              {t.headlineRed}
+              {t.headlineAccent}
             </div>
             <div
               style={{
-                fontSize: 24,
-                lineHeight: 1.45,
+                fontSize: 22,
+                lineHeight: 1.5,
                 color: TEXT_SOFT,
-                marginTop: 22,
-                maxWidth: 520,
+                marginTop: 20,
+                maxWidth: 470,
               }}
             >
               {t.sub}
@@ -156,7 +182,7 @@ export async function renderOgImage(lang: string): Promise<ImageResponse> {
           <div
             style={{
               fontFamily: 'IBM Plex Mono',
-              fontSize: 21,
+              fontSize: 20,
               letterSpacing: '0.08em',
               color: TEXT_MUTED,
             }}
@@ -165,74 +191,87 @@ export async function renderOgImage(lang: string): Promise<ImageResponse> {
           </div>
         </div>
 
-        <div style={{ flex: 0.88, display: 'flex', alignItems: 'center' }}>
+        <div style={{ flex: 1.08, display: 'flex', alignItems: 'center', gap: 22 }}>
           <div
             style={{
-              width: '100%',
+              width: '44%',
               display: 'flex',
               flexDirection: 'column',
+              gap: 10,
               backgroundColor: '#ffffff',
-              border: `2px solid ${BORDER}`,
-              borderRadius: 20,
-              padding: '30px 34px',
-              transform: 'rotate(-2deg)',
-              boxShadow: '0 16px 40px rgba(26,22,18,0.10)',
+              border: `1.5px solid ${BORDER}`,
+              borderRadius: 6,
+              padding: '26px 24px',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div
-                style={{
-                  fontFamily: 'IBM Plex Mono',
-                  fontSize: 17,
-                  letterSpacing: '0.18em',
-                  color: TEXT_MUTED,
-                }}
-              >
-                {t.cardLabel}
-              </div>
-              <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 17, color: TEXT_MUTED }}>
-                {t.cardRole}
-              </div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: TEXT, letterSpacing: '0.01em' }}>
+              ALEX MARTIN
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20, margin: '16px 0 18px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline' }}>
-                <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 62, color: RED }}>34</div>
-                <div style={{ fontFamily: 'IBM Plex Mono', fontSize: 30, color: SCORE_DIM }}>
-                  /100
-                </div>
-              </div>
-              <div
-                style={{
-                  fontSize: 17,
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  backgroundColor: RED,
-                  color: '#ffffff',
-                  padding: '7px 16px',
-                  borderRadius: 999,
-                }}
-              >
-                {t.badge}
-              </div>
+            <div style={{ fontSize: 13, color: TEXT_MUTED, marginTop: -6, marginBottom: 4 }}>
+              {t.sheetTitle}
             </div>
-
             <div
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 13,
-                borderTop: `2px solid ${BORDER_SOFT}`,
-                paddingTop: 18,
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 11,
+                letterSpacing: '0.16em',
+                color: TEXT_MUTED,
               }}
             >
-              {t.flags.map((flag) => (
-                <div key={flag} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <FlagX />
-                  <div style={{ fontSize: 22, color: '#4a4540' }}>{flag}</div>
-                </div>
-              ))}
+              {t.sections[0]}
             </div>
+            <SheetBar width="94%" />
+            <SheetBar width="84%" flagged />
+            <SheetBar width="90%" />
+            <SheetBar width="42%" />
+            <SheetBar width="80%" />
+            <SheetBar width="72%" flagged />
+            <div
+              style={{
+                fontFamily: 'IBM Plex Mono',
+                fontSize: 11,
+                letterSpacing: '0.16em',
+                color: TEXT_MUTED,
+                marginTop: 6,
+              }}
+            >
+              {t.sections[1]}
+            </div>
+            <SheetBar width="64%" />
+            <SheetBar width="48%" />
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              gap: 42,
+            }}
+          >
+            {t.findings.map((f) => (
+              <div key={f.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    flex: 1,
+                    height: 2,
+                    backgroundColor: f.flagged ? RED : HAIRLINE,
+                  }}
+                />
+                <div
+                  style={{
+                    fontFamily: 'IBM Plex Mono',
+                    fontSize: 15,
+                    letterSpacing: '0.06em',
+                    color: f.flagged ? RED : '#4a4540',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {f.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
