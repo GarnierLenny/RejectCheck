@@ -410,3 +410,25 @@ export const SUBMIT_CV_REVIEW_TOOL = {
     ],
   },
 };
+
+/**
+ * CV-review tool for the owner "audit mode": drops `bullet_reviews` (the
+ * biggest actionable block, and the only premium content on a review) so a
+ * teaser audit of a stranger's CV — shared read-only, never unlocked — doesn't
+ * burn tokens generating rewrites nobody will see.
+ */
+export function buildCvReviewTool(lean = false) {
+  if (!lean) return SUBMIT_CV_REVIEW_TOOL;
+  const { bullet_reviews: _dropped, ...properties } =
+    SUBMIT_CV_REVIEW_TOOL.input_schema.properties;
+  return {
+    ...SUBMIT_CV_REVIEW_TOOL,
+    input_schema: {
+      ...SUBMIT_CV_REVIEW_TOOL.input_schema,
+      properties,
+      required: SUBMIT_CV_REVIEW_TOOL.input_schema.required.filter(
+        (k) => k !== 'bullet_reviews',
+      ),
+    },
+  };
+}

@@ -33,6 +33,7 @@ import {
   shapeCvReviewForPlan,
   shapeSectionForPlan,
 } from '../domain/analysis-shaper';
+import { isOwnerEmail } from '../domain/owner';
 import { QuotaExceededException } from '../../common/exceptions';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
@@ -63,11 +64,15 @@ export type ReviewCvCommand = {
   ip?: string;
   isRegistered: boolean;
   locale?: string;
+  /** Owner teaser flag from the request; only honored for OWNER_EMAILS. */
+  auditMode?: boolean;
 };
 
 export type ReviewCvResult = {
   result: CvReviewResponse;
   analysisId: number | null;
+  /** True when the owner audit mode was actually applied (lean + auto-share). */
+  auditMode: boolean;
 };
 
 export type ReviewCvEvent =
@@ -119,8 +124,16 @@ export class ReviewCvUseCase {
     Sentry.setTag('tier', subscriptionState.tier);
     Sentry.setTag('plan', subscriptionState.plan);
 
+    // Owner "audit mode" — honored only for OWNER_EMAILS (see analyze-cv).
+    // Lean diagnostic, portfolio + digest off, quota bypassed.
+    const isOwnerAudit =
+      (cmd.auditMode ?? false) &&
+      isOwnerEmail(cmd.email, this.config.get<string>('OWNER_EMAILS'));
+
     const plan = toQuotaPlan(subscriptionState.plan);
-    const quotaIntent = await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.review);
+    const quotaIntent = isOwnerAudit
+      ? ({ allowed: true, consume: 'anonymous' } as const)
+      : await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.review);
 
     emitStep('parsing_cv');
     if (cmd.githubUsername) emitStep('analyzing_github');
@@ -160,6 +173,7 @@ export class ReviewCvUseCase {
     // the uploaded CV + GitHub + LinkedIn directly, with no cross-profile
     // enrichment. See PROFILE_DIGEST_ENABLED.
     const digestEnabled =
+      !isOwnerAudit &&
       this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
 
     // The portfolio comes from the signed-in user's OWN profile, not from this
@@ -168,7 +182,9 @@ export class ReviewCvUseCase {
     // wrong (and it leaks the owner's data) when you analyze someone else's.
     // Dedicated switch, ENABLED by default so a deploy doesn't silently change
     // prod behavior; set CV_REVIEW_PORTFOLIO_ENABLED=false to turn it off.
+    // Audit mode always forces it off (auditing someone else's CV).
     const portfolioEnabled =
+      !isOwnerAudit &&
       this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') !== 'false';
     const portfolioUrl = portfolioEnabled ? profile?.portfolioUrl ?? null : null;
     const portfolioMarkdown = portfolioUrl
@@ -215,6 +231,7 @@ export class ReviewCvUseCase {
       portfolioMarkdown,
       portfolioUrl,
       digest,
+      lean: isOwnerAudit,
       locale: cmd.locale,
       userRoleType: profile?.roleType ?? null,
       onDelta: (delta) => sectionParser.push(delta),
@@ -229,7 +246,7 @@ export class ReviewCvUseCase {
     // Stored result stays complete; the emitted one is shaped for the plan.
     const shapedResult = shapeCvReviewForPlan(result, shapeCtx);
     emit({ type: 'analysis_done', result: shapedResult, analysisId, claimToken });
-    return { result: shapedResult, analysisId };
+    return { result: shapedResult, analysisId, auditMode: isOwnerAudit };
   }
 
   private async reserveQuotaIntent(

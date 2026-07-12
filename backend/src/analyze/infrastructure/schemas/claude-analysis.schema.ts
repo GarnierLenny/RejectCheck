@@ -919,14 +919,77 @@ const ATS_CRITICAL_MISSING_KEYWORDS_PROPERTY = {
   items: ATS_CRITICAL_MISSING_KEYWORD_SCHEMA,
 };
 
+// ── Lean (diagnostic-only) variants ─────────────────────────────────────────
+// Used by the owner "audit mode": generate ONLY the diagnostic (no inline
+// fixes, no bullet reviews / ATS keywords / highlight terms / project), for
+// teaser audits of strangers' CVs that are shared read-only and never
+// unlocked — so the actionable content would be pure wasted tokens.
+
+const auditLeanSchema = (description: string, maxIssues: number) => ({
+  type: 'object' as const,
+  description,
+  properties: {
+    score: {
+      type: ['number', 'null'] as ['number', 'null'],
+      minimum: 0,
+      maximum: 100,
+    },
+    issues: {
+      type: 'array' as const,
+      items: ISSUE_HOT_SCHEMA,
+      maxItems: maxIssues,
+      description: `Up to ${maxIssues} issues ordered by severity (critical → minor). Be exhaustive within the cap. No fix field.`,
+    },
+  },
+  required: ['score', 'issues'],
+});
+
+const SENIORITY_ANALYSIS_LEAN = {
+  type: 'object' as const,
+  description: 'Seniority diagnostic (no fix).',
+  properties: {
+    expected: SENIORITY_ANALYSIS_PROPERTY.properties.expected,
+    detected: SENIORITY_ANALYSIS_PROPERTY.properties.detected,
+    gap: SENIORITY_ANALYSIS_PROPERTY.properties.gap,
+    strength: SENIORITY_ANALYSIS_PROPERTY.properties.strength,
+  },
+  required: ['expected', 'detected', 'gap', 'strength'],
+};
+
+const CV_TONE_LEAN = {
+  type: 'object' as const,
+  description: 'Tone diagnostic (no fix).',
+  properties: {
+    detected: CV_TONE_PROPERTY.properties.detected,
+    examples: CV_TONE_PROPERTY.properties.examples,
+  },
+  required: ['detected', 'examples'],
+};
+
+const HIDDEN_RED_FLAGS_LEAN = {
+  type: 'array' as const,
+  description:
+    'Up to 5 subtle signals that would concern a senior recruiter, ordered by damage. flag + perception only, no fix. Only real signals — never pad.',
+  maxItems: 5,
+  items: {
+    type: 'object' as const,
+    properties: {
+      flag: HIDDEN_RED_FLAGS_PROPERTY.items.properties.flag,
+      perception: HIDDEN_RED_FLAGS_PROPERTY.items.properties.perception,
+    },
+    required: ['flag', 'perception'],
+  },
+};
+
 /**
  * Returns the single-pass combined analysis tool.
  *
  * Property order = generation order = progressive-render order (see the
  * section banner above). When `generateBridgeProject` is false,
- * `project_recommendation` is omitted so Claude skips it entirely.
+ * `project_recommendation` is omitted so Claude skips it entirely. When
+ * `lean` is true, all actionable content is dropped (owner teaser audits).
  */
-export function buildAnalysisTool(generateBridgeProject: boolean) {
+export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) {
   const properties: Record<string, unknown> = {
     job_details: JOB_DETAILS_PROPERTY,
     overall: OVERALL_PROPERTY,
@@ -954,36 +1017,42 @@ export function buildAnalysisTool(generateBridgeProject: boolean) {
     },
     ats_simulation: ATS_SIMULATION_PROPERTY,
     audit_jd_match: AUDIT_JD_MATCH_PROPERTY,
-    seniority_analysis: SENIORITY_ANALYSIS_PROPERTY,
+    seniority_analysis: lean
+      ? SENIORITY_ANALYSIS_LEAN
+      : SENIORITY_ANALYSIS_PROPERTY,
     technical_analysis: TECHNICAL_ANALYSIS_SCHEMA,
-    cv_tone: CV_TONE_PROPERTY,
-    audit_cv: auditWithFixSchema(
-      'CV structure, content and positioning audit. Each issue includes an inline fix (project_idea allowed).',
+    cv_tone: lean ? CV_TONE_LEAN : CV_TONE_PROPERTY,
+    audit_cv: (lean ? auditLeanSchema : auditWithFixSchema)(
+      'CV structure, content and positioning audit.',
       10,
     ),
-    audit_github: auditWithFixSchema(
-      'GitHub profile audit. score=null and empty arrays if GitHub not provided. Each issue includes an inline fix (set project_idea to null).',
+    audit_github: (lean ? auditLeanSchema : auditWithFixSchema)(
+      'GitHub profile audit. score=null and empty arrays if GitHub not provided.',
       6,
     ),
-    audit_linkedin: auditWithFixSchema(
-      'LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided. Each issue includes an inline fix (set project_idea to null).',
+    audit_linkedin: (lean ? auditLeanSchema : auditWithFixSchema)(
+      'LinkedIn profile audit. score=null and empty arrays if LinkedIn not provided.',
       6,
     ),
-    hidden_red_flags: HIDDEN_RED_FLAGS_PROPERTY,
-    bullet_reviews: BULLET_REVIEWS_PROPERTY,
+    hidden_red_flags: lean ? HIDDEN_RED_FLAGS_LEAN : HIDDEN_RED_FLAGS_PROPERTY,
     challenge_analysis: CHALLENGE_ANALYSIS_PROPERTY,
-    ats_critical_missing_keywords: ATS_CRITICAL_MISSING_KEYWORDS_PROPERTY,
-    highlight_terms: HIGHLIGHT_TERMS_PROPERTY,
   };
 
-  if (generateBridgeProject) {
-    properties.project_recommendation = PROJECT_RECOMMENDATION_PROPERTY;
+  if (!lean) {
+    properties.bullet_reviews = BULLET_REVIEWS_PROPERTY;
+    properties.ats_critical_missing_keywords =
+      ATS_CRITICAL_MISSING_KEYWORDS_PROPERTY;
+    properties.highlight_terms = HIGHLIGHT_TERMS_PROPERTY;
+    if (generateBridgeProject) {
+      properties.project_recommendation = PROJECT_RECOMMENDATION_PROPERTY;
+    }
   }
 
   return {
     name: 'submit_analysis',
-    description:
-      'Submit the complete CV-vs-JD analysis in a single pass, generating fields in schema order: job details and overall scores first (the UI renders them immediately), then the diagnostic (ATS estimate, JD match, seniority, technical analysis, tone, per-source audits with inline fixes, red flags), then the actionable content (bullet-by-bullet review, ATS critical keywords, highlight terms, and the bridge-the-gap project recommendation).',
+    description: lean
+      ? 'Submit a DIAGNOSTIC-ONLY CV-vs-JD analysis in a single pass (scores, ATS estimate, JD match, seniority, technical analysis, tone, per-source audits, red flags). No fixes, bullet reviews, ATS keyword list, highlight terms or project.'
+      : 'Submit the complete CV-vs-JD analysis in a single pass, generating fields in schema order: job details and overall scores first (the UI renders them immediately), then the diagnostic (ATS estimate, JD match, seniority, technical analysis, tone, per-source audits with inline fixes, red flags), then the actionable content (bullet-by-bullet review, ATS critical keywords, highlight terms, and the bridge-the-gap project recommendation).',
     input_schema: {
       type: 'object' as const,
       properties,
@@ -1004,10 +1073,14 @@ export function buildAnalysisTool(generateBridgeProject: boolean) {
         'audit_github',
         'audit_linkedin',
         'hidden_red_flags',
-        'bullet_reviews',
-        'ats_critical_missing_keywords',
-        'highlight_terms',
-        ...(generateBridgeProject ? ['project_recommendation'] : []),
+        ...(lean
+          ? []
+          : [
+              'bullet_reviews',
+              'ats_critical_missing_keywords',
+              'highlight_terms',
+              ...(generateBridgeProject ? ['project_recommendation'] : []),
+            ]),
       ],
     },
   };

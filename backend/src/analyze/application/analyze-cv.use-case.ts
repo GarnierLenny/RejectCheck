@@ -36,6 +36,7 @@ import {
   shapeAnalysisForPlan,
   shapeSectionForPlan,
 } from '../domain/analysis-shaper';
+import { isOwnerEmail } from '../domain/owner';
 import type {
   DigestSourceHashes,
   ProfileDigest,
@@ -86,11 +87,15 @@ export type AnalyzeCvCommand = {
   ip?: string;
   isRegistered: boolean;
   locale?: string;
+  /** Owner teaser flag from the request; only honored for OWNER_EMAILS. */
+  auditMode?: boolean;
 };
 
 export type AnalyzeCvResult = {
   result: AnalyzeResponse;
   analysisId: number | null;
+  /** True when the owner audit mode was actually applied (lean + auto-share). */
+  auditMode: boolean;
 };
 
 export type AnalyzeEvent =
@@ -173,8 +178,18 @@ export class AnalyzeCvUseCase {
     Sentry.setTag('tier', subscriptionState.tier);
     Sentry.setTag('plan', subscriptionState.plan);
 
+    // Owner "audit mode": the request flag is only honored when the JWT email
+    // is in OWNER_EMAILS. It runs a lean diagnostic-only pass and bypasses the
+    // quota (teaser audits for strangers, shared read-only). A non-owner who
+    // forces auditMode=true just gets a normal, quota-counted analysis.
+    const isOwnerAudit =
+      (cmd.auditMode ?? false) &&
+      isOwnerEmail(cmd.email, this.config.get<string>('OWNER_EMAILS'));
+
     const plan = toQuotaPlan(subscriptionState.plan);
-    const quotaIntent = await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.analyze);
+    const quotaIntent = isOwnerAudit
+      ? ({ allowed: true, consume: 'anonymous' } as const)
+      : await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.analyze);
 
     // Emit step labels eagerly so the SSE timeline still reflects the work
     // about to start; the operations themselves run in parallel below.
@@ -250,7 +265,10 @@ export class AnalyzeCvUseCase {
     // views) is behind a flag, OFF by default. When disabled the analysis runs
     // on the raw CV / LinkedIn / GitHub sources directly, with no cross-profile
     // enrichment. See PROFILE_DIGEST_ENABLED.
+    // Audit mode forces the digest off too: it would pull the OWNER's
+    // LinkedIn/GitHub/portfolio into the cross-check of a stranger's CV.
     const digestEnabled =
+      !isOwnerAudit &&
       this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
 
     const digestStart = Date.now();
@@ -366,6 +384,7 @@ export class AnalyzeCvUseCase {
     const result = await this.claude.analyzeApplication({
       ...claudeInput,
       generateBridgeProject,
+      lean: isOwnerAudit,
       onDelta: (delta) => sectionParser.push(delta),
     });
     timings.claude_ms = Date.now() - claudeStart;
@@ -426,7 +445,7 @@ export class AnalyzeCvUseCase {
         `has_motiv=${!!(cmd.motivationLetterBuffer || cmd.motivationLetterText)}`,
     );
 
-    return { result: shapedResult, analysisId };
+    return { result: shapedResult, analysisId, auditMode: isOwnerAudit };
   }
 
   /**

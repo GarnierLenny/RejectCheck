@@ -40,6 +40,11 @@ const CvReviewRequestSchema = z.object({
   githubUsername: z.string().max(39).optional(),
   // identity is derived from the JWT (OptionalSupabaseGuard), never the body.
   locale: z.enum(['en', 'fr']).optional().default('en'),
+  // Owner teaser flag — only honored for OWNER_EMAILS (see review-cv use case).
+  auditMode: z
+    .preprocess((v) => v === 'true' || v === true, z.boolean())
+    .optional()
+    .default(false),
 });
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
@@ -162,6 +167,27 @@ export class AnalyzeController {
    * analysis finished. Fire-and-forget + idempotent (dedupeKey
    * analysis_ready:email:analysisId) — never blocks or fails the request.
    */
+  /**
+   * Owner audit mode: create (or fetch) the public share token and stream a
+   * `share` event carrying just the token — the client builds its own URL.
+   * Best-effort: a share failure must not break the analysis response.
+   */
+  private async emitAuditShare(
+    analysisId: number,
+    email: string,
+    write: (data: object) => void,
+  ): Promise<void> {
+    try {
+      const { token } = await this.createShareTokenUc.execute(analysisId, email);
+      write({ step: 'share', token });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `audit-mode share token failed (analysisId=${analysisId}): ${msg}`,
+      );
+    }
+  }
+
   private notifyReportReady(args: {
     email: string;
     analysisId: number;
@@ -233,6 +259,7 @@ export class AnalyzeController {
       githubUsername,
       motivationLetterText,
       locale,
+      auditMode,
     } = parsed.data;
     // Identity comes from the verified JWT, not the request body.
     const isRegistered = !!email;
@@ -264,7 +291,8 @@ export class AnalyzeController {
     });
 
     try {
-      const { result, analysisId } = await this.analyzeCv.execute(
+      const { result, analysisId, auditMode: auditApplied } =
+        await this.analyzeCv.execute(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           cvMimeType: files.cv?.[0]?.mimetype,
@@ -278,6 +306,7 @@ export class AnalyzeController {
           ip,
           isRegistered,
           locale,
+          auditMode,
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
@@ -300,6 +329,12 @@ export class AnalyzeController {
             write({ step: 'negotiation_done', negotiation: e.negotiation });
         },
       );
+
+      // Owner audit mode: mint the public share link and hand it to the
+      // client so it can be copied straight away (before `done`).
+      if (auditApplied && email && analysisId !== null) {
+        await this.emitAuditShare(analysisId, email, write);
+      }
 
       write({ step: 'done', result, analysisId });
 
@@ -355,7 +390,7 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { githubUsername, locale } = parsed.data;
+    const { githubUsername, locale, auditMode } = parsed.data;
     // Identity comes from the verified JWT, not the request body.
     const isRegistered = !!email;
 
@@ -384,7 +419,8 @@ export class AnalyzeController {
     });
 
     try {
-      const { result, analysisId } = await this.reviewCvUc.execute(
+      const { result, analysisId, auditMode: auditApplied } =
+        await this.reviewCvUc.execute(
         {
           cvBuffer: files.cv[0].buffer,
           cvMimeType: files.cv[0].mimetype,
@@ -394,6 +430,7 @@ export class AnalyzeController {
           ip,
           isRegistered,
           locale,
+          auditMode,
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
@@ -409,6 +446,10 @@ export class AnalyzeController {
             });
         },
       );
+
+      if (auditApplied && email && analysisId !== null) {
+        await this.emitAuditShare(analysisId, email, write);
+      }
 
       write({ step: 'done', result, analysisId });
 

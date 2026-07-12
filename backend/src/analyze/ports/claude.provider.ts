@@ -44,6 +44,11 @@ export type AnalyzeApplicationSingleInput = AnalyzeApplicationInput & {
    * true. Set to false for free-tier users who cannot see §09 Bridge Project.
    */
   generateBridgeProject?: boolean;
+  /**
+   * Owner "audit mode": generate the diagnostic only (no fixes / bullet
+   * reviews / ATS keywords / highlight terms / project). ~3x cheaper/faster.
+   */
+  lean?: boolean;
 };
 
 export type RewriteCvInput = {
@@ -82,6 +87,8 @@ export type ReviewCvInput = {
   locale?: string;
   userRoleType?: string | null;
   digest?: ProfileDigest | null;
+  /** Owner "audit mode": drop bullet_reviews to save tokens on teasers. */
+  lean?: boolean;
   onDelta?: (chunk: string) => void;
 };
 
