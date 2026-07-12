@@ -164,10 +164,13 @@ export class ReviewCvUseCase {
 
     // The portfolio comes from the signed-in user's OWN profile, not from this
     // upload. Feeding it as a source makes the model cross-check the uploaded
-    // CV against the owner's portfolio — which is wrong (and leaks the owner's
-    // data) whenever someone analyzes a CV that isn't theirs. It's a
-    // cross-profile source, so it follows the same switch as the digest.
-    const portfolioUrl = digestEnabled ? profile?.portfolioUrl ?? null : null;
+    // CV against the owner's portfolio — great when you audit your own CV, but
+    // wrong (and it leaks the owner's data) when you analyze someone else's.
+    // Dedicated switch, ENABLED by default so a deploy doesn't silently change
+    // prod behavior; set CV_REVIEW_PORTFOLIO_ENABLED=false to turn it off.
+    const portfolioEnabled =
+      this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') !== 'false';
+    const portfolioUrl = portfolioEnabled ? profile?.portfolioUrl ?? null : null;
     const portfolioMarkdown = portfolioUrl
       ? await this.portfolioScraper
           .fetch(portfolioUrl)

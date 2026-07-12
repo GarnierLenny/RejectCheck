@@ -78,20 +78,22 @@ describe('ReviewCvUseCase — CV source extraction', () => {
 
 /**
  * Regression: the signed-in user's OWN portfolio (from their profile, not this
- * upload) must not be scraped and fed as a cross-check source when the
- * cross-profile feature (PROFILE_DIGEST_ENABLED) is off — otherwise analyzing
- * someone else's CV surfaces the owner's portfolio as fake "inconsistencies"
- * and leaks the owner's data.
+ * upload) is fed as a cross-check source. It's ENABLED by default (preserves
+ * prod behavior), but CV_REVIEW_PORTFOLIO_ENABLED=false must fully stop the
+ * scrape — otherwise analyzing someone else's CV surfaces the owner's
+ * portfolio as fake "inconsistencies" and leaks the owner's data.
  */
-describe('ReviewCvUseCase — portfolio is gated by PROFILE_DIGEST_ENABLED', () => {
-  function makeRegisteredUseCase(digestEnabled: boolean) {
+describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', () => {
+  // `portfolioFlag`: value returned for CV_REVIEW_PORTFOLIO_ENABLED (undefined
+  // = unset = default-on). PROFILE_DIGEST_ENABLED stays off throughout.
+  function makeRegisteredUseCase(portfolioFlag: string | undefined) {
     const pdf = {
       parse: jest.fn().mockResolvedValue('x'.repeat(300)),
       parseFormatted: jest.fn().mockResolvedValue('x'.repeat(300)),
     };
     const config = {
       get: jest.fn((k: string) =>
-        k === 'PROFILE_DIGEST_ENABLED' ? (digestEnabled ? 'true' : 'false') : undefined,
+        k === 'CV_REVIEW_PORTFOLIO_ENABLED' ? portfolioFlag : undefined,
       ),
     };
     const reviewCv = jest.fn().mockResolvedValue({ cv_quality: { overall: 60 } });
@@ -138,19 +140,17 @@ describe('ReviewCvUseCase — portfolio is gated by PROFILE_DIGEST_ENABLED', () 
     isRegistered: true,
   };
 
-  it('does NOT scrape the profile portfolio when the digest is off', async () => {
-    const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase(false);
+  it('does NOT scrape the profile portfolio when explicitly disabled', async () => {
+    const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase('false');
     await uc.execute(cmd);
     expect(portfolioScraper.fetch).not.toHaveBeenCalled();
     expect(reviewCv.mock.calls[0][0].portfolioMarkdown).toBeFalsy();
     expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
   });
 
-  it('scrapes the profile portfolio when the digest is on', async () => {
-    const { uc, portfolioScraper } = makeRegisteredUseCase(true);
-    // The portfolio is scraped before the digest step; the digest repo is a
-    // noop here so execute() rejects afterwards — we only assert the scrape.
-    await uc.execute(cmd).catch(() => undefined);
+  it('scrapes the profile portfolio by default (flag unset)', async () => {
+    const { uc, portfolioScraper } = makeRegisteredUseCase(undefined);
+    await uc.execute(cmd);
     expect(portfolioScraper.fetch).toHaveBeenCalledWith('https://lennygarnier.com');
   });
 });
