@@ -36,6 +36,12 @@ export type AnalysisShellProps = {
   /** Per-document highlights — takes precedence over `highlights` for each tab. */
   highlightsByDoc?: Partial<Record<DocTab, HighlightMap>>;
   onHighlightTypeClick?: (type: keyof HighlightMap) => void;
+  /**
+   * Drop the left source-document column and let the report fill the width.
+   * Used by the public shared view, which never carries the CV (privacy) — an
+   * empty "no document" panel would just look broken there.
+   */
+  hideDocPanel?: boolean;
   renderRight: (props: AnalysisShellRenderProps) => React.ReactNode;
 };
 
@@ -284,6 +290,7 @@ export function AnalysisShell({
   highlights = EMPTY_HIGHLIGHTS,
   highlightsByDoc,
   onHighlightTypeClick,
+  hideDocPanel = false,
   renderRight,
 }: AnalysisShellProps) {
   const { t } = useLanguage();
@@ -307,7 +314,9 @@ export function AnalysisShell({
   return (
     <div className="flex-1 flex overflow-hidden">
 
-      {/* ── Left panel — Source documents (hidden on mobile via .rc-shell-doc) ── */}
+      {/* ── Left panel — Source documents (hidden on mobile via .rc-shell-doc,
+             and entirely on the public shared view via hideDocPanel) ── */}
+      {!hideDocPanel && (
       <div className="rc-shell-doc" style={{ width: cvPanelOpen ? 520 : 40, flexShrink: 0, borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "var(--rc-surface)", transition: "width 0.22s ease", overflow: "hidden" }}>
         {cvPanelOpen ? (
           <>
@@ -400,6 +409,7 @@ export function AnalysisShell({
           </div>
         )}
       </div>
+      )}
 
       {/* ── Right panel ── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>

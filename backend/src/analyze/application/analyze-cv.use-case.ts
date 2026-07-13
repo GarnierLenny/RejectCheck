@@ -47,6 +47,10 @@ import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
 import type { Plan, QuotaDecision } from '../domain/quota.policy';
 import { CREDIT_COSTS, decideQuota, startOfMonthUTC } from '../domain/quota.policy';
+import {
+  matchKeywords,
+  type KeywordMatchResult,
+} from '../domain/keyword-match/keyword-match';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -89,6 +93,11 @@ export type AnalyzeCvCommand = {
   locale?: string;
   /** Owner teaser flag from the request; only honored for OWNER_EMAILS. */
   auditMode?: boolean;
+  /**
+   * Set when this analysis is a full (paid) re-scan of an earlier one. Stored
+   * as `parentAnalysisId` so the result view can show a before/after chain.
+   */
+  parentAnalysisId?: number;
 };
 
 export type AnalyzeCvResult = {
@@ -96,6 +105,12 @@ export type AnalyzeCvResult = {
   analysisId: number | null;
   /** True when the owner audit mode was actually applied (lean + auto-share). */
   auditMode: boolean;
+  /**
+   * Deterministic keyword-match baseline (no LLM) — the verifiable coverage
+   * table and the baseline the re-scan loop diffs against. Null when the CV
+   * couldn't be matched (should not happen once the min-evidence gate passes).
+   */
+  keywordMatch: KeywordMatchResult | null;
 };
 
 export type AnalyzeEvent =
@@ -116,6 +131,8 @@ export type AnalyzeEvent =
       cvTextFormatted: string;
       linkedinTextFormatted: string;
       motivationLetterText: string;
+      /** Deterministic keyword coverage table, shown next to the diagnostic. */
+      keywordMatch: KeywordMatchResult | null;
     }
   | { type: 'negotiation_delta'; delta: string }
   | { type: 'negotiation_done'; negotiation: NegotiationAnalysis };
@@ -390,6 +407,11 @@ export class AnalyzeCvUseCase {
     timings.claude_ms = Date.now() - claudeStart;
     applyCrossRef(result);
 
+    // Deterministic keyword coverage (no LLM): run on the FULL cvText, not the
+    // model-truncated slice, so skills late in the CV aren't silently missed.
+    // This is the verifiable score + the baseline the re-scan loop diffs.
+    const keywordMatch = matchKeywords(cmd.jobDescription, cvText);
+
     const persistStart = Date.now();
     const { analysisId, claimToken } = await this.persist({
       cmd,
@@ -400,6 +422,7 @@ export class AnalyzeCvUseCase {
       linkedinTextFormatted,
       githubInfo,
       motivationLetterText,
+      keywordMatch,
     });
     timings.persist_ms = Date.now() - persistStart;
 
@@ -420,6 +443,7 @@ export class AnalyzeCvUseCase {
       cvTextFormatted,
       linkedinTextFormatted,
       motivationLetterText,
+      keywordMatch,
     });
 
     // Negotiation is now ON-DEMAND (generated when a hired user opens the
@@ -445,7 +469,12 @@ export class AnalyzeCvUseCase {
         `has_motiv=${!!(cmd.motivationLetterBuffer || cmd.motivationLetterText)}`,
     );
 
-    return { result: shapedResult, analysisId, auditMode: isOwnerAudit };
+    return {
+      result: shapedResult,
+      analysisId,
+      auditMode: isOwnerAudit,
+      keywordMatch,
+    };
   }
 
   /**
@@ -594,6 +623,7 @@ export class AnalyzeCvUseCase {
     linkedinTextFormatted: string;
     githubInfo: string;
     motivationLetterText: string;
+    keywordMatch: KeywordMatchResult;
   }): Promise<{ analysisId: number | null; claimToken: string | null }> {
     const { cmd, result } = args;
 
@@ -613,6 +643,7 @@ export class AnalyzeCvUseCase {
       linkedinTextFormatted: args.linkedinTextFormatted || null,
       githubInfo: args.githubInfo || null,
       motivationLetter: args.motivationLetterText || null,
+      keywordMatch: args.keywordMatch,
       result,
     };
 
@@ -632,6 +663,7 @@ export class AnalyzeCvUseCase {
       email: cmd.email,
       ip: cmd.ip,
       creditCost: CREDIT_COSTS.analyze,
+      parentAnalysisId: cmd.parentAnalysisId ?? null,
     });
 
     const meta: ApplicationUpsertInput['meta'] = {

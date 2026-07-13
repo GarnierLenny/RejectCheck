@@ -6,16 +6,22 @@ import { AnalysisNotFoundException } from '../../common/exceptions';
 import type {
   AnalysisRepository,
   ApplicationUpsertInput,
+  CreateRescanInput,
   HistoryPage,
   SaveAnalysisInput,
   SaveAnonymousInput,
 } from '../ports/analysis.repository';
-import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
+import type {
+  AnalysisDetail,
+  RescanRecord,
+  StoredAnalysis,
+} from '../domain/analysis.types';
 import type {
   AnalyzeResponse,
   DeepAnalyzeResponse,
 } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import type { KeywordMatchResult } from '../domain/keyword-match/keyword-match';
 
 type AnalysisRow = {
   id: number;
@@ -90,6 +96,10 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         githubInfo: input.githubInfo,
         motivationLetter: input.motivationLetter,
         creditCost: input.creditCost,
+        parentAnalysisId: input.parentAnalysisId ?? null,
+        keywordMatch: input.keywordMatch
+          ? (input.keywordMatch as unknown as Prisma.InputJsonValue)
+          : Prisma.DbNull,
         result: input.result as unknown as Prisma.InputJsonValue,
         deepAnalysis: input.deepAnalysis
           ? (input.deepAnalysis as unknown as Prisma.InputJsonValue)
@@ -122,6 +132,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         githubInfo: input.githubInfo,
         motivationLetter: input.motivationLetter,
         creditCost: 0, // anonymous analyses don't consume credits
+        keywordMatch: input.keywordMatch
+          ? (input.keywordMatch as unknown as Prisma.InputJsonValue)
+          : Prisma.DbNull,
         result: input.result as unknown as Prisma.InputJsonValue,
       },
     });
@@ -233,6 +246,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         motivationLetter: true,
         coverLetter: true,
         negotiationAnalysis: true,
+        keywordMatch: true,
         completedSteps: true,
         premiumUnlockedAt: true,
         rewriteCount: true,
@@ -259,6 +273,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
       negotiationAnalysis:
         row.negotiationAnalysis as NegotiationAnalysis | null,
+      keywordMatch: row.keywordMatch as KeywordMatchResult | null,
       completedSteps: row.completedSteps ?? [],
       premiumUnlocked: row.premiumUnlockedAt !== null,
       rewriteCount: row.rewriteCount ?? 0,
@@ -427,6 +442,58 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     }
   }
 
+  async attachKeywordMatch(
+    id: number,
+    email: string,
+    keywordMatch: KeywordMatchResult,
+  ): Promise<void> {
+    await this.prisma.analysis.updateMany({
+      where: { id, email },
+      data: {
+        keywordMatch: keywordMatch as unknown as Prisma.InputJsonValue,
+      },
+    });
+  }
+
+  async createRescan(
+    input: CreateRescanInput,
+  ): Promise<{ id: number; createdAt: Date }> {
+    const created = await this.prisma.rescan.create({
+      data: {
+        analysisId: input.analysisId,
+        coverageScore: input.coverageScore,
+        matchedCount: input.matchedCount,
+        totalCount: input.totalCount,
+        keywordMatch: input.keywordMatch as unknown as Prisma.InputJsonValue,
+      },
+      select: { id: true, createdAt: true },
+    });
+    return created;
+  }
+
+  async listRescans(analysisId: number): Promise<RescanRecord[]> {
+    const rows = await this.prisma.rescan.findMany({
+      where: { analysisId },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        coverageScore: true,
+        matchedCount: true,
+        totalCount: true,
+        keywordMatch: true,
+        createdAt: true,
+      },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      coverageScore: r.coverageScore,
+      matchedCount: r.matchedCount,
+      totalCount: r.totalCount,
+      keywordMatch: r.keywordMatch as unknown as KeywordMatchResult,
+      createdAt: r.createdAt,
+    }));
+  }
+
   async findStarterRepo(id: number, email: string): Promise<unknown | null> {
     const row = await this.prisma.analysis.findFirst({
       where: { id, email },
@@ -526,6 +593,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         motivationLetter: true,
         coverLetter: true,
         negotiationAnalysis: true,
+        keywordMatch: true,
         completedSteps: true,
         createdAt: true,
         updatedAt: true,
@@ -550,6 +618,7 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       result: row.result as AnalyzeResponse | null,
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
       negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
+      keywordMatch: row.keywordMatch as KeywordMatchResult | null,
       completedSteps: row.completedSteps ?? [],
       // Public shared view never exposes the per-buyer rewrite unlock.
       premiumUnlocked: false,

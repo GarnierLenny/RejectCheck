@@ -16,6 +16,7 @@ import { NegotiationTab } from "./tabs/NegotiationTab";
 import { RewriteTab } from "./tabs/RewriteTab";
 import { ProjectRecommendationSkeleton } from "./skeletons/ProjectRecommendationSkeleton";
 import { TechnicalAnalysisSkeleton } from "./skeletons/TechnicalAnalysisSkeleton";
+import { RescanPanel } from "./rescan/RescanPanel";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { useLanguage } from "../../context/language";
@@ -46,6 +47,12 @@ export type AnalysisLayoutProps = {
   accessToken?: string | null;
   completedSteps?: number[];
   cvTextFormatted?: string | null;
+  /**
+   * Public shared view: same narrative report, but no owner-only affordances
+   * (re-scan panel) and no source-document panel (shares never carry the CV).
+   * The premium sections fall back to their free-plan read-only rendering.
+   */
+  readOnly?: boolean;
 };
 
 type DocTab = "cv" | "cover" | "linkedin";
@@ -744,6 +751,7 @@ export function AnalysisLayout({
   accessToken,
   completedSteps,
   cvTextFormatted = null,
+  readOnly = false,
 }: AnalysisLayoutProps) {
   const { t } = useLanguage();
   const [activeSection, setActiveSection] = useState("risk");
@@ -855,6 +863,7 @@ export function AnalysisLayout({
       cvBlobUrl={cvBlobUrl}
       liBlobUrl={liBlobUrl}
       mlBlobUrl={mlBlobUrl}
+      hideDocPanel={readOnly && !cvBlobUrl && !cvTextFormatted && !reconstructedCv}
       reconstructedCv={reconstructedCv}
       liText={liText}
       coverLetterText={coverLetterText}
@@ -965,6 +974,7 @@ export function AnalysisLayout({
             {/* §02 — Match */}
             <section id="sec-match" style={SEC}>
               {secHead("02", t.analysisLayout.tabs.match)}
+              {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} />}
               <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
             </section>
 

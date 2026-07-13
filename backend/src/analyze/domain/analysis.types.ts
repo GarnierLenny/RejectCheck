@@ -4,6 +4,7 @@ import type {
   DeepAnalyzeResponse,
 } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import type { KeywordMatchResult } from './keyword-match/keyword-match';
 
 export type { AnalysisOutcome };
 /** Outcomes the user can set (all enum values are user-selectable). */
@@ -80,7 +81,30 @@ export type AnalysisDetail = Pick<
   | 'negotiationAnalysis'
   | 'createdAt'
   | 'updatedAt'
-> & { completedSteps: number[]; premiumUnlocked: boolean; rewriteCount: number };
+> & {
+  completedSteps: number[];
+  premiumUnlocked: boolean;
+  rewriteCount: number;
+  /**
+   * Deterministic keyword-match baseline for this analysis (null for legacy
+   * rows — the re-scan flow recomputes it from jobDescription + cvText on
+   * demand and backfills it).
+   */
+  keywordMatch: KeywordMatchResult | null;
+};
+
+/**
+ * One free keyword-only re-scan attempt (the retention loop). Ordered oldest →
+ * newest by the repository so the UI can plot coverage climbing over time.
+ */
+export type RescanRecord = {
+  id: number;
+  coverageScore: number;
+  matchedCount: number;
+  totalCount: number;
+  keywordMatch: KeywordMatchResult;
+  createdAt: Date;
+};
 
 export type Profile = {
   id: number;
