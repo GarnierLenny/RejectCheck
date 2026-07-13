@@ -89,16 +89,18 @@ export function ProjectTab({ project }: Props) {
         </div>
       )}
 
-      {/* Architecture Blueprint */}
-      <div className="bg-rc-surface-raised border border-rc-border p-6 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-rc-red" />
-        <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5 mb-4">
-          <Layers className="w-3.5 h-3.5" /> Architecture Blueprint
-        </h4>
-        <div className={`font-mono text-[13px] text-rc-muted ${mdClass}`}>
-          <ReactMarkdown>{project.architecture}</ReactMarkdown>
+      {/* Architecture Blueprint — stripped from the free teaser, so guard it. */}
+      {project.architecture && (
+        <div className="bg-rc-surface-raised border border-rc-border p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-rc-red" />
+          <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5 mb-4">
+            <Layers className="w-3.5 h-3.5" /> Architecture Blueprint
+          </h4>
+          <div className={`font-mono text-[13px] text-rc-muted ${mdClass}`}>
+            <ReactMarkdown>{project.architecture}</ReactMarkdown>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Core Stack + Advanced Concepts */}
       <div className="grid sm:grid-cols-2 gap-4">
@@ -107,7 +109,7 @@ export function ProjectTab({ project }: Props) {
             <Zap className="w-3.5 h-3.5" /> Core Stack
           </h4>
           <div className="flex flex-wrap gap-2">
-            {project.technologies.map((tech, i) => {
+            {(project.technologies ?? []).map((tech, i) => {
               const name = typeof tech === "string" ? tech : tech.name;
               return (
                 <span key={i} className="px-2.5 py-1 bg-rc-surface-raised border border-rc-border font-mono text-[12px] text-rc-text">
@@ -133,7 +135,8 @@ export function ProjectTab({ project }: Props) {
         )}
       </div>
 
-      {/* Success Criteria */}
+      {/* Success Criteria — stripped from the free teaser, so guard it. */}
+      {project.success_criteria && project.success_criteria.length > 0 && (
       <div className="bg-rc-surface border border-rc-border p-6">
         <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-hint font-bold flex items-center gap-1.5 mb-4">
           <CheckCircle2 className="w-3.5 h-3.5" /> Success Criteria
@@ -151,6 +154,7 @@ export function ProjectTab({ project }: Props) {
           ))}
         </div>
       </div>
+      )}
 
       {/* Actionable Steps — legacy field, only present on analyses created
           before what_matters was cut from the schema. */}

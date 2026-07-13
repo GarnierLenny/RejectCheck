@@ -17,9 +17,28 @@ type Props = {
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   lang: string;
   token: string;
+  cvTextFormatted?: string | null;
+  cvFileUrl?: string | null;
+  linkedinTextFormatted?: string | null;
+  liFileUrl?: string | null;
+  coverLetter?: string | null;
+  mlFileUrl?: string | null;
 };
 
-export function SharedAnalysisView({ result, jobLabel, company, profile, lang, token }: Props) {
+export function SharedAnalysisView({
+  result,
+  jobLabel,
+  company,
+  profile,
+  lang,
+  token,
+  cvTextFormatted = null,
+  cvFileUrl = null,
+  linkedinTextFormatted = null,
+  liFileUrl = null,
+  coverLetter = null,
+  mlFileUrl = null,
+}: Props) {
   const { t } = useLanguage();
   const [stickyVisible, setStickyVisible] = useState(false);
 
@@ -112,7 +131,15 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
             readOnly
             result={result}
             analysisId={null}
-            cvBlobUrl={null}
+            cvBlobUrl={cvFileUrl}
+            liBlobUrl={liFileUrl}
+            mlBlobUrl={mlFileUrl}
+            /* Parsed text drives the highlighted CV view (default) in the left
+               doc panel — exactly what the owner sees. */
+            reconstructedCv={cvTextFormatted}
+            cvTextFormatted={cvTextFormatted}
+            liText={linkedinTextFormatted}
+            coverLetterText={coverLetter}
             deepStatus="ready"
             isPremium={false}
             userPlan="free"

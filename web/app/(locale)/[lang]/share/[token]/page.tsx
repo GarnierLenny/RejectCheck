@@ -14,6 +14,12 @@ type SharedAnalysisData = {
   result: AnalysisResult | null;
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   createdAt: string;
+  cvTextFormatted: string | null;
+  cvFileUrl: string | null;
+  linkedinTextFormatted: string | null;
+  liFileUrl: string | null;
+  coverLetter: string | null;
+  mlFileUrl: string | null;
 };
 
 async function fetchSharedAnalysis(token: string): Promise<SharedAnalysisData | null> {
@@ -97,6 +103,12 @@ export default async function SharedAnalysisPage({
       profile={data.profile}
       lang={locale}
       token={token}
+      cvTextFormatted={data.cvTextFormatted}
+      cvFileUrl={data.cvFileUrl}
+      linkedinTextFormatted={data.linkedinTextFormatted}
+      liFileUrl={data.liFileUrl}
+      coverLetter={data.coverLetter}
+      mlFileUrl={data.mlFileUrl}
     />
   );
 }

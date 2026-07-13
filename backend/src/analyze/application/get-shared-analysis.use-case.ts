@@ -13,6 +13,15 @@ export type SharedAnalysis = {
   result: AnalyzeResponse | null;
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   createdAt: Date;
+  // Source documents, so the public view renders the exact same split-panel
+  // (parsed CV + highlights on the left) the owner sees. The owner opted into
+  // a public link, so exposing these is intentional.
+  cvTextFormatted: string | null;
+  cvFileUrl: string | null;
+  linkedinTextFormatted: string | null;
+  liFileUrl: string | null;
+  coverLetter: string | null;
+  mlFileUrl: string | null;
 };
 
 @Injectable()
@@ -51,6 +60,14 @@ export class GetSharedAnalysisUseCase {
       result: detail.result,
       profile,
       createdAt: detail.createdAt,
+      cvTextFormatted: detail.cvTextFormatted,
+      cvFileUrl: detail.cvFileUrl,
+      linkedinTextFormatted: detail.linkedinTextFormatted,
+      liFileUrl: detail.liFileUrl,
+      // Cover letter parsed text lives in `motivationLetter`; `coverLetter` is
+      // the HIRED-generated one. Prefer whichever the owner has.
+      coverLetter: detail.coverLetter ?? detail.motivationLetter,
+      mlFileUrl: detail.mlFileUrl,
     };
   }
 }
