@@ -3,7 +3,7 @@ import {
   CrossProfileInconsistencySchema,
   TimelineEntrySchema,
 } from './profile-digest.dto';
-import { IssueHotSchema } from './analyze-response.dto';
+import { BulletReviewsSchema, IssueHotSchema } from './analyze-response.dto';
 
 export const CvQualitySchema = z.object({
   overall: z.number().min(0).max(100),
@@ -46,7 +46,8 @@ export const PositioningGapsSchema = z.object({
       }),
     )
     .min(1)
-    .max(3),
+    // Tool cap is 5 — one slot of headroom so an off-by-one never fails.
+    .max(6),
 });
 
 export const CvQualityNotesSchema = z.object({
@@ -85,9 +86,12 @@ export const CvReviewResponseSchema = z.object({
   }),
   cv_tone: z.object({
     detected: z.enum(['passive', 'active', 'mixed']),
-    examples: z.array(z.string()).max(5),
-    rewrites: z.array(z.string()).max(5).optional(),
+    // Tool cap is 6 — headroom so an off-by-one never fails the review.
+    examples: z.array(z.string()).max(8),
+    rewrites: z.array(z.string()).max(8).optional(),
   }),
+  // Optional so pre-densification DB rows replay.
+  bullet_reviews: BulletReviewsSchema.optional(),
   audit: z.object({
     cv: z.object({
       score: z.number().min(0).max(100),
@@ -112,7 +116,8 @@ export const CvReviewResponseSchema = z.object({
         perception: z.string(),
       }),
     )
-    .max(3),
+    // Tool cap is 5 — headroom so an off-by-one never fails the review.
+    .max(6),
   cross_profile_inconsistencies: z
     .array(CrossProfileInconsistencySchema)
     .optional(),

@@ -28,6 +28,12 @@ import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 import type { DigestSourceHashes, ProfileDigest } from '../dto/profile-digest.dto';
+import { SectionStreamParser } from '../infrastructure/section-stream.parser';
+import {
+  shapeCvReviewForPlan,
+  shapeSectionForPlan,
+} from '../domain/analysis-shaper';
+import { isOwnerEmail } from '../domain/owner';
 import { QuotaExceededException } from '../../common/exceptions';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
@@ -58,16 +64,23 @@ export type ReviewCvCommand = {
   ip?: string;
   isRegistered: boolean;
   locale?: string;
+  /** Owner teaser flag from the request; only honored for OWNER_EMAILS. */
+  auditMode?: boolean;
 };
 
 export type ReviewCvResult = {
   result: CvReviewResponse;
   analysisId: number | null;
+  /** True when the owner audit mode was actually applied (lean + auto-share). */
+  auditMode: boolean;
 };
 
 export type ReviewCvEvent =
   | { type: 'step'; step: string }
-  | { type: 'analysis_delta'; delta: string }
+  // A top-level section of the tool output started generating.
+  | { type: 'generating'; section: string }
+  // A top-level section completed — parsed and shaped for the requester.
+  | { type: 'section'; key: string; value: unknown }
   | {
       type: 'analysis_done';
       result: CvReviewResponse;
@@ -111,8 +124,16 @@ export class ReviewCvUseCase {
     Sentry.setTag('tier', subscriptionState.tier);
     Sentry.setTag('plan', subscriptionState.plan);
 
+    // Owner "audit mode" — honored only for OWNER_EMAILS (see analyze-cv).
+    // Lean diagnostic, portfolio + digest off, quota bypassed.
+    const isOwnerAudit =
+      (cmd.auditMode ?? false) &&
+      isOwnerEmail(cmd.email, this.config.get<string>('OWNER_EMAILS'));
+
     const plan = toQuotaPlan(subscriptionState.plan);
-    const quotaIntent = await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.review);
+    const quotaIntent = isOwnerAudit
+      ? ({ allowed: true, consume: 'anonymous' } as const)
+      : await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.review);
 
     emitStep('parsing_cv');
     if (cmd.githubUsername) emitStep('analyzing_github');
@@ -147,20 +168,31 @@ export class ReviewCvUseCase {
         ? await this.profiles.findByEmail(cmd.email).catch(() => null)
         : null;
 
-    const portfolioUrl = profile?.portfolioUrl ?? null;
+    // Profile digest (cross-source synthesis powering the Consistency + Timeline
+    // views) is behind a flag, OFF by default. When disabled the review runs on
+    // the uploaded CV + GitHub + LinkedIn directly, with no cross-profile
+    // enrichment. See PROFILE_DIGEST_ENABLED.
+    const digestEnabled =
+      !isOwnerAudit &&
+      this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
+
+    // The portfolio comes from the signed-in user's OWN profile, not from this
+    // upload. Feeding it as a source makes the model cross-check the uploaded
+    // CV against the owner's portfolio — great when you audit your own CV, but
+    // wrong (and it leaks the owner's data) when you analyze someone else's.
+    // Dedicated switch, ENABLED by default so a deploy doesn't silently change
+    // prod behavior; set CV_REVIEW_PORTFOLIO_ENABLED=false to turn it off.
+    // Audit mode always forces it off (auditing someone else's CV).
+    const portfolioEnabled =
+      !isOwnerAudit &&
+      this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') !== 'false';
+    const portfolioUrl = portfolioEnabled ? profile?.portfolioUrl ?? null : null;
     const portfolioMarkdown = portfolioUrl
       ? await this.portfolioScraper
           .fetch(portfolioUrl)
           .then((s) => s?.markdown ?? '')
           .catch(() => '')
       : '';
-
-    // Profile digest (cross-source synthesis powering the Consistency + Timeline
-    // views) is behind a flag, OFF by default. When disabled the review runs on
-    // the uploaded CV + GitHub + LinkedIn directly, with no cross-profile
-    // enrichment. See PROFILE_DIGEST_ENABLED.
-    const digestEnabled =
-      this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
 
     let digest: ProfileDigest | null = null;
     if (digestEnabled && cmd.email && cmd.isRegistered) {
@@ -176,6 +208,22 @@ export class ReviewCvUseCase {
     }
 
     emitStep('reviewing_cv');
+    // Stream completed top-level sections as typed events, shaped for the
+    // requester's plan — the raw JSON deltas are never sent to the client.
+    const shapeCtx = {
+      premium: subscriptionState.hasActiveSubscription,
+      hired: subscriptionState.plan === 'hired',
+    };
+    const sectionParser = new SectionStreamParser({
+      onSectionStart: (key) => emit({ type: 'generating', section: key }),
+      onSection: (key, value) =>
+        emit({
+          type: 'section',
+          key,
+          value: shapeSectionForPlan(key, value, shapeCtx),
+        }),
+    });
+
     const result = await this.claude.reviewCv({
       cvText,
       githubInfo,
@@ -183,9 +231,10 @@ export class ReviewCvUseCase {
       portfolioMarkdown,
       portfolioUrl,
       digest,
+      lean: isOwnerAudit,
       locale: cmd.locale,
       userRoleType: profile?.roleType ?? null,
-      onDelta: (delta) => emit({ type: 'analysis_delta', delta }),
+      onDelta: (delta) => sectionParser.push(delta),
     });
 
     const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
@@ -194,8 +243,10 @@ export class ReviewCvUseCase {
       await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'review', amount: CREDIT_COSTS.review });
     }
 
-    emit({ type: 'analysis_done', result, analysisId, claimToken });
-    return { result, analysisId };
+    // Stored result stays complete; the emitted one is shaped for the plan.
+    const shapedResult = shapeCvReviewForPlan(result, shapeCtx);
+    emit({ type: 'analysis_done', result: shapedResult, analysisId, claimToken });
+    return { result: shapedResult, analysisId, auditMode: isOwnerAudit };
   }
 
   private async reserveQuotaIntent(

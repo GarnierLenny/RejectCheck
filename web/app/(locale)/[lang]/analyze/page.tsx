@@ -50,6 +50,54 @@ type Tab = "cv-review" | "overview" | "ats" | "cv-analysis" | "signals" | "flags
 
 type StoredSubscription = { plan: string; email: string; expiry: number };
 
+// Merge one streamed `section` event (backend tool-schema key + already
+// plan-shaped value) into the partial result being built during streaming.
+// Keys mirror the single-pass tool schema; `analysis_done` later overwrites
+// the whole object with the fully-mapped, shaped result, so this only needs to
+// be good enough to render progressively.
+function mergeSection(
+  prev: AnalysisResult | null,
+  key: string,
+  value: unknown,
+): AnalysisResult {
+  const r: Record<string, unknown> = { ...(prev ?? {}) } as Record<string, unknown>;
+  const v = value as never;
+  const audit = () =>
+    ({ ...(r.audit as Record<string, unknown> | undefined) } as Record<string, unknown>);
+  switch (key) {
+    case "overall": {
+      const o = value as { score: number; verdict: string; confidence: unknown };
+      r.score = o.score;
+      r.verdict = o.verdict;
+      r.confidence = o.confidence;
+      break;
+    }
+    case "breakdown":
+      r.breakdown = v;
+      break;
+    case "ats_simulation": {
+      const existing = (r.ats_simulation ?? {}) as Record<string, unknown>;
+      r.ats_simulation = { ...(value as object), critical_missing_keywords: existing.critical_missing_keywords };
+      break;
+    }
+    case "ats_critical_missing_keywords": {
+      const existing = (r.ats_simulation ?? {}) as Record<string, unknown>;
+      r.ats_simulation = { ...existing, critical_missing_keywords: value };
+      break;
+    }
+    case "audit_cv": { const a = audit(); a.cv = v; r.audit = a; break; }
+    case "audit_github": { const a = audit(); a.github = v; r.audit = a; break; }
+    case "audit_linkedin": { const a = audit(); a.linkedin = v; r.audit = a; break; }
+    case "audit_jd_match": { const a = audit(); a.jd_match = v; r.audit = a; break; }
+    default:
+      // Direct 1:1 keys: job_details, seniority_analysis, technical_analysis,
+      // cv_tone, hidden_red_flags, bullet_reviews, challenge_analysis,
+      // highlight_terms, project_recommendation.
+      r[key] = value;
+  }
+  return r as AnalysisResult;
+}
+
 function AnalyzeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -76,26 +124,39 @@ function AnalyzeContent() {
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
+  // Owner "audit mode": lean teaser audit for strangers (Reddit) that
+  // auto-mints a public share link. `isOwner` (from a PUBLIC env list) only
+  // gates the UI toggle — the backend re-checks OWNER_EMAILS from the JWT, so a
+  // non-owner flipping this gets a normal analysis. Defaults on from ?audit=1.
+  const ownerEmails = (process.env.NEXT_PUBLIC_OWNER_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isOwner = !!user?.email && ownerEmails.includes(user.email.toLowerCase());
+  const [auditMode, setAuditMode] = useState(false);
+  useEffect(() => {
+    if (isOwner && searchParams.get("audit") === "1") setAuditMode(true);
+  }, [isOwner]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<string | null>(null);
   const [streamText, setStreamText] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  // ANALYSIS_SPLIT_V2 (Phase 3-lite): true while the on-demand DEEP pass (fixes)
-  // is generating after the user clicked "show my fixes".
-  const [deepGenerating, setDeepGenerating] = useState(false);
-  // Derived deep state: "ready" once the result carries the fixes/project,
-  // "pending" while the deep is generating, else "locked" → show the unlock CTA.
-  // Legacy single-pass results already carry the deep, so they read "ready".
-  const resultHasDeep =
+  // True from submit until the SSE `done` event: the single pass is still
+  // streaming sections. Drives per-section skeletons in the report.
+  const [streaming, setStreaming] = useState(false);
+  // While streaming, the actionable content (fixes / project) may not have
+  // arrived yet → show its skeleton ("pending"). Once the stream ends (or the
+  // content is already present, e.g. a saved analysis) it reads "ready".
+  const actionablePresent =
     !!result?.project_recommendation ||
     (result?.audit?.cv?.issues ?? []).some(
       (i: { fix?: unknown }) => !!i.fix,
-    );
-  const deepStatus: "ready" | "pending" | "locked" = resultHasDeep
-    ? "ready"
-    : deepGenerating
-      ? "pending"
-      : "locked";
+    ) ||
+    !!result?.premium_locked; // free result: gated, but generation is complete
+  const deepStatus: "ready" | "pending" = streaming && !actionablePresent
+    ? "pending"
+    : "ready";
   const [error, setError] = useState<string | null>(null);
   // True only on a runtime analysis failure (stream/network) — drives the
   // LoadingScreen error card + retry. Validation errors stay in the upload form.
@@ -181,11 +242,10 @@ function AnalyzeContent() {
   const isPremium = liveActivePlan === 'shortlisted' || liveActivePlan === 'hired';
   const userPlan = liveActivePlan;
   const isHiredTier = liveActivePlan === 'hired';
-  // Poll the saved analysis while waiting on an async pass: the hired-tier
-  // negotiation, OR (ANALYSIS_SPLIT_V2) the deep fixes pass — see deepStatus.
+  // Poll the saved analysis only for the hired-tier negotiation, which is
+  // still generated asynchronously on demand.
   const shouldPoll =
-    (isHiredTier && !!result && !result.negotiation_analysis) ||
-    deepStatus === "pending";
+    isHiredTier && !!result && !result.negotiation_analysis;
 
   const { data: savedAnalysis, isLoading: loadingById, isError: isAnalysisError, error: analysisError } = useAnalysis(
     // Poll by the analysisId STATE (set at analysis_done) with urlId as fallback:
@@ -200,31 +260,6 @@ function AnalyzeContent() {
   const premiumUnlocked = savedAnalysis?.premiumUnlocked ?? false;
   const canUseRewrite = isPremium || premiumUnlocked;
 
-  // ANALYSIS_SPLIT_V2 robust deep delivery: the deep pass holds the live SSE
-  // idle for ~3 min, so the `deep_done` event can be lost if the connection
-  // drops. While deepStatus is "pending" we poll GET /analyze/:id (shouldPoll
-  // above) and apply the deep the moment the merged result carries it —
-  // independent of streamingRef, so it works even if the stream is still open.
-  useEffect(() => {
-    if (deepStatus !== "pending") return;
-    const r = savedAnalysis?.result;
-    if (!r) return;
-    const hasDeep =
-      !!r.project_recommendation ||
-      (r.audit?.cv?.issues ?? []).some((i: { fix?: unknown }) => !!i.fix);
-    if (hasDeep) {
-      setResult(r);
-      setDeepGenerating(false); // result now has the deep → deepStatus = "ready"
-    }
-  }, [deepStatus, savedAnalysis]);
-
-  // Stop waiting if the deep never lands (rare failed pass): after 4 min, clear
-  // the generating flag so deepStatus falls back to "locked" (user can retry).
-  useEffect(() => {
-    if (!deepGenerating) return;
-    const t = setTimeout(() => setDeepGenerating(false), 240_000);
-    return () => clearTimeout(t);
-  }, [deepGenerating]);
   const bootstrappedRef = useRef(false);
   useEffect(() => {
     if (bootstrappedRef.current) return;
@@ -342,6 +377,7 @@ function AnalyzeContent() {
     if (liFile) formData.append("linkedin", liFile);
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("locale", locale);
+    if (auditMode) formData.append("auditMode", "true");
     // Identity is derived server-side from the JWT — we send the token, not email/isRegistered.
 
     posthog.capture("cv_review_submitted", {
@@ -377,6 +413,10 @@ function AnalyzeContent() {
       type CvReviewPayload = {
         step: string;
         delta?: string;
+        section?: string;
+        key?: string;
+        value?: unknown;
+        token?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
         claimToken?: string | null;
@@ -398,8 +438,12 @@ function AnalyzeContent() {
       };
 
       await consumeSSE<CvReviewPayload>(res, (payload) => {
-        if (payload.step === "analysis_delta") {
-          setStreamText((prev) => prev + (payload.delta ?? ""));
+        if (payload.step === "generating") {
+          if (payload.section) setStreamText((prev) => prev + `"${payload.section}"`);
+        } else if (payload.step === "section") {
+          if (payload.key) setStreamText((prev) => prev + `"${payload.key}"`);
+        } else if (payload.step === "share" && payload.token) {
+          openAuditShare(payload.token);
         } else if (payload.step === "analysis_done") {
           // Anonymous run: stash the claimToken so it attaches to the account
           // if the user signs up from the result screen (see AuthProvider).
@@ -490,6 +534,7 @@ function AnalyzeContent() {
     if (githubUsername) formData.append("githubUsername", githubUsername);
     formData.append("jobDescription", jobDescription);
     formData.append("locale", locale);
+    if (auditMode) formData.append("auditMode", "true");
     // Identity is derived server-side from the JWT — we send the token, not email/isRegistered.
 
     posthog.capture("cv_analysis_submitted", {
@@ -505,6 +550,9 @@ function AnalyzeContent() {
     setAnalysisFailed(false);
     setCurrentStep(null);
     setStreamText("");
+    setResult(null);
+    setVisualLoadingDone(false);
+    setStreaming(true);
     streamingRef.current = true;
 
     try {
@@ -536,6 +584,12 @@ function AnalyzeContent() {
       type AnalyzePayload = {
         step: string;
         delta?: string;
+        /** Typed section streaming: `generating` carries `section`, the
+         * completed value arrives as `section` with `key` + `value`. */
+        section?: string;
+        key?: string;
+        value?: unknown;
+        token?: string;
         result?: AnalysisResult;
         analysisId?: number | null;
         claimToken?: string | null;
@@ -546,8 +600,6 @@ function AnalyzeContent() {
         message?: string;
         code?: string;
         details?: { plan?: 'free' | 'shortlisted' | 'hired'; monthlyCap?: number };
-        /** ANALYSIS_SPLIT_V2: analysis_done carries this; deep_done follows. */
-        deepPending?: boolean;
       };
 
       // Tracks the latest known result during the stream so we can keep the
@@ -576,8 +628,21 @@ function AnalyzeContent() {
       };
 
       await consumeSSE<AnalyzePayload>(res, (payload) => {
-        if (payload.step === "analysis_delta") {
-          setStreamText((prev) => prev + (payload.delta ?? ""));
+        if (payload.step === "generating") {
+          // Keep the pre-score LoadingScreen sub-steps animating: it detects
+          // progress by scanning streamText for `"<key>"` tokens.
+          if (payload.section) setStreamText((prev) => prev + `"${payload.section}"`);
+        } else if (payload.step === "section") {
+          if (!payload.key) return;
+          setStreamText((prev) => prev + `"${payload.key}"`);
+          setResult((prev) => {
+            const merged = mergeSection(prev, payload.key!, payload.value);
+            latestResult = merged;
+            return merged;
+          });
+          // Flip to the report as soon as the score lands — the rest of the
+          // sections fill their skeletons progressively.
+          if (payload.key === "overall") setVisualLoadingDone(true);
         } else if (payload.step === "analysis_done") {
           // Anonymous run: stash the claimToken so it attaches to the account
           // if the user signs up from the result screen (see AuthProvider).
@@ -618,12 +683,9 @@ function AnalyzeContent() {
               uploadAnalysisFiles(payload.analysisId, user.id, session.access_token).catch(() => {});
             }
           }
-          // ANALYSIS_SPLIT_V2: deepPending=true means the deep is auto-generating
-          // server-side → mark generating so deepStatus reads "pending" and the
-          // GET poll delivers the fixes. (deepPending=false would leave it
-          // "locked" → the on-demand CTA, kept for a future paid model.)
-          setDeepGenerating(payload.deepPending ?? false);
           setVisualLoadingDone(true);
+        } else if (payload.step === "share" && payload.token) {
+          openAuditShare(payload.token);
         } else if (payload.step === "negotiation_delta") {
           setStreamText((prev) => prev + (payload.delta ?? ""));
         } else if (payload.step === "negotiation_done") {
@@ -634,19 +696,12 @@ function AnalyzeContent() {
             primeQueryCache();
             return merged;
           });
-        } else if (payload.step === "deep_done") {
-          // ANALYSIS_SPLIT_V2: deep pass finished — swap in the FULL merged
-          // result (server-computed) and lift the skeletons. One atomic event,
-          // so a plain replace is race-free (unlike Phase 3 per-fix merges).
-          if (payload.result) {
-            latestResult = payload.result;
-            setResult(payload.result);
-            primeQueryCache();
-          }
-          setDeepGenerating(false);
         } else if (payload.step === "done") {
-          // Fallback: ensure we have a result even if analysis_done was missed.
-          if (payload.result && !latestResult) {
+          // Stream finished → the report is complete (skeletons resolve).
+          setStreaming(false);
+          // The full shaped result is authoritative — overwrite the object
+          // assembled from streamed sections.
+          if (payload.result) {
             latestResult = payload.result;
             setResult(payload.result);
           }
@@ -685,6 +740,7 @@ function AnalyzeContent() {
               monthlyCap: payload.details?.monthlyCap,
             });
             setLoading(false);
+            setStreaming(false);
             streamingRef.current = false;
             return;
           }
@@ -697,6 +753,7 @@ function AnalyzeContent() {
       const message = err instanceof Error ? err.message : "Analysis failed";
       setError(message);
       setLoading(false);
+      setStreaming(false);
       setCurrentStep(null);
       setAnalysisFailed(true);
       posthog.capture("cv_analysis_failed", { error: message, analysis_id: analysisId });
@@ -733,6 +790,15 @@ function AnalyzeContent() {
     }
     prevUrlIdRef.current = urlId;
   }, [urlId, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Owner audit mode: the backend streamed a `share` token — build the public
+  // URL and open the ShareModal so the link can be copied for the Reddit DM.
+  function openAuditShare(token: string) {
+    const base = `${window.location.origin}${localePath(`/share/${token}`)}`;
+    setShareToken(token);
+    setShareUrl(`${base}?utm_source=rejectcheck&utm_medium=share_card&utm_campaign=audit`);
+    toast.success(t.toasts?.shareLinkReady ?? "Public link ready — copy it below.");
+  }
 
   async function shareAnalysis() {
     if (!analysisId || !session?.access_token) return;
@@ -807,26 +873,6 @@ function AnalyzeContent() {
     } catch {
       toast.error(t.toasts.paymentFailed);
       setIsUnlocking(false);
-    }
-  }
-
-  // ANALYSIS_SPLIT_V2 Phase 3-lite: generate the deep pass (fixes/project/ATS)
-  // on demand. Fires the async backend trigger; the GET poll (shouldPoll while
-  // deepStatus === "pending") swaps in the merged result once it's ready.
-  async function unlockDeep() {
-    if (!analysisId || deepGenerating) return;
-    posthog.capture("deep_unlock_clicked", { analysis_id: analysisId });
-    setDeepGenerating(true);
-    try {
-      await fetch(`${apiUrl}/api/analyze/${analysisId}/generate-deep`, {
-        method: "POST",
-        headers: session?.access_token
-          ? { Authorization: `Bearer ${session.access_token}` }
-          : undefined,
-      });
-    } catch {
-      // Network hiccup — the deep may still be enqueued; the poll + the 4-min
-      // timeout (which resets deepGenerating) cover both outcomes.
     }
   }
 
@@ -1034,7 +1080,6 @@ function AnalyzeContent() {
           liBlobUrl={liBlobUrl}
           mlBlobUrl={mlBlobUrl}
           deepStatus={deepStatus}
-          onUnlockDeep={unlockDeep}
           isAnonymous={!user}
           isPremium={isPremium}
           userPlan={userPlan}
@@ -1085,6 +1130,17 @@ function AnalyzeContent() {
               />
             ) : (
               <div className="flex-1 flex flex-col min-h-0">
+                {isOwner && (
+                  <label className="mx-auto mb-3 flex items-center gap-2 text-[12px] font-mono text-rc-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={auditMode}
+                      onChange={(e) => setAuditMode(e.target.checked)}
+                      className="accent-rc-red"
+                    />
+                    Audit mode — lean teaser + public link (no quota, no portfolio)
+                  </label>
+                )}
                 <UploadForm
                   cvFile={cvFile} setCvFile={setCvFile}
                   liFile={liFile} setLiFile={setLiFile}

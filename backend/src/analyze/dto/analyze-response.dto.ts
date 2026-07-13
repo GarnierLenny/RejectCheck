@@ -186,6 +186,42 @@ export const AtsCriticalMissingKeywordSchema = z.object({
   score_impact: z.number(),
 });
 
+// Bullet-by-bullet CV review (single-pass tool). `rewrite` is the premium
+// half — the shaper nulls it out for free users.
+export const BulletReviewSchema = z.object({
+  original: z.string(),
+  section: z.string(),
+  verdict: z.enum(['strong', 'weak', 'fatal']).catch('weak'),
+  flags: z
+    .array(
+      z.enum([
+        'weak_verb',
+        'no_metric',
+        'passive_voice',
+        'vague_scope',
+        'buzzword',
+        'no_outcome',
+        'too_long',
+      ]),
+    )
+    .catch([]),
+  why: z.string(),
+  rewrite: z.string().nullable(),
+});
+
+export const BulletReviewsSchema = z.object({
+  bullets: z.array(BulletReviewSchema),
+});
+
+// Counts of premium content hidden by the shaper for free users — drives the
+// upsell CTAs without leaking the content itself.
+export const PremiumLockedSchema = z.object({
+  fixes: z.number(),
+  bullet_rewrites: z.number(),
+  ats_keywords: z.number(),
+  project: z.boolean(),
+});
+
 const JobDetailsSchema = z.object({
   title: z.string(),
   company: z.string(),
@@ -389,7 +425,9 @@ export const AnalyzeResponseSchema = z.object({
   }),
   cv_tone: z.object({
     detected: z.enum(['passive', 'active', 'mixed']),
-    examples: z.array(z.string()).max(5),
+    // Tool cap is 6 — keep one slot of headroom so an off-by-one from the
+    // model never fails an expensive analysis.
+    examples: z.array(z.string()).max(8),
     fix: FixSchema.optional(),
   }),
   audit: z.object({
@@ -450,6 +488,10 @@ export const AnalyzeResponseSchema = z.object({
    * Empty / undefined for anonymous users (no digest).
    */
   highlight_terms: HighlightTermsSchema.optional(),
+  // Bullet-by-bullet review — optional so pre-densification DB rows replay.
+  bullet_reviews: BulletReviewsSchema.optional(),
+  // Set by the analysis shaper on redacted (free) payloads only.
+  premium_locked: PremiumLockedSchema.optional(),
   cross_profile_inconsistencies: z
     .array(CrossProfileInconsistencySchema)
     .optional(),

@@ -1,11 +1,16 @@
 import type { AnalysisOutcome } from '@prisma/client';
-import type { AnalysisDetail, StoredAnalysis } from '../domain/analysis.types';
+import type {
+  AnalysisDetail,
+  RescanRecord,
+  StoredAnalysis,
+} from '../domain/analysis.types';
 import type {
   AnalyzeResponse,
   DeepAnalyzeResponse,
   HotAnalyzeResponse,
 } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
+import type { KeywordMatchResult } from '../domain/keyword-match/keyword-match';
 
 export type SaveAnalysisInput = {
   email: string;
@@ -26,6 +31,18 @@ export type SaveAnalysisInput = {
   result: AnalyzeResponse | HotAnalyzeResponse;
   deepAnalysis?: DeepAnalyzeResponse | null;
   negotiationAnalysis?: NegotiationAnalysis | null;
+  /** Deterministic keyword-match baseline computed at analysis time. */
+  keywordMatch?: KeywordMatchResult | null;
+  /** Set when this analysis is a full (paid) re-scan of an earlier one. */
+  parentAnalysisId?: number | null;
+};
+
+export type CreateRescanInput = {
+  analysisId: number;
+  coverageScore: number;
+  matchedCount: number;
+  totalCount: number;
+  keywordMatch: KeywordMatchResult;
 };
 
 /** Same payload as a registered save, minus the account-specific fields. */
@@ -139,6 +156,29 @@ export interface AnalysisRepository {
     email: string,
     deep: DeepAnalyzeResponse,
   ): Promise<void>;
+
+  /**
+   * Persists (or backfills) the deterministic keyword-match baseline on an
+   * analysis owned by `email`. No-op if the row doesn't belong to the email.
+   */
+  attachKeywordMatch(
+    id: number,
+    email: string,
+    keywordMatch: KeywordMatchResult,
+  ): Promise<void>;
+
+  /**
+   * Records one free keyword-only re-scan attempt. Ownership must be checked by
+   * the caller (the Rescan row itself carries no email). Returns the new row's
+   * id + timestamp for the client.
+   */
+  createRescan(input: CreateRescanInput): Promise<{ id: number; createdAt: Date }>;
+
+  /**
+   * Lists the keyword-only re-scan attempts for an analysis, oldest first, so
+   * the UI can plot the coverage timeline. Ownership must be checked by caller.
+   */
+  listRescans(analysisId: number): Promise<RescanRecord[]>;
 
   /** Returns cached starter repo files, or null if not generated yet. */
   findStarterRepo(id: number, email: string): Promise<unknown | null>;

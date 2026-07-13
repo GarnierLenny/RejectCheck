@@ -75,3 +75,155 @@ describe('ReviewCvUseCase — CV source extraction', () => {
     await expect(uc.execute(imgCmd)).rejects.toBeInstanceOf(BadRequestException);
   });
 });
+
+/**
+ * Regression: the signed-in user's OWN portfolio (from their profile, not this
+ * upload) is fed as a cross-check source. It's ENABLED by default (preserves
+ * prod behavior), but CV_REVIEW_PORTFOLIO_ENABLED=false must fully stop the
+ * scrape — otherwise analyzing someone else's CV surfaces the owner's
+ * portfolio as fake "inconsistencies" and leaks the owner's data.
+ */
+describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', () => {
+  // `portfolioFlag`: value returned for CV_REVIEW_PORTFOLIO_ENABLED (undefined
+  // = unset = default-on). PROFILE_DIGEST_ENABLED stays off throughout.
+  function makeRegisteredUseCase(portfolioFlag: string | undefined) {
+    const pdf = {
+      parse: jest.fn().mockResolvedValue('x'.repeat(300)),
+      parseFormatted: jest.fn().mockResolvedValue('x'.repeat(300)),
+    };
+    const config = {
+      get: jest.fn((k: string) =>
+        k === 'CV_REVIEW_PORTFOLIO_ENABLED' ? portfolioFlag : undefined,
+      ),
+    };
+    const reviewCv = jest.fn().mockResolvedValue({ cv_quality: { overall: 60 } });
+    const claude = { transcribeDocument: jest.fn().mockResolvedValue(''), reviewCv };
+    const subs = {
+      getState: jest.fn().mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
+    };
+    const profiles = {
+      findByEmail: jest.fn().mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
+    };
+    const portfolioScraper = {
+      fetch: jest.fn().mockResolvedValue({ markdown: 'OWNER PORTFOLIO CONTENT' }),
+    };
+    const analyses = {
+      creditsSince: jest.fn().mockResolvedValue(0),
+      countByIp: jest.fn().mockResolvedValue(0),
+      saveRegistered: jest.fn().mockResolvedValue({ id: 1 }),
+    };
+    const creditLedger = {
+      getBalance: jest.fn().mockResolvedValue(0),
+      consume: jest.fn().mockResolvedValue(undefined),
+    };
+    const noop = {} as any;
+
+    const uc = new ReviewCvUseCase(
+      analyses as any,
+      claude as any,
+      noop, // github
+      pdf as any,
+      subs as any,
+      profiles as any,
+      noop, // digests
+      creditLedger as any,
+      portfolioScraper as any,
+      noop, // generateDigestUc
+      config as any,
+    );
+    return { uc, portfolioScraper, reviewCv };
+  }
+
+  const cmd = {
+    cvBuffer: Buffer.from('%PDF-fake'),
+    email: 'owner@example.com',
+    isRegistered: true,
+  };
+
+  it('does NOT scrape the profile portfolio when explicitly disabled', async () => {
+    const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase('false');
+    await uc.execute(cmd);
+    expect(portfolioScraper.fetch).not.toHaveBeenCalled();
+    expect(reviewCv.mock.calls[0][0].portfolioMarkdown).toBeFalsy();
+    expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
+  });
+
+  it('scrapes the profile portfolio by default (flag unset)', async () => {
+    const { uc, portfolioScraper } = makeRegisteredUseCase(undefined);
+    await uc.execute(cmd);
+    expect(portfolioScraper.fetch).toHaveBeenCalledWith('https://lennygarnier.com');
+  });
+});
+
+/**
+ * Owner audit mode: lean generation, portfolio off, and quota bypassed
+ * (no reserveQuotaIntent lookups, no ledger consume). Only honored when the
+ * JWT email is in OWNER_EMAILS.
+ */
+describe('ReviewCvUseCase — owner audit mode', () => {
+  function makeUseCase(ownerEmails: string) {
+    const pdf = {
+      parse: jest.fn().mockResolvedValue('x'.repeat(300)),
+      parseFormatted: jest.fn().mockResolvedValue('x'.repeat(300)),
+    };
+    const config = {
+      get: jest.fn((k: string) => (k === 'OWNER_EMAILS' ? ownerEmails : undefined)),
+    };
+    const reviewCv = jest.fn().mockResolvedValue({ cv_quality: { overall: 60 } });
+    const claude = { transcribeDocument: jest.fn().mockResolvedValue(''), reviewCv };
+    const subs = {
+      getState: jest.fn().mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
+    };
+    const profiles = {
+      findByEmail: jest.fn().mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
+    };
+    const portfolioScraper = { fetch: jest.fn().mockResolvedValue({ markdown: 'X' }) };
+    const analyses = {
+      creditsSince: jest.fn().mockResolvedValue(0),
+      countByIp: jest.fn().mockResolvedValue(0),
+      saveRegistered: jest.fn().mockResolvedValue({ id: 7 }),
+    };
+    const creditLedger = {
+      getBalance: jest.fn().mockResolvedValue(0),
+      consume: jest.fn().mockResolvedValue(undefined),
+    };
+    const noop = {} as any;
+    const uc = new ReviewCvUseCase(
+      analyses as any, claude as any, noop, pdf as any, subs as any,
+      profiles as any, noop, creditLedger as any, portfolioScraper as any,
+      noop, config as any,
+    );
+    return { uc, reviewCv, analyses, creditLedger, portfolioScraper };
+  }
+
+  const auditCmd = {
+    cvBuffer: Buffer.from('%PDF-fake'),
+    email: 'owner@example.com',
+    isRegistered: true,
+    auditMode: true,
+  };
+
+  it('runs lean, portfolio-off, quota-free for an owner', async () => {
+    const { uc, reviewCv, analyses, creditLedger, portfolioScraper } =
+      makeUseCase('owner@example.com');
+    const out = await uc.execute(auditCmd);
+
+    expect(out.auditMode).toBe(true);
+    expect(reviewCv.mock.calls[0][0].lean).toBe(true);
+    expect(portfolioScraper.fetch).not.toHaveBeenCalled();
+    // Quota bypass: no reserve lookups, no ledger consume.
+    expect(analyses.creditsSince).not.toHaveBeenCalled();
+    expect(creditLedger.getBalance).not.toHaveBeenCalled();
+    expect(creditLedger.consume).not.toHaveBeenCalled();
+  });
+
+  it('ignores auditMode for a non-owner (normal quota-counted analysis)', async () => {
+    const { uc, reviewCv, analyses } = makeUseCase('someone-else@example.com');
+    const out = await uc.execute(auditCmd);
+
+    expect(out.auditMode).toBe(false);
+    expect(reviewCv.mock.calls[0][0].lean).toBe(false);
+    // Normal path runs the quota reservation.
+    expect(analyses.creditsSince).toHaveBeenCalled();
+  });
+});

@@ -10,10 +10,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import {
   AnalyzeResponse,
   AnalyzeResponseSchema,
-  DeepAnalyzeResponse,
-  DeepAnalyzeResponseSchema,
-  HotAnalyzeResponse,
-  HotAnalyzeResponseSchema,
 } from '../dto/analyze-response.dto';
 import {
   CvReviewResponse,
@@ -32,7 +28,6 @@ import {
   RewriteResponseSchema,
 } from '../dto/rewrite-response.dto';
 import type {
-  AnalyzeApplicationDeepInput,
   AnalyzeApplicationInput,
   AnalyzeApplicationSingleInput,
   ClaudeProvider,
@@ -42,12 +37,8 @@ import type {
   ReviewCvInput,
   RewriteCvInput,
 } from '../ports/claude.provider';
-import {
-  buildAnalysisTool,
-  buildDeepAnalysisTool,
-  SUBMIT_ANALYSIS_HOT_TOOL,
-} from './schemas/claude-analysis.schema';
-import { SUBMIT_CV_REVIEW_TOOL } from './schemas/cv-review.schema';
+import { buildAnalysisTool } from './schemas/claude-analysis.schema';
+import { buildCvReviewTool } from './schemas/cv-review.schema';
 import { SUBMIT_NEGOTIATION_TOOL } from './schemas/claude-negotiation.schema';
 import {
   PROFILE_DIGEST_SYSTEM_PROMPT,
@@ -65,16 +56,9 @@ import {
 } from './system-technical-prompts';
 
 const MODEL = 'claude-sonnet-4-6';
-// We previously tried Haiku 4.5 on the hot pass for cost savings (the hot pass
-// alone is ~$0.035 — so a full hot+deep run is materially more, ~$0.15-0.40,
-// NOT the ~$0.036 some older comments cited) but observed structural failures:
-// Haiku occasionally
-// dropped required fields like `overall` or flattened nested objects when
-// asked to produce the full hot schema (16 required fields with nested
-// arrays/objects). Sonnet 4.6 is reliable for this shape. If you want to
-// retry Haiku, expect needing prompt-level reinforcement + a parse-error
-// retry path; for now the reliability premium is worth $0.035.
-const HOT_MODEL = MODEL;
+// The whole analysis (and CV review) runs on Sonnet 4.6. We tried Haiku 4.5 to
+// save cost but it dropped required fields / flattened nested objects on this
+// large a schema; the reliability premium is worth it.
 const DIGEST_MODEL = 'claude-haiku-4-5-20251001';
 
 /** Cap on OCR-transcribed text, mirroring the pdf-parse MAX_TEXT_CHARS. */
@@ -271,7 +255,11 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
 
     const requestStartedAt = Date.now();
     let firstDeltaAt: number | null = null;
-    const MAX_TOKENS = 6000;
+    // Densified review (10 cv issues + 6+6 audits + bullet_reviews + 5 red
+    // flags) runs ~7-9k tokens typical; 12k leaves headroom. Lean (owner audit
+    // mode) drops bullet_reviews → 8k is plenty.
+    const lean = input.lean ?? false;
+    const MAX_TOKENS = lean ? 8000 : 12000;
 
     const systemPrompt = `You are an expert career consultant and CV reviewer with 15 years of recruiting experience. You evaluate CVs as a senior recruiter would — without any specific job offer — assessing quality, positioning, and red flags.
 
@@ -295,14 +283,17 @@ Use markdown in text fields (narrative, descriptions, issue text).`;
     try {
       const msg = await this.withSentry('review_cv', async () => {
         const stream = this.anthropic.messages.stream({
-          model: HOT_MODEL,
+          model: MODEL,
           max_tokens: MAX_TOKENS,
           temperature: 0.1,
           system: systemPrompt,
           tools: [
             {
-              ...SUBMIT_CV_REVIEW_TOOL,
+              ...buildCvReviewTool(lean),
               cache_control: { type: 'ephemeral', ttl: '1h' },
+              // Stream large string values as they generate instead of
+              // buffering whole JSON tokens — smooths section streaming.
+              eager_input_streaming: true,
             },
           ],
           tool_choice: { type: 'tool', name: 'submit_cv_review' },
@@ -346,6 +337,7 @@ Use markdown in text fields (narrative, descriptions, issue text).`;
         ats_audit: i.ats_audit,
         seniority_analysis: i.seniority_analysis,
         cv_tone: i.cv_tone,
+        bullet_reviews: i.bullet_reviews,
         audit: {
           cv: i.audit_cv,
           github: i.audit_github,
@@ -463,8 +455,14 @@ Formatting rules:
 
     const requestStartedAt = Date.now();
     let firstDeltaAt: number | null = null;
-    const MAX_TOKENS = 16000;
-    const tool = buildAnalysisTool(input.generateBridgeProject ?? true);
+    // Densified single-pass output runs ~14-16k tokens typical, ~19k peak
+    // (10 cv issues + 6+6 github/linkedin + 5 red flags + bullet_reviews +
+    // 15 ATS keywords + highlights + project). 24k leaves headroom without
+    // letting a runaway generation go unbounded. Lean (owner audit mode) drops
+    // all actionable content → ~1/3 the output, so an 8k cap is plenty.
+    const lean = input.lean ?? false;
+    const MAX_TOKENS = lean ? 8000 : 24000;
+    const tool = buildAnalysisTool(input.generateBridgeProject ?? true, lean);
 
     try {
       const msg = await this.withSentry('analyze', async () => {
@@ -483,6 +481,9 @@ Formatting rules:
             {
               ...tool,
               cache_control: { type: 'ephemeral', ttl: '1h' },
+              // Stream large string values as they generate instead of
+              // buffering whole JSON tokens — smooths section streaming.
+              eager_input_streaming: true,
             },
           ],
           tool_choice: { type: 'tool', name: 'submit_analysis' },
@@ -561,6 +562,7 @@ Formatting rules:
         challenge_analysis: i.challenge_analysis,
         project_recommendation: i.project_recommendation,
         highlight_terms: i.highlight_terms,
+        bullet_reviews: i.bullet_reviews,
       };
       assignIssueKeys(result);
       return AnalyzeResponseSchema.parse(result);
@@ -570,195 +572,6 @@ Formatting rules:
         apiErr?.stack,
       );
       throw new InternalServerErrorException('Analysis failed');
-    }
-  }
-
-  async analyzeApplicationHot(
-    input: AnalyzeApplicationInput,
-  ): Promise<HotAnalyzeResponse> {
-    const technicalPrompt = this.resolveTechnicalPrompt(input.userRoleType);
-    this.logger.log(
-      `Requesting HOT analysis from Claude (role=${input.userRoleType ?? 'default'})`,
-    );
-
-    const requestStartedAt = Date.now();
-    let firstDeltaAt: number | null = null;
-    const HOT_MAX_TOKENS = 6000;
-
-    try {
-      const msg = await this.withSentry('analyze_hot', async () => {
-        const stream = this.anthropic.messages.stream({
-          model: HOT_MODEL,
-          max_tokens: HOT_MAX_TOKENS,
-          temperature: 0.1,
-          system: [
-            {
-              type: 'text',
-              text: technicalPrompt,
-              cache_control: { type: 'ephemeral', ttl: '1h' },
-            },
-          ],
-          tools: [
-            {
-              ...SUBMIT_ANALYSIS_HOT_TOOL,
-              cache_control: { type: 'ephemeral', ttl: '1h' },
-            },
-          ],
-          tool_choice: { type: 'tool', name: 'submit_analysis_hot' },
-          messages: [
-            {
-              role: 'user',
-              content: this.buildAnalyzeUserMessage(input),
-            },
-          ],
-        });
-        stream.on('inputJson', (partialJson) => {
-          if (firstDeltaAt === null) firstDeltaAt = Date.now();
-          input.onDelta?.(partialJson);
-        });
-        return stream.finalMessage();
-      });
-
-      this.logTimingLine(
-        'analyze_hot',
-        HOT_MAX_TOKENS,
-        requestStartedAt,
-        firstDeltaAt,
-        msg.usage,
-        { digest: !!input.digest },
-      );
-      this.logCacheUsage('analyze_hot', msg.usage);
-
-      const toolUse = msg.content.find(
-        (block) => (block as { type?: string }).type === 'tool_use',
-      ) as ToolUseBlock | undefined;
-
-      if (!toolUse) {
-        this.logger.error(
-          `Claude returned no tool_use block (hot): ${JSON.stringify(msg.content).slice(0, 300)}`,
-        );
-        throw new InternalServerErrorException('Analysis failed');
-      }
-
-      // Tool input mirrors SUBMIT_ANALYSIS_HOT_TOOL.input_schema. Remap to the
-      // HotAnalyzeResponse domain shape (overall flattened, breakdown grouped,
-      // audit nested), then validate via Zod.
-      const i = toolUse.input as Record<string, any>;
-      const hot: HotAnalyzeResponse = {
-        score: i.overall.score,
-        verdict: i.overall.verdict,
-        confidence: i.overall.confidence,
-        breakdown: {
-          keyword_match: i.keyword_match,
-          tech_stack_fit: i.tech_stack_fit,
-          experience_level: i.experience_level,
-          github_signal: i.github_signal,
-          linkedin_signal: i.linkedin_signal,
-        },
-        ats_simulation: deriveAtsWouldPass(i.ats_simulation),
-        seniority_analysis: i.seniority_analysis,
-        cv_tone: i.cv_tone,
-        audit: {
-          cv: i.audit_cv,
-          github: i.audit_github,
-          linkedin: i.audit_linkedin,
-          jd_match: i.audit_jd_match,
-        },
-        hidden_red_flags: i.hidden_red_flags,
-        job_details: i.job_details,
-        technical_analysis: i.technical_analysis,
-        challenge_analysis: i.challenge_analysis,
-      };
-      assignIssueKeys(hot);
-      return HotAnalyzeResponseSchema.parse(hot);
-    } catch (apiErr: any) {
-      this.logger.error(
-        `Claude analyzeApplicationHot failed: ${apiErr?.message || apiErr}`,
-        apiErr?.stack,
-      );
-      throw new InternalServerErrorException('Analysis failed');
-    }
-  }
-
-  async analyzeApplicationDeep(
-    input: AnalyzeApplicationDeepInput,
-  ): Promise<DeepAnalyzeResponse> {
-    const technicalPrompt = this.resolveTechnicalPrompt(input.userRoleType);
-    this.logger.log(
-      `Requesting DEEP analysis from Claude (role=${input.userRoleType ?? 'default'})`,
-    );
-
-    const requestStartedAt = Date.now();
-    let firstDeltaAt: number | null = null;
-    const DEEP_MAX_TOKENS = 14000;
-
-    try {
-      const msg = await this.withSentry('analyze_deep', async () => {
-        const stream = this.anthropic.messages.stream({
-          model: MODEL,
-          max_tokens: DEEP_MAX_TOKENS,
-          temperature: 0.1,
-          // Cost lever #4: medium effort consolidates the deep output (~15-20%
-          // fewer output tokens, the dominant cost) at a small depth tradeoff.
-          // A/B this vs default (high) before trusting it on the paid fixes.
-          output_config: { effort: 'medium' },
-          system: [
-            {
-              type: 'text',
-              text: technicalPrompt,
-              cache_control: { type: 'ephemeral', ttl: '1h' },
-            },
-          ],
-          tools: [
-            {
-              ...buildDeepAnalysisTool(input.generateBridgeProject ?? true),
-              cache_control: { type: 'ephemeral', ttl: '1h' },
-            },
-          ],
-          tool_choice: { type: 'tool', name: 'submit_analysis_deep' },
-          messages: [
-            {
-              role: 'user',
-              content: this.buildAnalyzeDeepUserMessage(input),
-            },
-          ],
-        });
-        stream.on('inputJson', (partialJson) => {
-          if (firstDeltaAt === null) firstDeltaAt = Date.now();
-          input.onDelta?.(partialJson);
-        });
-        return stream.finalMessage();
-      });
-
-      this.logTimingLine(
-        'analyze_deep',
-        DEEP_MAX_TOKENS,
-        requestStartedAt,
-        firstDeltaAt,
-        msg.usage,
-        { digest: !!input.digest },
-      );
-      this.logCacheUsage('analyze_deep', msg.usage);
-
-      const toolUse = msg.content.find(
-        (block) => (block as { type?: string }).type === 'tool_use',
-      ) as ToolUseBlock | undefined;
-
-      if (!toolUse) {
-        this.logger.error(
-          `Claude returned no tool_use block (deep): ${JSON.stringify(msg.content).slice(0, 300)}`,
-        );
-        throw new InternalServerErrorException('Deep analysis failed');
-      }
-
-      // Deep tool input shape matches DeepAnalyzeResponse 1:1, no remapping.
-      return DeepAnalyzeResponseSchema.parse(toolUse.input);
-    } catch (apiErr: any) {
-      this.logger.error(
-        `Claude analyzeApplicationDeep failed: ${apiErr?.message || apiErr}`,
-        apiErr?.stack,
-      );
-      throw new InternalServerErrorException('Deep analysis failed');
     }
   }
 
@@ -790,7 +603,7 @@ Formatting rules:
     const extraStr =
       extras.digest !== undefined ? ` digest=${extras.digest}` : '';
 
-    const modelLabel = op === 'analyze_hot' ? HOT_MODEL : MODEL;
+    const modelLabel = MODEL;
 
     this.logger.log(
       `[ANALYZE_TIMING_AI] op=${op} model=${modelLabel} max_tokens_cap=${maxTokensCap} ` +
@@ -1067,95 +880,7 @@ Formatting rules:
 - In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`;
   }
 
-  private buildAnalyzeDeepUserMessage(
-    input: AnalyzeApplicationDeepInput,
-  ): string {
-    const hot = input.hot;
-
-    // Compact owner summary: lets Claude know how many fixes to generate per
-    // array (each one indexed by position) without re-streaming the full hot
-    // result.
-    const issueLine = (
-      issues: Array<{ severity: string; category: string; what: string; why: string }>,
-      label: string,
-    ): string => {
-      if (!issues.length) return `${label}: (none — empty fix array)`;
-      const lines = issues
-        .map(
-          (it, idx) =>
-            `  [${idx}] (${it.severity}/${it.category}) ${it.what} — ${it.why}`,
-        )
-        .join('\n');
-      return `${label} (${issues.length} item${issues.length > 1 ? 's' : ''}, generate one fix per index in order):\n${lines}`;
-    };
-
-    const redFlagsSummary = hot.hidden_red_flags.length
-      ? hot.hidden_red_flags
-          .map((rf, idx) => `  [${idx}] ${rf.flag} — ${rf.perception}`)
-          .join('\n')
-      : '  (none — empty fix array)';
-
-    const skills = hot.technical_analysis?.skills as
-      | Array<{ name: string; current: number; expected: number }>
-      | undefined;
-    const skillGapLines = skills
-      ?.filter((s) => s.current < s.expected && s.expected > 0)
-      .map((s) => `  - ${s.name}: current=${s.current}/10 expected=${s.expected}/10 (gap=${+(s.expected - s.current).toFixed(1)})`)
-      .join('\n');
-    const hasGaps = !!skillGapLines;
-    const skillGapBlock = skillGapLines
-      ? `SKILL GAPS FROM TECHNICAL ANALYSIS (gaps to close — use these to calibrate difficulty and gap_bridges):\n${skillGapLines}\n\n---\n\n`
-      : `NO SKILL GAPS DETECTED — the candidate already meets the technical bar for this role.\n\n---\n\n`;
-
-    return `Respond entirely in ${input.locale === 'fr' ? 'French' : 'English'}.
-
-Generate the DEEP analysis pass for the application below. The HOT pass has already produced scores, audits, red flag titles, and technical_analysis. Your job now is to:
-
-1. Produce a single \`project_recommendation\` (the Bridge project — keep it strong and specific, this is the main user-facing artefact).
-   - ${hasGaps
-     ? 'The candidate has skill gaps (see SKILL GAPS below). Design the project to close them. Calibrate section durations to the actual gap size: current ≤4/10 on a core skill → ~2-3 days for that section; 6-7/10 → 1 day. Populate `gap_bridges` for every listed gap — `phase_title` MUST match a section title exactly.'
-     : 'The candidate already meets the bar. Design a showcase project that demonstrates their strongest skills in the specific context of this JD — something they can point to as proof of depth and initiative, not a remediation exercise. Aim for Advanced or Expert difficulty. Skip `gap_bridges` (no gaps to bridge).'
-   }
-2. List the ATS \`critical_missing_keywords\` ordered by score_impact desc.
-3. Generate ONE \`fix\` per issue / red flag / seniority gap identified in the hot pass. Each fix array MUST have the SAME LENGTH as its hot counterpart, in the SAME ORDER. The cv_tone diagnostic does NOT need a fix — set fixes.cv_tone to a minimal placeholder if the schema requires it (or it'll be optional).
-
-${this.formatCandidateContext(input)}JOB DESCRIPTION:
-${input.jobText}
-
----
-
-${this.formatCandidateEvidence(input)}MOTIVATION LETTER: ${input.motivationLetterText || 'None provided'}
-
-DAILY CODE-REVIEW CHALLENGE TRACK RECORD:
-${formatChallengeStats(input.challengeStats)}
-
----
-
-${skillGapBlock}HOT-PASS SUMMARY (anchor your fixes to these exact items, in order):
-
-Overall: score=${hot.score} verdict=${hot.verdict} (confidence=${hot.confidence.score})
-
-ATS: would_pass=${hot.ats_simulation.would_pass} score=${hot.ats_simulation.score}/${hot.ats_simulation.threshold}
-Seniority: expected=${hot.seniority_analysis.expected} detected=${hot.seniority_analysis.detected} gap=${hot.seniority_analysis.gap}
-Tone: ${hot.cv_tone.detected}
-
-${issueLine(hot.audit.cv.issues as any, 'audit_cv issues')}
-
-${issueLine(hot.audit.github.issues as any, 'audit_github issues')}
-
-${issueLine(hot.audit.linkedin.issues as any, 'audit_linkedin issues')}
-
-hidden_red_flags (${hot.hidden_red_flags.length} item${hot.hidden_red_flags.length === 1 ? '' : 's'}, generate one fix per index in order):
-${redFlagsSummary}
-
-Formatting rules:
-- Use markdown in all text fields (fix.summary, fix.steps, project_recommendation prose).
-- Each \`fix\` MUST include all required sub-fields. Use null for example or project_idea when truly not applicable.`;
-  }
-
-  private formatCandidateContext(
-    input: AnalyzeApplicationInput | AnalyzeApplicationDeepInput,
-  ): string {
+  private formatCandidateContext(input: AnalyzeApplicationInput): string {
     const lines: string[] = [];
     if (input.userRoleType) {
       const role =

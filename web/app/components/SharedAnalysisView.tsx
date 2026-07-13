@@ -4,31 +4,11 @@ import { useState, useEffect } from "react";
 import posthog from "posthog-js";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, X } from "lucide-react";
 import type { AnalysisResult } from "./types";
-import { ScoreSidebar } from "./ScoreSidebar";
-import { TechnicalRadarChart } from "./TechnicalRadarChart";
-import { AtsTab } from "./tabs/AtsTab";
-import { CvAnalysisTab } from "./tabs/CvAnalysisTab";
+import { AnalysisLayout } from "./AnalysisLayout";
 import { CvReviewTab } from "./tabs/CvReviewTab";
-import { SignalsTab } from "./tabs/SignalsTab";
-import { FlagsTab } from "./tabs/FlagsTab";
-import { RoadmapTab } from "./tabs/RoadmapTab";
-import { BridgeTab } from "./tabs/BridgeTab";
-import { ConsistencyTab } from "./tabs/ConsistencyTab";
-import { NegotiationTab } from "./tabs/NegotiationTab";
+import { Navbar } from "./Navbar";
 import { useLanguage } from "../../context/language";
-
-type Tab =
-  | "overview"
-  | "ats"
-  | "cv-analysis"
-  | "signals"
-  | "flags"
-  | "consistency"
-  | "negotiation"
-  | "roadmap"
-  | "project";
 
 type Props = {
   result: AnalysisResult;
@@ -37,15 +17,36 @@ type Props = {
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   lang: string;
   token: string;
+  cvTextFormatted?: string | null;
+  cvFileUrl?: string | null;
+  linkedinTextFormatted?: string | null;
+  liFileUrl?: string | null;
+  coverLetter?: string | null;
+  mlFileUrl?: string | null;
 };
 
-export function SharedAnalysisView({ result, jobLabel, company, profile, lang, token }: Props) {
+export function SharedAnalysisView({
+  result,
+  jobLabel,
+  company,
+  profile,
+  lang,
+  token,
+  cvTextFormatted = null,
+  cvFileUrl = null,
+  linkedinTextFormatted = null,
+  liFileUrl = null,
+  coverLetter = null,
+  mlFileUrl = null,
+}: Props) {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [stickyVisible, setStickyVisible] = useState(false);
 
   const isCvReview = !!result.cv_quality;
 
+  // The cv-review branch scrolls the window; surface the sticky CTA past the
+  // fold. The vs-job branch uses the full-height report shell (internal scroll)
+  // and carries its CTA in the topbar instead, so this is a no-op there.
   useEffect(() => {
     function onScroll() {
       setStickyVisible(window.scrollY > 300);
@@ -62,7 +63,7 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
       has_position: !!(jobLabel || company),
       lang,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const noop = () => {};
@@ -70,72 +71,90 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
   const displayName = profile?.displayName ?? "Someone";
   const avatarUrl = profile?.avatarUrl ?? null;
   const initials = displayName.slice(0, 2).toUpperCase();
-
   const positionLabel = [jobLabel, company].filter(Boolean).join(" @ ");
 
-  const consistencyTab =
-    result.cross_profile_inconsistencies &&
-    result.cross_profile_inconsistencies.length > 0
-      ? [
-          {
-            id: "consistency" as const,
-            label: t.tabs.consistency,
-            badge: String(result.cross_profile_inconsistencies.length),
-            badgeClass: result.cross_profile_inconsistencies.some(
-              (i) => i.severity === "critical"
-            )
-              ? "text-rc-red"
-              : result.cross_profile_inconsistencies.some(
-                    (i) => i.severity === "major"
-                  )
-                ? "text-rc-amber"
-                : "text-rc-muted",
-          },
-        ]
-      : [];
+  const avatar = avatarUrl ? (
+    <Image
+      src={avatarUrl}
+      alt={displayName}
+      width={28}
+      height={28}
+      className="rounded-full object-cover w-7 h-7 shrink-0"
+    />
+  ) : (
+    <div className="w-7 h-7 rounded-full bg-rc-red/10 border border-rc-red/30 flex items-center justify-center shrink-0">
+      <span className="font-mono text-[11px] font-bold text-rc-red">{initials}</span>
+    </div>
+  );
 
-  const tabs = result
-    ? ([
-        { id: "overview", label: t.tabs.skillGap },
-        {
-          id: "ats",
-          label: t.tabs.atsFilter,
-          badge: result.ats_simulation?.would_pass ? (
-            <Check className="w-3.5 h-3.5" />
-          ) : (
-            <X className="w-3.5 h-3.5" />
-          ),
-          badgeClass: result.ats_simulation?.would_pass
-            ? "text-rc-green"
-            : "text-rc-red",
-        },
-        {
-          id: "cv-analysis",
-          label: t.tabs.cvAnalysis,
-          badge: String(result.audit.cv.issues.length),
-          badgeClass: "text-rc-amber",
-        },
-        {
-          id: "signals",
-          label: t.tabs.signals,
-          badge: String(result.audit.github.issues.length + result.audit.linkedin.issues.length),
-          badgeClass: "text-rc-amber",
-        },
-        {
-          id: "flags",
-          label: t.tabs.redFlags,
-          badge: String(result.hidden_red_flags.length),
-          badgeClass: "text-rc-red",
-        },
-        ...consistencyTab,
-        { id: "negotiation", label: t.tabs.negotiation, badge: "✦", badgeClass: "text-rc-red" },
-        { id: "roadmap", label: t.tabs.roadmap, badge: null, badgeClass: "" },
-        { id: "project", label: t.tabs.project, badge: null, badgeClass: "" },
-      ] as const)
-    : [];
+  // ── vs-job: the full narrative report, read-only — same layout the owner sees.
+  if (!isCvReview) {
+    // Risk score: higher = worse (red), so the chip colour matches the meter.
+    const scoreColor =
+      result.score >= 70
+        ? "var(--rc-red)"
+        : result.score >= 40
+          ? "var(--rc-amber)"
+          : "var(--rc-green)";
 
+    return (
+      <div className="h-screen flex flex-col overflow-hidden bg-rc-bg text-rc-text font-sans">
+        {/* Topbar (mirrors DiagnosticResult) — owner attribution + convert CTA */}
+        <nav className="flex-shrink-0 z-60 flex items-center justify-between gap-4 px-5 md:px-8 h-[54px] bg-rc-bg/85 backdrop-blur-sm border-b border-rc-border">
+          <div className="flex items-center gap-4 min-w-0">
+            <Link href={`/${lang}`} className="flex items-center gap-2.5 no-underline shrink-0">
+              <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={24} height={24} />
+              <span className="font-sans font-semibold text-[14px] text-rc-text hidden sm:inline">RejectCheck</span>
+            </Link>
+            <div className="flex items-center gap-2.5 pl-4 border-l border-rc-border min-w-0">
+              {avatar}
+              <span className="font-mono text-[12px] text-rc-hint truncate min-w-0">
+                <span className="font-bold text-rc-text">{displayName}</span>
+                {positionLabel ? <span className="hidden md:inline"> · {positionLabel}</span> : null}
+              </span>
+              <span className="font-mono text-[13px] font-bold shrink-0" style={{ color: scoreColor }}>
+                {result.score}%
+              </span>
+            </div>
+          </div>
+          <Link
+            href={`/${lang}/analyze`}
+            onClick={() => posthog.capture("share_sticky_cta_clicked", { token, mode: "vs-job" })}
+            className="shrink-0 inline-flex items-center justify-center px-4 md:px-5 py-2 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
+          >
+            {t.share.ctaButton} →
+          </Link>
+        </nav>
+
+        <div className="flex-1 min-h-0">
+          <AnalysisLayout
+            readOnly
+            result={result}
+            analysisId={null}
+            cvBlobUrl={cvFileUrl}
+            liBlobUrl={liFileUrl}
+            mlBlobUrl={mlFileUrl}
+            /* Parsed text drives the highlighted CV view (default) in the left
+               doc panel — exactly what the owner sees. */
+            reconstructedCv={cvTextFormatted}
+            cvTextFormatted={cvTextFormatted}
+            liText={linkedinTextFormatted}
+            coverLetterText={coverLetter}
+            deepStatus="ready"
+            isPremium={false}
+            userPlan="free"
+            onReset={noop}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ── cv-review: standalone audit, normal document flow.
   return (
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
+      <Navbar />
+
       {/* Share header */}
       <div className="border-b border-rc-border bg-rc-surface px-5 md:px-[32px] py-5">
         <div className="max-w-[1600px] mx-auto flex items-center gap-4">
@@ -152,107 +171,18 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
               <span className="font-mono text-[13px] font-bold text-rc-red">{initials}</span>
             </div>
           )}
-          {isCvReview ? (
-            <p className="font-mono text-[13px] text-rc-text leading-snug">
-              <span className="font-bold">{displayName}</span>
-              {" "}{t.share.cvScorePhrase}{" "}
-              <span className={`font-bold ${result.cv_quality!.overall >= 70 ? "text-rc-green" : result.cv_quality!.overall >= 40 ? "text-rc-amber" : "text-rc-red"}`}>
-                {result.cv_quality!.overall}%
-              </span>
-            </p>
-          ) : (
-            <p className="font-mono text-[13px] text-rc-text leading-snug">
-              <span className="font-bold">{displayName}</span>
-              {" "}{t.share.rejectionPhrase}{" "}
-              <span className={`font-bold ${result.score >= 70 ? "text-rc-red" : result.score >= 40 ? "text-rc-amber" : "text-rc-green"}`}>
-                {result.score}% {t.share.rejectionSuffix}
-              </span>
-              {positionLabel && (
-                <> {t.share.rejectionFor} <span className="text-rc-hint">{positionLabel}</span></>
-              )}
-            </p>
-          )}
+          <p className="font-mono text-[13px] text-rc-text leading-snug">
+            <span className="font-bold">{displayName}</span>
+            {" "}{t.share.cvScorePhrase}{" "}
+            <span className={`font-bold ${result.cv_quality!.overall >= 70 ? "text-rc-green" : result.cv_quality!.overall >= 40 ? "text-rc-amber" : "text-rc-red"}`}>
+              {result.cv_quality!.overall}%
+            </span>
+          </p>
         </div>
       </div>
 
       <div className="max-w-[1600px] w-[92%] mx-auto pt-9 pb-[80px] px-5 md:px-[32px]">
-        {isCvReview ? (
-          <CvReviewTab result={result} />
-        ) : (
-          <>
-            <ScoreSidebar
-              result={result}
-              onReset={noop}
-              onExportMd={noop}
-              onExportPdf={noop}
-              readOnly
-            />
-
-            {/* Tab nav */}
-            <div className="mb-8 border-b border-rc-border">
-              <div className="tabs-scrollbar flex overflow-x-auto">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as Tab)}
-                    className={`shrink-0 flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-[0.12em] px-6 py-4 transition-colors relative -mb-px border-b-2 ${
-                      activeTab === tab.id
-                        ? "border-rc-red text-rc-red font-bold"
-                        : "border-transparent text-rc-muted hover:text-rc-text"
-                    }`}
-                  >
-                    {tab.label}
-                    {"badge" in tab && tab.badge && (
-                      <span className={`font-bold ${tab.badgeClass}`}>{tab.badge}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tab content */}
-            {activeTab === "overview" && <TechnicalRadarChart data={result.technical_analysis} />}
-            {activeTab === "ats" && result.ats_simulation && (
-              <AtsTab
-                ats={result.ats_simulation}
-                checkedKeywords={new Set()}
-                onToggle={noop}
-                onReset={noop}
-              />
-            )}
-            {activeTab === "cv-analysis" && <CvAnalysisTab result={result} fixesReady={true} />}
-            {activeTab === "signals" && (
-              <SignalsTab
-                github={result.audit.github}
-                linkedin={result.audit.linkedin}
-                hasGithub={result.audit.github.score !== null}
-                hasLinkedin={result.audit.linkedin.score !== null}
-              />
-            )}
-            {activeTab === "flags" && (
-              <FlagsTab
-                flags={result.hidden_red_flags}
-                jdMatch={result.audit.jd_match}
-                score={result.score}
-                verdict={result.verdict}
-                confidence={result.confidence}
-                breakdown={result.breakdown}
-                fixesReady={true}
-              />
-            )}
-            {activeTab === "consistency" && (
-              <ConsistencyTab
-                inconsistencies={result.cross_profile_inconsistencies ?? []}
-                timelineEntries={result.timeline_entries ?? []}
-              />
-            )}
-            {activeTab === "negotiation" && (
-              <NegotiationTab result={result} analysisId={null} isPremium={true} />
-            )}
-            {activeTab === "roadmap" && <RoadmapTab result={result} />}
-            {activeTab === "project" && <BridgeTab result={result} analysisId={null} />}
-          </>
-        )}
+        <CvReviewTab result={result} />
       </div>
 
       {/* Sticky CTA bar */}
@@ -260,14 +190,14 @@ export function SharedAnalysisView({ result, jobLabel, company, profile, lang, t
         <div className="bg-rc-surface border-t border-rc-border shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
           <div className="max-w-[1600px] w-[92%] mx-auto px-5 md:px-[32px] py-4 flex items-center justify-between gap-4">
             <p className="text-[13px] text-rc-text leading-snug hidden sm:block">
-              {(isCvReview ? t.share.ctaTextCvReview : t.share.ctaText).replace("{name}", displayName)}
+              {t.share.ctaTextCvReview.replace("{name}", displayName)}
             </p>
             <Link
               href={`/${lang}/analyze`}
-              onClick={() => posthog.capture("share_sticky_cta_clicked", { token, mode: isCvReview ? "cv-review" : "vs-job" })}
+              onClick={() => posthog.capture("share_sticky_cta_clicked", { token, mode: "cv-review" })}
               className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
             >
-              {isCvReview ? t.share.ctaButtonCvReview : t.share.ctaButton} →
+              {t.share.ctaButtonCvReview} →
             </Link>
           </div>
         </div>

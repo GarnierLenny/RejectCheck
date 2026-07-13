@@ -4,6 +4,7 @@ import type { AnalysisRepository } from '../ports/analysis.repository';
 import type { ProfileRepository } from '../ports/profile.repository';
 import { mergeHotAndDeep } from '../dto/analyze-response.dto';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
+import { shapeStoredResultForPlan } from '../domain/analysis-shaper';
 
 export type SharedAnalysis = {
   id: number;
@@ -12,6 +13,15 @@ export type SharedAnalysis = {
   result: AnalyzeResponse | null;
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   createdAt: Date;
+  // Source documents, so the public view renders the exact same split-panel
+  // (parsed CV + highlights on the left) the owner sees. The owner opted into
+  // a public link, so exposing these is intentional.
+  cvTextFormatted: string | null;
+  cvFileUrl: string | null;
+  linkedinTextFormatted: string | null;
+  liFileUrl: string | null;
+  coverLetter: string | null;
+  mlFileUrl: string | null;
 };
 
 @Injectable()
@@ -28,8 +38,13 @@ export class GetSharedAnalysisUseCase {
     if (detail.result && detail.deepAnalysis) {
       detail.result = mergeHotAndDeep(detail.result, detail.deepAnalysis);
     }
-    if (detail.result && detail.negotiationAnalysis) {
-      (detail.result as any).negotiation_analysis = detail.negotiationAnalysis;
+    // Public share links are always shaped free, whatever the owner's plan —
+    // this both protects paid content and strips negotiation entirely.
+    if (detail.result) {
+      detail.result = shapeStoredResultForPlan(detail.result, {
+        premium: false,
+        hired: false,
+      });
     }
 
     let profile: { displayName: string | null; avatarUrl: string | null } | null = null;
@@ -45,6 +60,14 @@ export class GetSharedAnalysisUseCase {
       result: detail.result,
       profile,
       createdAt: detail.createdAt,
+      cvTextFormatted: detail.cvTextFormatted,
+      cvFileUrl: detail.cvFileUrl,
+      linkedinTextFormatted: detail.linkedinTextFormatted,
+      liFileUrl: detail.liFileUrl,
+      // Cover letter parsed text lives in `motivationLetter`; `coverLetter` is
+      // the HIRED-generated one. Prefer whichever the owner has.
+      coverLetter: detail.coverLetter ?? detail.motivationLetter,
+      mlFileUrl: detail.mlFileUrl,
     };
   }
 }

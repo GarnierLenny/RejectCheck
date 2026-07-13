@@ -1,7 +1,7 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import IORedis from 'ioredis';
-import { DEEP_ANALYSIS_QUEUE, NEGOTIATION_QUEUE } from './queue.constants';
+import { NEGOTIATION_QUEUE } from './queue.constants';
 
 /**
  * Wires BullMQ + Redis when REDIS_URL is set. When unset, the module is a
@@ -37,17 +37,6 @@ export class QueueModule {
           }),
         }),
         BullModule.registerQueue(
-          {
-            name: DEEP_ANALYSIS_QUEUE,
-            defaultJobOptions: {
-              // 3 attempts: the deep pass is the paid value — one extra retry
-              // buys resilience against a transient 529 from Anthropic.
-              attempts: 3,
-              backoff: { type: 'exponential', delay: 5000 },
-              removeOnComplete: { count: 100 },
-              removeOnFail: { count: 200 },
-            },
-          },
           {
             name: NEGOTIATION_QUEUE,
             defaultJobOptions: {

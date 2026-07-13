@@ -17,6 +17,13 @@ export const AnalyzeRequestSchema = z.object({
   // Accepting it from the client would let anyone impersonate any user's tier
   // or burn another user's quota/credits.
   locale: z.enum(['en', 'fr']).optional().default('en'),
+  // Owner teaser flag. FormData sends strings, so coerce "true" → true. Only
+  // honored server-side when the JWT email is in OWNER_EMAILS (see use case) —
+  // a non-owner setting this just gets a normal, quota-counted analysis.
+  auditMode: z
+    .preprocess((v) => v === 'true' || v === true, z.boolean())
+    .optional()
+    .default(false),
 });
 
 export class AnalyzeRequestDto extends createZodDto(AnalyzeRequestSchema) {}

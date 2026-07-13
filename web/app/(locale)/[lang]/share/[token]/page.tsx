@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { hasLocale, type Locale } from "../../dictionaries";
-import { Navbar } from "../../../../components/Navbar";
 import { SharedAnalysisView } from "../../../../components/SharedAnalysisView";
 import type { AnalysisResult } from "../../../../components/types";
 
@@ -15,6 +14,12 @@ type SharedAnalysisData = {
   result: AnalysisResult | null;
   profile: { displayName: string | null; avatarUrl: string | null } | null;
   createdAt: string;
+  cvTextFormatted: string | null;
+  cvFileUrl: string | null;
+  linkedinTextFormatted: string | null;
+  liFileUrl: string | null;
+  coverLetter: string | null;
+  mlFileUrl: string | null;
 };
 
 async function fetchSharedAnalysis(token: string): Promise<SharedAnalysisData | null> {
@@ -87,17 +92,23 @@ export default async function SharedAnalysisPage({
   const data = await fetchSharedAnalysis(token);
   if (!data || !data.result) notFound();
 
+  // SharedAnalysisView owns its own chrome: the vs-job branch is a full-height
+  // report view with its own topbar (like the real analysis page), the cv-review
+  // branch renders its own Navbar. No outer wrapper here.
   return (
-    <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col">
-      <Navbar />
-      <SharedAnalysisView
-        result={data.result}
-        jobLabel={data.jobLabel}
-        company={data.company}
-        profile={data.profile}
-        lang={locale}
-        token={token}
-      />
-    </div>
+    <SharedAnalysisView
+      result={data.result}
+      jobLabel={data.jobLabel}
+      company={data.company}
+      profile={data.profile}
+      lang={locale}
+      token={token}
+      cvTextFormatted={data.cvTextFormatted}
+      cvFileUrl={data.cvFileUrl}
+      linkedinTextFormatted={data.linkedinTextFormatted}
+      liFileUrl={data.liFileUrl}
+      coverLetter={data.coverLetter}
+      mlFileUrl={data.mlFileUrl}
+    />
   );
 }

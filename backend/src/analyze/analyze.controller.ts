@@ -6,6 +6,7 @@ import {
   Get,
   Headers,
   Inject,
+  Logger,
   NotFoundException,
   Param,
   Patch,
@@ -39,6 +40,11 @@ const CvReviewRequestSchema = z.object({
   githubUsername: z.string().max(39).optional(),
   // identity is derived from the JWT (OptionalSupabaseGuard), never the body.
   locale: z.enum(['en', 'fr']).optional().default('en'),
+  // Owner teaser flag — only honored for OWNER_EMAILS (see review-cv use case).
+  auditMode: z
+    .preprocess((v) => v === 'true' || v === true, z.boolean())
+    .optional()
+    .default(false),
 });
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
@@ -52,13 +58,16 @@ import { validateJobDescription } from './analyze.utils';
 
 import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { ReviewCvUseCase } from './application/review-cv.use-case';
+import { RescanKeywordsUseCase } from './application/rescan-keywords.use-case';
+import { computeDeltas } from './domain/rescan-delta';
 import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
 import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
-import { RegenerateDeepUseCase } from './application/regenerate-deep.use-case';
 import { LlmJobsService } from '../queue/llm-jobs.service';
+import { EnqueueEmailUseCase } from '../notifications/application/enqueue-email.use-case';
+import type { EmailLocale } from '../notifications/domain/email.types';
 import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
 import { ANALYSIS_REPOSITORY } from './ports/tokens';
 import { AnalysisNotFoundException } from '../common/exceptions';
@@ -87,6 +96,8 @@ type SseResponse = {
   headersSent: boolean;
   status: (code: number) => SseResponse;
   json: (body: unknown) => SseResponse;
+  /** Node response events — used to detect a client disconnect mid-analysis. */
+  on: (event: 'close', cb: () => void) => void;
 };
 
 /**
@@ -127,15 +138,17 @@ const PDF_UPLOAD_OPTIONS = {
 @ApiTags('Analyze')
 @Controller('api/analyze')
 export class AnalyzeController {
+  private readonly logger = new Logger(AnalyzeController.name);
+
   constructor(
     private readonly analyzeCv: AnalyzeCvUseCase,
     private readonly reviewCvUc: ReviewCvUseCase,
+    private readonly rescanKeywordsUc: RescanKeywordsUseCase,
     private readonly getQuotaSummary: GetQuotaSummaryUseCase,
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
     private readonly generateNegotiationUc: GenerateNegotiationUseCase,
     private readonly generateProfileDigestUc: GenerateProfileDigestUseCase,
-    private readonly regenerateDeepUc: RegenerateDeepUseCase,
     private readonly listHistory: ListHistoryUseCase,
     private readonly getAnalysisUc: GetAnalysisUseCase,
     private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
@@ -148,8 +161,59 @@ export class AnalyzeController {
     private readonly createShareTokenUc: CreateShareTokenUseCase,
     private readonly generateStarterRepoUc: GenerateStarterRepoUseCase,
     private readonly llmJobs: LlmJobsService,
+    private readonly enqueueEmail: EnqueueEmailUseCase,
     @Inject(ANALYSIS_REPOSITORY) private readonly analysisRepo: AnalysisRepository,
   ) {}
+
+  /**
+   * "Report ready" email for users whose SSE connection closed before the
+   * analysis finished. Fire-and-forget + idempotent (dedupeKey
+   * analysis_ready:email:analysisId) — never blocks or fails the request.
+   */
+  /**
+   * Owner audit mode: create (or fetch) the public share token and stream a
+   * `share` event carrying just the token — the client builds its own URL.
+   * Best-effort: a share failure must not break the analysis response.
+   */
+  private async emitAuditShare(
+    analysisId: number,
+    email: string,
+    write: (data: object) => void,
+  ): Promise<void> {
+    try {
+      const { token } = await this.createShareTokenUc.execute(analysisId, email);
+      write({ step: 'share', token });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `audit-mode share token failed (analysisId=${analysisId}): ${msg}`,
+      );
+    }
+  }
+
+  private notifyReportReady(args: {
+    email: string;
+    analysisId: number;
+    locale: string | undefined;
+    role: string | null;
+  }): void {
+    void this.enqueueEmail
+      .execute({
+        to: args.email,
+        locale: args.locale === 'fr' ? 'fr' : ('en' as EmailLocale),
+        context: {
+          type: 'analysis_ready',
+          analysisId: args.analysisId,
+          role: args.role,
+        },
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.logger.warn(
+          `analysis_ready enqueue failed (analysisId=${args.analysisId}): ${msg}`,
+        );
+      });
+  }
 
   /** Public endpoint — works for anonymous users (IP-based quota) and registered users. */
   // Tight IP-based rate limit on top of the per-email/per-IP quota policy.
@@ -198,6 +262,7 @@ export class AnalyzeController {
       githubUsername,
       motivationLetterText,
       locale,
+      auditMode,
     } = parsed.data;
     // Identity comes from the verified JWT, not the request body.
     const isRegistered = !!email;
@@ -220,8 +285,17 @@ export class AnalyzeController {
     const write = (data: object) =>
       res.write(`data: ${JSON.stringify(data)}\n\n`);
 
+    // The analysis keeps running (and persists) after a client disconnect —
+    // res.write() becomes a no-op. Track the disconnect so we can email the
+    // user a "report ready" link once the run completes.
+    let clientGone = false;
+    res.on('close', () => {
+      if (!res.writableEnded) clientGone = true;
+    });
+
     try {
-      const { result, analysisId } = await this.analyzeCv.execute(
+      const { result, analysisId, auditMode: auditApplied, keywordMatch } =
+        await this.analyzeCv.execute(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           cvMimeType: files.cv?.[0]?.mimetype,
@@ -235,11 +309,14 @@ export class AnalyzeController {
           ip,
           isRegistered,
           locale,
+          auditMode,
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
-          else if (e.type === 'analysis_delta')
-            write({ step: 'analysis_delta', delta: e.delta });
+          else if (e.type === 'generating')
+            write({ step: 'generating', section: e.section });
+          else if (e.type === 'section')
+            write({ step: 'section', key: e.key, value: e.value });
           else if (e.type === 'analysis_done')
             write({
               step: 'analysis_done',
@@ -248,6 +325,7 @@ export class AnalyzeController {
               cvTextFormatted: e.cvTextFormatted || null,
               linkedinTextFormatted: e.linkedinTextFormatted || null,
               motivationLetterText: e.motivationLetterText || null,
+              keywordMatch: e.keywordMatch,
             });
           else if (e.type === 'negotiation_delta')
             write({ step: 'negotiation_delta', delta: e.delta });
@@ -256,7 +334,22 @@ export class AnalyzeController {
         },
       );
 
-      write({ step: 'done', result, analysisId });
+      // Owner audit mode: mint the public share link and hand it to the
+      // client so it can be copied straight away (before `done`).
+      if (auditApplied && email && analysisId !== null) {
+        await this.emitAuditShare(analysisId, email, write);
+      }
+
+      write({ step: 'done', result, analysisId, keywordMatch });
+
+      if (clientGone && email && analysisId !== null) {
+        this.notifyReportReady({
+          email,
+          analysisId,
+          locale,
+          role: result.job_details?.title ?? null,
+        });
+      }
     } catch (err: any) {
       if (res.writableEnded) return;
       write({
@@ -301,7 +394,7 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { githubUsername, locale } = parsed.data;
+    const { githubUsername, locale, auditMode } = parsed.data;
     // Identity comes from the verified JWT, not the request body.
     const isRegistered = !!email;
 
@@ -322,8 +415,16 @@ export class AnalyzeController {
     const write = (data: object) =>
       res.write(`data: ${JSON.stringify(data)}\n\n`);
 
+    // Same disconnect handling as the analyze endpoint — the review keeps
+    // running and we email the report link when the tab was closed.
+    let clientGone = false;
+    res.on('close', () => {
+      if (!res.writableEnded) clientGone = true;
+    });
+
     try {
-      const { result, analysisId } = await this.reviewCvUc.execute(
+      const { result, analysisId, auditMode: auditApplied } =
+        await this.reviewCvUc.execute(
         {
           cvBuffer: files.cv[0].buffer,
           cvMimeType: files.cv[0].mimetype,
@@ -333,11 +434,14 @@ export class AnalyzeController {
           ip,
           isRegistered,
           locale,
+          auditMode,
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
-          else if (e.type === 'analysis_delta')
-            write({ step: 'analysis_delta', delta: e.delta });
+          else if (e.type === 'generating')
+            write({ step: 'generating', section: e.section });
+          else if (e.type === 'section')
+            write({ step: 'section', key: e.key, value: e.value });
           else if (e.type === 'analysis_done')
             write({
               step: 'analysis_done',
@@ -347,7 +451,15 @@ export class AnalyzeController {
         },
       );
 
+      if (auditApplied && email && analysisId !== null) {
+        await this.emitAuditShare(analysisId, email, write);
+      }
+
       write({ step: 'done', result, analysisId });
+
+      if (clientGone && email && analysisId !== null) {
+        this.notifyReportReady({ email, analysisId, locale, role: null });
+      }
     } catch (err: any) {
       if (res.writableEnded) return;
       write({
@@ -544,44 +656,6 @@ export class AnalyzeController {
     );
   }
 
-  @UseGuards(SupabaseGuard)
-  @Post(':id/regenerate-deep')
-  @ApiOperation({
-    summary:
-      'Regenerate the deep-pass content (fixes, project_recommendation, technical_analysis) for an analysis whose first deep pass failed.',
-  })
-  async regenerateDeep(
-    @AuthEmail() email: string,
-    @Param('id') rawId: string,
-  ) {
-    const id = parseInt(rawId, 10);
-    if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    const deep = await this.regenerateDeepUc.execute(id, email);
-    return { deep };
-  }
-
-  // ANALYSIS_SPLIT_V2 Phase 3-lite: on-demand DEEP generation. The split flow
-  // delivers the hot diagnostic only; the user triggers the fixes/project/ATS
-  // here. Enqueued ASYNC (non-blocking, ~166s in the background) so the request
-  // returns instantly — the client polls GET :id for the merged result. Email-
-  // scoped (own analysis only) and idempotent (RegenerateDeepUseCase no-ops if a
-  // deepAnalysis already exists), so it can't be spammed into extra LLM spend.
-  @UseGuards(SupabaseGuard)
-  @Post(':id/generate-deep')
-  @ApiOperation({
-    summary: 'Generate the deep pass on demand (async); poll GET :id for the result.',
-  })
-  async generateDeep(@AuthEmail() email: string, @Param('id') rawId: string) {
-    const id = parseInt(rawId, 10);
-    if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    await this.llmJobs.enqueueDeep({
-      analysisId: id,
-      email,
-      generateBridgeProject: true,
-    });
-    return { status: 'generating' };
-  }
-
   @RequiresPremium('hired')
   @Post(':id/negotiation')
   @ApiOperation({
@@ -614,6 +688,218 @@ export class AnalyzeController {
     const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     return this.getAnalysisUc.execute(id, email);
+  }
+
+  /**
+   * FREE keyword-only re-scan (the retention loop). Re-upload a corrected CV;
+   * we re-run the deterministic keyword match against the SAME stored job
+   * description and return the new coverage + a before/after delta + the timeline
+   * of attempts. No LLM, no credits — returns JSON synchronously (it's fast).
+   */
+  @Throttle({ default: { limit: 20, ttl: 5 * 60_000 } })
+  @UseGuards(SupabaseGuard)
+  @Post(':id/rescan-keywords')
+  @ApiOperation({
+    summary:
+      'Free keyword-only re-scan of a corrected CV against the same job (no LLM, no credits)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'cv', maxCount: 1 }], PDF_UPLOAD_OPTIONS),
+  )
+  async rescanKeywords(
+    @UploadedFiles() files: { cv?: Express.Multer.File[] },
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    if (!files.cv?.[0]) throw new BadRequestException('CV is required');
+    return this.rescanKeywordsUc.execute({
+      analysisId: id,
+      email,
+      cvBuffer: files.cv[0].buffer,
+      cvMimeType: files.cv[0].mimetype,
+    });
+  }
+
+  /**
+   * Keyword re-scan timeline + current baseline for an analysis. Lets the result
+   * view render the coverage chart and the present/absent table on load, without
+   * running a re-scan first.
+   */
+  @UseGuards(SupabaseGuard)
+  @Get(':id/rescans')
+  @ApiOperation({ summary: 'Keyword re-scan history for an analysis' })
+  async getRescans(@AuthEmail() email: string, @Param('id') rawId: string) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) throw new BadRequestException('Invalid ID');
+    // Ownership check: findDetailById is scoped to (id, email).
+    const detail = await this.analysisRepo.findDetailById(id, email);
+    if (!detail) throw new AnalysisNotFoundException(id);
+    const rows = await this.analysisRepo.listRescans(id);
+    return {
+      baseline: detail.keywordMatch,
+      timeline: rows.map((r) => ({
+        coverageScore: r.coverageScore,
+        matchedCount: r.matchedCount,
+        totalCount: r.totalCount,
+        createdAt: r.createdAt,
+      })),
+    };
+  }
+
+  /**
+   * FULL (paid) re-scan: re-analyze a corrected CV against the SAME stored job
+   * description, producing fresh narrative/fixes and a new analysis linked back
+   * to the original (parentAnalysisId). Consumes quota/credits like a normal
+   * analysis. Streams SSE, then a `rescan_deltas` frame with the before/after
+   * diff against the original.
+   */
+  @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
+  @UseGuards(SupabaseGuard)
+  @Post(':id/rescan')
+  @ApiOperation({
+    summary:
+      'Full re-scan: re-analyze a corrected CV against the same job, linked to the original (consumes quota/credits)',
+  })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'cv', maxCount: 1 },
+        { name: 'linkedin', maxCount: 1 },
+        { name: 'motivationLetter', maxCount: 1 },
+      ],
+      PDF_UPLOAD_OPTIONS,
+    ),
+  )
+  async rescan(
+    @UploadedFiles()
+    files: {
+      cv?: Express.Multer.File[];
+      linkedin?: Express.Multer.File[];
+      motivationLetter?: Express.Multer.File[];
+    },
+    @Body() body: unknown,
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Res() res: SseResponse,
+    @Req() req: Request,
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) return res.status(400).json({ message: 'Invalid ID' });
+    if (!files.cv?.[0]) {
+      return res.status(400).json({ message: 'CV is required' });
+    }
+
+    const parsedBody = z
+      .object({
+        githubUsername: z.string().max(39).optional(),
+        locale: z.enum(['en', 'fr']).optional().default('en'),
+      })
+      .safeParse(body);
+    if (!parsedBody.success) {
+      return res
+        .status(400)
+        .json({ message: parsedBody.error.issues[0].message });
+    }
+    const { githubUsername, locale } = parsedBody.data;
+
+    // Load the original: proves ownership, supplies the locked JD, and gives us
+    // the (merged, shaped) result to diff the re-scan against.
+    let parent;
+    try {
+      parent = await this.getAnalysisUc.execute(id, email);
+    } catch {
+      return res.status(404).json({ message: 'Analysis not found' });
+    }
+    if (!parent.jobDescription || !parent.result) {
+      return res.status(400).json({
+        message: 'This analysis has no job description to re-scan against.',
+      });
+    }
+    const parentResult = parent.result;
+    const parentCoverage = parent.keywordMatch?.coverageScore ?? null;
+
+    const ip = req.ip;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const write = (data: object) =>
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+    let clientGone = false;
+    res.on('close', () => {
+      if (!res.writableEnded) clientGone = true;
+    });
+
+    try {
+      const { result, analysisId, keywordMatch } = await this.analyzeCv.execute(
+        {
+          cvBuffer: files.cv[0].buffer,
+          cvMimeType: files.cv[0].mimetype,
+          jobDescription: parent.jobDescription,
+          jobLabel: parent.jobLabel ?? undefined,
+          linkedinBuffer: files.linkedin?.[0]?.buffer,
+          motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
+          githubUsername,
+          email,
+          ip,
+          isRegistered: true,
+          locale,
+          parentAnalysisId: id,
+        },
+        (e) => {
+          if (e.type === 'step') write({ step: e.step });
+          else if (e.type === 'generating')
+            write({ step: 'generating', section: e.section });
+          else if (e.type === 'section')
+            write({ step: 'section', key: e.key, value: e.value });
+          else if (e.type === 'analysis_done')
+            write({
+              step: 'analysis_done',
+              result: e.result,
+              analysisId: e.analysisId,
+              cvTextFormatted: e.cvTextFormatted || null,
+              linkedinTextFormatted: e.linkedinTextFormatted || null,
+              motivationLetterText: e.motivationLetterText || null,
+              keywordMatch: e.keywordMatch,
+            });
+        },
+      );
+
+      // Before/after diff against the original — the payoff of the whole loop.
+      const deltas = computeDeltas(parentResult, result, {
+        coverageBefore: parentCoverage,
+        coverageAfter: keywordMatch?.coverageScore ?? null,
+      });
+      write({ step: 'rescan_deltas', parentAnalysisId: id, deltas });
+
+      write({ step: 'done', result, analysisId, keywordMatch });
+
+      if (clientGone && analysisId !== null) {
+        this.notifyReportReady({
+          email,
+          analysisId,
+          locale,
+          role: result.job_details?.title ?? null,
+        });
+      }
+    } catch (err: any) {
+      if (res.writableEnded) return;
+      write({
+        step: 'error',
+        message: err?.message || 'Re-scan failed',
+        code: err?.code || err?.response?.code,
+        details: err?.details ?? err?.response?.details,
+      });
+    } finally {
+      if (!res.writableEnded) res.end();
+    }
   }
 
   @UseGuards(SupabaseGuard)
