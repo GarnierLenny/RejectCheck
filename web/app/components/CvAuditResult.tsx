@@ -132,6 +132,16 @@ type Props = {
   onRewrite?: () => void;
   email?: string | null;
   accessToken?: string | null;
+  /**
+   * Public shared view: swap the owner action bar (export / share / new) for a
+   * single "analyze yours" CTA and show the sharer's attribution. The body is
+   * identical to what a free owner sees, so parity is automatic.
+   */
+  readOnly?: boolean;
+  sharedByName?: string | null;
+  sharedByAvatar?: string | null;
+  /** Locale-aware target for the readOnly CTA (e.g. `/en/analyze`). */
+  ctaHref?: string;
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -153,6 +163,10 @@ export function CvAuditResult({
   onRewrite,
   email = null,
   accessToken = null,
+  readOnly = false,
+  sharedByName = null,
+  sharedByAvatar = null,
+  ctaHref = "/analyze",
 }: Props) {
   const [barGo, setBarGo] = useState(false);
   const [activeSection, setActiveSection] = useState("s1");
@@ -368,20 +382,31 @@ export function CvAuditResult({
             <span style={{ ...SANS, fontWeight: 600, fontSize: 14, color: "var(--rc-text)" }}>RejectCheck</span>
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 18, borderLeft: "1px solid var(--rc-border)" }}>
+            {readOnly && sharedByAvatar && (
+              <Image src={sharedByAvatar} alt={sharedByName ?? ""} width={22} height={22} style={{ borderRadius: 999, objectFit: "cover" }} />
+            )}
             <span style={{ ...MONO, fontSize: 11, letterSpacing: "0.08em", color: "var(--rc-hint)", textTransform: "uppercase" }}>CV Audit ·</span>
             <span style={{ ...SANS, fontSize: 13, fontWeight: 600, color: "var(--rc-text)" }}>
-              {candidateName}
+              {readOnly && sharedByName ? sharedByName : candidateName}
             </span>
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button style={iconBtn()} onClick={onExportMd}>↓ .md</button>
-          {onShare && (
-            <button style={iconBtn()} onClick={onShare} disabled={isSharing}>
-              {isSharing ? "…" : "↗ Share"}
-            </button>
+          {readOnly ? (
+            <Link href={ctaHref} style={{ ...MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", padding: "8px 16px", background: "var(--rc-red)", color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              Analyze yours →
+            </Link>
+          ) : (
+            <>
+              <button style={iconBtn()} onClick={onExportMd}>↓ .md</button>
+              {onShare && (
+                <button style={iconBtn()} onClick={onShare} disabled={isSharing}>
+                  {isSharing ? "…" : "↗ Share"}
+                </button>
+              )}
+              <button style={iconBtn(false, true)} onClick={onReset}>↻ New</button>
+            </>
           )}
-          <button style={iconBtn(false, true)} onClick={onReset}>↻ New</button>
         </div>
       </nav>
 

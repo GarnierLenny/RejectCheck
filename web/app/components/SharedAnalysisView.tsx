@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import posthog from "posthog-js";
 import Image from "next/image";
 import Link from "next/link";
 import type { AnalysisResult } from "./types";
 import { AnalysisLayout } from "./AnalysisLayout";
-import { CvReviewTab } from "./tabs/CvReviewTab";
-import { Navbar } from "./Navbar";
+import { CvAuditResult } from "./CvAuditResult";
 import { useLanguage } from "../../context/language";
 
 type Props = {
@@ -40,20 +39,8 @@ export function SharedAnalysisView({
   mlFileUrl = null,
 }: Props) {
   const { t } = useLanguage();
-  const [stickyVisible, setStickyVisible] = useState(false);
 
   const isCvReview = !!result.cv_quality;
-
-  // The cv-review branch scrolls the window; surface the sticky CTA past the
-  // fold. The vs-job branch uses the full-height report shell (internal scroll)
-  // and carries its CTA in the topbar instead, so this is a no-op there.
-  useEffect(() => {
-    function onScroll() {
-      setStickyVisible(window.scrollY > 300);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     posthog.capture("share_link_visited", {
@@ -150,58 +137,24 @@ export function SharedAnalysisView({
     );
   }
 
-  // ── cv-review: standalone audit, normal document flow.
+  // ── cv-review: the same full CV-audit view the owner sees, read-only.
   return (
-    <div className="bg-rc-bg text-rc-text font-sans min-h-screen flex flex-col overflow-x-hidden">
-      <Navbar />
-
-      {/* Share header */}
-      <div className="border-b border-rc-border bg-rc-surface px-5 md:px-[32px] py-5">
-        <div className="max-w-[1600px] mx-auto flex items-center gap-4">
-          {avatarUrl ? (
-            <Image
-              src={avatarUrl}
-              alt={displayName}
-              width={40}
-              height={40}
-              className="rounded-full object-cover w-10 h-10 shrink-0"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-rc-red/10 border border-rc-red/30 flex items-center justify-center shrink-0">
-              <span className="font-mono text-[13px] font-bold text-rc-red">{initials}</span>
-            </div>
-          )}
-          <p className="font-mono text-[13px] text-rc-text leading-snug">
-            <span className="font-bold">{displayName}</span>
-            {" "}{t.share.cvScorePhrase}{" "}
-            <span className={`font-bold ${result.cv_quality!.overall >= 70 ? "text-rc-green" : result.cv_quality!.overall >= 40 ? "text-rc-amber" : "text-rc-red"}`}>
-              {result.cv_quality!.overall}%
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="max-w-[1600px] w-[92%] mx-auto pt-9 pb-[80px] px-5 md:px-[32px]">
-        <CvReviewTab result={result} />
-      </div>
-
-      {/* Sticky CTA bar */}
-      <div className={`fixed bottom-0 left-0 right-0 z-40 transition-transform duration-300 ${stickyVisible ? "translate-y-0" : "translate-y-full"}`}>
-        <div className="bg-rc-surface border-t border-rc-border shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
-          <div className="max-w-[1600px] w-[92%] mx-auto px-5 md:px-[32px] py-4 flex items-center justify-between gap-4">
-            <p className="text-[13px] text-rc-text leading-snug hidden sm:block">
-              {t.share.ctaTextCvReview.replace("{name}", displayName)}
-            </p>
-            <Link
-              href={`/${lang}/analyze`}
-              onClick={() => posthog.capture("share_sticky_cta_clicked", { token, mode: "cv-review" })}
-              className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center px-6 py-2.5 bg-rc-red text-white font-mono text-[12px] tracking-widest uppercase transition-colors hover:bg-rc-red/90 active:scale-95"
-            >
-              {t.share.ctaButtonCvReview} →
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CvAuditResult
+      readOnly
+      result={result}
+      analysisId={null}
+      cvBlobUrl={cvFileUrl}
+      liBlobUrl={liFileUrl}
+      mlBlobUrl={mlFileUrl}
+      reconstructedCv={cvTextFormatted}
+      liText={linkedinTextFormatted}
+      onReset={noop}
+      onExportMd={noop}
+      isSharing={false}
+      userPlan="free"
+      sharedByName={profile?.displayName ?? null}
+      sharedByAvatar={avatarUrl}
+      ctaHref={`/${lang}/analyze`}
+    />
   );
 }
