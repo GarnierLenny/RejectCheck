@@ -550,7 +550,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
         {/* a · Seniority */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
           <Eyebrow style={{ color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.cv.seniorityLabel}</Eyebrow>
-          {sen.strength && <StrengthPill>{t.analysisLayout.report.strengthPrefix} {sen.strength}</StrengthPill>}
+          {sen.strength && <StrengthPill>{t.analysisLayout.report.strengthPrefix} <MD>{sen.strength}</MD></StrengthPill>}
         </div>
         <Compare leftLabel={t.analysisLayout.cv.roleExpects} left={sen.expected} rightLabel={t.analysisLayout.cv.cvSignals} right={sen.detected} rightColor="var(--rc-red)" />
         <div style={{ marginTop: 18 }}>

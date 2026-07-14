@@ -565,10 +565,10 @@ export function CvAuditResult({
               })()}
             </div>
 
-            {/* Verdict sentence */}
+            {/* Verdict sentence — model prose, so render its **bold** markdown. */}
             {result.projected_profile?.narrative && (
               <p style={{ fontWeight: 600, fontSize: "clamp(18px,2vw,26px)", lineHeight: 1.4, letterSpacing: "-0.015em", color: "var(--rc-text)", margin: 0, maxWidth: 680 }}>
-                {result.projected_profile.narrative}
+                <Md>{result.projected_profile.narrative}</Md>
               </p>
             )}
           </div>
@@ -599,7 +599,7 @@ export function CvAuditResult({
                 </p>
                 {topIssue.why && (
                   <p style={{ ...SANS, fontSize: 14, lineHeight: 1.5, color: "var(--rc-muted)", margin: "8px 0 0" }}>
-                    {topIssue.why}
+                    <Md>{topIssue.why}</Md>
                   </p>
                 )}
                 <div style={{
