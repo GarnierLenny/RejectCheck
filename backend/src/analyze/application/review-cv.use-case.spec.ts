@@ -78,14 +78,15 @@ describe('ReviewCvUseCase — CV source extraction', () => {
 
 /**
  * Regression: the signed-in user's OWN portfolio (from their profile, not this
- * upload) is fed as a cross-check source. It's ENABLED by default (preserves
- * prod behavior), but CV_REVIEW_PORTFOLIO_ENABLED=false must fully stop the
- * scrape — otherwise analyzing someone else's CV surfaces the owner's
- * portfolio as fake "inconsistencies" and leaks the owner's data.
+ * upload) is fed as a cross-check source. It's OFF by default (opt-in) —
+ * relying on CV_REVIEW_PORTFOLIO_ENABLED=false being set in prod was a footgun
+ * that leaked the owner's portfolio into strangers' CV audits, surfacing it as
+ * fake "identity mismatch" inconsistencies. Only CV_REVIEW_PORTFOLIO_ENABLED=
+ * 'true' opts back in (for auditing your own CV).
  */
 describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', () => {
   // `portfolioFlag`: value returned for CV_REVIEW_PORTFOLIO_ENABLED (undefined
-  // = unset = default-on). PROFILE_DIGEST_ENABLED stays off throughout.
+  // = unset = default-OFF). PROFILE_DIGEST_ENABLED stays off throughout.
   function makeRegisteredUseCase(portfolioFlag: string | undefined) {
     const pdf = {
       parse: jest.fn().mockResolvedValue('x'.repeat(300)),
@@ -140,6 +141,14 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
     isRegistered: true,
   };
 
+  it('does NOT scrape the profile portfolio by default (flag unset)', async () => {
+    const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase(undefined);
+    await uc.execute(cmd);
+    expect(portfolioScraper.fetch).not.toHaveBeenCalled();
+    expect(reviewCv.mock.calls[0][0].portfolioMarkdown).toBeFalsy();
+    expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
+  });
+
   it('does NOT scrape the profile portfolio when explicitly disabled', async () => {
     const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase('false');
     await uc.execute(cmd);
@@ -148,8 +157,8 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
     expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
   });
 
-  it('scrapes the profile portfolio by default (flag unset)', async () => {
-    const { uc, portfolioScraper } = makeRegisteredUseCase(undefined);
+  it('scrapes the profile portfolio only when explicitly enabled', async () => {
+    const { uc, portfolioScraper } = makeRegisteredUseCase('true');
     await uc.execute(cmd);
     expect(portfolioScraper.fetch).toHaveBeenCalledWith('https://lennygarnier.com');
   });

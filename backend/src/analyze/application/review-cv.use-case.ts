@@ -178,14 +178,17 @@ export class ReviewCvUseCase {
 
     // The portfolio comes from the signed-in user's OWN profile, not from this
     // upload. Feeding it as a source makes the model cross-check the uploaded
-    // CV against the owner's portfolio — great when you audit your own CV, but
-    // wrong (and it leaks the owner's data) when you analyze someone else's.
-    // Dedicated switch, ENABLED by default so a deploy doesn't silently change
-    // prod behavior; set CV_REVIEW_PORTFOLIO_ENABLED=false to turn it off.
-    // Audit mode always forces it off (auditing someone else's CV).
+    // CV against the owner's portfolio — fine when you review your own CV, but
+    // wrong (and it leaks the owner's data) when you review someone else's,
+    // surfacing your portfolio as fake "identity mismatch" inconsistencies.
+    // OFF by default (opt-in), same safe default as the digest: relying on an
+    // env var being set to 'false' in prod was a footgun that leaked the
+    // owner's portfolio into strangers' CV audits. Set
+    // CV_REVIEW_PORTFOLIO_ENABLED=true to re-enable it for the audit-your-own-CV
+    // case. Audit mode always forces it off (auditing someone else's CV).
     const portfolioEnabled =
       !isOwnerAudit &&
-      this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') !== 'false';
+      this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') === 'true';
     const portfolioUrl = portfolioEnabled ? profile?.portfolioUrl ?? null : null;
     const portfolioMarkdown = portfolioUrl
       ? await this.portfolioScraper
