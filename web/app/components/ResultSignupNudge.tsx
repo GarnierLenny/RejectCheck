@@ -26,9 +26,6 @@ export function ResultSignupNudge() {
       className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-4 pb-4"
     >
       <div className="pointer-events-auto relative mx-auto flex max-w-[720px] flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl border border-rc-border bg-rc-surface px-5 py-4 pr-10 shadow-[0_18px_50px_rgba(201,58,57,0.16)]">
-        {/* thin red accent on the left edge */}
-        <span className="absolute inset-y-3 left-0 w-[3px] rounded-full bg-rc-red" aria-hidden />
-
         <Sparkles className="hidden h-4 w-4 flex-none text-rc-red sm:block" aria-hidden />
 
         <div className="min-w-[180px] flex-1">

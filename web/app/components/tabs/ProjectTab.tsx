@@ -92,7 +92,6 @@ export function ProjectTab({ project }: Props) {
       {/* Architecture Blueprint — stripped from the free teaser, so guard it. */}
       {project.architecture && (
         <div className="bg-rc-surface-raised border border-rc-border p-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-rc-red" />
           <h4 className="font-mono text-[12px] uppercase tracking-[0.2em] text-rc-red font-bold flex items-center gap-1.5 mb-4">
             <Layers className="w-3.5 h-3.5" /> Architecture Blueprint
           </h4>

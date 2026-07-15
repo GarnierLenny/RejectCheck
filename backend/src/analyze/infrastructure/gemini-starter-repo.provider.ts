@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
 import { stripJsonFences } from '../../challenge/infrastructure/strip-json-fences';
+import { deepStripLongDashes } from '../../common/strip-long-dashes';
 import { ProjectRecommendationSchema } from '../dto/analyze-response.dto';
 
 type ProjectRecommendation = ReturnType<typeof ProjectRecommendationSchema.parse>;
@@ -119,6 +120,6 @@ Respond with ONLY a JSON object matching this exact shape, no prose before or af
       throw new InternalServerErrorException('Starter repo generation failed');
     }
 
-    return safe.data;
+    return deepStripLongDashes(safe.data);
   }
 }

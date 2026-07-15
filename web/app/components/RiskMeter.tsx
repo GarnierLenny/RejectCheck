@@ -33,6 +33,7 @@ export function RiskMeter({
   context,
   lede,
   sectionNo = "01",
+  pending = false,
 }: {
   value: number;
   /** Picks the default eyebrow context ("vs cette offre" / "ce CV en général"). */
@@ -42,6 +43,14 @@ export function RiskMeter({
   /** Verdict sentence; falls back to a generic per-band line. */
   lede?: React.ReactNode;
   sectionNo?: string;
+  /**
+   * While the analysis is still streaming, the only score we have is the model's
+   * PROVISIONAL guess — the backend replaces it with the anchored composite in
+   * the final payload. Rather than show a number we've decided not to trust and
+   * then let it jump, we render a "computing" placeholder until the composite
+   * lands. See domain/score/compose-score.ts.
+   */
+  pending?: boolean;
 }) {
   const { t } = useLanguage();
   const rm = t.riskMeter;
@@ -50,6 +59,58 @@ export function RiskMeter({
   const band = riskBand(v);
   const ledeText = lede ?? rm.lede[band];
   const ctx = context ?? (mode === "cv" ? rm.contextCv : mode === "vsjob" ? rm.contextVsJob : undefined);
+
+  if (pending) {
+    return (
+      <section aria-label={rm.computing} aria-busy="true">
+        <div className="mb-4 flex items-center gap-2">
+          <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-rc-hint" aria-hidden />
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
+            § {sectionNo} · {rm.eyebrow}
+          </span>
+          {ctx && (
+            <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <div
+            className="animate-pulse font-mono font-bold leading-[0.82] tracking-[-0.05em] text-rc-hint opacity-40"
+            style={{ fontSize: "clamp(64px, 9vw, 92px)" }}
+            aria-hidden
+          >
+            ··<span style={{ fontSize: "0.4em" }}>%</span>
+          </div>
+          <div className="min-w-[180px] flex-1 pt-2">
+            <p
+              className="mt-3 text-[16px] italic leading-[1.35] text-rc-hint"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {rm.computing}
+            </p>
+          </div>
+        </div>
+
+        {/* Neutral 3-zone track, no needle — the score isn't final yet. */}
+        <div className="mt-7">
+          <div className="relative flex h-[13px] overflow-hidden rounded-full opacity-40 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
+            <div className="h-full bg-rc-green" style={{ flex: 33 }} />
+            <div className="h-full bg-rc-amber" style={{ flex: 34 }} />
+            <div className="h-full bg-rc-red" style={{ flex: 33 }} />
+          </div>
+          <div className="mt-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.09em] text-rc-hint">
+            <span>0</span>
+            <div className="flex flex-1 justify-around">
+              <span>{rm.bands.low}</span>
+              <span>{rm.bands.mid}</span>
+              <span>{rm.bands.high}</span>
+            </div>
+            <span>100</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section aria-label={`${rm.eyebrow}: ${v}% — ${rm.verdict[band]}`}>

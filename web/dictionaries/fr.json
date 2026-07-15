@@ -781,7 +781,8 @@
       "high": "En l'état, ce dossier serait probablement écarté."
     },
     "contextVsJob": "vs cette offre",
-    "contextCv": "ce CV en général"
+    "contextCv": "ce CV en général",
+    "computing": "Calcul du score…"
   },
   "resultNudge": {
     "eyebrow": "Compte gratuit",
@@ -2435,7 +2436,24 @@
       "dropZone": "Dépose ton CV corrigé, ou clique pour parcourir",
       "textOnly": "PDF texte pour le re-scan gratuit. Les images scannées nécessitent un re-scan complet.",
       "showTable": "Voir le détail des mots-clés",
-      "hideTable": "Masquer le détail des mots-clés"
+      "hideTable": "Masquer le détail des mots-clés",
+      "optimize": {
+        "title": "Optimiser en direct",
+        "subtitle": "Coche les mots-clés manquants et réécris les lignes faibles pour voir ton score projeté, puis valide avec un re-scan complet.",
+        "current": "Actuel",
+        "projected": "Projeté",
+        "riskDrop": "pts",
+        "noChange": "Pas de changement projeté",
+        "noEdits": "Coche des mots-clés ou édite des lignes pour projeter ton score",
+        "addKeywords": "Ajouter les mots-clés manquants",
+        "req": "req",
+        "fixBullets": "Réécrire les lignes faibles",
+        "rewritePlaceholder": "Réécris cette ligne…",
+        "validating": "Re-scan en cours…",
+        "validate": "Valider (re-scan complet)",
+        "paidNote": "Lance un re-scan complet · compte pour une analyse",
+        "skillsLine": "Compétences supplémentaires"
+      }
     },
     "tabs": {
       "match": "Match",

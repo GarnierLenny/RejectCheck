@@ -118,6 +118,9 @@ const ALLOWED_UPLOAD_MIMETYPES = new Set([
  * image before it reaches pdf-parse / Claude. Prevents memory exhaustion and
  * cost-bleed from oversized or junk uploads on the unauthenticated path.
  */
+/** Min chars of inline-edited CV text accepted by the inline re-scan route. */
+const MIN_INLINE_CV_CHARS = 200;
+
 const PDF_UPLOAD_OPTIONS = {
   limits: { fileSize: 10 * 1024 * 1024, files: 3 },
   fileFilter: (
@@ -806,18 +809,108 @@ export class AnalyzeController {
     }
     const { githubUsername, locale } = parsedBody.data;
 
+    return this.streamFullRescan(
+      res,
+      req,
+      id,
+      email,
+      {
+        cvBuffer: files.cv[0].buffer,
+        cvMimeType: files.cv[0].mimetype,
+        linkedinBuffer: files.linkedin?.[0]?.buffer,
+        motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
+      },
+      { githubUsername, locale },
+    );
+  }
+
+  /**
+   * JSON inline re-scan: the corrected CV is edited TEXT from the app
+   * (bullets/skills), not a re-uploaded file. Powers the inline re-scan loop.
+   * Consumes quota/credits like a normal analysis; same SSE + deltas as
+   * :id/rescan.
+   */
+  @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
+  @UseGuards(SupabaseGuard)
+  @Post(':id/rescan-inline')
+  @ApiOperation({
+    summary:
+      'Full re-scan from inline-edited CV text (bullets/skills), linked to the original (consumes quota/credits)',
+  })
+  async rescanInline(
+    @Body() body: unknown,
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Res() res: SseResponse,
+    @Req() req: Request,
+  ) {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) return res.status(400).json({ message: 'Invalid ID' });
+
+    const parsedBody = z
+      .object({
+        cvText: z.string(),
+        githubUsername: z.string().max(39).optional(),
+        locale: z.enum(['en', 'fr']).optional().default('en'),
+      })
+      .safeParse(body);
+    if (!parsedBody.success) {
+      return res
+        .status(400)
+        .json({ message: parsedBody.error.issues[0].message });
+    }
+    const { cvText, githubUsername, locale } = parsedBody.data;
+    if (cvText.trim().length < MIN_INLINE_CV_CHARS) {
+      return res.status(400).json({
+        message:
+          'The edited CV is too short to re-scan. Keep your full CV text, not just the edits.',
+      });
+    }
+
+    return this.streamFullRescan(
+      res,
+      req,
+      id,
+      email,
+      { cvText },
+      { githubUsername, locale },
+    );
+  }
+
+  /**
+   * Shared streaming body for the two full re-scan routes (file upload and
+   * inline edited text). Loads the parent for ownership + the locked JD, streams
+   * the fresh analysis as SSE, then emits the before/after deltas.
+   */
+  private async streamFullRescan(
+    res: SseResponse,
+    req: Request,
+    id: number,
+    email: string,
+    source:
+      | {
+          cvBuffer: Buffer;
+          cvMimeType?: string;
+          linkedinBuffer?: Buffer;
+          motivationLetterBuffer?: Buffer;
+        }
+      | { cvText: string },
+    opts: { githubUsername?: string; locale: 'en' | 'fr' },
+  ): Promise<void> {
     // Load the original: proves ownership, supplies the locked JD, and gives us
     // the (merged, shaped) result to diff the re-scan against.
     let parent;
     try {
       parent = await this.getAnalysisUc.execute(id, email);
     } catch {
-      return res.status(404).json({ message: 'Analysis not found' });
+      res.status(404).json({ message: 'Analysis not found' });
+      return;
     }
     if (!parent.jobDescription || !parent.result) {
-      return res.status(400).json({
+      res.status(400).json({
         message: 'This analysis has no job description to re-scan against.',
       });
+      return;
     }
     const parentResult = parent.result;
     const parentCoverage = parent.keywordMatch?.coverageScore ?? null;
@@ -840,17 +933,14 @@ export class AnalyzeController {
     try {
       const { result, analysisId, keywordMatch } = await this.analyzeCv.execute(
         {
-          cvBuffer: files.cv[0].buffer,
-          cvMimeType: files.cv[0].mimetype,
+          ...source,
           jobDescription: parent.jobDescription,
           jobLabel: parent.jobLabel ?? undefined,
-          linkedinBuffer: files.linkedin?.[0]?.buffer,
-          motivationLetterBuffer: files.motivationLetter?.[0]?.buffer,
-          githubUsername,
+          githubUsername: opts.githubUsername,
           email,
           ip,
           isRegistered: true,
-          locale,
+          locale: opts.locale,
           parentAnalysisId: id,
         },
         (e) => {
@@ -885,7 +975,7 @@ export class AnalyzeController {
         this.notifyReportReady({
           email,
           analysisId,
-          locale,
+          locale: opts.locale,
           role: result.job_details?.title ?? null,
         });
       }

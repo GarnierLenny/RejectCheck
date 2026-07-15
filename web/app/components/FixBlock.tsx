@@ -21,7 +21,7 @@ export function FixBlock({ fix }: { fix: Fix }) {
       </div>
 
       {fix.example && (
-        <div className="ml-7 border-l-2 border-rc-red/20 pl-4 py-1 space-y-3">
+        <div className="ml-7 pl-4 py-1 space-y-3">
           <div className="space-y-1.5">
             <span className="text-[11px] uppercase tracking-wider text-rc-hint font-mono">Current:</span>
             <div className="text-[16px] text-rc-muted italic prose-sm prose-invert max-w-none leading-[1.7]">

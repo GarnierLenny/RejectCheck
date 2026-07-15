@@ -197,7 +197,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#f9f9f9",
     borderRadius: 6,
-    borderLeftWidth: 3,
   },
   actionPlanCard: {
     backgroundColor: "#ffffff",
@@ -331,8 +330,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "rgba(255, 255, 255, 0.5)",
     borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#22c55e",
   },
   vitalStepsCard: {
     marginTop: 16,
@@ -400,16 +397,12 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#fff",
     borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#64748b",
   },
   infoBox: {
     marginTop: 12,
     padding: 12,
     backgroundColor: "#f0f9ff",
     borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#0ea5e9",
   },
   signalCard: {
     borderWidth: 1,
@@ -461,8 +454,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#f8fafc",
     borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#D94040",
   },
   advancedBadge: {
     paddingHorizontal: 8,
@@ -498,8 +489,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#fffbeb",
     borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#d97706",
   },
   jdSkillRow: {
     flexDirection: "row",
@@ -653,7 +642,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           <Text style={styles.body}>{result.ats_simulation.reason}</Text>
 
           {(result.ats_simulation.critical_missing_keywords?.length ?? 0) > 0 && (
-            <View style={{ ...styles.howToFix, borderLeftColor: redColor, backgroundColor: "#fff5f5", borderLeftWidth: 2, marginTop: 12 }}>
+            <View style={{ ...styles.howToFix, backgroundColor: "#fff5f5", marginTop: 12 }}>
               <Text style={{ fontSize: 11, fontWeight: 700, color: redColor, marginBottom: 8 }}>Critical Missing Keywords:</Text>
               {result.ats_simulation.critical_missing_keywords?.map((kw: any) => (
                 <View key={kw.keyword} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#fecaca" }}>
@@ -682,7 +671,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               ))}
             </View>
             {result.audit.jd_match!.experience_gap && (
-              <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", backgroundColor: "#fffbeb", marginTop: 8 }}>
+              <View style={{ ...styles.howToFix, backgroundColor: "#fffbeb", marginTop: 8 }}>
                 <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 4 }}>Experience Gap:</Text>
                 <Text style={{ fontSize: 11, color: "#78350f" }}>{stripMd(result.audit.jd_match!.experience_gap)}</Text>
               </View>
@@ -732,7 +721,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
                 </Text>
               </View>
               {result.technical_analysis.market_context && (
-                <View style={{ ...styles.infoBox, backgroundColor: "#f0fdf4", borderLeftColor: "#22c55e", marginTop: 8 }}>
+                <View style={{ ...styles.infoBox, backgroundColor: "#f0fdf4", marginTop: 8 }}>
                   <Text style={{ ...styles.label, fontSize: 8, color: "#15803d", marginBottom: 4 }}>Market Context:</Text>
                   <Text style={{ fontSize: 10, color: "#14532d" }}>{stripMd(result.technical_analysis.market_context)}</Text>
                 </View>
@@ -772,7 +761,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
             </Text>
           )}
           {(result.seniority_analysis.fix?.steps?.length ?? 0) > 0 && (
-            <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
+            <View style={{ ...styles.howToFix, marginTop: 12 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
                 Fix: {stripMd(result.seniority_analysis.fix?.summary ?? '')} - {result.seniority_analysis.fix?.time_required ?? ''}
               </Text>
@@ -815,7 +804,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
             })}
           </View>
           {(result.cv_tone.fix?.steps?.length ?? 0) > 0 && (
-            <View style={{ ...styles.howToFix, borderLeftColor: "#d97706", marginTop: 12 }}>
+            <View style={{ ...styles.howToFix, marginTop: 12 }}>
               <Text style={{ fontSize: 10, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
                 Fix: {stripMd(result.cv_tone.fix?.summary ?? '')} - {result.cv_tone.fix?.time_required ?? ''}
               </Text>
@@ -842,7 +831,7 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
               </View>
               <Text style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>{issue.what}</Text>
               <Text style={{ fontSize: 12, color: "#666", marginBottom: 10 }}>{issue.why}</Text>
-              <View style={{ ...styles.howToFix, borderLeftColor: issue.severity === 'critical' ? redColor : "#8a5700" }}>
+              <View style={{ ...styles.howToFix }}>
                 <Text style={{ fontSize: 10, fontWeight: 700, color: "#666", marginBottom: 4, textTransform: "uppercase" }}>Action Step:</Text>
                 <Text style={{ fontSize: 12, color: "#333" }}>{issue.fix.summary}</Text>
               </View>

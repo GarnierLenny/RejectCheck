@@ -52,7 +52,7 @@ function FixBlock({ fix }: { fix: Fix | null | undefined }) {
   const { t } = useLanguage();
   if (!fix) return null;
   return (
-    <div style={{ marginTop: 16, paddingLeft: 18, borderLeft: "2px solid var(--rc-green)" }}>
+    <div style={{ marginTop: 16, paddingLeft: 18 }}>
       <Eyebrow color="var(--rc-green)" style={{ display: "block", marginBottom: 8 }}>{t.analysisLayout.diffRow.label} · <Mono style={{ fontSize: 10 }}>◷ {fix.time_required}</Mono></Eyebrow>
       <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 600, color: "var(--rc-text)", lineHeight: 1.5, marginBottom: 10 }}>
         <MD>{fix.summary}</MD>

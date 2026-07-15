@@ -41,7 +41,7 @@ export function FlagsTab({ flags, jdMatch, fixesReady = true }: Props) {
 
         <div className="space-y-3">
           {flags.map((flag, idx) => (
-            <div key={idx} className="border border-rc-border border-l-[3px] border-l-rc-red bg-rc-surface p-6 hover:bg-rc-surface-raised transition-colors">
+            <div key={idx} className="border border-rc-border bg-rc-surface p-6 hover:bg-rc-surface-raised transition-colors">
               <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-red block mb-2">{t.flagsTab.redFlag}</span>
               <h4 className="text-[19px] font-semibold text-rc-text mb-3 leading-snug"><Md>{flag.flag}</Md></h4>
               <div className="h-px bg-rc-border/40 mb-4" />
@@ -92,7 +92,7 @@ export function FlagsTab({ flags, jdMatch, fixesReady = true }: Props) {
             </div>
 
             {jdMatch.experience_gap && (
-              <div className="p-4 bg-rc-red/5 border-l-4 border-rc-red">
+              <div className="p-4 bg-rc-red/5">
                 <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-rc-red block mb-1.5 font-bold">{t.flagsTab.crucialExperienceGap}</span>
                 <p className="text-[17px] text-rc-muted italic leading-[1.7]"><Md>{jdMatch.experience_gap}</Md></p>
               </div>

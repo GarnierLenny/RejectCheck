@@ -582,7 +582,7 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
         <h3 style={{ ...SANS, fontWeight: 600, fontSize: "clamp(18px,2vw,26px)", letterSpacing: "-0.02em", color: "var(--rc-text)", margin: "0 0 12px", lineHeight: 1.2 }}>{project.name}</h3>
         <p style={{ ...SANS, fontSize: 15, lineHeight: 1.7, color: "var(--rc-muted)", margin: "0 0 24px", maxWidth: 680 }}>{project.description}</p>
 
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, paddingLeft: 16, borderLeft: "2px solid var(--rc-green)" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, paddingLeft: 16 }}>
           <p style={{ ...SANS, fontSize: 13, lineHeight: 1.65, color: "var(--rc-muted)", margin: 0, fontStyle: "italic" }}>{project.why_it_matters}</p>
         </div>
 

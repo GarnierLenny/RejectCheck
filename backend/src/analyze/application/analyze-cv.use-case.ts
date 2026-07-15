@@ -46,11 +46,16 @@ import { LlmJobsService } from '../../queue/llm-jobs.service';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
 import type { Plan, QuotaDecision } from '../domain/quota.policy';
-import { CREDIT_COSTS, decideQuota, startOfMonthUTC } from '../domain/quota.policy';
+import {
+  CREDIT_COSTS,
+  decideQuota,
+  startOfMonthUTC,
+} from '../domain/quota.policy';
 import {
   matchKeywords,
   type KeywordMatchResult,
 } from '../domain/keyword-match/keyword-match';
+import { anchorScores, anchorBreakdown } from '../domain/score/compose-score';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -81,6 +86,14 @@ function toQuotaPlan(legacyPlan: 'rejected' | 'shortlisted' | 'hired'): Plan {
 export type AnalyzeCvCommand = {
   cvBuffer?: Buffer;
   cvMimeType?: string;
+  /**
+   * Pre-extracted CV text, used by the INLINE re-scan loop: the user edits their
+   * reconstructed CV (bullets / skills) in the app and commits the edited text
+   * instead of re-uploading a file. When set, it bypasses PDF/OCR parsing and is
+   * used verbatim as both the raw and formatted CV text. Exactly one of
+   * cvBuffer / cvText must be provided.
+   */
+  cvText?: string;
   jobDescription: string;
   jobLabel?: string;
   linkedinBuffer?: Buffer;
@@ -176,7 +189,8 @@ export class AnalyzeCvUseCase {
     cmd: AnalyzeCvCommand,
     onEvent?: (event: AnalyzeEvent) => void,
   ): Promise<AnalyzeCvResult> {
-    if (!cmd.cvBuffer) throw new BadRequestException('CV is required');
+    if (!cmd.cvBuffer && cmd.cvText == null)
+      throw new BadRequestException('CV is required');
 
     const executeStartedAt = Date.now();
     const timings = {
@@ -206,7 +220,12 @@ export class AnalyzeCvUseCase {
     const plan = toQuotaPlan(subscriptionState.plan);
     const quotaIntent = isOwnerAudit
       ? ({ allowed: true, consume: 'anonymous' } as const)
-      : await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.analyze);
+      : await this.reserveQuotaIntent(
+          cmd.email,
+          cmd.ip,
+          plan,
+          CREDIT_COSTS.analyze,
+        );
 
     // Emit step labels eagerly so the SSE timeline still reflects the work
     // about to start; the operations themselves run in parallel below.
@@ -220,19 +239,26 @@ export class AnalyzeCvUseCase {
     const jobText = cmd.jobDescription.trim().slice(0, 8000);
 
     const parseStart = Date.now();
-    const [cvSource, linkedinText, linkedinTextFormatted, motivationLetterText, githubSnapshot] =
-      await Promise.all([
-        this.extractCvSource(cmd.cvBuffer, cmd.cvMimeType),
-        this.tryParse(cmd.linkedinBuffer),
-        this.tryParseFormatted(cmd.linkedinBuffer),
-        this.resolveMotivationLetter(
-          cmd.motivationLetterText,
-          cmd.motivationLetterBuffer,
-        ),
-        cmd.githubUsername
-          ? this.github.fetchProfile(cmd.githubUsername)
-          : Promise.resolve(null),
-      ]);
+    const [
+      cvSource,
+      linkedinText,
+      linkedinTextFormatted,
+      motivationLetterText,
+      githubSnapshot,
+    ] = await Promise.all([
+      cmd.cvText != null
+        ? Promise.resolve({ text: cmd.cvText, formatted: cmd.cvText })
+        : this.extractCvSource(cmd.cvBuffer as Buffer, cmd.cvMimeType),
+      this.tryParse(cmd.linkedinBuffer),
+      this.tryParseFormatted(cmd.linkedinBuffer),
+      this.resolveMotivationLetter(
+        cmd.motivationLetterText,
+        cmd.motivationLetterBuffer,
+      ),
+      cmd.githubUsername
+        ? this.github.fetchProfile(cmd.githubUsername)
+        : Promise.resolve(null),
+    ]);
     const cvText = cvSource.text;
     const cvTextFormatted = cvSource.formatted;
     timings.parse_inputs_ms = Date.now() - parseStart;
@@ -290,7 +316,10 @@ export class AnalyzeCvUseCase {
 
     const digestStart = Date.now();
     let digest: ProfileDigest | null = null;
-    if (digestEnabled && cmd.email && cmd.isRegistered) {
+    // The digest hashes/parses the uploaded source files, so it needs a real
+    // cvBuffer. The inline re-scan path commits edited TEXT (no file), so it
+    // skips the digest and passes the raw edited text to the provider directly.
+    if (digestEnabled && cmd.email && cmd.isRegistered && cmd.cvBuffer) {
       digest = await this.resolveDigest({
         email: cmd.email,
         cvBuffer: cmd.cvBuffer,
@@ -356,6 +385,13 @@ export class AnalyzeCvUseCase {
     // diagnostic-first and each completed top-level section streams to the
     // client as a typed `section` event — never the raw JSON deltas, which
     // would leak premium content to free clients.
+    // Deterministic keyword coverage (no LLM): run on the FULL cvText, not the
+    // model-truncated slice, so skills late in the CV aren't silently missed.
+    // Computed BEFORE the model call so the streamed breakdown section and the
+    // final payload show the same verifiable keyword number. Also the baseline
+    // the re-scan loop diffs against.
+    const keywordMatch = matchKeywords(cmd.jobDescription, cvText);
+
     const shapeCtx = {
       premium: subscriptionState.hasActiveSubscription,
       hired: subscriptionState.plan === 'hired',
@@ -385,7 +421,14 @@ export class AnalyzeCvUseCase {
             emit({
               type: 'section',
               key: 'breakdown',
-              value: { ...breakdownBuffer },
+              // Anchor the streamed breakdown so it matches the final payload:
+              // keyword_match = deterministic coverage, LLM sub-scores quantized.
+              value: anchorBreakdown(
+                breakdownBuffer as unknown as Parameters<
+                  typeof anchorBreakdown
+                >[0],
+                keywordMatch.coverageScore,
+              ),
             });
           }
           return;
@@ -398,7 +441,7 @@ export class AnalyzeCvUseCase {
       },
     });
 
-    const result = await this.claude.analyzeApplication({
+    let result = await this.claude.analyzeApplication({
       ...claudeInput,
       generateBridgeProject,
       lean: isOwnerAudit,
@@ -407,10 +450,13 @@ export class AnalyzeCvUseCase {
     timings.claude_ms = Date.now() - claudeStart;
     applyCrossRef(result);
 
-    // Deterministic keyword coverage (no LLM): run on the FULL cvText, not the
-    // model-truncated slice, so skills late in the CV aren't silently missed.
-    // This is the verifiable score + the baseline the re-scan loop diffs.
-    const keywordMatch = matchKeywords(cmd.jobDescription, cvText);
+    // Anchor the headline + breakdown against the deterministic keyword layer:
+    // keyword_match becomes the verifiable coverage, the LLM sub-scores are
+    // quantized to kill sub-bucket jitter, and overall risk/verdict are
+    // recomputed from the parts so the headline can't contradict what's shown
+    // beneath it (same trust guardrail as deriveAtsWouldPass). Stable, not
+    // bit-deterministic — see domain/score/compose-score.ts.
+    result = anchorScores(result, keywordMatch.coverageScore);
 
     const persistStart = Date.now();
     const { analysisId, claimToken } = await this.persist({
@@ -427,7 +473,12 @@ export class AnalyzeCvUseCase {
     timings.persist_ms = Date.now() - persistStart;
 
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
-      await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'analyze', amount: CREDIT_COSTS.analyze });
+      await this.creditLedger.consume({
+        email: cmd.email,
+        analysisId,
+        scope: 'analyze',
+        amount: CREDIT_COSTS.analyze,
+      });
     }
 
     // The stored result stays complete; everything sent to the client —

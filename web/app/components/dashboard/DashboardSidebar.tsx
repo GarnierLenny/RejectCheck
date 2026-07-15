@@ -48,10 +48,10 @@ function TabItem({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2.5 w-full text-left py-2 rounded-lg transition-colors text-[13px] border-l-2 ${
+      className={`flex items-center gap-2.5 w-full text-left py-2 px-3 rounded-lg transition-colors text-[13px] ${
         active
-          ? "bg-rc-red/[0.06] border-rc-red font-semibold text-rc-red pl-[10px] pr-3"
-          : "border-transparent text-rc-hint hover:bg-rc-surface-raised hover:text-rc-text font-medium px-3"
+          ? "bg-rc-red/[0.06] font-semibold text-rc-red"
+          : "text-rc-hint hover:bg-rc-surface-raised hover:text-rc-text font-medium"
       }`}
     >
       <Icon className="w-3.5 h-3.5 shrink-0 opacity-80" />
@@ -74,7 +74,7 @@ function LinkItem({
   return (
     <Link
       href={href}
-      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-rc-hint font-medium no-underline hover:bg-rc-surface-raised hover:text-rc-text transition-colors border-l-2 border-transparent"
+      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] text-rc-hint font-medium no-underline hover:bg-rc-surface-raised hover:text-rc-text transition-colors"
     >
       <Icon className="w-3.5 h-3.5 shrink-0 opacity-75" />
       <span className="flex-1">{label}</span>

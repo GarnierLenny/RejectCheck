@@ -64,7 +64,7 @@ export function SettingsTab({
                 onClick={() => setSection(id)}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[14px] text-left transition-colors ${
                   active
-                    ? "bg-rc-bg text-rc-text font-medium border-l-2 border-rc-red -ml-[2px] pl-[10px]"
+                    ? "bg-rc-bg text-rc-text font-medium"
                     : "text-rc-muted hover:text-rc-text hover:bg-rc-bg/50"
                 }`}
                 aria-current={active ? "page" : undefined}

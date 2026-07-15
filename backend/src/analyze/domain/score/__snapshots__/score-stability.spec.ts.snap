@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`score stability — deterministic (golden set) composite formula lock pins the anchored headline / verdict / breakdown / ats 1`] = `
+{
+  "ats_simulation": {
+    "reason": "x",
+    "score": 60,
+    "threshold": 70,
+    "would_pass": false,
+  },
+  "breakdown": {
+    "experience_level": 45,
+    "github_signal": 60,
+    "keyword_match": 62,
+    "linkedin_signal": 40,
+    "tech_stack_fit": 65,
+  },
+  "score": 50,
+  "verdict": "Medium",
+}
+`;
+
+exports[`score stability — deterministic (golden set) keyword coverage pins coverage for "backend-partial-match" 1`] = `
+{
+  "coverageScore": 57,
+  "matchedCount": 4,
+  "totalCount": 8,
+}
+`;
+
+exports[`score stability — deterministic (golden set) keyword coverage pins coverage for "frontend-vs-backend-mismatch" 1`] = `
+{
+  "coverageScore": 0,
+  "matchedCount": 0,
+  "totalCount": 5,
+}
+`;
+
+exports[`score stability — deterministic (golden set) keyword coverage pins coverage for "senior-fullstack-strong-match" 1`] = `
+{
+  "coverageScore": 100,
+  "matchedCount": 10,
+  "totalCount": 10,
+}
+`;

@@ -70,6 +70,11 @@ function mergeSection(
       r.score = o.score;
       r.verdict = o.verdict;
       r.confidence = o.confidence;
+      // The streamed score is the model's PROVISIONAL guess. The backend anchors
+      // it into the composite in the final payload (analysis_done / done), which
+      // replaces this whole object and drops the flag. Until then, the RiskMeter
+      // shows a "computing" state instead of a number that would jump.
+      r.__scorePending = true;
       break;
     }
     case "breakdown":

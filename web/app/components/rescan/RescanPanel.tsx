@@ -14,6 +14,13 @@ import {
 import { useLanguage } from "../../../context/language";
 import { consumeSSE } from "../../../lib/sse";
 import { KeywordMatchTable } from "./KeywordMatchTable";
+import { InlineOptimize } from "./InlineOptimize";
+import type { AnalysisResult } from "../types";
+import type { Dictionary } from "../../(locale)/[lang]/dictionaries";
+
+/** The rescan i18n block — carries nested objects (optimize), so it is not a
+ *  flat Record<string, string>. */
+type RescanRt = Dictionary["analysisLayout"]["rescan"];
 import type {
   KeywordMatchResult,
   QuickRescanResponse,
@@ -27,6 +34,10 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 type Props = {
   analysisId: number | null;
   accessToken: string | null;
+  /** The current (owned) analysis result — powers the live inline projection. */
+  result?: AnalysisResult | null;
+  /** Reconstructed CV text, the base the inline edits are applied to. */
+  cvText?: string | null;
 };
 
 type FullPayload = {
@@ -41,7 +52,7 @@ type FullPayload = {
   code?: string;
 };
 
-export function RescanPanel({ analysisId, accessToken }: Props) {
+export function RescanPanel({ analysisId, accessToken, result = null, cvText = null }: Props) {
   const { t, localePath } = useLanguage();
   const rt = t.analysisLayout.rescan;
 
@@ -181,6 +192,50 @@ export function RescanPanel({ analysisId, accessToken }: Props) {
     [analysisId, accessToken, canRescan, fullBusy, rt],
   );
 
+  // Inline commit (move 4): the user edited keywords/bullets in-app; send the
+  // reconstructed CV TEXT to the JSON rescan-inline route. Same SSE + deltas as
+  // the file-based full re-scan, so it reuses fullBusy / fullDeltas / fullNewId.
+  const runInlineRescan = useCallback(
+    async (editedCvText: string) => {
+      if (!canRescan || fullBusy) return;
+      setError(null);
+      setFullBusy(true);
+      setFullDeltas(null);
+      setFullNewId(null);
+      try {
+        const res = await fetch(
+          `${apiUrl}/api/analyze/${analysisId}/rescan-inline`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ cvText: editedCvText }),
+          },
+        );
+        if (!res.ok || !res.body) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || rt.error);
+        }
+        await consumeSSE<FullPayload>(res, (p) => {
+          if (p.step === "rescan_deltas" && p.deltas) {
+            setFullDeltas(p.deltas);
+          } else if (p.step === "done") {
+            if (typeof p.analysisId === "number") setFullNewId(p.analysisId);
+          } else if (p.step === "error") {
+            throw new Error(p.message || rt.error);
+          }
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : rt.error);
+      } finally {
+        setFullBusy(false);
+      }
+    },
+    [analysisId, accessToken, canRescan, fullBusy, rt],
+  );
+
   // Anonymous / unsaved analysis: re-scan needs an owned, persisted row.
   if (!canRescan) {
     return (
@@ -209,6 +264,20 @@ export function RescanPanel({ analysisId, accessToken }: Props) {
              would drop the true baseline from the climb + duplicate the tip. */
           baseline={coverageBefore}
           rt={rt}
+        />
+      )}
+
+      {/* Inline optimize loop (move 4): live projected score from keyword +
+          bullet edits, committed via rescan-inline. Needs the owned result
+          (breakdown/penalties) and the reconstructed CV text. */}
+      {result?.breakdown && cvText && match && match.keywords.length > 0 && (
+        <InlineOptimize
+          result={result}
+          keywords={match.keywords}
+          cvText={cvText}
+          busy={fullBusy}
+          onCommit={runInlineRescan}
+          ro={rt.optimize}
         />
       )}
 
@@ -407,7 +476,7 @@ export function RescanPanel({ analysisId, accessToken }: Props) {
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
-function Frame({ rt, children }: { rt: Record<string, string>; children: React.ReactNode }) {
+function Frame({ rt, children }: { rt: RescanRt; children: React.ReactNode }) {
   return (
     <div
       style={{
@@ -454,7 +523,7 @@ function CoverageMeter({
   coverageBefore: number | null;
   baseline: number | null;
   timeline: RescanTimelinePoint[];
-  rt: Record<string, string>;
+  rt: RescanRt;
 }) {
   const value = coverageAfter ?? baseline ?? 0;
   const delta =
@@ -545,7 +614,7 @@ function FullRescanResult({
   deltas: RescanDeltas;
   onOpen: () => void;
   canOpen: boolean;
-  rt: Record<string, string>;
+  rt: RescanRt;
 }) {
   const scoreDelta = deltas.score.delta;
   const atsFlipUp = !deltas.ats.wouldPassBefore && deltas.ats.wouldPassAfter;

@@ -12,6 +12,10 @@ import {
 } from '../dto/challenge.dto';
 import type { AttemptCoach } from '../ports/attempt-coach.provider';
 import { stripJsonFences } from './strip-json-fences';
+import {
+  deepStripLongDashes,
+  stripLongDashes,
+} from '../../common/strip-long-dashes';
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
@@ -66,7 +70,7 @@ Respond with only the question, no preamble.`;
     if (!text) {
       throw new BadGatewayException('Empty response from Gemini');
     }
-    return text;
+    return stripLongDashes(text);
   }
 
   async scoreAttempt(
@@ -129,6 +133,6 @@ Do not include any prose outside the JSON object.`;
       safe.data.explanation_quality +
       safe.data.prioritization +
       safe.data.bonus;
-    return { ...safe.data, total: Math.min(100, sum) };
+    return deepStripLongDashes({ ...safe.data, total: Math.min(100, sum) });
   }
 }

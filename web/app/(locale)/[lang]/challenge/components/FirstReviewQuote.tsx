@@ -16,7 +16,7 @@ export function FirstReviewQuote({ text }: Props) {
     <button
       type="button"
       onClick={() => setExpanded((v) => !v)}
-      className="w-full text-left bg-rc-surface-raised border-l-2 border-rc-border rounded-r-lg pl-3 pr-3 py-2.5 hover:bg-black/[0.03] transition-colors group"
+      className="w-full text-left bg-rc-surface-raised rounded-lg pl-3 pr-3 py-2.5 hover:bg-black/[0.03] transition-colors group"
       aria-expanded={expanded}
     >
       <div className="flex items-center justify-between mb-1.5">

@@ -592,8 +592,7 @@ body {
   padding: 14px 16px;
   background: rgba(201,58,57,0.08);
   border: 1px solid rgba(201,58,57,0.25);
-  border-left: 3px solid var(--rc-red);
-  border-radius: 0 4px 4px 0;
+  border-radius: 4px;
 }
 .sigcard__fix-lab {
   font-family: var(--font-sans); font-size: 9px;
@@ -753,8 +752,7 @@ body {
   padding: 14px 18px;
   background: var(--rc-surface-hero);
   border: 1px solid var(--rc-border);
-  border-left: 3px solid var(--rc-red);
-  border-radius: 0 4px 4px 0;
+  border-radius: 4px;
   font-family: var(--font-sans);
   font-size: 13px;
   line-height: 1.55;
@@ -1182,7 +1180,7 @@ body {
 .ftv-skill__val.bad { color: var(--rc-red); }
 
 /* ── Shared ── */
-.ftv-insight { padding: 12px 16px; background: var(--rc-surface-hero); border: 1px solid var(--rc-border); border-left: 3px solid var(--rc-red); font-family: var(--font-sans); font-size: 13px; line-height: 1.5; color: var(--rc-muted); }
+.ftv-insight { padding: 12px 16px; background: var(--rc-surface-hero); border: 1px solid var(--rc-border); font-family: var(--font-sans); font-size: 13px; line-height: 1.5; color: var(--rc-muted); }
 .ftv-insight strong { color: var(--rc-text); }
 .ftv-linkedin { display: flex; flex-direction: column; gap: 20px; }
 .ftv-linkedin__score { display: flex; align-items: center; gap: 20px; }

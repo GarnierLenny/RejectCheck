@@ -45,7 +45,6 @@ function Row({ k, labels }: { k: KeywordMatchEntry; labels: Labels }) {
         padding: "9px 12px",
         borderRadius: 4,
         background: present ? "transparent" : "color-mix(in srgb, " + accent + " 5%, transparent)",
-        borderLeft: `2px solid ${present ? "transparent" : accent}`,
       }}
     >
       <span

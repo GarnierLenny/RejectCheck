@@ -8,21 +8,18 @@ import { SourceTimeline } from "../timeline/SourceTimeline";
 
 const SEVERITY_STYLE: Record<
   CrossProfileInconsistency["severity"],
-  { badge: string; bar: string; label: string }
+  { badge: string; label: string }
 > = {
   critical: {
     badge: "bg-rc-red text-white",
-    bar: "bg-rc-red",
     label: "Critical",
   },
   major: {
     badge: "bg-rc-amber text-white",
-    bar: "bg-rc-amber",
     label: "Major",
   },
   minor: {
     badge: "bg-rc-muted/20 text-rc-muted",
-    bar: "bg-rc-border",
     label: "Minor",
   },
 };
@@ -179,10 +176,9 @@ function CompactRow({
         last ? "" : "border-b border-rc-border/60"
       }`}
       style={{
-        gridTemplateColumns: "4px 92px minmax(0, 1fr) 96px minmax(0, 1.4fr) minmax(0, 1.6fr)",
+        gridTemplateColumns: "92px minmax(0, 1fr) 96px minmax(0, 1.4fr) minmax(0, 1.6fr)",
       }}
     >
-      <div className={`self-stretch ${style.bar}`} />
       <div className="px-3.5 py-2.5">
         <span
           className={`font-mono text-[10px] uppercase tracking-[0.16em] px-2 py-0.5 font-bold ${style.badge} inline-block`}

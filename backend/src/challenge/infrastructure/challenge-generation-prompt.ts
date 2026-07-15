@@ -24,7 +24,7 @@ Return JSON only:
   "estimatedTime": number     // minutes, 1–60
 }
 
-Constraints: single file, 20–45 lines, 3–5 issues all grounded in "{focus_tag}", no comments hinting at bugs. Escape newlines inside "snippet" as \\n. \`question\` is markdown but kept short and editorial. \`whatToLookFor\` and \`hints\` are PUBLIC (shipped to the user); \`issues\` are PRIVATE (server-only).`;
+Constraints: single file, 20–45 lines, 3–5 issues all grounded in "{focus_tag}", no comments hinting at bugs. Escape newlines inside "snippet" as \\n. \`question\` is markdown but kept short and editorial. \`whatToLookFor\` and \`hints\` are PUBLIC (shipped to the user); \`issues\` are PRIVATE (server-only). In the prose fields (title, question, whatToLookFor, hints) never use long dashes (—, –, ―); use a comma or a colon instead. This does NOT apply to the code inside \`snippet\`.`;
 
 export function buildChallengePrompt(
   language: ChallengeLanguage,

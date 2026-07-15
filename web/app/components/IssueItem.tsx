@@ -3,15 +3,9 @@ import { type Issue, getSeverityStyles } from "./types";
 import { FixBlock } from "./FixBlock";
 import { FixBlockSkeleton } from "./skeletons/FixBlockSkeleton";
 
-const severityBorder: Record<string, string> = {
-  critical: "border-l-[3px] border-l-rc-red",
-  major:    "border-l-[3px] border-l-rc-amber",
-  minor:    "border-l-[3px] border-l-rc-border",
-};
-
 export function IssueItem({ issue, fixesReady = true }: { issue: Issue; fixesReady?: boolean }) {
   return (
-    <div className={`p-6 border-b border-rc-border last:border-0 hover:bg-rc-surface-raised transition-colors ${severityBorder[issue.severity] ?? ''}`}>
+    <div className="p-6 border-b border-rc-border last:border-0 hover:bg-rc-surface-raised transition-colors">
       {/* Meta: severity + category - above title */}
       <div className="flex items-center gap-2.5 mb-2.5">
         <span className={`text-[11px] uppercase font-mono px-2.5 py-0.5 border ${getSeverityStyles(issue.severity)}`}>

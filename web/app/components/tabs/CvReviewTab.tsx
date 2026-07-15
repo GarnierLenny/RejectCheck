@@ -153,10 +153,7 @@ export function CvReviewTab({ result, actions }: { result: AnalysisResult; actio
 
             <div className="overflow-y-auto divide-y divide-rc-border/20" style={{ maxHeight: 280 }}>
               {merged.map((issue, idx) => (
-                <div key={idx} className={`flex items-start gap-4 px-8 py-4 hover:bg-rc-surface-raised transition-colors border-l-[3px] ${
-                  issue.severity === 'critical' ? 'border-l-rc-red' :
-                  issue.severity === 'major'    ? 'border-l-rc-amber' : 'border-l-rc-border/30'
-                }`}>
+                <div key={idx} className="flex items-start gap-4 px-8 py-4 hover:bg-rc-surface-raised transition-colors">
                   <span className="font-mono text-[11px] text-rc-hint/30 shrink-0 tabular-nums mt-0.5 w-5 text-right">
                     {String(idx + 1).padStart(2, '0')}
                   </span>
@@ -299,7 +296,7 @@ export function CvReviewTab({ result, actions }: { result: AnalysisResult; actio
         <div className="space-y-4">
           <p className="text-[17px] text-rc-muted leading-[1.7]"><Md>{seniority_analysis.gap}</Md></p>
           {seniority_analysis.strength && (
-            <div className="border-l-[3px] border-l-rc-amber pl-5 py-1">
+            <div className="pl-5 py-1">
               <p className="text-[17px] text-rc-text italic leading-relaxed"><Md>{seniority_analysis.strength}</Md></p>
             </div>
           )}
@@ -324,10 +321,7 @@ export function CvReviewTab({ result, actions }: { result: AnalysisResult; actio
 
           <div className="bg-rc-surface border border-rc-border divide-y divide-rc-border/20">
             {inconsistencies.map((inc, i) => (
-              <div key={i} className={`flex items-start gap-4 p-6 border-l-[3px] ${
-                inc.severity === 'critical' ? 'border-l-rc-red' :
-                inc.severity === 'major'    ? 'border-l-rc-amber' : 'border-l-rc-border/30'
-              }`}>
+              <div key={i} className="flex items-start gap-4 p-6">
                 <div className={`shrink-0 w-1.5 h-1.5 rounded-full mt-2 ${SEV_DOT[inc.severity]}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -390,14 +384,14 @@ export function CvReviewTab({ result, actions }: { result: AnalysisResult; actio
           <div className="bg-rc-surface border border-rc-border divide-y divide-rc-border/20 overflow-hidden">
             {cv_tone!.examples.map((ex, i) => (
               <div key={i}>
-                <div className="flex items-start gap-4 px-6 py-4 bg-rc-red/[0.02] border-l-[3px] border-l-rc-red/30">
+                <div className="flex items-start gap-4 px-6 py-4 bg-rc-red/[0.02]">
                   <span className="font-mono text-[13px] text-rc-red/50 shrink-0 select-none mt-0.5">−</span>
                   <p className="text-[15px] text-rc-muted leading-relaxed italic line-through decoration-rc-red/20">
                     <Md>{ex}</Md>
                   </p>
                 </div>
                 {cv_tone!.rewrites?.[i] && (
-                  <div className="flex items-start gap-4 px-6 py-4 bg-rc-green/[0.025] border-l-[3px] border-l-rc-green/40 border-t border-rc-border/20">
+                  <div className="flex items-start gap-4 px-6 py-4 bg-rc-green/[0.025] border-t border-rc-border/20">
                     <span className="font-mono text-[13px] text-rc-green/60 shrink-0 select-none mt-0.5">+</span>
                     <p className="text-[15px] text-rc-text leading-relaxed"><Md>{cv_tone!.rewrites![i]}</Md></p>
                   </div>

@@ -17,14 +17,6 @@ import { useLanguage } from "../../context/language";
 
 const COLUMN_IDS = ["interested", "applied", "interviewing", "offer", "rejected"] as const;
 
-const STATUS_COLORS: Record<string, string> = {
-  interested:   "border-l-[#6b6860]",
-  applied:      "border-l-[#3b82f6]",
-  interviewing: "border-l-[#7c3aed]",
-  offer:        "border-l-[#22c55e]",
-  rejected:     "border-l-[#ef4444]",
-};
-
 function getScoreClass(score: number) {
   if (score < 40) return "text-rc-green border-rc-green/30 bg-rc-green/5";
   if (score < 70) return "text-rc-amber border-rc-amber/40 bg-rc-amber/5";
@@ -59,7 +51,7 @@ function KanbanCard({
         onClick();
       }}
       style={transform ? { transform: `translate(${transform.x}px, ${transform.y}px)` } : undefined}
-      className={`bg-white border border-[rgba(0,0,0,0.08)] border-l-4 ${STATUS_COLORS[app.status] ?? "border-l-transparent"} rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? "opacity-50" : ""}`}
+      className={`bg-white border border-[rgba(0,0,0,0.08)] rounded-lg p-3 cursor-grab active:cursor-grabbing shadow-sm hover:shadow-md transition-shadow ${isDragging ? "opacity-50" : ""}`}
     >
       <p className="font-semibold text-[12px] text-rc-text truncate">{app.jobTitle}</p>
       <p className="font-mono text-[10px] text-rc-hint truncate">{app.company}</p>
@@ -180,7 +172,7 @@ export function KanbanView({
 
       <DragOverlay>
         {activeApp && (
-          <div className={`bg-white border border-[rgba(0,0,0,0.08)] border-l-4 ${STATUS_COLORS[activeApp.status] ?? ""} rounded-lg p-3 shadow-xl opacity-90 w-[200px]`}>
+          <div className={`bg-white border border-[rgba(0,0,0,0.08)] rounded-lg p-3 shadow-xl opacity-90 w-[200px]`}>
             <p className="font-semibold text-[12px] text-rc-text truncate">{activeApp.jobTitle}</p>
             <p className="font-mono text-[10px] text-rc-hint truncate">{activeApp.company}</p>
           </div>

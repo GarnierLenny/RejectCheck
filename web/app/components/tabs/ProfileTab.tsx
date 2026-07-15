@@ -90,7 +90,7 @@ export function ProfileTab({ result }: Props) {
             return (
               <div
                 key={i}
-                className={`flex items-start gap-3 p-3 bg-rc-bg rounded-lg border-l-[3px] ${isGood ? "border-l-rc-green" : "border-l-rc-red"}`}
+                className="flex items-start gap-3 p-3 bg-rc-bg rounded-lg"
               >
                 <div className="shrink-0 mt-0.5">
                   {isGood

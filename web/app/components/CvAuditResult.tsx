@@ -495,7 +495,7 @@ export function CvAuditResult({
                 const bg = qualityBg(score);
                 const bdr = qualityBorder(score);
                 return (
-                  <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px", borderLeft: `3px solid ${col}` }}>
+                  <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: col }}>
                         <rect x="4" y="2" width="16" height="20" rx="1" /><path d="M8 6h8M8 10h8M8 14h5" />
@@ -522,7 +522,7 @@ export function CvAuditResult({
                 const bdr = qualityBorder(score);
                 void bg;
                 return (
-                  <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px", borderLeft: `3px solid ${col}` }}>
+                  <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                       <Github size={14} style={{ color: col }} />
                       <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>GitHub</span>
@@ -547,7 +547,7 @@ export function CvAuditResult({
                 const bdr = qualityBorder(score);
                 void bg;
                 return (
-                  <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px", borderLeft: `3px solid ${col}` }}>
+                  <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
                       <Linkedin size={14} style={{ color: col }} />
                       <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>LinkedIn</span>
@@ -586,8 +586,7 @@ export function CvAuditResult({
               <div style={{
                 background: "var(--rc-red-bg)",
                 border: "1px solid var(--rc-red-border)",
-                borderLeft: "3px solid var(--rc-red)",
-                borderRadius: "0 6px 6px 0",
+                borderRadius: 6,
                 padding: "24px 28px",
               }}>
                 <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
@@ -701,23 +700,27 @@ export function CvAuditResult({
                 </div>
 
                 {/* Dots */}
-                <div style={{ position: "absolute", top: -8, left: 0, right: 0, display: "flex", justifyContent: "space-between" }}>
+                <div style={{ position: "absolute", top: -8, left: 0, right: 0 }}>
                   {SENIORITY_LEVELS.map((level, i) => {
                     const isDetected = i === detectedIdx;
                     const isExpected = i === expectedIdx;
                     const dotColor = isDetected ? "var(--rc-amber)" : isExpected ? "var(--rc-red)" : "var(--rc-border)";
                     const dotSize = (isDetected || isExpected) ? 18 : 10;
+                    // Anchor each marker at its exact rail fraction (0/20/40/60/80/100%)
+                    // so the dot centres line up with the fill, not with variable-width labels.
+                    const leftPct = (i / (SENIORITY_LEVELS.length - 1)) * 100;
                     return (
-                      <div key={level} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
-                        <div style={{
-                          width: dotSize, height: dotSize,
-                          borderRadius: 99,
-                          background: dotColor,
-                          border: `2px solid ${(isDetected || isExpected) ? dotColor : "var(--rc-border)"}`,
-                          marginBottom: 8,
-                          flexShrink: 0,
-                        }} />
-                        <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.08em", color: (isDetected || isExpected) ? "var(--rc-text)" : "var(--rc-hint)", fontWeight: (isDetected || isExpected) ? 700 : 400, whiteSpace: "nowrap" as const }}>
+                      <div key={level} style={{ position: "absolute", left: `${leftPct}%`, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <div style={{ height: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div style={{
+                            width: dotSize, height: dotSize,
+                            borderRadius: 99,
+                            background: dotColor,
+                            border: `2px solid ${(isDetected || isExpected) ? dotColor : "var(--rc-border)"}`,
+                            flexShrink: 0,
+                          }} />
+                        </div>
+                        <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.08em", color: (isDetected || isExpected) ? "var(--rc-text)" : "var(--rc-hint)", fontWeight: (isDetected || isExpected) ? 700 : 400, whiteSpace: "nowrap" as const, marginTop: 8 }}>
                           {level}
                         </span>
                         {isDetected && (
@@ -748,7 +751,7 @@ export function CvAuditResult({
               <blockquote style={{
                 margin: 0,
                 padding: "14px 20px",
-                borderLeft: "3px solid var(--rc-amber)",
+                borderRadius: 6,
                 background: "var(--rc-amber-bg)",
                 ...SANS, fontSize: 14, fontStyle: "italic", lineHeight: 1.6, color: "var(--rc-muted)",
               }}>

@@ -683,7 +683,7 @@ function HeroAnalysisScreen() {
               {HERO_DIVERGENCES.map((d, i) => {
                 const c = SEV_COLOR[d.sev];
                 return (
-                  <div key={i} style={{ border: "1px solid var(--rc-border)", borderLeft: `3px solid ${c}`, borderRadius: 6, padding: "9px 11px", background: "var(--rc-surface)" }}>
+                  <div key={i} style={{ border: "1px solid var(--rc-border)", borderRadius: 6, padding: "9px 11px", background: "var(--rc-surface)" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: d.sev === "minor" ? "var(--rc-muted)" : "#fff", background: d.sev === "minor" ? "var(--rc-border)" : c, padding: "2px 5px", borderRadius: 3 }}>{d.sev}</span>
                       <span style={{ fontFamily: "var(--font-mono)", fontSize: 8.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--rc-text)" }}>Inconsistency · {d.field}</span>
@@ -1182,7 +1182,7 @@ export default function Home() {
                 </div>
 
                 {/* Priority fix — the centerpiece */}
-                <div style={{ borderLeft: "2px solid var(--rc-red)", paddingLeft: 18, marginBottom: 28 }}>
+                <div style={{ paddingLeft: 18, marginBottom: 28 }}>
                   <h4 style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-red)", margin: "0 0 9px", fontWeight: 700 }}>{t.landing.s03.priorityFixLabel}</h4>
                   <p style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 17, letterSpacing: "-0.01em", color: "var(--rc-text)", margin: "0 0 7px", lineHeight: 1.3 }}>{t.landing.s03.topFixTitle}</p>
                   <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-muted)", lineHeight: 1.55, margin: 0 }}>{t.landing.s03.topFixBody}</p>

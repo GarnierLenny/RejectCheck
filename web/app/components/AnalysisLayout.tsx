@@ -162,7 +162,7 @@ function FixBlock({ fix }: { fix: Fix | null | undefined }) {
   const { t } = useLanguage();
   if (!fix) return null;
   return (
-    <div style={{ marginTop: 18, paddingLeft: 20, borderLeft: "2px solid var(--rc-green)" }}>
+    <div style={{ marginTop: 18, paddingLeft: 20 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 11 }}>
         <Eyebrow color="var(--rc-green)">{t.analysisLayout.diffRow.label}</Eyebrow>
         <Mono style={{ fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.04em" }}>◷ {fix.time_required}</Mono>
@@ -687,7 +687,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
               ))}
             </div>
             {jd.experience_gap && (
-              <div style={{ marginTop: 20, paddingLeft: 18, borderLeft: "2px solid var(--rc-red)" }}>
+              <div style={{ marginTop: 20, paddingLeft: 18 }}>
                 <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 7 }}>{t.analysisLayout.flags.experienceGap}</Eyebrow>
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontStyle: "italic", color: "var(--rc-muted)", lineHeight: 1.6 }}><MD>{jd.experience_gap}</MD></div>
               </div>
@@ -927,7 +927,7 @@ export function AnalysisLayout({
 
             {/* §01 — Rejection risk */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
-              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo="01" />
+              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo="01" pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
                   <MD>{result.technical_analysis.reasoning}</MD>
@@ -974,7 +974,7 @@ export function AnalysisLayout({
             {/* §02 — Match */}
             <section id="sec-match" style={SEC}>
               {secHead("02", t.analysisLayout.tabs.match)}
-              {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} />}
+              {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} result={result} cvText={reconstructedCv ?? cvTextFormatted} />}
               <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
             </section>
 

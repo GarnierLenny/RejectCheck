@@ -8,6 +8,10 @@ import { createHash } from 'node:crypto';
 import * as Sentry from '@sentry/nestjs';
 import Anthropic from '@anthropic-ai/sdk';
 import {
+  deepStripLongDashes,
+  stripLongDashes,
+} from '../../common/strip-long-dashes';
+import {
   AnalyzeResponse,
   AnalyzeResponseSchema,
 } from '../dto/analyze-response.dto';
@@ -276,7 +280,9 @@ Be honest, not encouraging. The score should reflect what a recruiter actually t
 
 For seniority in projected_profile: base it strictly on scope of impact described, team sizes, autonomy signals, and depth of decisions — not claimed titles. A "Senior Engineer" title with no scope signals gets projected as "mid".
 
-Use markdown in text fields (narrative, descriptions, issue text).`;
+Use markdown in text fields (narrative, descriptions, issue text).
+
+Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a colon instead.`;
 
     const userMessage = this.buildCvReviewUserMessage(input);
 
@@ -351,7 +357,7 @@ Use markdown in text fields (narrative, descriptions, issue text).`;
         ...(({ verdict } as any)),
       };
 
-      return CvReviewResponseSchema.parse(raw);
+      return deepStripLongDashes(CvReviewResponseSchema.parse(raw));
     } catch (apiErr: any) {
       this.logger.error(
         `Claude reviewCv failed: ${apiErr?.message || apiErr}`,
@@ -565,7 +571,7 @@ Formatting rules:
         bullet_reviews: i.bullet_reviews,
       };
       assignIssueKeys(result);
-      return AnalyzeResponseSchema.parse(result);
+      return deepStripLongDashes(AnalyzeResponseSchema.parse(result));
     } catch (apiErr: any) {
       this.logger.error(
         `Claude analyzeApplication failed: ${apiErr?.message || apiErr}`,
@@ -660,7 +666,8 @@ Rewriting rules:
 - Add scope and impact language where the analysis flags seniority gaps
 - Strengthen ownership: "part of a team that" → "Led a cross-functional team of N to"
 - Never fabricate companies, dates, job titles, or specific numbers not present in the original
-- Preserve ALL sections from the original CV — do not remove any content`;
+- Preserve ALL sections from the original CV, do not remove any content
+- Never use long dashes (—, –, ―) anywhere in the output. Use a comma or a colon instead.`;
 
     const userMessage = `Rewrite this CV to maximise interview chances. Fix all issues identified in the analysis below.
 
@@ -694,7 +701,9 @@ ${cvText}`;
         throw new InternalServerErrorException('Claude returned empty CV');
       }
 
-      return RewriteResponseSchema.parse({ reconstructed_cv });
+      return RewriteResponseSchema.parse({
+        reconstructed_cv: stripLongDashes(reconstructed_cv),
+      });
     } catch (err: any) {
       this.logger.error(`rewriteCv failed: ${err?.message || err}`, err?.stack);
       throw new InternalServerErrorException('CV rewrite failed');
@@ -798,7 +807,7 @@ Language: ${langName}`;
           'Claude returned empty response',
         );
       }
-      return content.type === 'text' ? content.text : '';
+      return stripLongDashes(content.type === 'text' ? content.text : '');
     } catch (err: any) {
       this.logger.error(
         `generateCoverLetter failed: ${err?.message || err}`,
@@ -877,7 +886,8 @@ Daily-challenge usage rules:
 
 Formatting rules:
 - Use **markdown** in all text fields (reasoning, recommendation, skill evidence, seniority_signals, challenge_analysis text fields): bold key terms, italics for nuance, short bullet lists where helpful.
-- In skill_priority, list the exact 5 skill names from most to least critical for this specific job.`;
+- In skill_priority, list the exact 5 skill names from most to least critical for this specific job.
+- Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a colon instead.`;
   }
 
   private formatCandidateContext(input: AnalyzeApplicationInput): string {
@@ -1059,7 +1069,7 @@ LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
         );
       }
 
-      return parsed;
+      return deepStripLongDashes(parsed);
     } catch (err: any) {
       this.logger.error(
         `generateNegotiation failed: ${err?.message || err}`,
@@ -1138,7 +1148,7 @@ LINKEDIN SKILLS: ${input.linkedinText || 'None provided'}
         );
       }
 
-      return ProfileDigestSchema.parse(toolUse.input);
+      return deepStripLongDashes(ProfileDigestSchema.parse(toolUse.input));
     } catch (err: any) {
       this.logger.error(
         `generateProfileDigest failed: ${err?.message || err}`,
@@ -1288,7 +1298,8 @@ CRITICAL RULES:
     - Estimate market_range and candidate_range DIRECTLY in the local currency — do NOT compute in EUR and convert. US senior backend = "$130,000–180,000/year" not "€120,000/year converted".
     - ALL monetary fields (market, candidate, jd_disclosed, anchor amounts, leverage impact, roadmap impact) must use the SAME currency.
     - In counter_offer_email.body, anchoring_strategy, and talking_points, every numeric mention must include the currency symbol matching the chosen currency ($/£/€) — never mix.
-11. The disclaimer must mention that estimates are based on public market data and are not guarantees.`;
+11. The disclaimer must mention that estimates are based on public market data and are not guarantees.
+12. Never use long dashes (—, –, ―) anywhere in textual output (emails, talking points, strategy). Use a comma or a colon instead.`;
 
 function formatChallengeStats(
   stats: AnalyzeApplicationInput['challengeStats'],

@@ -179,4 +179,64 @@ describe('matchKeywords', () => {
       expect(missing).toEqual(['TypeScript']);
     });
   });
+
+  // P2 move 7: the lexicon now covers non-tech role families, so the coverage
+  // score is no longer null for PM / design / marketing / sales / ops JDs.
+  describe('non-tech role coverage', () => {
+    it('scores a marketing JD instead of returning null coverage', () => {
+      const r = matchKeywords(
+        'Growth marketer: own SEO and Google Ads, improve CAC and ROAS.',
+        'I ran SEO programs and managed Google Ads, cutting CAC by a third.',
+      );
+      expect(r.coverageScore).not.toBeNull();
+      expect(term(r, 'SEO')?.presentInCv).toBe(true);
+      expect(term(r, 'Google Ads')?.presentInCv).toBe(true);
+      expect(term(r, 'CAC')?.presentInCv).toBe(true);
+      expect(term(r, 'ROAS')?.presentInCv).toBe(false); // in JD, not in CV
+    });
+
+    it('recognises design tooling and methods', () => {
+      const r = matchKeywords(
+        'Design the component library and design system, run usability testing, deliver wireframes.',
+        'I built a design system and shipped wireframes after usability testing.',
+      );
+      expect(term(r, 'Design System')?.presentInCv).toBe(true);
+      expect(term(r, 'Wireframing')?.presentInCv).toBe(true);
+      expect(term(r, 'Usability Testing')?.presentInCv).toBe(true);
+    });
+
+    it('recognises product roadmap and OKRs', () => {
+      const r = matchKeywords('Own the product roadmap and define OKRs.', 'x');
+      expect(term(r, 'Product Roadmap')).toBeDefined();
+      expect(term(r, 'OKRs')).toBeDefined();
+    });
+
+    it('recognises sales CRM, pipeline and quota', () => {
+      const r = matchKeywords(
+        'Manage your sales pipeline in Salesforce and hit quota.',
+        'Salesforce power user, consistently beat quota.',
+      );
+      expect(term(r, 'Salesforce')?.presentInCv).toBe(true);
+      expect(term(r, 'Pipeline Management')).toBeDefined();
+      expect(term(r, 'Quota')?.presentInCv).toBe(true);
+    });
+  });
+
+  // The precision guarantee must hold across meanings, not just word boundaries:
+  // a term that means something else in tech must not leak into the score.
+  describe('cross-meaning precision (non-tech)', () => {
+    it('does not match "Pipeline Management" on a CI/CD pipeline', () => {
+      const r = matchKeywords(
+        'Own the CI/CD pipeline and deployment automation.',
+        'I built CI/CD pipelines.',
+      );
+      expect(term(r, 'Pipeline Management')).toBeUndefined();
+      expect(term(r, 'CI/CD')).toBeDefined();
+    });
+
+    it('keeps "SQL" the language, not a sales-qualified lead', () => {
+      const r = matchKeywords('Strong SQL and data modelling.', 'Advanced SQL.');
+      expect(term(r, 'SQL')?.category).toBe('language');
+    });
+  });
 });

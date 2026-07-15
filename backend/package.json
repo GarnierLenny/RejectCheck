@@ -22,7 +22,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "knip": "knip",
     "seed:challenges": "ts-node -T prisma/seed-challenges.ts",
-    "clean:challenges": "ts-node -T prisma/clean-bad-challenges.ts"
+    "clean:challenges": "ts-node -T prisma/clean-bad-challenges.ts",
+    "score-drift": "ts-node -T -r tsconfig-paths/register src/analyze/domain/score/score-drift.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",

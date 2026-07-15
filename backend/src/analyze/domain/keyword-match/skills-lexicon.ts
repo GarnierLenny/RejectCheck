@@ -8,10 +8,18 @@
  * yields the same keyword table and the same coverage score. See
  * `keyword-match.ts`.
  *
- * The list is dev/tech-first on purpose (RejectCheck is optimised for devs)
- * with a generic cross-role tail (agile, jira, sql, analytics…). It's meant to
- * be EXTENDED over time — add an entry, add its aliases, ship. No code change
- * needed.
+ * The list is dev/tech-first on purpose (RejectCheck is optimised for devs) but
+ * also covers the non-tech role families (product, design, marketing, sales,
+ * ops), so the deterministic coverage score, the free re-scan and the inline
+ * projection apply to any role, not only engineers. It is meant to be EXTENDED
+ * over time: add an entry, add its aliases, ship. No code change needed beyond
+ * a new SkillCategory value.
+ *
+ * Precision rule for non-tech terms: only add a term whose surface form does
+ * not commonly mean something else. Prefer multi-word or acronym forms over
+ * bare common words, so "sales pipeline" is in but bare "pipeline" (which also
+ * means a CI pipeline) is out. A false keyword makes the whole score look
+ * untrustworthy, which is exactly what this layer exists to prevent.
  *
  * Alias rules (see `aliasToMatcher` in keyword-match.ts):
  *  - aliases are matched case-insensitively with alphanumeric word boundaries,
@@ -39,7 +47,15 @@ export type SkillCategory =
   | 'data-ml'
   | 'testing'
   | 'practice'
-  | 'tooling';
+  | 'tooling'
+  // Non-tech role families (product, design, marketing, sales, ops) so the
+  // deterministic coverage + free re-scan + inline projection apply to the
+  // "works for any role" audience, not just devs.
+  | 'product'
+  | 'design'
+  | 'marketing'
+  | 'sales'
+  | 'ops';
 
 export type LexiconEntry = {
   /** Display name shown in the keyword table. */
@@ -237,4 +253,134 @@ export const SKILLS_LEXICON: LexiconEntry[] = [
   { canonical: 'Notion', category: 'tooling', aliases: [] },
   { canonical: 'A/B Testing', category: 'tooling', aliases: ['ab testing', 'a b testing'] },
   { canonical: 'Analytics', category: 'tooling', aliases: ['google analytics', 'product analytics'] },
+
+  // ── Product management ─────────────────────────────────────────────────
+  { canonical: 'Product Roadmap', category: 'product', aliases: ['product roadmap', 'roadmap', 'roadmapping'] },
+  { canonical: 'Product Backlog', category: 'product', aliases: ['product backlog'] },
+  { canonical: 'User Stories', category: 'product', aliases: ['user story', 'user stories'] },
+  { canonical: 'Product-Market Fit', category: 'product', aliases: ['product market fit', 'pmf'] },
+  { canonical: 'PRD', category: 'product', aliases: ['product requirements document', 'product spec'] },
+  { canonical: 'MVP', category: 'product', aliases: ['minimum viable product'] },
+  { canonical: 'Go-to-Market', category: 'product', aliases: ['go-to-market', 'go to market', 'gtm'] },
+  { canonical: 'Stakeholder Management', category: 'product', aliases: ['stakeholder management'] },
+  { canonical: 'OKRs', category: 'product', aliases: ['okr', 'okrs', 'objectives and key results'] },
+  { canonical: 'KPIs', category: 'product', aliases: ['kpi', 'kpis', 'key performance indicator'] },
+  { canonical: 'Amplitude', category: 'product', aliases: [] },
+  { canonical: 'Mixpanel', category: 'product', aliases: [] },
+  { canonical: 'Pendo', category: 'product', aliases: [] },
+  { canonical: 'Productboard', category: 'product', aliases: [] },
+  { canonical: 'Miro', category: 'product', aliases: [] },
+
+  // ── Design / UX ────────────────────────────────────────────────────────
+  { canonical: 'User Experience', category: 'design', aliases: ['ux', 'user experience'] },
+  { canonical: 'User Interface', category: 'design', aliases: ['ui design', 'user interface'] },
+  { canonical: 'User Research', category: 'design', aliases: ['user research', 'ux research'] },
+  { canonical: 'Wireframing', category: 'design', aliases: ['wireframe', 'wireframes', 'wireframing'] },
+  { canonical: 'Prototyping', category: 'design', aliases: ['prototyping', 'rapid prototyping'] },
+  { canonical: 'Design System', category: 'design', aliases: ['design system', 'design systems'] },
+  { canonical: 'Usability Testing', category: 'design', aliases: ['usability testing', 'usability test'] },
+  { canonical: 'Information Architecture', category: 'design', aliases: ['information architecture'] },
+  { canonical: 'Interaction Design', category: 'design', aliases: ['interaction design'] },
+  { canonical: 'Design Thinking', category: 'design', aliases: ['design thinking'] },
+  { canonical: 'Journey Mapping', category: 'design', aliases: ['journey mapping', 'customer journey', 'user journey'] },
+  { canonical: 'User Personas', category: 'design', aliases: ['user persona', 'user personas', 'personas'] },
+  { canonical: 'Adobe XD', category: 'design', aliases: ['adobe xd'] },
+  { canonical: 'InVision', category: 'design', aliases: [] },
+  { canonical: 'Framer', category: 'design', aliases: [] },
+  { canonical: 'Photoshop', category: 'design', aliases: ['adobe photoshop'] },
+  { canonical: 'Illustrator', category: 'design', aliases: ['adobe illustrator'] },
+  { canonical: 'After Effects', category: 'design', aliases: ['adobe after effects'] },
+  { canonical: 'Zeplin', category: 'design', aliases: [] },
+
+  // ── Marketing / growth ─────────────────────────────────────────────────
+  { canonical: 'SEO', category: 'marketing', aliases: ['search engine optimization', 'search engine optimisation'] },
+  { canonical: 'SEM', category: 'marketing', aliases: ['search engine marketing'] },
+  { canonical: 'PPC', category: 'marketing', aliases: ['pay per click', 'pay-per-click'] },
+  { canonical: 'Content Marketing', category: 'marketing', aliases: ['content marketing', 'content strategy'] },
+  { canonical: 'Email Marketing', category: 'marketing', aliases: ['email marketing'] },
+  { canonical: 'Social Media Marketing', category: 'marketing', aliases: ['social media marketing', 'social media', 'smm'] },
+  { canonical: 'Growth Marketing', category: 'marketing', aliases: ['growth marketing', 'growth hacking'] },
+  { canonical: 'Demand Generation', category: 'marketing', aliases: ['demand generation', 'demand gen'] },
+  { canonical: 'Lead Generation', category: 'marketing', aliases: ['lead generation', 'lead gen', 'leadgen'] },
+  { canonical: 'Marketing Automation', category: 'marketing', aliases: ['marketing automation'] },
+  { canonical: 'Copywriting', category: 'marketing', aliases: ['copywriter'] },
+  { canonical: 'Branding', category: 'marketing', aliases: ['brand marketing', 'brand strategy'] },
+  { canonical: 'Conversion Rate Optimization', category: 'marketing', aliases: ['conversion rate optimization', 'conversion rate optimisation', 'cro'] },
+  { canonical: 'Paid Media', category: 'marketing', aliases: ['paid media', 'paid search', 'paid social'] },
+  { canonical: 'Influencer Marketing', category: 'marketing', aliases: ['influencer marketing'] },
+  { canonical: 'Google Ads', category: 'marketing', aliases: ['google ads', 'google adwords', 'adwords'] },
+  { canonical: 'Meta Ads', category: 'marketing', aliases: ['meta ads', 'facebook ads'] },
+  { canonical: 'LinkedIn Ads', category: 'marketing', aliases: ['linkedin ads'] },
+  { canonical: 'Google Tag Manager', category: 'marketing', aliases: ['google tag manager'] },
+  { canonical: 'HubSpot', category: 'marketing', aliases: [] },
+  { canonical: 'Marketo', category: 'marketing', aliases: [] },
+  { canonical: 'Mailchimp', category: 'marketing', aliases: [] },
+  { canonical: 'Klaviyo', category: 'marketing', aliases: [] },
+  { canonical: 'Semrush', category: 'marketing', aliases: [] },
+  { canonical: 'Ahrefs', category: 'marketing', aliases: [] },
+  { canonical: 'Hootsuite', category: 'marketing', aliases: [] },
+  { canonical: 'CAC', category: 'marketing', aliases: ['customer acquisition cost'] },
+  { canonical: 'LTV', category: 'marketing', aliases: ['lifetime value', 'customer lifetime value', 'clv'] },
+  { canonical: 'ROAS', category: 'marketing', aliases: ['return on ad spend'] },
+  { canonical: 'CTR', category: 'marketing', aliases: ['click-through rate', 'click through rate'] },
+  { canonical: 'CPC', category: 'marketing', aliases: ['cost per click'] },
+  { canonical: 'CPA', category: 'marketing', aliases: ['cost per acquisition'] },
+  { canonical: 'CPM', category: 'marketing', aliases: ['cost per mille'] },
+  { canonical: 'MQL', category: 'marketing', aliases: ['marketing qualified lead', 'mqls'] },
+  { canonical: 'NPS', category: 'marketing', aliases: ['net promoter score'] },
+
+  // ── Sales / revenue ────────────────────────────────────────────────────
+  { canonical: 'Salesforce', category: 'sales', aliases: ['sfdc', 'salesforce crm'] },
+  { canonical: 'Salesloft', category: 'sales', aliases: [] },
+  { canonical: 'ZoomInfo', category: 'sales', aliases: [] },
+  { canonical: 'Sales Navigator', category: 'sales', aliases: ['linkedin sales navigator', 'sales navigator'] },
+  { canonical: 'Pipedrive', category: 'sales', aliases: [] },
+  { canonical: 'CRM', category: 'sales', aliases: ['customer relationship management'] },
+  { canonical: 'Prospecting', category: 'sales', aliases: [] },
+  { canonical: 'Cold Calling', category: 'sales', aliases: ['cold calling', 'cold outreach', 'cold email'] },
+  { canonical: 'Pipeline Management', category: 'sales', aliases: ['pipeline management', 'sales pipeline'] },
+  { canonical: 'Account Management', category: 'sales', aliases: ['account management'] },
+  { canonical: 'SDR', category: 'sales', aliases: ['sales development representative'] },
+  { canonical: 'BDR', category: 'sales', aliases: ['business development representative'] },
+  { canonical: 'Quota', category: 'sales', aliases: ['quota attainment', 'quota-carrying'] },
+  { canonical: 'Sales Forecasting', category: 'sales', aliases: ['sales forecasting'] },
+  { canonical: 'Upselling', category: 'sales', aliases: ['upsell', 'up-sell'] },
+  { canonical: 'Cross-selling', category: 'sales', aliases: ['cross-sell'] },
+  { canonical: 'Negotiation', category: 'sales', aliases: ['negotiating'] },
+  { canonical: 'ARR', category: 'sales', aliases: ['annual recurring revenue'] },
+  { canonical: 'MRR', category: 'sales', aliases: ['monthly recurring revenue'] },
+  { canonical: 'ACV', category: 'sales', aliases: ['annual contract value'] },
+  { canonical: 'B2B', category: 'sales', aliases: ['business-to-business'] },
+  { canonical: 'B2C', category: 'sales', aliases: ['business-to-consumer'] },
+
+  // ── Operations / business ──────────────────────────────────────────────
+  { canonical: 'Excel', category: 'ops', aliases: ['microsoft excel', 'ms excel'] },
+  { canonical: 'SAP', category: 'ops', aliases: [] },
+  { canonical: 'NetSuite', category: 'ops', aliases: [] },
+  { canonical: 'Workday', category: 'ops', aliases: [] },
+  { canonical: 'ServiceNow', category: 'ops', aliases: [] },
+  { canonical: 'Zapier', category: 'ops', aliases: [] },
+  { canonical: 'Airtable', category: 'ops', aliases: [] },
+  { canonical: 'Asana', category: 'ops', aliases: [] },
+  { canonical: 'Monday.com', category: 'ops', aliases: ['monday.com'] },
+  { canonical: 'Trello', category: 'ops', aliases: [] },
+  { canonical: 'Smartsheet', category: 'ops', aliases: [] },
+  { canonical: 'Looker', category: 'ops', aliases: [] },
+  { canonical: 'Supply Chain', category: 'ops', aliases: ['supply chain', 'supply chain management', 'scm'] },
+  { canonical: 'Logistics', category: 'ops', aliases: [] },
+  { canonical: 'Procurement', category: 'ops', aliases: [] },
+  { canonical: 'Inventory Management', category: 'ops', aliases: ['inventory management', 'inventory control'] },
+  { canonical: 'Process Improvement', category: 'ops', aliases: ['process improvement', 'continuous improvement'] },
+  { canonical: 'Lean', category: 'ops', aliases: ['lean manufacturing'] },
+  { canonical: 'Six Sigma', category: 'ops', aliases: ['six sigma', 'lean six sigma'] },
+  { canonical: 'Project Management', category: 'ops', aliases: ['project management'] },
+  { canonical: 'Program Management', category: 'ops', aliases: ['program management'] },
+  { canonical: 'Change Management', category: 'ops', aliases: ['change management'] },
+  { canonical: 'Vendor Management', category: 'ops', aliases: ['vendor management'] },
+  { canonical: 'Budgeting', category: 'ops', aliases: ['budget management'] },
+  { canonical: 'P&L', category: 'ops', aliases: ['profit and loss', 'p&l management'] },
+  { canonical: 'SLA', category: 'ops', aliases: ['service level agreement', 'slas'] },
+  { canonical: 'Forecasting', category: 'ops', aliases: ['demand forecasting', 'financial forecasting'] },
+  { canonical: 'Operations Management', category: 'ops', aliases: ['operations management'] },
+  { canonical: 'Capacity Planning', category: 'ops', aliases: ['capacity planning'] },
 ];

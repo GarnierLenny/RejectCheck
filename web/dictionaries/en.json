@@ -781,7 +781,8 @@
       "high": "As it stands, this would likely be rejected."
     },
     "contextVsJob": "vs this job",
-    "contextCv": "this CV overall"
+    "contextCv": "this CV overall",
+    "computing": "Computing score…"
   },
   "resultNudge": {
     "eyebrow": "Free account",
@@ -2434,7 +2435,24 @@
       "dropZone": "Drop your corrected CV, or click to browse",
       "textOnly": "Text-based PDF for the free re-scan. Scanned images need a full re-scan.",
       "showTable": "See the keyword breakdown",
-      "hideTable": "Hide the keyword breakdown"
+      "hideTable": "Hide the keyword breakdown",
+      "optimize": {
+        "title": "Optimize inline",
+        "subtitle": "Check off missing keywords and rewrite weak lines to see your projected score, then commit with a full re-scan.",
+        "current": "Current",
+        "projected": "Projected",
+        "riskDrop": "pts",
+        "noChange": "No projected change",
+        "noEdits": "Check keywords or edit lines to project your score",
+        "addKeywords": "Add missing keywords",
+        "req": "req",
+        "fixBullets": "Rewrite weak lines",
+        "rewritePlaceholder": "Rewrite this line…",
+        "validating": "Re-scanning…",
+        "validate": "Validate (full re-scan)",
+        "paidNote": "Runs a full re-scan · counts as one analysis",
+        "skillsLine": "Additional skills"
+      }
     },
     "tabs": {
       "match": "Match",

@@ -16,7 +16,7 @@ export function FixBlockSkeleton() {
         <div className="h-4 bg-rc-text/5 w-9/12" />
       </div>
 
-      <div className="ml-7 border-l-2 border-rc-border/40 pl-4 py-1 space-y-3">
+      <div className="ml-7 pl-4 py-1 space-y-3">
         <div className="h-3 bg-rc-text/5 w-1/4" />
         <div className="h-4 bg-rc-text/5 w-10/12" />
         <div className="h-3 bg-rc-text/5 w-1/4" />

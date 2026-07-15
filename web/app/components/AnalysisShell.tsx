@@ -158,7 +158,7 @@ function HighlightMark({ children, htype, tooltip, onClick }: { children: React.
       </mark>
       {tooltip && (
         <span style={{ position: "fixed", left: tipPos.x, top: tipPos.y, transform: hovered ? "translateY(calc(-100% - 8px))" : "translateY(calc(-100% - 3px))", opacity: hovered ? 1 : 0, zIndex: 1000, pointerEvents: "none", width: "max-content", maxWidth: 260, transition: "opacity 0.15s ease, transform 0.15s ease" }}>
-          <span style={{ display: "block", background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderLeft: `3px solid ${c.dot}`, borderRadius: 6, padding: "7px 10px", fontFamily: "var(--font-sans)", fontSize: 12, lineHeight: 1.55, color: "var(--rc-muted)", boxShadow: "0 4px 14px rgba(0,0,0,0.10)", whiteSpace: "normal", wordBreak: "break-word" }}>
+          <span style={{ display: "block", background: "var(--rc-surface)", border: `1px solid var(--rc-border)`, borderRadius: 6, padding: "7px 10px", fontFamily: "var(--font-sans)", fontSize: 12, lineHeight: 1.55, color: "var(--rc-muted)", boxShadow: "0 4px 14px rgba(0,0,0,0.10)", whiteSpace: "normal", wordBreak: "break-word" }}>
             {tooltip}
           </span>
         </span>
@@ -236,7 +236,7 @@ function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick }: { te
             const tl = trimmed.toLowerCase();
             const ht = hitType(tl, highlights);
             const hitBlock: React.CSSProperties = ht
-              ? { borderLeft: `2px solid ${H[ht].dot}60`, paddingLeft: 10, paddingTop: 1, paddingBottom: 1 }
+              ? { paddingTop: 1, paddingBottom: 1 }
               : {};
             if (first && i < 5 && trimmed.length <= 70) {
               if (i === 0) { first = false; return <div key={i} style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick)}</div>; }

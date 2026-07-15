@@ -7,6 +7,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SUBSCRIPTION_GATE } from '../common/ports/tokens';
 import type { SubscriptionGate } from '../common/ports/subscription.gate';
 import { PremiumRequiredException } from '../common/exceptions';
+import {
+  deepStripLongDashes,
+  stripLongDashes,
+} from '../common/strip-long-dashes';
 import { InterviewAnalysisSchema, TranscriptEntry } from './dto/interview.dto';
 
 const INTERVIEW_AXES = [
@@ -140,7 +144,9 @@ export class InterviewService {
         'Failed to parse interview questions from AI response',
       );
     }
-    const questions: string[] = plan.questions ?? [];
+    const questions: string[] = (plan.questions ?? []).map((q: string) =>
+      stripLongDashes(q),
+    );
     if (questions.length === 0)
       throw new BadRequestException('Failed to generate interview questions');
 
@@ -300,6 +306,7 @@ export class InterviewService {
       }
 
       if (decision.action !== 'done' && decision.message) {
+        decision.message = stripLongDashes(decision.message);
         const nextQuestionIndex =
           decision.action === 'next'
             ? (decision.nextQuestionIndex ?? questionIndex + 1)
@@ -418,10 +425,11 @@ Analyze this interview and call submit_interview_analysis with your structured e
       throw new BadRequestException('Failed to generate interview analysis');
     }
 
-    const parsed = InterviewAnalysisSchema.safeParse(toolUse.input);
-    if (!parsed.success) {
+    const parsedResult = InterviewAnalysisSchema.safeParse(toolUse.input);
+    if (!parsedResult.success) {
       throw new BadRequestException('Invalid analysis structure from AI');
     }
+    const parsed = { data: deepStripLongDashes(parsedResult.data) };
 
     await (this.prisma as any).interviewAttempt.update({
       where: { id: interviewId },

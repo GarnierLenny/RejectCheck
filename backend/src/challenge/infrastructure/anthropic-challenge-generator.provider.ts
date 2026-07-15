@@ -18,6 +18,7 @@ import {
   validateGenerated,
 } from './challenge-generation-prompt';
 import { stripJsonFences } from './strip-json-fences';
+import { deepStripLongDashes } from '../../common/strip-long-dashes';
 
 const MODEL_NAME = 'claude-sonnet-4-6';
 const MAX_TOKENS = 4096;
@@ -77,6 +78,9 @@ export class AnthropicChallengeGenerator implements ChallengeGenerator {
       );
     }
     validateGenerated(safe.data);
-    return safe.data;
+    // Strip long dashes from every prose field but keep `snippet` verbatim:
+    // it is source code, where turning a hyphen/dash into a comma could change
+    // the program.
+    return { ...deepStripLongDashes(safe.data), snippet: safe.data.snippet };
   }
 }
