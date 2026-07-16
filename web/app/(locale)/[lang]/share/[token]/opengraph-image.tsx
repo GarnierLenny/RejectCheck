@@ -80,10 +80,9 @@ export default async function OgImage({
   const avatarUrl: string | null = profile?.avatarUrl ?? null;
   const positionLabel: string = [jobLabel, company].filter(Boolean).join(" @ ");
 
-  const score: number = isCvReview ? result.cv_quality.overall : result.score;
-  const scoreColor: string = isCvReview
-    ? score >= 70 ? "#2D9B6F" : score >= 40 ? "#c47f00" : "#C93A39"
-    : score >= 70 ? "#C93A39" : score >= 40 ? "#c47f00" : "#2D9B6F";
+  // vs-JD: competitiveness (100 − stored risk); CV audit: quality. Both higher = better.
+  const score: number = isCvReview ? result.cv_quality.overall : 100 - result.score;
+  const scoreColor: string = score >= 70 ? "#2D9B6F" : score >= 40 ? "#c47f00" : "#C93A39";
 
   // ── Radar data ───────────────────────────────────────────────────────────────
   let radarCurrent: number[] = [];
@@ -170,14 +169,14 @@ export default async function OgImage({
             {/* Score */}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, color: scoreColor }}>
-                {`${score}%`}
+                {`${score}`}
               </div>
               <div style={{
                 fontFamily: "monospace", fontSize: 16,
                 letterSpacing: "0.18em", textTransform: "uppercase",
                 color: "#6b6860",
               }}>
-                {isCvReview ? "CV Score" : "Rejection risk"}
+                {isCvReview ? "CV Score" : "Competitiveness"}
               </div>
             </div>
 

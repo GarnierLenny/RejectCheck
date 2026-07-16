@@ -792,7 +792,18 @@
         "decent": "Bonne base : quelques correctifs l'affûteront.",
         "strong": "Peu de choses à corriger, de ce qu'on voit."
       },
-      "contextCv": "ce CV en général"
+      "context": "ce CV en général"
+    },
+    "competitiveness": {
+      "eyebrow": "Compétitivité",
+      "verdict": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
+      "bands": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
+      "lede": {
+        "weak": "En l'état, ce dossier serait probablement écarté.",
+        "decent": "Améliorable : quelques écarts à combler.",
+        "strong": "Bon match, peu de raisons de passer à côté."
+      },
+      "context": "vs cette offre"
     }
   },
   "resultNudge": {

@@ -792,7 +792,18 @@
         "decent": "Solid base, a few fixes will sharpen it.",
         "strong": "Little left to fix that we can see."
       },
-      "contextCv": "this CV overall"
+      "context": "this CV overall"
+    },
+    "competitiveness": {
+      "eyebrow": "Competitiveness",
+      "verdict": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "bands": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "lede": {
+        "weak": "As it stands, this would likely be passed over.",
+        "decent": "Workable, a few gaps to close first.",
+        "strong": "Strong match, few reasons to pass on this."
+      },
+      "context": "vs this job"
     }
   },
   "resultNudge": {

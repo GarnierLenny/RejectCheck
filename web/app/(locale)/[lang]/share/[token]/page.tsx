@@ -45,14 +45,14 @@ export async function generateMetadata({
   const name = data.profile?.displayName ?? "Someone";
   const position = [data.jobLabel, data.company].filter(Boolean).join(" @ ");
   const isCvReview = !!data.result.cv_quality;
-  const score = isCvReview ? data.result.cv_quality!.overall : data.result.score;
+  const score = isCvReview ? data.result.cv_quality!.overall : 100 - data.result.score;
   const ogImageUrl = `https://rejectcheck.com/og/share/${token}`;
 
   const title = isCvReview
-    ? `${name} · ${score}% CV Score · RejectCheck`
+    ? `${name} · ${score} CV Score · RejectCheck`
     : position
-      ? `${name} · ${score}% rejection risk for ${position} · RejectCheck`
-      : `${name} · ${score}% rejection risk · RejectCheck`;
+      ? `${name} · ${score} competitiveness for ${position} · RejectCheck`
+      : `${name} · ${score} competitiveness · RejectCheck`;
 
   const description = isCvReview
     ? `See ${name}'s CV score on RejectCheck — layout, keywords, ATS compatibility and more.`

@@ -64,11 +64,6 @@ const R_MD = "8px";
 const SHADOW_XS = "0 1px 2px rgba(26,22,18,0.06)";
 const SHADOW_SM = "0 1px 3px rgba(26,22,18,0.08), 0 1px 2px rgba(26,22,18,0.04)";
 
-const heroHeadline = (
-  n: number,
-  hl: { below: string; competitive: string; strong: string },
-) => (n >= 50 ? hl.below : n >= 35 ? hl.competitive : hl.strong);
-
 const sevColor = (s: string) =>
   s === "critical" ? "var(--rc-red)" : s === "major" ? "var(--rc-amber)" : "var(--rc-hint)";
 
@@ -1039,7 +1034,7 @@ export function AnalysisLayout({
           order.map((id, i) => [id, String(i + 1).padStart(2, "0")]),
         );
         const NAV: Record<string, { label: string; badge: number; premium?: boolean }> = {
-          risk: { label: t.riskMeter.eyebrow, badge: 0 },
+          risk: { label: t.riskMeter.competitiveness.eyebrow, badge: 0 },
           match: { label: t.analysisLayout.tabs.match, badge: matchBadge },
           cv: { label: t.analysisLayout.tabs.cv, badge: cvBadge },
           cover: { label: t.analysisLayout.tabs.cover, badge: coverBadge },
@@ -1088,9 +1083,9 @@ export function AnalysisLayout({
               </div>
             )}
 
-            {/* §01 — Rejection risk */}
+            {/* §01 — Competitiveness (displayed as 100 − rejection risk) */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
-              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
                   <MD>{result.technical_analysis.reasoning}</MD>

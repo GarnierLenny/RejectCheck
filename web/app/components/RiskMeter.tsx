@@ -45,8 +45,11 @@ export function RiskMeter({
   value: number;
   /** Picks the default eyebrow context ("vs cette offre" / "ce CV en général"). */
   mode?: "vsjob" | "cv";
-  /** "risk" = high is bad (vs-JD). "strength" = high is good (CV audit). */
-  metric?: "risk" | "strength";
+  /**
+   * "risk" = high is bad (legacy vs-JD). "strength" = high is good (CV audit).
+   * "competitiveness" = high is good (vs-JD, shown as 100 − rejection risk).
+   */
+  metric?: "risk" | "strength" | "competitiveness";
   /** Overrides the context string derived from `mode`. */
   context?: string;
   /** Verdict sentence; falls back to a generic per-band line. */
@@ -65,37 +68,39 @@ export function RiskMeter({
   const rm = t.riskMeter;
   const reduce = useReducedMotion();
   const v = Math.max(0, Math.min(100, Math.round(value)));
-  const strength = metric === "strength";
+  // "risk" reads low-is-good; "strength" and "competitiveness" read high-is-good.
+  const higherBetter = metric !== "risk";
+  // High-is-better label set (same shape, different copy per metric).
+  const hb = metric === "competitiveness" ? rm.competitiveness : rm.strength;
 
-  // Colour band. For strength, invert so a HIGH value reads green (good).
-  const colorBand = strength ? riskBand(100 - v) : riskBand(v);
-  // Strength tier keys read high-is-good; risk keys read low-is-good.
-  const strengthTier = v >= 67 ? "strong" : v >= 34 ? "decent" : "weak";
+  // Colour band. When higher-is-better, invert so a HIGH value reads green (good).
+  const colorBand = higherBetter ? riskBand(100 - v) : riskBand(v);
+  const tier = v >= 67 ? "strong" : v >= 34 ? "decent" : "weak";
   const riskTier = riskBand(v);
 
-  const eyebrow = strength ? rm.strength.eyebrow : rm.eyebrow;
-  const verdictText = strength ? rm.strength.verdict[strengthTier] : rm.verdict[riskTier];
+  const eyebrow = higherBetter ? hb.eyebrow : rm.eyebrow;
+  const verdictText = higherBetter ? hb.verdict[tier] : rm.verdict[riskTier];
   const ledeText =
-    lede ?? (strength ? rm.strength.lede[strengthTier] : rm.lede[riskTier]);
+    lede ?? (higherBetter ? hb.lede[tier] : rm.lede[riskTier]);
   const ctx =
     context ??
-    (strength
-      ? rm.strength.contextCv
+    (higherBetter
+      ? hb.context
       : mode === "cv"
         ? rm.contextCv
         : mode === "vsjob"
           ? rm.contextVsJob
           : undefined);
-  // Track zones left→right. Risk: good→bad (green|amber|red). Strength: bad→good.
-  const zones = strength
+  // Track zones left→right. Risk: good→bad (green|amber|red). Else: bad→good.
+  const zones = higherBetter
     ? ["bg-rc-red", "bg-rc-amber", "bg-rc-green"]
     : ["bg-rc-green", "bg-rc-amber", "bg-rc-red"];
   // Band labels under the track, left→right.
-  const bandLabels = strength
-    ? [rm.strength.bands.weak, rm.strength.bands.decent, rm.strength.bands.strong]
+  const bandLabels = higherBetter
+    ? [hb.bands.weak, hb.bands.decent, hb.bands.strong]
     : [rm.bands.low, rm.bands.mid, rm.bands.high];
-  // Strength is a 0–100 score, not a percentage — drop the "%".
-  const unit = strength ? "" : "%";
+  // Strength/competitiveness are 0–100 scores, not percentages — drop the "%".
+  const unit = higherBetter ? "" : "%";
 
   if (pending) {
     return (

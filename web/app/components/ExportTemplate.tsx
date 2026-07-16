@@ -567,7 +567,11 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
     };
   };
 
-  const riskColor = result.score >= 70 ? redColor : result.score >= 40 ? "#8a5700" : "#3d6114";
+  // Competitiveness = 100 − rejection risk (higher = better). Colour tracks the score.
+  const competitiveness = 100 - result.score;
+  const riskColor = competitiveness >= 70 ? "#3d6114" : competitiveness >= 40 ? "#8a5700" : redColor;
+  const compVerdict =
+    result.verdict === "High" ? "Weak" : result.verdict === "Medium" ? "Decent" : result.verdict === "Low" ? "Strong" : result.verdict;
 
   return (
     <Document>
@@ -605,16 +609,16 @@ export function ExportTemplatePdf({ result, logoUrl }: TemplateProps) {
           </View>
         </View>
 
-        {/* 3. Rejection Risk Card */}
+        {/* 3. Competitiveness Card */}
         <View style={styles.riskCard}>
-          <Text style={styles.label}>Rejection Risk</Text>
+          <Text style={styles.label}>Competitiveness</Text>
           <Text style={{ ...styles.riskScore, color: riskColor }}>
-            {result.score}<Text style={styles.riskPercent}>%</Text>
+            {competitiveness}
           </Text>
           {result.verdict && (
           <View style={{ ...styles.verdictBadge, backgroundColor: riskColor }}>
             <Text style={styles.verdictBadgeText}>
-              {result.verdict}
+              {compVerdict}
             </Text>
           </View>
           )}

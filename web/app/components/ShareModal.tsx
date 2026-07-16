@@ -59,8 +59,8 @@ export function ShareModal({
 
   const xText = encodeURIComponent(
     isCvReview
-      ? `${displayName} has a CV score of ${score}% on RejectCheck`
-      : `${displayName} has a ${score}% rejection risk${positionLabel ? ` for ${positionLabel}` : ""} on RejectCheck`
+      ? `${displayName} has a CV score of ${score} on RejectCheck`
+      : `${displayName} scored ${score} competitiveness${positionLabel ? ` for ${positionLabel}` : ""} on RejectCheck`
   );
   const xUrl = `https://twitter.com/intent/tweet?text=${xText}&url=${encodeURIComponent(shareUrl)}`;
   const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
@@ -73,7 +73,7 @@ export function ShareModal({
       const res = await fetch(cardUrl);
       const blob = await res.blob();
       const file = new File([blob], `rejectcheck-${token.slice(0, 8)}.png`, { type: "image/png" });
-      const shareData = { title: isCvReview ? `${displayName}'s CV Score` : `${displayName}'s rejection risk`, url: shareUrl, files: [file] };
+      const shareData = { title: isCvReview ? `${displayName}'s CV Score` : `${displayName}'s competitiveness`, url: shareUrl, files: [file] };
       if (navigator.canShare?.(shareData)) {
         await navigator.share(shareData);
       } else {
