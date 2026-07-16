@@ -51,6 +51,12 @@ export const envSchema = z.object({
   // Optional so the backend boots before the price exists; while unset the
   // founder plan is simply unavailable (checkout + pricing card hide it).
   STRIPE_FOUNDER_PRICE_ID: z.string().optional(),
+  // Sprint pass: a one-time price (checkout mode=payment) that grants hired-tier
+  // access for a bounded window (see SPRINT_PASS_DURATION_DAYS in
+  // stripe/domain/sprint-pass.ts). Optional so the backend boots before the
+  // price exists; while unset the Sprint pass checkout returns url:null and the
+  // frontend CTA falls back to the plans page.
+  STRIPE_SPRINT_PRICE_ID: z.string().optional(),
   // NB: credit packs use inline `price_data` (see credits/domain/credit-packs.ts),
   // so there is no STRIPE_CREDIT_PRICE_ID — don't reintroduce it.
 
@@ -62,6 +68,13 @@ export const envSchema = z.object({
 
 
   SENTRY_DSN: z.string().optional(),
+
+  // PostHog server-side analytics. Optional: when POSTHOG_PROJECT_TOKEN is
+  // unset the analytics tracker is a no-op, so the backend boots without it.
+  // Reuse the frontend's project token (NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN) so
+  // server + client events land in the same project.
+  POSTHOG_PROJECT_TOKEN: z.string().optional(),
+  POSTHOG_HOST: z.string().optional(),
 
   // ── Email (Resend) ────────────────────────────────────────────────────────
   // All optional. When EMAIL_ENABLED!=='true' or RESEND_API_KEY is unset, the

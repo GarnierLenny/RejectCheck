@@ -8,6 +8,8 @@ import {
 import { STRIPE_CLIENT, SUBSCRIPTION_REPOSITORY } from '../ports/tokens';
 import type { StripeClient } from '../ports/stripe-client';
 import type { SubscriptionRepository } from '../ports/subscription.repository';
+import { ANALYTICS_TRACKER } from '../../common/ports/tokens';
+import type { AnalyticsTracker } from '../../common/ports/analytics.tracker';
 
 /**
  * Validates the Stripe-controlled fields of a checkout.session.completed event
@@ -34,7 +36,10 @@ const SessionSchema = z.object({
     z.null(),
     z.undefined(),
   ]),
-  metadata: z.object({ plan: z.string().optional() }).passthrough().nullish(),
+  metadata: z
+    .object({ plan: z.string().optional(), founder: z.string().optional() })
+    .passthrough()
+    .nullish(),
 });
 
 @Injectable()
@@ -45,6 +50,7 @@ export class HandleCheckoutCompletedUseCase {
     @Inject(STRIPE_CLIENT) private readonly stripe: StripeClient,
     @Inject(SUBSCRIPTION_REPOSITORY)
     private readonly subscriptions: SubscriptionRepository,
+    @Inject(ANALYTICS_TRACKER) private readonly analytics: AnalyticsTracker,
   ) {}
 
   async execute(rawSession: unknown): Promise<void> {
@@ -94,6 +100,18 @@ export class HandleCheckoutCompletedUseCase {
       plan: planParse.data as SubscriptionPlan,
       status: sub.status as SubscriptionStatus,
       currentPeriodEnd: new Date(periodEndUnix * 1000),
+    });
+
+    // Server-side conversion event: the webhook is the only place a settled
+    // subscription payment is known (client-side would drop on tab-close).
+    this.analytics.capture({
+      event: 'subscription_started',
+      distinctId: email,
+      properties: {
+        plan: planParse.data,
+        provider: 'stripe',
+        founder: session.metadata?.founder === 'true',
+      },
     });
   }
 }

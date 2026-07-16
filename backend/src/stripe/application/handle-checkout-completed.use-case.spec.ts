@@ -16,7 +16,14 @@ function makeUseCase(subStatus = 'active') {
     upsert: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<SubscriptionRepository>;
 
-  return { uc: new HandleCheckoutCompletedUseCase(stripe, repo), repo, retrieve };
+  const analytics = { capture: jest.fn() };
+
+  return {
+    uc: new HandleCheckoutCompletedUseCase(stripe, repo, analytics),
+    repo,
+    retrieve,
+    analytics,
+  };
 }
 
 const validSession = {
@@ -40,6 +47,22 @@ describe('HandleCheckoutCompletedUseCase', () => {
       status: 'active',
       currentPeriodEnd: new Date(periodEnd * 1000),
     });
+  });
+
+  it('emits a server-side subscription_started conversion event', async () => {
+    const { uc, analytics } = makeUseCase();
+    await uc.execute(validSession);
+    expect(analytics.capture).toHaveBeenCalledWith({
+      event: 'subscription_started',
+      distinctId: 'buyer@example.com',
+      properties: { plan: 'hired', provider: 'stripe', founder: false },
+    });
+  });
+
+  it('does not emit a conversion event when the plan is invalid', async () => {
+    const { uc, analytics } = makeUseCase();
+    await uc.execute({ ...validSession, metadata: { plan: 'enterprise' } });
+    expect(analytics.capture).not.toHaveBeenCalled();
   });
 
   it('ignores a user-controlled metadata.email, trusting customer_details only', async () => {
