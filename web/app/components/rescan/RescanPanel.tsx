@@ -629,8 +629,12 @@ function FullRescanResult({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-        {/* result.score is REJECTION RISK: lower is better, so a drop is the win. */}
-        <BeforeAfter label={rt.riskScore} before={deltas.score.before} after={deltas.score.after} lowerIsBetter />
+        {/* Displayed as competitiveness (100 − stored rejection risk): higher = better, so a rise is the win. */}
+        <BeforeAfter
+          label={rt.competitiveness}
+          before={deltas.score.before == null ? null : 100 - deltas.score.before}
+          after={deltas.score.after == null ? null : 100 - deltas.score.after}
+        />
         <BeforeAfter label={rt.coverage} before={deltas.keywordCoverage.before} after={deltas.keywordCoverage.after} suffix="%" />
         <div
           style={{

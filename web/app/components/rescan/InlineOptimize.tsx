@@ -135,9 +135,9 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }:
       {/* Projected score strip */}
       <div style={scoreStrip}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <ScoreChip label={ro.current} value={current} />
+          <ScoreChip label={ro.current} value={100 - current} />
           <ArrowRight size={16} style={{ color: "var(--rc-hint)", flexShrink: 0 }} />
-          <ScoreChip label={ro.projected} value={projectedRisk} live />
+          <ScoreChip label={ro.projected} value={100 - projectedRisk} live />
         </div>
         <span
           style={{
@@ -149,7 +149,7 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }:
         >
           {dirty
             ? improved
-              ? `-${current - projectedRisk} ${ro.riskDrop}`
+              ? `+${current - projectedRisk} ${ro.riskDrop}`
               : ro.noChange
             : ro.noEdits}
         </span>
@@ -334,12 +334,11 @@ function ScoreChip({ label, value, live }: { label: string; value: number; live?
           fontSize: 28,
           fontWeight: 700,
           lineHeight: 1,
-          color: riskColor(value),
+          color: riskColor(100 - value),
           transition: live ? "color 200ms" : undefined,
         }}
       >
         {value}
-        <span style={{ fontSize: 13, opacity: 0.5 }}>%</span>
       </span>
     </div>
   );

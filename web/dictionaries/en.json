@@ -2458,6 +2458,7 @@
       "atsPass": "Now passes the ATS keyword filter",
       "atsFail": "Still short of the ATS keyword filter",
       "riskScore": "Rejection risk",
+      "competitiveness": "Competitiveness",
       "openUpdated": "Open the updated report",
       "signIn": "Sign in to re-scan your CV and track your progress.",
       "noSkills": "This job lists no recognised skills, so there is nothing to track here.",
