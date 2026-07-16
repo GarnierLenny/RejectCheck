@@ -2458,6 +2458,7 @@
     "tabs": {
       "match": "Match",
       "cv": "CV",
+      "cover": "Lettre de motivation",
       "rewrite": "Réécriture",
       "signals": "Signaux",
       "timeline": "Parcours",
@@ -2465,6 +2466,12 @@
       "roadmap": "Roadmap",
       "bridge": "Projet ✦",
       "negotiate": "Négociation"
+    },
+    "coverLetter": {
+      "title": "Audit de la lettre de motivation",
+      "subtitle": "Notée sur la spécificité à cette offre, l'accroche et l'apport narratif au-delà du CV.",
+      "scoreLabel": "Score lettre",
+      "clean": "Aucun problème détecté. Ta lettre est spécifique et intentionnelle, garde-la."
     },
     "match": {
       "sectionNum": "01 — Couverture des compétences",
@@ -2494,7 +2501,10 @@
       "simulatorSubtitle": "Ajoute ces mots-clés, regarde le score monter",
       "simulatorDesc": "Chaque mot-clé est pondéré par la JD et absent de ton CV. Coche pour prévisualiser le gain — c'est réversible.",
       "required": "Obligatoire",
-      "preferred": "Préféré"
+      "preferred": "Préféré",
+      "insertionAmend": "Modifier cette ligne",
+      "insertionNew": "Ajouter cette ligne",
+      "copy": "Copier"
     },
     "cv": {
       "positioningNum": "01 — Positionnement",
@@ -2517,6 +2527,9 @@
       "requirementsNum": "04 — Exigences",
       "requirementsTitle": "Compétences JD, matchées avec ton CV",
       "matched": "matchées",
+      "matchExact": "exact",
+      "matchPartial": "partiel",
+      "matchMissing": "absent",
       "experienceGap": "Écart d'expérience critique"
     },
     "diffRow": {

@@ -198,6 +198,15 @@ export type AtsCriticalMissingKeyword = {
   required: boolean;
   sections_missing: string[];
   score_impact: number;
+  /**
+   * P1: paste-ready truthful insertion. `before` is the existing CV line to
+   * amend (verbatim) or null for a net-new line; `after` weaves the keyword in.
+   * Absent on rows stored before P1.
+   */
+  insertion?: {
+    before: string | null;
+    after: string;
+  };
 };
 
 export type AtsSimulation = {
@@ -229,9 +238,21 @@ export type Audit = {
     required_skills: Array<{
       skill: string;
       found: boolean;
+      /** P1: exact = present with evidence; partial = adjacent/implied; missing = none. Absent on pre-P1 rows. */
+      match_strength?: 'exact' | 'partial' | 'missing';
       evidence: string | null;
     }>;
     experience_gap: string | null;
+  };
+  /**
+   * P1: cover / motivation letter audit (vs-JD flow only). Present only when
+   * a letter was provided; score is null when there is no letter. Absent on
+   * CV-review analyses and on rows stored before P1.
+   */
+  cover_letter?: {
+    score: number | null;
+    strengths: string[];
+    issues: Issue[];
   };
 };
 

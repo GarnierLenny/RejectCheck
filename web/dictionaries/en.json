@@ -2457,6 +2457,7 @@
     "tabs": {
       "match": "Match",
       "cv": "CV",
+      "cover": "Cover letter",
       "rewrite": "Rewrite",
       "signals": "Signals",
       "timeline": "Timeline",
@@ -2464,6 +2465,12 @@
       "roadmap": "Roadmap",
       "bridge": "Bridge ✦",
       "negotiate": "Negotiate"
+    },
+    "coverLetter": {
+      "title": "Cover letter audit",
+      "subtitle": "Scored on specificity to this job, opening hook, and narrative beyond the CV.",
+      "scoreLabel": "Letter score",
+      "clean": "No issues found. Your letter reads as specific and intentional, keep it."
     },
     "match": {
       "sectionNum": "01 — Skill coverage",
@@ -2493,7 +2500,10 @@
       "simulatorSubtitle": "Add these, watch the score climb",
       "simulatorDesc": "Each is a keyword the JD weights and your CV is missing. Tick to preview the lift — it's reversible.",
       "required": "Required",
-      "preferred": "Preferred"
+      "preferred": "Preferred",
+      "insertionAmend": "Amend this line",
+      "insertionNew": "Add this line",
+      "copy": "Copy"
     },
     "cv": {
       "positioningNum": "01 — Positioning",
@@ -2516,6 +2526,9 @@
       "requirementsNum": "04 — Requirements",
       "requirementsTitle": "JD skills, matched to your CV",
       "matched": "matched",
+      "matchExact": "exact",
+      "matchPartial": "partial",
+      "matchMissing": "missing",
       "experienceGap": "Crucial experience gap"
     },
     "diffRow": {

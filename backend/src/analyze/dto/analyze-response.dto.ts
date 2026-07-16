@@ -81,7 +81,7 @@ export const ProjectRecommendationSchema = z.object({
   what_matters: strOrArr.optional(),
   cv_bullet: z.string().optional(),
   signal_boost: z.string().optional(),
-  architecture_diagram: z.string().optional(),
+  architecture_diagram: z.string().nullable().optional(),
   sections: z.array(z.object({
     title: z.string(),
     duration: z.string(),
@@ -97,7 +97,7 @@ export const ProjectRecommendationSchema = z.object({
     star_tactics: z.string(),
   }).optional(),
   interview_questions: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
-  testing_strategy: z.string().optional(),
+  testing_strategy: z.string().nullable().optional(),
   gap_bridges: z.array(z.object({
     skill_name: z.string(),
     phase_title: z.string(),
@@ -184,6 +184,14 @@ export const AtsCriticalMissingKeywordSchema = z.object({
   required: z.boolean(),
   sections_missing: z.array(z.string()),
   score_impact: z.number(),
+  // Paste-ready truthful insertion (tool requires it; optional here so
+  // pre-densification rows without it still replay).
+  insertion: z
+    .object({
+      before: z.string().nullable(),
+      after: z.string(),
+    })
+    .optional(),
 });
 
 // Bullet-by-bullet CV review (single-pass tool). `rewrite` is the premium
@@ -270,6 +278,8 @@ const AuditJdMatchSchema = z.object({
     z.object({
       skill: z.string(),
       found: z.boolean(),
+      // Optional for back-compat: rows stored before P1 lack it.
+      match_strength: z.enum(['exact', 'partial', 'missing']).optional(),
       evidence: z.string().nullable(),
     }),
   ),
@@ -461,6 +471,16 @@ export const AnalyzeResponseSchema = z.object({
         strengths: z.array(z.string()).optional(),
       })
       .catch({ score: null, issues: [], strengths: [] }),
+    // P1: cover / motivation letter audit. Optional (absent on lean/owner
+    // audits and on rows stored before P1); score is null when no letter.
+    cover_letter: z
+      .object({
+        score: z.number().min(0).max(100).nullable(),
+        issues: z.array(IssueHotSchema.extend({ fix: FixSchema.optional() })),
+        strengths: z.array(z.string()).optional(),
+      })
+      .catch({ score: null, issues: [], strengths: [] })
+      .optional(),
     jd_match: AuditJdMatchSchema,
   }),
   hidden_red_flags: z.array(

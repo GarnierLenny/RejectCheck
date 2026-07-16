@@ -57,6 +57,7 @@ import {
   TECHNICAL_PROMPT_OPS,
   TECHNICAL_PROMPT_SALES,
   TECHNICAL_PROMPT_GENERIC,
+  SHARED_ANALYSIS_RULES,
 } from './system-technical-prompts';
 
 const MODEL = 'claude-sonnet-4-6';
@@ -82,6 +83,16 @@ function asUntrustedData(label: string, content: string | null | undefined): str
 ${body || 'None provided'}
 «END ${label}»`;
 }
+
+/**
+ * Shared instruction so redacted / anonymized CVs are never penalized for the
+ * redaction itself. People routinely share a CV for feedback with their name and
+ * employers blanked, and owner "audit mode" runs entirely on strangers'
+ * anonymized CVs. Without this, the model flags "no company names" as a critical
+ * format issue, which is a false positive. Injected into BOTH the vs-JD analysis
+ * and the standalone CV-review user messages.
+ */
+const ANONYMIZATION_RULE = `ANONYMIZATION RULE (read before auditing): the candidate may have redacted personal or employer identity for privacy: the name removed, employer names replaced with placeholders (e.g. "Company A", "[Confidential]", "***", "a fintech scale-up"), or contact details stripped. When you see these signs, treat the redaction as INTENTIONAL and expected. Do NOT raise any audit issue, red flag, hidden_red_flag, or bullet finding, and do NOT lower any score, because of a missing candidate name, anonymized or missing employer names, or missing contact information. Judge only the substance that is present (scope, impact, skills, seniority, dates). You may still flag a genuinely absent SUBSTANTIVE element such as missing dates, no measurable outcomes, or vague scope, but never the redaction itself.`;
 
 type ToolUseBlock = {
   type: 'tool_use';
@@ -260,10 +271,11 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     const requestStartedAt = Date.now();
     let firstDeltaAt: number | null = null;
     // Densified review (10 cv issues + 6+6 audits + bullet_reviews + 5 red
-    // flags) runs ~7-9k tokens typical; 12k leaves headroom. Lean (owner audit
-    // mode) drops bullet_reviews → 8k is plenty.
+    // flags) runs ~7-9k tokens typical. Bumped 12k -> 16k for the P1 changes
+    // (bullets up to 40 + per-issue fixes + 6 quality notes) so a long CV's
+    // final sections don't truncate. Lean (owner audit) drops bullet_reviews.
     const lean = input.lean ?? false;
-    const MAX_TOKENS = lean ? 8000 : 12000;
+    const MAX_TOKENS = lean ? 8000 : 16000;
 
     const systemPrompt = `You are an expert career consultant and CV reviewer with 15 years of recruiting experience. You evaluate CVs as a senior recruiter would — without any specific job offer — assessing quality, positioning, and red flags.
 
@@ -445,9 +457,11 @@ ${asUntrustedData('PORTFOLIO', input.portfolioMarkdown?.trim())}
 
 ${profileCtx}${githubInstruction}${evidenceBlock}
 
+${ANONYMIZATION_RULE}
+
 Formatting rules:
 - Use **markdown** in all text fields (narrative, issue descriptions, seniority strength).
-- Be specific: reference actual content from the CV (company names, technologies, dates) rather than generic observations.
+- Be specific: reference actual content from the CV (roles, technologies, dates when present) rather than generic observations.
 - For audit_github and audit_linkedin: set score=null and issues=[] when those sources were not provided.`;
   }
 
@@ -467,7 +481,11 @@ Formatting rules:
     // letting a runaway generation go unbounded. Lean (owner audit mode) drops
     // all actionable content → ~1/3 the output, so an 8k cap is plenty.
     const lean = input.lean ?? false;
-    const MAX_TOKENS = lean ? 8000 : 24000;
+    // Bumped 24k -> 32k for the P1 densification (JD match up to 30, bullets up
+    // to 40, cover-letter audit): a senior CV with a letter and a wide JD can
+    // now run ~20-24k output, and the final sections (project) stream last, so
+    // the extra ceiling prevents truncating them. Typical runs stay well under.
+    const MAX_TOKENS = lean ? 8000 : 32000;
     const tool = buildAnalysisTool(input.generateBridgeProject ?? true, lean);
 
     try {
@@ -560,6 +578,7 @@ Formatting rules:
           cv: i.audit_cv,
           github: i.audit_github,
           linkedin: i.audit_linkedin,
+          cover_letter: i.audit_cover_letter,
           jd_match: i.audit_jd_match,
         },
         hidden_red_flags: i.hidden_red_flags,
@@ -780,7 +799,7 @@ ${input.cvText ?? 'not available'}
 
 ${input.linkedinText ? `Candidate LinkedIn profile:\n${input.linkedinText}\n` : ''}${input.githubInfo ? `Candidate GitHub activity:\n${input.githubInfo}\n` : ''}
 Analysis summary (use to guide emphasis, never invent beyond what the documents above confirm):
-- Key strengths: ${(input.result.audit?.cv?.strengths as string[] | undefined)?.join(', ')}
+- Key strengths: ${((input.result.audit?.cv?.strengths as string[] | undefined) ?? []).join(', ') || 'not explicitly identified'}
 - Main gaps: ${mainGaps}
 - Seniority detected: ${input.result.seniority_analysis?.detected}
 - Matched tech skills: ${matchedSkills}
@@ -850,8 +869,14 @@ Language: ${langName}`;
       ops: TECHNICAL_PROMPT_OPS,
       sales: TECHNICAL_PROMPT_SALES,
     };
-    if (!roleType || roleType === 'software') return TECHNICAL_PROMPT_SOFTWARE;
-    return map[roleType] ?? TECHNICAL_PROMPT_GENERIC;
+    const base =
+      !roleType || roleType === 'software'
+        ? TECHNICAL_PROMPT_SOFTWARE
+        : map[roleType] ?? TECHNICAL_PROMPT_GENERIC;
+    // Append the cross-role rules to every role prompt so audit bands, ATS
+    // threshold, anti-inflation calibration, format honesty and evidence
+    // anchoring stay consistent across all 8 without per-prompt drift.
+    return `${base}\n\n${SHARED_ANALYSIS_RULES}`;
   }
 
   private buildAnalyzeUserMessage(input: AnalyzeApplicationInput): string {
@@ -883,6 +908,8 @@ Daily-challenge usage rules:
 - When included: use status='cta' when there is no usable data on the JD's primary language (anonymous, zero attempts on that language, etc.); use status='analyzed' when there is data on a matching or closely related language with ≥3 attempts.
 - For status='cta': \`cta.message\` must be 1-2 markdown sentences naming the JD's primary language (e.g. "Do daily TypeScript challenges for a month — perfect-scoring 5+ in a row would close the seniority gap your CV doesn't fully prove.").
 - For status='analyzed': \`summary\` celebrates 2-3 *specific* observed strengths (cite avg score, count, focus tags they nail); \`strengths\` is 2-4 short bullet strings; \`bridge_to_project\` explains how the \`project_recommendation\` below covers blind spots the challenges don't (system design, persistence, integrations, end-to-end ownership). If the user's track record is on a closely related language (e.g. Python attempts for a Go backend role), explicitly frame it as transferable rigor rather than a 1:1 stack signal.
+
+${ANONYMIZATION_RULE}
 
 Formatting rules:
 - Use **markdown** in all text fields (reasoning, recommendation, skill evidence, seniority_signals, challenge_analysis text fields): bold key terms, italics for nuance, short bullet lists where helpful.

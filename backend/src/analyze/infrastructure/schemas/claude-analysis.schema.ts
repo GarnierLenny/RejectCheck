@@ -195,6 +195,24 @@ const ATS_CRITICAL_MISSING_KEYWORD_SCHEMA = {
         'At most 4 CV sections where the keyword should appear (e.g. "skills", "experience").',
     },
     score_impact: { type: 'number' as const },
+    insertion: {
+      type: 'object' as const,
+      description:
+        'A ready-to-paste way to add this keyword TRUTHFULLY. Never keyword-stuff and never fabricate experience: only weave it in where the candidate plausibly has the skill.',
+      properties: {
+        before: {
+          anyOf: [{ type: 'null' as const }, { type: 'string' as const }],
+          description:
+            'The existing CV bullet or phrase to amend, verbatim, or null when this should be a net-new line.',
+        },
+        after: {
+          type: 'string' as const,
+          description:
+            'The amended or new line with the keyword woven in naturally. ≤ 30 words. Use a [placeholder] for any metric that is not already in the CV.',
+        },
+      },
+      required: ['before', 'after'],
+    },
   },
   required: [
     'keyword',
@@ -202,6 +220,7 @@ const ATS_CRITICAL_MISSING_KEYWORD_SCHEMA = {
     'required',
     'sections_missing',
     'score_impact',
+    'insertion',
   ],
 };
 
@@ -280,17 +299,19 @@ const PROJECT_RECOMMENDATION_PROPERTY = {
           },
           technologies: {
             type: 'array' as const,
+            description:
+              'Technologies for a technical project. For a NON-technical role, list the tools, platforms, channels or methods the project uses instead (e.g. Figma, HubSpot, Salesforce, an A/B test) with category "other".',
             items: {
               type: 'object' as const,
               properties: {
-                name: { type: 'string' as const, description: 'Technology name, e.g. "NestJS"' },
+                name: { type: 'string' as const, description: 'Technology, tool or method name, e.g. "NestJS", "Figma", "Google Ads"' },
                 category: {
                   type: 'string' as const,
-                  enum: ['frontend', 'backend', 'database', 'infra', 'ai/ml', 'tooling', 'cloud'],
+                  enum: ['frontend', 'backend', 'database', 'infra', 'ai/ml', 'tooling', 'cloud', 'other'],
                 },
                 reason: {
                   type: 'string' as const,
-                  description: 'Why this tech was chosen for this project. ≤ 12 words.',
+                  description: 'Why this was chosen for this project. ≤ 12 words.',
                 },
               },
               required: ['name', 'category', 'reason'],
@@ -308,8 +329,8 @@ const PROJECT_RECOMMENDATION_PROPERTY = {
             description: 'Short technical sketch of how the system is laid out. ≤ 50 words.',
           },
           architecture_diagram: {
-            type: 'string' as const,
-            description: 'A valid Mermaid diagram string (flowchart LR). Show the main components and data flow. Max 8 nodes. No quotes or special characters in node labels. Keep it simple.',
+            type: ['string', 'null'] as ['string', 'null'],
+            description: 'A valid Mermaid diagram string (flowchart LR) for a technical project: main components and data flow, max 8 nodes, no quotes or special characters in node labels. For a non-technical role use null or a simple process/flow diagram.',
           },
           success_criteria: {
             type: 'array' as const,
@@ -416,8 +437,8 @@ const PROJECT_RECOMMENDATION_PROPERTY = {
             maxItems: 5,
           },
           testing_strategy: {
-            type: 'string' as const,
-            description: 'How to test this project: what to unit test, integration test, and which tools. Specific to the stack. ≤ 60 words.',
+            type: ['string', 'null'] as ['string', 'null'],
+            description: 'For a technical project: what to unit test, integration test, and which tools, specific to the stack. For a non-technical role: how success is validated and measured (metrics, review, stakeholder sign-off). ≤ 60 words. null only if truly not applicable.',
           },
           gap_bridges: {
             type: 'array' as const,
@@ -522,8 +543,15 @@ const auditWithFixSchema = (description: string, maxIssues: number) => ({
       maxItems: maxIssues,
       description: `Up to ${maxIssues} issues ordered by severity (critical → minor), each with an inline fix. Be exhaustive within the cap — list every distinct issue a senior recruiter would flag. Do not pad or repeat.`,
     },
+    strengths: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 5,
+      description:
+        'Up to 5 genuine strengths a recruiter should keep, each a short specific phrase anchored in real CV content (e.g. "Every role quantifies impact with revenue or latency numbers"). Empty array when the source is absent or has no notable strength. Never pad, never invent.',
+    },
   },
-  required: ['score', 'issues'],
+  required: ['score', 'issues', 'strengths'],
 });
 
 const JOB_DETAILS_PROPERTY = {
@@ -680,14 +708,20 @@ const AUDIT_JD_MATCH_PROPERTY = {
   properties: {
     required_skills: {
       type: 'array' as const,
-      maxItems: 12,
+      maxItems: 30,
       description:
-        'Up to 12 required skills from the JD, ordered by criticality. Cover every hard requirement before nice-to-haves.',
+        'Every hard skill, tool and named domain term the JD calls for, up to 30, ordered by criticality. Do not stop at the top few: cover every explicit requirement before nice-to-haves. This is the full JD-vs-CV match matrix.',
       items: {
         type: 'object' as const,
         properties: {
           skill: { type: 'string' as const },
           found: { type: 'boolean' as const },
+          match_strength: {
+            type: 'string' as const,
+            enum: ['exact', 'partial', 'missing'],
+            description:
+              'exact = present with clear CV evidence; partial = adjacent or implied (transferable, older, or only in a Skills list); missing = no evidence. Keep consistent with `found` (found=false implies missing).',
+          },
           evidence: {
             anyOf: [
               { type: 'null' as const },
@@ -699,7 +733,7 @@ const AUDIT_JD_MATCH_PROPERTY = {
             ],
           },
         },
-        required: ['skill', 'found', 'evidence'],
+        required: ['skill', 'found', 'match_strength', 'evidence'],
       },
     },
     experience_gap: {
@@ -797,12 +831,12 @@ const HIDDEN_RED_FLAGS_PROPERTY = {
 export const BULLET_REVIEWS_PROPERTY = {
   type: 'object' as const,
   description:
-    'Bullet-by-bullet review of the CV. Cover every substantive bullet from the experience and project sections (skip education, contact info, and bare skill lists). If the CV has more than 25 bullets, prioritise the most recent roles and the weakest bullets.',
+    'Bullet-by-bullet review of the CV. Cover every substantive bullet from the experience and project sections, including older roles (skip education, contact info, and bare skill lists). Only when the CV has more than 40 substantive bullets, prioritise the 3 most recent roles plus every fatal/weak bullet.',
   properties: {
     bullets: {
       type: 'array' as const,
       minItems: 6,
-      maxItems: 25,
+      maxItems: 40,
       items: {
         type: 'object' as const,
         properties: {
@@ -1039,6 +1073,10 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
   };
 
   if (!lean) {
+    properties.audit_cover_letter = auditWithFixSchema(
+      'Cover / motivation letter audit. Only score the letter when one is provided: rate it on specificity to THIS company and JD, strength of the opening hook, and whether it adds narrative beyond the CV rather than restating it. When no letter is provided, set score=null, issues=[] and strengths=[].',
+      6,
+    );
     properties.bullet_reviews = BULLET_REVIEWS_PROPERTY;
     properties.ats_critical_missing_keywords =
       ATS_CRITICAL_MISSING_KEYWORDS_PROPERTY;
@@ -1076,6 +1114,7 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
         ...(lean
           ? []
           : [
+              'audit_cover_letter',
               'bullet_reviews',
               'ats_critical_missing_keywords',
               'highlight_terms',

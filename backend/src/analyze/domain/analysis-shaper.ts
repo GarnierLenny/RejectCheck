@@ -119,6 +119,7 @@ export function shapeAnalysisForPlan(
       cv: stripIssueFixes(result.audit.cv),
       github: stripIssueFixes(result.audit.github),
       linkedin: stripIssueFixes(result.audit.linkedin),
+      cover_letter: stripIssueFixes(result.audit.cover_letter),
     };
   }
 
@@ -144,6 +145,7 @@ export function shapeAnalysisForPlan(
       countIssueFixes(result.audit?.cv) +
       countIssueFixes(result.audit?.github) +
       countIssueFixes(result.audit?.linkedin) +
+      countIssueFixes(result.audit?.cover_letter) +
       redFlags.filter((f) => (f as AnyRecord).fix != null).length +
       ((result.seniority_analysis as AnyRecord | undefined)?.fix != null
         ? 1
@@ -187,6 +189,7 @@ export function shapeSectionForPlan(
     case 'audit_cv':
     case 'audit_github':
     case 'audit_linkedin':
+    case 'audit_cover_letter':
       return stripIssueFixes(value);
     case 'hidden_red_flags':
       return Array.isArray(value) ? value.map(stripFix) : value;

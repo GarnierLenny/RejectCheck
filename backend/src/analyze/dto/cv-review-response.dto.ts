@@ -5,6 +5,12 @@ import {
 } from './profile-digest.dto';
 import { BulletReviewsSchema, IssueHotSchema } from './analyze-response.dto';
 
+// CV-review audit issues now carry an inline `fix` (tool requires it; DTO keeps
+// it optional so pre-densification rows without a fix still replay).
+const ReviewAuditIssueSchema = IssueHotSchema.extend({
+  fix: z.string().optional(),
+});
+
 export const CvQualitySchema = z.object({
   overall: z.number().min(0).max(100),
   clarity: z.number().min(0).max(100),
@@ -95,17 +101,17 @@ export const CvReviewResponseSchema = z.object({
   audit: z.object({
     cv: z.object({
       score: z.number().min(0).max(100),
-      issues: z.array(IssueHotSchema),
+      issues: z.array(ReviewAuditIssueSchema),
       strengths: z.array(z.string()).optional(),
     }),
     github: z.object({
       score: z.number().min(0).max(100).nullable(),
-      issues: z.array(IssueHotSchema),
+      issues: z.array(ReviewAuditIssueSchema),
       strengths: z.array(z.string()).optional(),
     }),
     linkedin: z.object({
       score: z.number().min(0).max(100).nullable(),
-      issues: z.array(IssueHotSchema),
+      issues: z.array(ReviewAuditIssueSchema),
       strengths: z.array(z.string()).optional(),
     }),
   }),

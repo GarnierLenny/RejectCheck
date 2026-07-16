@@ -88,6 +88,51 @@ function MD({ children }: { children: string }) {
   );
 }
 
+// ── Copy-to-clipboard button ──────────────────────────────────────────────────
+
+function CopyBtn({ text, label }: { text: string; label: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard?.writeText(text);
+        setDone(true);
+        setTimeout(() => setDone(false), 1400);
+      }}
+      style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", color: done ? "var(--rc-green)" : "var(--rc-text)", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: R_SM, padding: "4px 10px", cursor: "pointer" }}
+    >
+      {done ? "✓" : label}
+    </button>
+  );
+}
+
+// ── Insertion renderer — underlines the keyword and [placeholders] ────────────
+
+function escReg(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function renderInsertionAfter(after: string, keyword: string): React.ReactNode {
+  const re = new RegExp(`(\\[[^\\]]+\\]|${escReg(keyword)})`, "gi");
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(after)) !== null) {
+    if (m.index === re.lastIndex) { re.lastIndex++; continue; }
+    if (m.index > last) out.push(after.slice(last, m.index));
+    const tok = m[0];
+    if (tok.startsWith("[")) {
+      out.push(<span key={i++} style={{ background: "rgba(0,0,0,0.06)", border: "1px dashed var(--rc-border)", borderRadius: 4, padding: "0 4px", fontWeight: 700, color: "var(--rc-muted)" }}>{tok}</span>);
+    } else {
+      out.push(<mark key={i++} style={{ background: "color-mix(in srgb, var(--rc-green) 18%, transparent)", color: "var(--rc-green)", fontWeight: 700, padding: "0 3px", borderRadius: 3 }}>{tok}</mark>);
+    }
+    last = m.index + tok.length;
+  }
+  if (last < after.length) out.push(after.slice(last));
+  return out;
+}
+
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 
 // Eyebrow + Mono are imported from ./resultAtoms (shared with AnalysisShell).
@@ -478,6 +523,18 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
                       {(k.sections_missing ?? []).map((sec: string) => <Mono key={sec} style={{ fontSize: 10, color: "var(--rc-hint)", background: "var(--rc-bg)", border: "1px solid var(--rc-border)", borderRadius: R_SM, padding: "2px 6px" }}>{sec} ✗</Mono>)}
                     </div>
                   )}
+                  {k.insertion && (
+                    <div onClick={(e) => e.stopPropagation()} style={{ marginTop: 10, border: "1px solid var(--rc-border)", borderRadius: R_SM, overflow: "hidden", cursor: "default" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 11px", background: "var(--rc-surface-hero)", borderBottom: "1px solid var(--rc-border)" }}>
+                        <Eyebrow style={{ fontSize: 9 }}>{k.insertion.before ? t.analysisLayout.ats.insertionAmend : t.analysisLayout.ats.insertionNew}</Eyebrow>
+                        <CopyBtn text={k.insertion.after} label={t.analysisLayout.ats.copy} />
+                      </div>
+                      {k.insertion.before && (
+                        <div style={{ padding: "9px 12px", fontSize: 12.5, color: "var(--rc-hint)", textDecoration: "line-through" }}>{k.insertion.before}</div>
+                      )}
+                      <div style={{ padding: "9px 12px", fontSize: 12.5, color: "var(--rc-text)", background: "var(--rc-green-bg)", borderTop: k.insertion.before ? "1px dashed var(--rc-green-border)" : "none" }}>{renderInsertionAfter(k.insertion.after, k.keyword)}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -523,6 +580,58 @@ const ACTION_RE = /^(led|built|designed|developed|created|implemented|launched|d
 const METRIC_RE = /\d+%?|[€$][\d,.]+|[\d,]+\s*(users|customers|ms|req|requests|engineers|teams?)/i;
 const phraseGood = (p: string) => METRIC_RE.test(p) || ACTION_RE.test(p.trim());
 
+// ── §04 Cover-letter audit (P1) ───────────────────────────────────────────────
+
+function CoverLetterBody({ cl }: { cl: NonNullable<AnalysisResult["audit"]["cover_letter"]> }) {
+  const { t } = useLanguage();
+  const clx = t.analysisLayout.coverLetter;
+  const score = cl.score ?? 0;
+  const scoreColor = score >= 70 ? "var(--rc-green)" : score >= 50 ? "var(--rc-amber)" : "var(--rc-red)";
+  const counts = {
+    critical: cl.issues.filter((i) => i.severity === "critical").length,
+    major: cl.issues.filter((i) => i.severity === "major").length,
+    minor: cl.issues.filter((i) => i.severity === "minor").length,
+  };
+  const labelStyle: React.CSSProperties = { fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 2 };
+  return (
+    <section>
+      <SecHead title={clx.title} sub={clx.subtitle}
+        meta={
+          <div style={{ textAlign: "right" }}>
+            <Eyebrow style={{ display: "block", marginBottom: 6 }}>{clx.scoreLabel}</Eyebrow>
+            <Mono style={{ fontSize: 30, fontWeight: 500, color: scoreColor, lineHeight: 1 }}>
+              {score}<span style={{ fontSize: 15, color: "var(--rc-hint)" }}>/100</span>
+            </Mono>
+            <div style={{ width: 124, height: 5, background: "rgba(0,0,0,0.07)", borderRadius: 9999, marginTop: 8, marginLeft: "auto" }}>
+              <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999 }} />
+            </div>
+          </div>
+        } rule />
+      {(cl.issues.length > 0 || (cl.strengths ?? []).length > 0) && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <Mono style={labelStyle}>{t.analysisLayout.report.severity}</Mono>
+            <CountPill n={counts.critical} sev="critical" /><CountPill n={counts.major} sev="major" /><CountPill n={counts.minor} sev="minor" />
+          </div>
+          {(cl.strengths ?? []).length > 0 && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <Mono style={labelStyle}>{t.analysisLayout.report.inYourFavour}</Mono>
+              {(cl.strengths ?? []).map((s) => <StrengthPill key={s}>{s}</StrengthPill>)}
+            </div>
+          )}
+        </div>
+      )}
+      {cl.issues.length > 0 ? (
+        <Sheet>
+          {cl.issues.map((it, i) => <IssueItem key={i} issue={it} last={i === cl.issues.length - 1} />)}
+        </Sheet>
+      ) : (
+        <Sheet><div style={{ padding: "20px 24px", fontFamily: "var(--font-sans)", fontSize: 13.5, color: "var(--rc-muted)" }}>{clx.clean}</div></Sheet>
+      )}
+    </section>
+  );
+}
+
 function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick?: () => void }) {
   const { t } = useLanguage();
   const { seniority_analysis: sen, cv_tone: tone, correlation, audit, hidden_red_flags: flags } = result;
@@ -537,7 +646,25 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
   const healthColor = cv.score >= 80 ? "var(--rc-green)" : cv.score >= 60 ? "var(--rc-amber)" : "var(--rc-red)";
   const found = jd?.required_skills.filter((s) => s.found).length ?? 0;
   const total = jd?.required_skills.length ?? 0;
-  const sortedSkills = jd ? [...jd.required_skills].sort((a, b) => (a.found === b.found ? 0 : a.found ? 1 : -1)) : [];
+  // P1: match_strength (exact/partial/missing). Fall back to `found` on rows
+  // stored before P1 so the grid still renders + sorts.
+  const strengthOf = (s: { found: boolean; match_strength?: "exact" | "partial" | "missing" }): "exact" | "partial" | "missing" =>
+    s.match_strength ?? (s.found ? "exact" : "missing");
+  const STRENGTH_RANK = { missing: 0, partial: 1, exact: 2 } as const;
+  const sortedSkills = jd
+    ? [...jd.required_skills].sort((a, b) => STRENGTH_RANK[strengthOf(a)] - STRENGTH_RANK[strengthOf(b)])
+    : [];
+  const hasStrength = jd?.required_skills.some((s) => s.match_strength) ?? false;
+  const strengthCounts = {
+    exact: jd?.required_skills.filter((s) => strengthOf(s) === "exact").length ?? 0,
+    partial: jd?.required_skills.filter((s) => strengthOf(s) === "partial").length ?? 0,
+    missing: jd?.required_skills.filter((s) => strengthOf(s) === "missing").length ?? 0,
+  };
+  const STRENGTH_STYLE = {
+    exact: { c: "var(--rc-green)", bg: "var(--rc-green-bg)", bd: "var(--rc-green-border)" },
+    partial: { c: "var(--rc-amber)", bg: "var(--rc-amber-bg)", bd: "var(--rc-amber-border)" },
+    missing: { c: "var(--rc-red)", bg: "var(--rc-red-bg)", bd: "var(--rc-red-border)" },
+  } as const;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 52 }}>
@@ -665,26 +792,44 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
           <SecHead title={t.analysisLayout.flags.requirementsTitle}
             sub={t.analysisLayout.report.requirementsSub}
             meta={
-              <div style={{ textAlign: "right" }}>
-                <Mono style={{ fontSize: 26, fontWeight: 600, color: found === total ? "var(--rc-green)" : found >= total * 0.7 ? "var(--rc-amber)" : "var(--rc-red)" }}>
-                  {found}<span style={{ color: "var(--rc-hint)", fontWeight: 400 }}>/{total}</span>
-                </Mono>
-                <Eyebrow style={{ display: "block", marginTop: 2 }}>{t.analysisLayout.flags.matched}</Eyebrow>
-              </div>
+              hasStrength ? (
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <Mono style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-green)" }}>{strengthCounts.exact} {t.analysisLayout.flags.matchExact}</Mono>
+                  <span style={{ color: "var(--rc-border)" }}>·</span>
+                  <Mono style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-amber)" }}>{strengthCounts.partial} {t.analysisLayout.flags.matchPartial}</Mono>
+                  <span style={{ color: "var(--rc-border)" }}>·</span>
+                  <Mono style={{ fontSize: 12, fontWeight: 700, color: "var(--rc-red)" }}>{strengthCounts.missing} {t.analysisLayout.flags.matchMissing}</Mono>
+                </div>
+              ) : (
+                <div style={{ textAlign: "right" }}>
+                  <Mono style={{ fontSize: 26, fontWeight: 600, color: found === total ? "var(--rc-green)" : found >= total * 0.7 ? "var(--rc-amber)" : "var(--rc-red)" }}>
+                    {found}<span style={{ color: "var(--rc-hint)", fontWeight: 400 }}>/{total}</span>
+                  </Mono>
+                  <Eyebrow style={{ display: "block", marginTop: 2 }}>{t.analysisLayout.flags.matched}</Eyebrow>
+                </div>
+              )
             } rule />
           <Sheet style={{ padding: "8px 28px 24px" }}>
             <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 36 }}>
-              {sortedSkills.map((s, i) => (
+              {sortedSkills.map((s, i) => {
+                const st = strengthOf(s);
+                const sc = STRENGTH_STYLE[st];
+                return (
                 <div key={i} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "13px 0", borderBottom: "1px solid var(--rc-border)" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: s.found ? "var(--rc-text)" : "var(--rc-muted)", minWidth: 0 }}>{s.skill}</span>
-                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: s.found ? "var(--rc-green)" : "var(--rc-red)", flexShrink: 0 }}>{s.found ? "✓" : "✗"}</span>
+                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: st === "missing" ? "var(--rc-muted)" : "var(--rc-text)", minWidth: 0 }}>{s.skill}</span>
+                    {hasStrength ? (
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: sc.c, background: sc.bg, border: `1px solid ${sc.bd}`, borderRadius: R_SM, padding: "2px 7px", flexShrink: 0 }}>{{ exact: t.analysisLayout.flags.matchExact, partial: t.analysisLayout.flags.matchPartial, missing: t.analysisLayout.flags.matchMissing }[st]}</span>
+                    ) : (
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: s.found ? "var(--rc-green)" : "var(--rc-red)", flexShrink: 0 }}>{s.found ? "✓" : "✗"}</span>
+                    )}
                   </div>
                   {s.evidence && (
                     <Mono style={{ fontSize: 10, color: "var(--rc-hint)", lineHeight: 1.5 }}>{s.evidence}</Mono>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
             {jd.experience_gap && (
               <div style={{ marginTop: 20, paddingLeft: 18 }}>
@@ -854,6 +999,12 @@ export function AnalysisLayout({
   const cvBadge = result.audit.cv.issues.filter((i) => i.severity === "critical").length;
   const signalsBadge = (result.audit.github?.issues.length ?? 0) + (result.audit.linkedin?.issues.length ?? 0);
   const timelineBadge = result.cross_profile_inconsistencies?.filter((i) => i.severity === "critical").length ?? 0;
+  // P1: cover-letter audit is present only when a letter was provided (score
+  // is null otherwise). The §04 section + its nav entry appear only then, so
+  // the section numbers stay contiguous when there is no letter.
+  const coverLetter = result.audit.cover_letter;
+  const hasCoverLetter = !!coverLetter && (coverLetter.score !== null || coverLetter.issues.length > 0);
+  const coverBadge = coverLetter?.issues.filter((i) => i.severity === "critical").length ?? 0;
 
   // Role dossier meta string
   const jdMeta = jd ? [jd.seniority, jd.years_of_experience ? `${jd.years_of_experience} exp` : null, jd.office_location, jd.contract_type, jd.company_stage].filter(Boolean).join("   ·   ") : null;
@@ -877,17 +1028,29 @@ export function AnalysisLayout({
             <span style={{ width: 18, height: 1, background: "var(--rc-red)" }} />§ {n} · {title}
           </div>
         );
-        const TOC: { id: string; n: string; label: string; badge: number; premium?: boolean }[] = [
-          { id: "risk",      n: "01", label: t.riskMeter.eyebrow,             badge: 0 },
-          { id: "match",     n: "02", label: t.analysisLayout.tabs.match,     badge: matchBadge },
-          { id: "cv",        n: "03", label: t.analysisLayout.tabs.cv,        badge: cvBadge },
-          { id: "signals",   n: "04", label: t.analysisLayout.tabs.signals,   badge: signalsBadge },
-          { id: "timeline",  n: "05", label: t.analysisLayout.tabs.timeline,  badge: timelineBadge },
-          { id: "roadmap",   n: "06", label: t.analysisLayout.tabs.roadmap,   badge: 0 },
-          { id: "bridge",    n: "07", label: t.analysisLayout.tabs.bridge,    badge: 0, premium: true },
-          { id: "negotiate", n: "08", label: t.analysisLayout.tabs.negotiate, badge: 0, premium: true },
-          { id: "rewrite",   n: "09", label: t.analysisLayout.tabs.rewrite,   badge: 0, premium: true },
+        // Section order drives BOTH the nav numbers and the in-section headers,
+        // so they never drift. `cover` is only in the order when a letter exists.
+        const order: string[] = [
+          "risk", "match", "cv",
+          ...(hasCoverLetter ? ["cover"] : []),
+          "signals", "timeline", "roadmap", "bridge", "negotiate", "rewrite",
         ];
+        const secNo: Record<string, string> = Object.fromEntries(
+          order.map((id, i) => [id, String(i + 1).padStart(2, "0")]),
+        );
+        const NAV: Record<string, { label: string; badge: number; premium?: boolean }> = {
+          risk: { label: t.riskMeter.eyebrow, badge: 0 },
+          match: { label: t.analysisLayout.tabs.match, badge: matchBadge },
+          cv: { label: t.analysisLayout.tabs.cv, badge: cvBadge },
+          cover: { label: t.analysisLayout.tabs.cover, badge: coverBadge },
+          signals: { label: t.analysisLayout.tabs.signals, badge: signalsBadge },
+          timeline: { label: t.analysisLayout.tabs.timeline, badge: timelineBadge },
+          roadmap: { label: t.analysisLayout.tabs.roadmap, badge: 0 },
+          bridge: { label: t.analysisLayout.tabs.bridge, badge: 0, premium: true },
+          negotiate: { label: t.analysisLayout.tabs.negotiate, badge: 0, premium: true },
+          rewrite: { label: t.analysisLayout.tabs.rewrite, badge: 0, premium: true },
+        };
+        const TOC = order.map((id) => ({ id, n: secNo[id], ...NAV[id] }));
         const SEC: React.CSSProperties = { scrollMarginTop: 24, padding: "44px 0", borderTop: "1px solid var(--rc-border)" };
         return (
         <div className="rc-toc-grid" style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "230px 1fr", minWidth: 0 }}>
@@ -927,7 +1090,7 @@ export function AnalysisLayout({
 
             {/* §01 — Rejection risk */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
-              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo="01" pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
                   <MD>{result.technical_analysis.reasoning}</MD>
@@ -973,21 +1136,29 @@ export function AnalysisLayout({
 
             {/* §02 — Match */}
             <section id="sec-match" style={SEC}>
-              {secHead("02", t.analysisLayout.tabs.match)}
+              {secHead(secNo.match, t.analysisLayout.tabs.match)}
               {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} result={result} cvText={reconstructedCv ?? cvTextFormatted} />}
               <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
             </section>
 
             {/* §03 — CV */}
             <section id="sec-cv" style={SEC}>
-              {secHead("03", t.analysisLayout.tabs.cv)}
+              {secHead(secNo.cv, t.analysisLayout.tabs.cv)}
               <ParsedCvDisclosure text={cvTextFormatted} />
               <CVBody result={result} onIssueClick={() => focusDoc("cv", true)} />
             </section>
 
-            {/* §04 — Signals */}
+            {/* §04 — Cover letter (only when a letter was provided) */}
+            {hasCoverLetter && coverLetter && (
+              <section id="sec-cover" style={SEC}>
+                {secHead(secNo.cover, t.analysisLayout.tabs.cover)}
+                <CoverLetterBody cl={coverLetter} />
+              </section>
+            )}
+
+            {/* Signals */}
             <section id="sec-signals" style={SEC}>
-              {secHead("04", t.analysisLayout.tabs.signals)}
+              {secHead(secNo.signals, t.analysisLayout.tabs.signals)}
               <SignalsTab
                 github={result.audit.github}
                 linkedin={result.audit.linkedin}
@@ -1002,7 +1173,7 @@ export function AnalysisLayout({
 
             {/* §05 — Timeline */}
             <section id="sec-timeline" style={SEC}>
-              {secHead("05", t.analysisLayout.tabs.timeline)}
+              {secHead(secNo.timeline, t.analysisLayout.tabs.timeline)}
               <ConsistencyTab
                 inconsistencies={result.cross_profile_inconsistencies ?? []}
                 timelineEntries={result.timeline_entries ?? []}
@@ -1012,7 +1183,7 @@ export function AnalysisLayout({
             {/* §06 — Roadmap (derived from the deep fixes → skeleton while pending,
                 else the empty "no issues" state misleads during generation) */}
             <section id="sec-roadmap" style={SEC}>
-              {secHead("06", t.analysisLayout.tabs.roadmap)}
+              {secHead(secNo.roadmap, t.analysisLayout.tabs.roadmap)}
               {deepStatus === "pending" ? (
                 <ProjectRecommendationSkeleton />
               ) : (
@@ -1022,7 +1193,7 @@ export function AnalysisLayout({
 
             {/* §07 — Bridge project */}
             <section id="sec-bridge" style={SEC}>
-              {secHead("07", t.analysisLayout.tabs.bridge)}
+              {secHead(secNo.bridge, t.analysisLayout.tabs.bridge)}
               {result.project_recommendation ? (
                 hasShortlisted ? (
                   <BridgeTab result={result} analysisId={analysisId} completedSteps={completedSteps} />
@@ -1045,7 +1216,7 @@ export function AnalysisLayout({
 
             {/* §08 — Negotiation */}
             <section id="sec-negotiate" style={SEC}>
-              {secHead("08", t.analysisLayout.tabs.negotiate)}
+              {secHead(secNo.negotiate, t.analysisLayout.tabs.negotiate)}
               {hasHired ? (
                 <NegotiationTab result={result} analysisId={analysisId} isPremium={true} />
               ) : (
@@ -1057,7 +1228,7 @@ export function AnalysisLayout({
 
             {/* §09 — Rewrite */}
             <section id="sec-rewrite" style={SEC}>
-              {secHead("09", t.analysisLayout.tabs.rewrite)}
+              {secHead(secNo.rewrite, t.analysisLayout.tabs.rewrite)}
               {(hasShortlisted || premiumUnlocked) ? (
                 <RewriteTab
                   result={result}

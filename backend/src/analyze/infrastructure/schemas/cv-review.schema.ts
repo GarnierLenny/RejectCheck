@@ -33,8 +33,13 @@ const ISSUE_SCHEMA = {
     },
     what: { type: 'string' as const },
     why: { type: 'string' as const },
+    fix: {
+      type: 'string' as const,
+      description:
+        'One concrete, actionable correction for THIS issue. Imperative voice, ≤ 25 words. Reference the exact section or phrasing to change. Use a [placeholder] such as "[X]%" for any metric you cannot verify, never fabricate a number.',
+    },
   },
-  required: ['severity', 'category', 'what', 'why'],
+  required: ['severity', 'category', 'what', 'why', 'fix'],
 };
 
 const auditSchema = (description: string, maxIssues: number) => ({
@@ -122,7 +127,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
       cv_quality_notes: {
         type: 'object' as const,
         description:
-          'One-sentence explanation for each cv_quality sub-score strictly below 70. Omit a key entirely when the corresponding score is ≥ 70. ≤ 20 words per note — name the PRIMARY drag factor, be specific (e.g. "Most bullets use passive voice and lack measurable outcomes" not "Impact could be improved").',
+          'One specific sentence for EACH of the 6 cv_quality sub-scores, ≤ 20 words. For a score ≥ 70, name the single thing that makes it strong so the candidate knows what to preserve. For a score < 70, name the PRIMARY drag factor. Always concrete, e.g. "Most bullets use passive voice and lack measurable outcomes", never "Impact could be improved".',
         properties: {
           clarity: { type: 'string' as const },
           impact: { type: 'string' as const },
@@ -131,6 +136,14 @@ export const SUBMIT_CV_REVIEW_TOOL = {
           consistency: { type: 'string' as const },
           ats_format: { type: 'string' as const },
         },
+        required: [
+          'clarity',
+          'impact',
+          'hard_skills',
+          'soft_skills',
+          'consistency',
+          'ats_format',
+        ],
       },
 
       projected_profile: {
@@ -280,7 +293,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
                   description: 'Concrete fix. ≤ 20 words.',
                 },
               },
-              required: ['what', 'why'],
+              required: ['what', 'why', 'fix'],
             },
           },
         },

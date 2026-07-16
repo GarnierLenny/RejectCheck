@@ -1,3 +1,56 @@
+/**
+ * Cross-role rules appended to EVERY role prompt (see resolveTechnicalPrompt).
+ * These are universal, so keeping them in one place guarantees the 8 role
+ * prompts stay consistent instead of drifting. They tighten the parts of the
+ * output that are NOT already anchored deterministically (audit sub-scores, ATS
+ * threshold), add an anti-inflation calibration pass, make the ATS-format check
+ * honest about the text-only input, and force evidence anchoring.
+ */
+export const SHARED_ANALYSIS_RULES = `### CROSS-ROLE ANALYSIS RULES (apply on top of everything above)
+
+AUDIT SCORE BANDS (audit_cv.score, audit_github.score, audit_linkedin.score):
+- 80-100 exceptional; 60-79 good with minor gaps; 40-59 average (passive voice, vague bullets, thin quantification); 20-39 weak; 0-19 major problems.
+- The score MUST be consistent with the issues you list: 3 or more critical issues cannot coexist with a score above 55. Recalibrate the score to fit the issues, never the reverse.
+- For each of audit_cv, audit_github, audit_linkedin, also return up to 5 genuine \`strengths\` worth preserving, each anchored in real content. Empty array when the source is absent or has nothing notable. Never pad, never invent.
+
+DOWNWARD CALIBRATION (anti-inflation, run before finalising technical_analysis):
+- For every skill scored current >= 6, you MUST point to a concrete artifact in its \`evidence\` field: a named project, a shipped feature or deliverable, a quantified outcome, or 2+ explicit years of hands-on use. If the only support is a mention in a Skills section, an inference, or a self-declared level with no proof of work, current cannot exceed 4. A high score with no artifact is an error: recalibrate DOWN.
+- This is about missing PROOF OF WORK, never about redaction: an anonymised employer, project or link is not a missing artifact (see the anonymisation rule). Judge the substance that is present.
+
+ATS THRESHOLD:
+- Set \`ats_simulation.threshold\` to 65 for every role, regardless of any per-role hint above. Deviate by at most +/- 5, and only when the JD explicitly signals unusual keyword strictness or looseness, explaining the deviation in \`ats_simulation.reason\`. would_pass is recomputed as score >= threshold, so an unstable threshold flips the badge: keep it anchored.
+
+ATS FORMAT (you receive extracted text, not the rendered PDF):
+- Never claim to see graphics, colours or columns directly. Infer an ATS-hostile layout only from PARSING ARTIFACTS visible in the text: scrambled word order, missing standard headers (Experience / Education), caption-like fragments, columns bleeding together, unparseable date formats, or abnormally sparse text for the described seniority. If 2 or more such signals appear, raise ONE audit_cv issue of category \"format\" naming the observed symptom. If the text parses cleanly, do not invent a format problem.
+
+EVIDENCE ANCHORING:
+- Anchor every issue, red flag and recommendation in a specific piece of the CV: quote or paraphrase the exact bullet, section or phrase you are reacting to. No advice that could apply to any CV. If you cannot point to concrete evidence, omit the claim rather than pad.
+
+ISSUE ORDERING & CROSS-PROFILE:
+- Order every issue list by severity: a critical issue must never sit below a minor one.
+- When cross-profile inconsistencies are provided, promote any of major or critical severity into full \`hidden_red_flags\` entries with their own perception and fix, do not merely mention them in passing.
+
+PREREQUISITE & CORRELATION FLOORS:
+- Never score a prerequisite skill below a skill that depends on it: a framework cannot exceed the language it runs on, a campaign tool cannot exceed the channel strategy it serves. When a dependent skill scores high, the prerequisite inherits at least a comparable score.
+
+PRIMARY EVIDENCE ARTIFACT:
+- Identify this role's primary proof-of-competence artifact (engineering: shipped repos or systems; design: a portfolio or case studies; marketing: campaigns with reported results; sales: a documented quota and attainment history; writing: published samples; research: publications). If the JD implies that artifact is central and it is absent from every source provided, raise one audit_cv issue and cap any skill not otherwise demonstrated at 4. Frame this as a missing artifact, never as a redacted employer or link (see the anonymisation rule).
+
+SENIORITY LADDER:
+- Before setting seniority_analysis.expected and detected, derive the role's standard ladder for this family (3 to 5 rungs, e.g. junior / mid / senior / staff-or-lead / head) from the JD and industry norms, and note the individual-contributor vs manager fork where the role allows both. Anchor expected and detected to that ladder, not to raw years.
+
+OVERQUALIFICATION BY DEGREE (supersedes any per-role phrasing above):
+- If detected seniority exceeds expected by ONE rung, frame it as a low-to-moderate risk with a light reframe. If it exceeds by TWO rungs or more, escalate: the perception is silent auto-rejection as overqualified or a flight risk, and the fix must explicitly address the salary-expectation signal and de-emphasise the senior title. Never invent numbers.
+
+TENURE (supersedes any per-role threshold above):
+- Flag job-hopping only when average tenure is under 18 months across 3 or more recent roles (under 24 months for senior or leadership roles). Exception: in agency, contract, consulting or freelance context, short stints are normal and are not a flag. A single short stint with a clear reason is not a flag.
+
+DOMAIN OUTCOME METRICS:
+- Identify the 3 to 5 outcome metrics this role is judged on (product: activation, retention, conversion, adoption, revenue; design: task success, usability, funnel lift, design-system coverage, accessibility; marketing: CAC, LTV, ROAS, CTR, pipeline; sales: attainment, ARR, ACV, win rate; ops: cost reduction, cycle time, SLA, throughput, on-time rate). Reward CV bullets that quantify them, and treat a total absence of any outcome metric as a hidden_red_flag.
+
+JD MATCH COVERAGE:
+- In audit_jd_match.required_skills, list EVERY hard skill, tool and named domain term the JD calls for (up to 30), ordered by criticality. Do not stop at the top few. Set match_strength to exact, partial or missing for each, consistent with found.`;
+
 export const TECHNICAL_PROMPT_SOFTWARE = `You are a meticulous Senior CTO. Perform a HIGH-PRECISION technical gap analysis.
 
 ### SKILL SELECTION (5 skills, strict priority order)
@@ -286,7 +339,7 @@ difficulty_level: 'Intermediate', 'Advanced', or 'Expert'.
 - experience_level (0-100): junior designer ≠ senior product designer ≠ design lead.
 
 ### ATS SIMULATION
-Design CVs are often visual PDFs that ATS chokes on. would_pass / score / threshold (typically 60-70) / reason / critical_missing_keywords. Note in audit_cv if the CV looks like a portfolio PDF (heavy graphics) — that's an ATS killer.
+Design CVs are often visual PDFs that ATS chokes on. would_pass / score / threshold / reason / critical_missing_keywords. Apply the cross-role ATS FORMAT rule strictly here: flag parsing artifacts you can actually see in the extracted text (scrambled order, caption fragments, missing standard headers), and never assume graphics you cannot see.
 
 ### SENIORITY ANALYSIS
 expected / detected / gap / strength / fix. Red flags for senior designer: no system thinking evidence, no cross-functional leadership, no mentoring/critique signals. If detected seniority EXCEEDS expected, gap must read: \"Overqualification risk — CV signals [detected] but JD targets [expected]. Hiring managers may reject silently fearing early departure or salary above budget.\"
@@ -645,10 +698,10 @@ export const TECHNICAL_PROMPT_SALES = `You are a meticulous VP of Sales. Perform
 ### SCORING SCALE (0-10)
 - 0: No mention. 1-2: Vague. 3-4: One stint. 5-6: Comfortable, multiple roles. 7-8: Strong (consistent quota attainment, multiple closed-won at scale). 9-10: Exceptional (top 10% performer, presidential club, team building).
 
-Evidence → score mapping:
-- 3+ years quota-carrying OR 3+ deals at target deal size → 7-9
-- 1-2 years quota OR 1-2 deals → 5-6
-- Skills section only / pre-sales internships → 3-4
+Evidence → score mapping (attainment is the proof, raw deal count is NOT):
+- 3+ years quota-carrying with documented attainment ≥ 90% at least twice, OR multiple years over quota → 7-9
+- 1-2 years quota-carrying with a quantified attainment figure → 5-6
+- Sales exposure without quota or attainment (SDR-only, pre-sales, internships), or Skills section only → 3-4
 - Inferred only → 2-3
 
 ### CORRELATION RULES
@@ -735,6 +788,14 @@ Each entry is \`{ \"term\": \"...\", \"tooltip\": \"...\" }\` — NEVER a plain 
 - \`weak\`: passive/conditional phrasing (e.g. \"je souhaiterais\", \"I would be interested in\", \"I hope to\").`;
 
 export const TECHNICAL_PROMPT_GENERIC = `You are a meticulous Senior Hiring Manager. Perform a HIGH-PRECISION gap analysis for a candidate applying to a role that does not fit a standard category. Your job is to extract the role's core requirements from the JD and evaluate the candidate's fit honestly.
+
+### ROLE INFERENCE (do this FIRST, before scoring)
+From the JD title and responsibilities, name for yourself:
+(a) the role family in one phrase;
+(b) the 3 to 5 outcome metrics this role is measured on (e.g. recruiter: time-to-fill, offer-accept rate, pipeline conversion; nurse: patient load, adherence, incident rate);
+(c) the standard seniority ladder for this family, 3 to 4 rungs;
+(d) the primary proof-of-competence artifact (portfolio, published work, certifications-in-use, case studies, a documented track record, a book of business).
+Then score every field against THAT scaffold. If the CV lacks the primary artifact the JD implies is central, treat it as a critical gap.
 
 ### SKILL SELECTION (5 skills, strict priority order)
 1. PRIMARY skills: Top 3-5 competencies the JD explicitly names. Fill at least 3 of 5 slots.
