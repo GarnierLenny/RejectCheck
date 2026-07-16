@@ -793,19 +793,25 @@
   },
   "paywall": {
     "badge": "Scan Gratuit Terminé",
-    "getAccess": "Obtenir plus de crédits",
+    "getAccess": "Obtenir plus d'analyses",
     "backToAnalyzer": "Retour à l'analyseur",
     "freeCapTitle": "Vous avez utilisé vos analyses gratuites ce mois-ci",
-    "freeCapSubtitle": "Passez à 15 ou 30 analyses complètes par mois, ou achetez des analyses supplémentaires qui n'expirent jamais.",
+    "freeCapSubtitle": "Accès Hired complet pour une recherche : 45 jours, un seul paiement. Ou choisis un plan mensuel.",
     "subscriberCapTitle": "Plafond mensuel atteint",
-    "subscriberCapSubtitle": "Achetez des crédits à l'unité pour continuer — ils n'expirent jamais et votre quota mensuel se réinitialise le 1er.",
+    "subscriberCapSubtitle": "Achetez des crédits à l'unité pour continuer : ils n'expirent jamais et votre quota mensuel se réinitialise le 1er.",
     "buyCredits": "Acheter des crédits",
+    "safetyUpgrade": "Annulable à tout moment, sans engagement",
+    "safetyOneTime": "Paiement unique, sans abonnement",
+    "sprintCta": "Prendre le Sprint pass, 29€",
+    "seeMonthlyPlans": "Voir les plans mensuels",
+    "orBuyCredits": "ou acheter des crédits à l'unité",
+    "sprintSafety": "Paiement unique, remboursé si tu es embauché",
     "creditsExpiryNote": "Les crédits sont permanents et utilisés une fois votre quota mensuel atteint.",
     "guest": {
       "badge": "Limite gratuite atteinte",
       "title": "Continue avec un",
       "titleHighlight": "compte gratuit.",
-      "subtitle": "Tu as utilisé tes analyses anonymes gratuites. Un compte gratuit débloque 3 analyses complètes chaque mois — chaque rapport sauvegardé dans ton dashboard avec l'historique de score.",
+      "subtitle": "Tu as utilisé tes analyses anonymes gratuites. Un compte gratuit débloque 3 analyses complètes chaque mois. Chaque rapport sauvegardé dans ton dashboard avec l'historique de score.",
       "cta": "Créer un compte gratuit",
       "secondary": "Voir les offres",
       "noCard": "Gratuit à vie · Sans carte bancaire · 30 secondes",
@@ -813,7 +819,7 @@
         "3 analyses complètes / mois",
         "Toutes tes analyses sauvegardées",
         "Historique et évolution du score",
-        "Gratuit à vie — sans carte"
+        "Gratuit à vie, sans carte"
       ]
     }
   },
@@ -1161,11 +1167,13 @@
   },
   "pricing": {
     "badge": "Nos Offres",
-    "title": "Choisissez votre",
-    "titleHighlight": "carburant carrière.",
+    "title": "Arrêtez de deviner pourquoi vous êtes",
+    "titleHighlight": "rejeté.",
     "subtitle": "Du premier rejet à l'offre de vos rêves.",
     "subtitleLine2": "Prenez l'avantage que vous méritez.",
     "recommended": "Recommandé",
+    "safetyNote": "Annulable à tout moment, sans engagement",
+    "includedInHired": "Tout ceci est inclus dans Hired",
     "currentPlan": "Plan actuel",
     "downgradeToFree": "Passer au gratuit",
     "footer": {
@@ -1201,6 +1209,7 @@
         "period": "/mois",
         "description": "Pour les candidats sérieux qui itèrent jusqu'à la victoire.",
         "features": [
+          "Transformez chaque rejet en correction ciblée, et regardez votre score grimper",
           "Tout dans Gratuit",
           "15 analyses complètes / mois",
           "Analyses supplémentaires à tout moment, sans expiration",
@@ -1214,27 +1223,25 @@
       "hired": {
         "name": "RECRUTÉ",
         "period": "/mois",
-        "description": "Puissance maximale. Nous garantissons votre succès.",
+        "description": "L'arsenal complet pour ta recherche la plus importante.",
         "features": [
+          "Décroche l'offre, puis négocie-la à la hausse",
           "Tout dans PRÉSÉLECTIONNÉ",
           "30 analyses complètes / mois",
           "Analyses supplémentaires à tout moment, sans expiration",
-          "Score de fit via URL (bientôt)",
-          "Roadmaps RejectCheck (bientôt)",
           "Générateur de lettre de motivation",
           "Playbook de négociation (email contre-proposition + leviers)",
           "Positionnement salarial avec estimation d'impact par action",
-          "Générateur de message recruteur (bientôt)",
-          "Extension Chrome (bientôt)"
+          "Bientôt : roadmaps carrière, messages recruteur, extension Chrome"
         ],
         "cta": "Être recruté",
         "guarantee": "Recruté ? Nous remboursons votre mois en cours."
       }
     },
     "founder": {
-      "badge": "Offre Founder",
+      "badge": "Membre fondateur",
       "title": "Hired, verrouillé à vie",
-      "priceNote": "/mois · −50%, à vie",
+      "priceLockNote": "Bloqué à 19,99 €/mois à vie. Une fois les 100 places parties, c'est 39,99 €.",
       "subtitle": "Tout Hired, à moitié prix. Réservé aux 100 premiers membres.",
       "seatsLeft": "{remaining} places sur 100 restantes",
       "regularPrice": "Prix normal :",

@@ -45,6 +45,7 @@ function PricingContent() {
       checkoutPlan: null as 'shortlisted' | 'hired' | 'founder' | null,
       href: localePath('/analyze'),
       popular: false,
+      subsumed: false,
       guarantee: null as string | null,
       founderBadge: null as string | null,
       seatsLeft: null as string | null,
@@ -61,9 +62,12 @@ function PricingContent() {
       cta: t.pricing.plans.shortlisted.cta,
       checkoutPlan: 'shortlisted' as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
-      // Recommended tier — kept consistent with the landing page (§06), which
-      // highlights Shortlisted as the entry paid plan.
-      popular: true,
+      // Recommended tier, kept consistent with the landing page (§06). While the
+      // founder deal is live, Hired becomes the star: Shortlisted drops its
+      // emphasis and renders subsumed (still visible, no CTA) so the 3-col anchor
+      // and the 39.99€ reference survive.
+      popular: !founderActive,
+      subsumed: founderActive,
       guarantee: null as string | null,
       founderBadge: null as string | null,
       seatsLeft: null as string | null,
@@ -74,13 +78,14 @@ function PricingContent() {
       price: founderActive ? '19.99€' : '39.99€',
       regularPrice: founderActive ? '39.99€' : null,
       period: t.pricing.plans.hired.period,
-      description: t.pricing.plans.hired.description,
+      description: founderActive ? t.pricing.founder.priceLockNote : t.pricing.plans.hired.description,
       icon: <Trophy className="w-5 h-5 text-amber-500" />,
       features: t.pricing.plans.hired.features as string[],
       cta: founderActive ? t.pricing.founder.cta : t.pricing.plans.hired.cta,
       checkoutPlan: (founderActive ? 'founder' : 'hired') as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
       popular: false,
+      subsumed: false,
       guarantee: t.pricing.plans.hired.guarantee,
       founderBadge: founderActive ? t.pricing.founder.badge : null,
       seatsLeft: founderActive
@@ -90,12 +95,18 @@ function PricingContent() {
   ];
 
   // While the founder deal is live, Hired costs the same 19.99€ as Shortlisted
-  // but gives strictly more — so Shortlisted is dominated. Hide it until the
-  // founder seats run out (Hired reverts to 39.99€ and Shortlisted makes sense
-  // again).
-  const visiblePlans = plans.filter((plan) => !(founderActive && plan.id === 'shortlisted'));
-  const gridCols =
-    visiblePlans.length === 2 ? 'lg:grid-cols-2 max-w-[760px] mx-auto' : 'lg:grid-cols-3';
+  // but gives strictly more. Rather than removing Shortlisted (which floats the
+  // founder price against Free alone and kills the anchor), keep all three and
+  // render Shortlisted subsumed: it reads "included in Hired", the 39.99€ anchor
+  // survives, and Hired reads as the better card, not the only card.
+  const visiblePlans = plans;
+  const gridCols = 'lg:grid-cols-3';
+
+  // Top-of-funnel denominator: pairs with the server-side subscription_started /
+  // sprint_pass_purchased events to read pricing → checkout → conversion.
+  useEffect(() => {
+    posthog.capture("pricing_viewed");
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("error") === "true") {
@@ -174,10 +185,12 @@ function PricingContent() {
           {visiblePlans.map((plan) => (
             <div
               key={plan.id}
-              className={`group relative flex flex-col p-8 rounded-[24px] transition-all duration-500 hover:-translate-y-1 border ${
-                plan.popular
-                  ? 'bg-white border-rc-red/20 shadow-[0_20px_50px_rgba(201,58,57,0.12)] scale-[1.02] z-10'
-                  : 'bg-rc-surface/50 border-rc-border hover:bg-white hover:shadow-xl hover:border-rc-red/10'
+              className={`group relative flex flex-col p-8 rounded-[24px] transition-all duration-500 border ${
+                plan.subsumed
+                  ? 'bg-rc-surface/30 border-rc-border/60 opacity-70'
+                  : plan.popular
+                    ? 'bg-white border-rc-red/20 shadow-[0_20px_50px_rgba(201,58,57,0.12)] scale-[1.02] z-10 hover:-translate-y-1'
+                    : 'bg-rc-surface/50 border-rc-border hover:bg-white hover:shadow-xl hover:border-rc-red/10 hover:-translate-y-1'
               }`}
             >
               {plan.popular && (
@@ -254,7 +267,11 @@ function PricingContent() {
               </div>
 
               <div className="mt-auto">
-                {plan.href ? (
+                {plan.subsumed ? (
+                  <div className="flex items-center justify-center w-full py-4 rounded-xl border border-rc-border/60 text-rc-hint text-[13px] font-medium text-center">
+                    {t.pricing.includedInHired}
+                  </div>
+                ) : plan.href ? (
                   <Link
                     href={plan.href}
                     className={`flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase border transition-all duration-300 font-bold no-underline ${
@@ -273,7 +290,7 @@ function PricingContent() {
                   <button
                     onClick={() => plan.checkoutPlan && handlePaidPlan(plan.checkoutPlan)}
                     disabled={loadingPlan !== null || activePlan === plan.id}
-                    className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase transition-all duration-300 group/btn font-bold cursor-pointer ${
+                    className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl text-[14px] font-semibold transition-all duration-300 group/btn cursor-pointer ${
                       activePlan === plan.id
                         ? 'bg-rc-bg text-rc-hint border border-rc-border cursor-default'
                         : plan.popular
@@ -293,6 +310,11 @@ function PricingContent() {
                     )}
                   </button>
                 )}
+                {plan.checkoutPlan && !plan.subsumed && activePlan !== plan.id && (
+                  <p className="mt-3 text-center text-[11px] text-rc-hint">
+                    {t.pricing.safetyNote}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -302,7 +324,7 @@ function PricingContent() {
           <span>Cancel anytime</span>
           <span className="w-1 h-1 rounded-full bg-rc-border" />
           <span>
-            Hired? <strong className="text-rc-muted font-semibold">We&apos;ll refund your last month</strong> — once, within 30 days, on proof of hire.
+            Hired? <strong className="text-rc-muted font-semibold">We&apos;ll refund your last month</strong>: once, within 30 days, on proof of hire.
           </span>
         </div>
 

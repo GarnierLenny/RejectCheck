@@ -793,19 +793,25 @@
   },
   "paywall": {
     "badge": "Free Scan Complete",
-    "getAccess": "Get More Credits",
+    "getAccess": "Get more analyses",
     "backToAnalyzer": "Back to Analyzer",
     "freeCapTitle": "You've used your free analyses this month",
-    "freeCapSubtitle": "Upgrade for 15 or 30 full analyses per month, or buy extra runs that never expire.",
+    "freeCapSubtitle": "Get full Hired access for one search: 45 days, one payment. Or pick a monthly plan.",
     "subscriberCapTitle": "Monthly cap reached",
-    "subscriberCapSubtitle": "Buy one-time credits to keep going — they never expire and your monthly allowance resets on the 1st.",
+    "subscriberCapSubtitle": "Buy one-time credits to keep going: they never expire and your monthly allowance resets on the 1st.",
     "buyCredits": "Buy credits",
+    "safetyUpgrade": "Cancel anytime, no commitment",
+    "safetyOneTime": "One-time payment, no subscription",
+    "sprintCta": "Get the Sprint pass, 29€",
+    "seeMonthlyPlans": "See monthly plans",
+    "orBuyCredits": "or buy one-off credits",
+    "sprintSafety": "One-time payment, refunded if you get hired",
     "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached.",
     "guest": {
       "badge": "Free limit reached",
       "title": "Keep going with a",
       "titleHighlight": "free account.",
-      "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month — every report saved to your dashboard with score history.",
+      "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month. Every report saved to your dashboard with score history.",
       "cta": "Create a free account",
       "secondary": "See plans",
       "noCard": "Free forever · No credit card · 30 seconds",
@@ -813,7 +819,7 @@
         "3 full analyses / month",
         "Every analysis saved",
         "Score history & evolution",
-        "Free forever — no card"
+        "Free forever, no card"
       ]
     }
   },
@@ -1161,11 +1167,13 @@
   },
   "pricing": {
     "badge": "Pricing Plans",
-    "title": "Choose your",
-    "titleHighlight": "career fuel.",
+    "title": "Stop guessing why you got",
+    "titleHighlight": "rejected.",
     "subtitle": "From first rejection to your dream offer.",
     "subtitleLine2": "Get the edge you deserve.",
     "recommended": "Recommended",
+    "safetyNote": "Cancel anytime, no commitment",
+    "includedInHired": "Everything here is included in Hired",
     "currentPlan": "Current Plan",
     "downgradeToFree": "Downgrade to Free",
     "footer": {
@@ -1201,6 +1209,7 @@
         "period": "/month",
         "description": "For serious candidates who iterate until they win.",
         "features": [
+          "Turn every rejection into a targeted fix, and watch your score climb",
           "Everything in Free",
           "15 full analyses / month",
           "Buy extra analyses anytime, never expires",
@@ -1214,26 +1223,25 @@
       "hired": {
         "name": "HIRED",
         "period": "/month",
-        "description": "Maximum firepower. We guarantee your success.",
+        "description": "The full arsenal for your most important search.",
         "features": [
+          "Land the offer, then negotiate it up",
           "Everything in SHORTLISTED",
           "30 full analyses / month",
           "Buy extra analyses anytime, never expires",
-          "RejectCheck Roadmaps (coming soon)",
           "Cover Letter Generator",
           "Negotiation Playbook (counter-offer email + leverage points)",
           "Salary positioning chart with per-action impact estimates",
-          "Recruiter Message Generator (coming soon)",
-          "Chrome Extension (coming soon)"
+          "Coming soon: career roadmaps, recruiter messages, Chrome extension"
         ],
         "cta": "Get Hired",
         "guarantee": "Hired? We refund your current month."
       }
     },
     "founder": {
-      "badge": "Founder Deal",
+      "badge": "Founding member",
       "title": "Get Hired, locked in for life",
-      "priceNote": "/mo · −50%, forever",
+      "priceLockNote": "Locked at €19.99/mo for life. When the 100 seats are gone, it's €39.99.",
       "subtitle": "Everything in Hired, at half the price. Reserved for the first 100 members.",
       "seatsLeft": "{remaining} of 100 seats left",
       "regularPrice": "Regular price:",

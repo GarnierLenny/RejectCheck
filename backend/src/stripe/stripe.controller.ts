@@ -19,6 +19,7 @@ import { CreateCheckoutSessionUseCase } from './application/create-checkout-sess
 import { GetFounderAvailabilityUseCase } from './application/get-founder-availability.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
+import { CreateSprintPassCheckoutSessionUseCase } from './application/create-sprint-pass-checkout-session.use-case';
 import { CreatePortalSessionUseCase } from './application/create-portal-session.use-case';
 import { CheckSubscriptionUseCase } from './application/check-subscription.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
@@ -31,6 +32,7 @@ export class StripeController {
     private readonly founderAvailability: GetFounderAvailabilityUseCase,
     private readonly createCreditsCheckout: CreateCreditsCheckoutSessionUseCase,
     private readonly createAnalysisUnlockCheckout: CreateAnalysisUnlockCheckoutSessionUseCase,
+    private readonly createSprintPassCheckout: CreateSprintPassCheckoutSessionUseCase,
     private readonly createPortal: CreatePortalSessionUseCase,
     private readonly checkSubscription: CheckSubscriptionUseCase,
     private readonly getSubscription: GetSubscriptionUseCase,
@@ -122,6 +124,27 @@ export class StripeController {
     return this.createAnalysisUnlockCheckout.execute({
       email,
       analysisId: body?.analysisId,
+      locale: body?.locale,
+    });
+  }
+
+  /**
+   * Protected — one-time Sprint pass Checkout (mode=payment): grants hired-tier
+   * access for a bounded window. Email comes from the JWT (never the body) so
+   * the webhook can trust `customer_details.email`. Already-premium users don't
+   * need it, so we no-op with url:null (the frontend hides the CTA for them too).
+   */
+  @UseGuards(SupabaseGuard)
+  @Post('sprint-pass/checkout')
+  async createSprintPassCheckoutSession(
+    @AuthEmail() email: string,
+    @Body() body: { locale?: string },
+  ) {
+    if (await this.checkSubscription.isPremium(email)) {
+      return { url: null };
+    }
+    return this.createSprintPassCheckout.execute({
+      email,
       locale: body?.locale,
     });
   }

@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "web"],
+      "runtimeExecutable": "/Users/lenny.garnier/.nvm/versions/node/v22.22.2/bin/node",
+      "runtimeArgs": ["web/node_modules/next/dist/bin/next", "dev", "web", "--webpack"],
       "port": 3000,
       "autoPort": true
     }
