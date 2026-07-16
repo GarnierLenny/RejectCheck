@@ -33,6 +33,13 @@ enum SubscriptionStatus {
 enum SubscriptionProvider {
   stripe
   revenuecat
+  // One-time "Sprint pass": a time-boxed hired-tier grant. Kept as its own
+  // provider so its row never collides with (or is overwritten by) a recurring
+  // stripe subscription on the (email, provider) unique key, and so the
+  // recurring subscription.updated/deleted webhooks (which match by
+  // stripeCustomerId + provider=stripe) never touch it. currentPeriodEnd holds
+  // the pass expiry, so isActive() expires it with no extra column.
+  stripe_sprint
 }
 
 enum ApplicationStatus {

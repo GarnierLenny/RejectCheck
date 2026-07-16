@@ -4,6 +4,7 @@ import type { StripeWebhookParser } from '../ports/webhook-parser';
 import { HandleCheckoutCompletedUseCase } from './handle-checkout-completed.use-case';
 import { HandleCreditPurchaseUseCase } from './handle-credit-purchase.use-case';
 import { HandleAnalysisUnlockUseCase } from './handle-analysis-unlock.use-case';
+import { HandleSprintPassCreatedUseCase } from './handle-sprint-pass-created.use-case';
 import { HandleSubscriptionUpdatedUseCase } from './handle-subscription-updated.use-case';
 import { HandleSubscriptionDeletedUseCase } from './handle-subscription-deleted.use-case';
 
@@ -26,6 +27,7 @@ export class HandleWebhookUseCase {
     private readonly checkoutCompleted: HandleCheckoutCompletedUseCase,
     private readonly creditPurchase: HandleCreditPurchaseUseCase,
     private readonly analysisUnlock: HandleAnalysisUnlockUseCase,
+    private readonly sprintPass: HandleSprintPassCreatedUseCase,
     private readonly subscriptionUpdated: HandleSubscriptionUpdatedUseCase,
     private readonly subscriptionDeleted: HandleSubscriptionDeletedUseCase,
   ) {}
@@ -40,9 +42,11 @@ export class HandleWebhookUseCase {
           metadata?: { type?: string } | null;
         };
         if (session.mode === 'payment') {
-          // Both one-time flows are mode:'payment' — discriminate on type.
+          // All one-time flows are mode:'payment' — discriminate on type.
           if (session.metadata?.type === 'analysis_unlock') {
             await this.analysisUnlock.execute(event.data.object);
+          } else if (session.metadata?.type === 'sprint_pass') {
+            await this.sprintPass.execute(event.data.object);
           } else {
             await this.creditPurchase.execute(event.data.object);
           }

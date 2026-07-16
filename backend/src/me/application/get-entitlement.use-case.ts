@@ -4,7 +4,14 @@ import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
 import { MONTHLY_CAPS, type Plan } from '../../analyze/domain/quota.policy';
 
-export type EntitlementSource = 'stripe' | 'revenuecat' | 'none';
+// 'stripe_sprint' = a one-time Sprint pass (time-boxed hired grant). Distinct
+// from 'stripe' so clients can tell it apart from a recurring subscription
+// (e.g. a Sprint pass has no billing portal to manage).
+export type EntitlementSource =
+  | 'stripe'
+  | 'stripe_sprint'
+  | 'revenuecat'
+  | 'none';
 
 export type Entitlement = {
   plan: Plan;

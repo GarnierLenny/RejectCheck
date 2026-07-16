@@ -338,6 +338,36 @@ export function useBuyCredits() {
   });
 }
 
+/**
+ * Buys a Sprint pass via one-time Stripe Checkout: a bounded window of
+ * hired-tier access for a single job search. Email is taken from the Supabase
+ * JWT server-side; we just pass the locale for the return URLs. Redirects to
+ * Stripe on success. `unavailable` (or a null url) means the deal isn't
+ * configured yet (STRIPE_SPRINT_PRICE_ID unset), so the caller falls back.
+ */
+export function useCreateSprintPassCheckout() {
+  const { session } = useAuth();
+  const token = session?.access_token;
+
+  return useMutation({
+    mutationFn: ({ locale }: { locale?: string } = {}) =>
+      apiFetch<{ url: string | null; unavailable?: boolean }>(
+        '/api/stripe/sprint-pass/checkout',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(token!),
+          },
+          body: JSON.stringify({ locale }),
+        },
+      ),
+    onSuccess: ({ url }) => {
+      if (url) window.location.href = url;
+    },
+  });
+}
+
 export function useAddSavedCv() {
   const { session } = useAuth();
   const token = session?.access_token;

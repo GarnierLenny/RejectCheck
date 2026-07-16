@@ -97,6 +97,12 @@ function PricingContent() {
   const gridCols =
     visiblePlans.length === 2 ? 'lg:grid-cols-2 max-w-[760px] mx-auto' : 'lg:grid-cols-3';
 
+  // Top-of-funnel denominator: pairs with the server-side subscription_started /
+  // sprint_pass_purchased events to read pricing → checkout → conversion.
+  useEffect(() => {
+    posthog.capture("pricing_viewed");
+  }, []);
+
   useEffect(() => {
     if (searchParams.get("error") === "true") {
       toast.error("Payment cancelled. You can try again when you're ready.", { duration: 5000 });
@@ -336,7 +342,7 @@ function PricingContent() {
                   <button
                     onClick={() => plan.checkoutPlan && handlePaidPlan(plan.checkoutPlan)}
                     disabled={loadingPlan !== null || activePlan === plan.id}
-                    className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase transition-all duration-300 group/btn font-bold cursor-pointer ${
+                    className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl text-[14px] font-semibold transition-all duration-300 group/btn cursor-pointer ${
                       activePlan === plan.id
                         ? 'bg-rc-bg text-rc-hint border border-rc-border cursor-default'
                         : plan.popular
@@ -355,6 +361,11 @@ function PricingContent() {
                       <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
                     )}
                   </button>
+                )}
+                {plan.checkoutPlan && activePlan !== plan.id && (
+                  <p className="mt-3 text-center text-[11px] text-rc-hint">
+                    {t.pricing.safetyNote}
+                  </p>
                 )}
               </div>
             </div>

@@ -59,7 +59,11 @@ export class PrismaSubscriptionRepository implements SubscriptionRepository {
     patch: SubscriptionRefresh,
   ): Promise<void> {
     await this.prisma.subscription.updateMany({
-      where: { stripeCustomerId },
+      // Recurring stripe rows only. A Sprint pass (provider='stripe_sprint') can
+      // share a stripeCustomerId with a later recurring subscription, so this
+      // guard stops a subscription.updated renewal from overwriting the pass's
+      // expiry/plan.
+      where: { stripeCustomerId, provider: 'stripe' },
       data: {
         status: patch.status,
         currentPeriodEnd: patch.currentPeriodEnd,
@@ -71,8 +75,10 @@ export class PrismaSubscriptionRepository implements SubscriptionRepository {
   }
 
   async cancelByCustomerId(stripeCustomerId: string): Promise<void> {
+    // Recurring stripe rows only — a subscription.deleted event must never
+    // cancel a still-valid Sprint pass that reused the same Stripe customer.
     await this.prisma.subscription.updateMany({
-      where: { stripeCustomerId },
+      where: { stripeCustomerId, provider: 'stripe' },
       data: { status: SubscriptionStatus.canceled },
     });
   }

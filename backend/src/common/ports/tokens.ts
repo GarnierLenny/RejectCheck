@@ -3,3 +3,4 @@
  * module-local ports stay in their own `ports/tokens.ts`.
  */
 export const SUBSCRIPTION_GATE = Symbol('SubscriptionGate');
+export const ANALYTICS_TRACKER = Symbol('AnalyticsTracker');

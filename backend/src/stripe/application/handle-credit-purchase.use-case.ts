@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
 import { CREDIT_PACK_AMOUNTS } from '../../credits/domain/credit-packs';
+import { ANALYTICS_TRACKER } from '../../common/ports/tokens';
+import type { AnalyticsTracker } from '../../common/ports/analytics.tracker';
 
 /**
  * Handles `checkout.session.completed` events whose `mode === 'payment'`
@@ -44,6 +46,7 @@ export class HandleCreditPurchaseUseCase {
   constructor(
     @Inject(CREDIT_LEDGER_REPOSITORY)
     private readonly creditLedger: CreditLedgerRepository,
+    @Inject(ANALYTICS_TRACKER) private readonly analytics: AnalyticsTracker,
   ) {}
 
   async execute(rawSession: unknown): Promise<void> {
@@ -114,6 +117,12 @@ export class HandleCreditPurchaseUseCase {
       amount: quantityFromMetadata,
       source: 'purchase',
       referenceId: paymentIntentId,
+    });
+
+    this.analytics.capture({
+      event: 'credit_pack_purchased',
+      distinctId: email,
+      properties: { quantity: quantityFromMetadata },
     });
 
     this.logger.log(

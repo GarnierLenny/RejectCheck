@@ -32,7 +32,7 @@ export type AnalysisLayoutProps = {
   deepStatus: "pending" | "ready";
   isPremium: boolean;
   userPlan?: "free" | "shortlisted" | "hired";
-  /** This specific analysis was unlocked via a one-time purchase (€4.99). */
+  /** This specific analysis was unlocked via a one-time purchase (€2.99). */
   premiumUnlocked?: boolean;
   /** Starts the one-time "unlock the rewrite for this CV" checkout. */
   onUnlockRewrite?: () => void;

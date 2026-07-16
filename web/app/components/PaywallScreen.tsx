@@ -13,6 +13,7 @@ import {
   Coins,
 } from "lucide-react";
 import { useLanguage } from "../../context/language";
+import { useCreateSprintPassCheckout } from "../../lib/mutations";
 import posthog from "posthog-js";
 import { BuyCreditsModal } from "./BuyCreditsModal";
 
@@ -40,7 +41,8 @@ export function PaywallScreen({
   mode = "guest_limit",
 }: PaywallScreenProps) {
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
-  const { t, localePath } = useLanguage();
+  const { t, localePath, locale } = useLanguage();
+  const sprintPass = useCreateSprintPassCheckout();
 
   const isGuest = mode === "guest_limit";
   const g = t.paywall.guest;
@@ -109,7 +111,7 @@ export function PaywallScreen({
                       });
                       setIsCreditsModalOpen(true);
                     }}
-                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 font-bold"
+                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white text-[14px] rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 font-bold"
                   >
                     <Coins className="mr-2 w-4 h-4" />
                     {t.paywall.buyCredits}
@@ -134,7 +136,7 @@ export function PaywallScreen({
                         source: "paywall_guest_limit",
                       })
                     }
-                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 no-underline font-bold"
+                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white text-[14px] rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 no-underline font-bold"
                   >
                     {g.cta}{" "}
                     <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -148,29 +150,62 @@ export function PaywallScreen({
                 </>
               ) : (
                 <>
-                  <Link
-                    href={localePath("/pricing")}
-                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white font-mono text-[11px] tracking-widest uppercase rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 no-underline font-bold"
-                  >
-                    {t.paywall.getAccess}{" "}
-                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
                   <button
                     type="button"
+                    disabled={sprintPass.isPending}
                     onClick={() => {
-                      posthog.capture("credit_purchase_started", {
+                      posthog.capture("sprint_checkout_started", {
                         source: "paywall_free_cap",
                       });
-                      setIsCreditsModalOpen(true);
+                      sprintPass.mutate(
+                        { locale },
+                        {
+                          onSuccess: (data) => {
+                            // Deal not configured yet (STRIPE_SPRINT_PRICE_ID
+                            // unset) → send to the plans page, not a dead click.
+                            if (!data.url)
+                              window.location.href = localePath("/pricing");
+                          },
+                        },
+                      );
                     }}
-                    className="inline-flex items-center justify-center px-8 py-4 border border-rc-border text-rc-muted hover:text-rc-text hover:bg-rc-bg transition-all duration-300 font-mono text-[11px] tracking-widest uppercase rounded-xl font-bold"
+                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white text-[14px] rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 font-bold disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    <Coins className="mr-2 w-4 h-4" />
-                    {t.paywall.buyCredits}
+                    {sprintPass.isPending
+                      ? t.common.processing
+                      : t.paywall.sprintCta}{" "}
+                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </button>
+                  <Link
+                    href={localePath("/pricing")}
+                    className="inline-flex items-center justify-center px-8 py-4 border border-rc-border text-rc-muted hover:text-rc-text hover:bg-rc-bg transition-all duration-300 font-mono text-[11px] tracking-widest uppercase rounded-xl no-underline font-bold"
+                  >
+                    {t.paywall.seeMonthlyPlans}
+                  </Link>
                 </>
               )}
             </div>
+
+            {mode === "free_cap" && (
+              <div className="flex flex-col items-center gap-1.5 mb-2">
+                <p className="text-[12px] text-rc-hint">{t.paywall.sprintSafety}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    posthog.capture("credit_purchase_started", {
+                      source: "paywall_free_cap",
+                    });
+                    setIsCreditsModalOpen(true);
+                  }}
+                  className="text-[12px] text-rc-hint underline hover:text-rc-text transition-colors"
+                >
+                  {t.paywall.orBuyCredits}
+                </button>
+              </div>
+            )}
+            {mode === "subscriber_cap" && (
+              <p className="text-[12px] text-rc-hint mb-2">{t.paywall.safetyOneTime}</p>
+            )}
 
             {isGuest && (
               <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-rc-hint mb-12 font-bold">

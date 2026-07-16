@@ -82,7 +82,14 @@ describe('sanitizeAnalyzeFabrication', () => {
     expect(result.bullet_reviews!.bullets[0].rewrite).toBe(
       'Built APIs serving [X]M requests/day',
     );
-    expect(result.ats_critical_missing_keywords![0].insertion!.after).toBe(
+    // ats_critical_missing_keywords lives on the merged/deep portion, not the
+    // top-level AnalyzeResponse type — read it structurally, mirroring the fn.
+    const ats = (
+      result as unknown as {
+        ats_critical_missing_keywords: Array<{ insertion: { after: string } }>;
+      }
+    ).ats_critical_missing_keywords;
+    expect(ats[0].insertion.after).toBe(
       'Deployed [X] microservices on Kubernetes',
     );
   });

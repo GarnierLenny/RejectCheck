@@ -17,6 +17,7 @@ import { PublicProfileModule } from './public-profile/public-profile.module';
 import { SocialModule } from './social/social.module';
 import { XpModule } from './xp/xp.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AnalyticsModule } from './common/analytics/analytics.module';
 import { validateEnv } from './common/env.schema';
 import { AppThrottlerModule } from './common/throttler.module';
 
@@ -43,6 +44,7 @@ import { AppThrottlerModule } from './common/throttler.module';
     SocialModule,
     XpModule,
     NotificationsModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

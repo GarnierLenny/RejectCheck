@@ -19,12 +19,14 @@ import { CreateCheckoutSessionUseCase } from './application/create-checkout-sess
 import { GetFounderAvailabilityUseCase } from './application/get-founder-availability.use-case';
 import { CreateCreditsCheckoutSessionUseCase } from './application/create-credits-checkout-session.use-case';
 import { CreateAnalysisUnlockCheckoutSessionUseCase } from './application/create-analysis-unlock-checkout-session.use-case';
+import { CreateSprintPassCheckoutSessionUseCase } from './application/create-sprint-pass-checkout-session.use-case';
 import { CreatePortalSessionUseCase } from './application/create-portal-session.use-case';
 import { CheckSubscriptionUseCase } from './application/check-subscription.use-case';
 import { GetSubscriptionUseCase } from './application/get-subscription.use-case';
 import { HandleCheckoutCompletedUseCase } from './application/handle-checkout-completed.use-case';
 import { HandleCreditPurchaseUseCase } from './application/handle-credit-purchase.use-case';
 import { HandleAnalysisUnlockUseCase } from './application/handle-analysis-unlock.use-case';
+import { HandleSprintPassCreatedUseCase } from './application/handle-sprint-pass-created.use-case';
 import { HandleSubscriptionUpdatedUseCase } from './application/handle-subscription-updated.use-case';
 import { HandleSubscriptionDeletedUseCase } from './application/handle-subscription-deleted.use-case';
 import { HandleWebhookUseCase } from './application/handle-webhook.use-case';
@@ -49,12 +51,14 @@ import { PremiumGuard } from './guards/premium.guard';
     GetFounderAvailabilityUseCase,
     CreateCreditsCheckoutSessionUseCase,
     CreateAnalysisUnlockCheckoutSessionUseCase,
+    CreateSprintPassCheckoutSessionUseCase,
     CreatePortalSessionUseCase,
     CheckSubscriptionUseCase,
     GetSubscriptionUseCase,
     HandleCheckoutCompletedUseCase,
     HandleCreditPurchaseUseCase,
     HandleAnalysisUnlockUseCase,
+    HandleSprintPassCreatedUseCase,
     HandleSubscriptionUpdatedUseCase,
     HandleSubscriptionDeletedUseCase,
     HandleWebhookUseCase,

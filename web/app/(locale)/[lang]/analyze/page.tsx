@@ -261,7 +261,7 @@ function AnalyzeContent() {
     { pollIntervalMs: shouldPoll ? 5000 : undefined },
   );
   // One-time "unlock this CV" purchase: the CV rewrite is available if the user
-  // is subscribed OR this specific analysis was unlocked (€4.99 one-off).
+  // is subscribed OR this specific analysis was unlocked (€2.99 one-off).
   const premiumUnlocked = savedAnalysis?.premiumUnlocked ?? false;
   const canUseRewrite = isPremium || premiumUnlocked;
 
@@ -851,7 +851,7 @@ function AnalyzeContent() {
     }
   }
 
-  // One-time unlock of the CV rewrite for THIS analysis (€4.99, no subscription).
+  // One-time unlock of the CV rewrite for THIS analysis (€2.99, no subscription).
   // Logged-out users are sent to signup first — their anonymous analysis attaches
   // to the new account (pending-claim, see AuthProvider), then they can unlock it.
   const [isUnlocking, setIsUnlocking] = useState(false);
