@@ -782,7 +782,18 @@
     },
     "contextVsJob": "vs this job",
     "contextCv": "this CV overall",
-    "computing": "Computing score…"
+    "computing": "Computing score…",
+    "strength": {
+      "eyebrow": "CV strength",
+      "verdict": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "bands": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "lede": {
+        "weak": "Big gaps to close before this competes.",
+        "decent": "Solid base, a few fixes will sharpen it.",
+        "strong": "Little left to fix that we can see."
+      },
+      "contextCv": "this CV overall"
+    }
   },
   "resultNudge": {
     "eyebrow": "Free account",

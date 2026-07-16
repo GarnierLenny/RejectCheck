@@ -782,7 +782,18 @@
     },
     "contextVsJob": "vs cette offre",
     "contextCv": "ce CV en général",
-    "computing": "Calcul du score…"
+    "computing": "Calcul du score…",
+    "strength": {
+      "eyebrow": "Solidité du CV",
+      "verdict": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
+      "bands": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
+      "lede": {
+        "weak": "Des écarts importants à combler avant que ce CV soit compétitif.",
+        "decent": "Bonne base : quelques correctifs l'affûteront.",
+        "strong": "Peu de choses à corriger, de ce qu'on voit."
+      },
+      "contextCv": "ce CV en général"
+    }
   },
   "resultNudge": {
     "eyebrow": "Compte gratuit",

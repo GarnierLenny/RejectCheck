@@ -20,16 +20,23 @@ const PILL: Record<Band, string> = {
 const SOLID: Record<Band, string> = { low: "bg-rc-green", mid: "bg-rc-amber", high: "bg-rc-red" };
 
 /**
- * Unified rejection-risk hero (design variant C). Used by both result screens.
- * `value` is the rejection-risk score (0 = low risk, 100 = high risk). For
- * cv-review the caller passes `100 − cv_quality.overall`.
+ * Unified score hero (design variant C). Used by both result screens.
  *
- * High = bad = red is made unmistakable by the 3-zone linear meter + the
- * needle landing in the matching zone — no more polarity confusion.
+ * Two polarities, one meter:
+ *  - `metric="risk"` (default, vs-JD): `value` is the rejection-risk score
+ *    (0 = low risk = green on the LEFT, 100 = high risk = red on the RIGHT).
+ *  - `metric="strength"` (CV audit): `value` is the CV-strength score (higher =
+ *    better). The colour polarity and the 3-zone track are flipped so a strong
+ *    CV lands in green on the RIGHT — a "rejection risk" headline makes no sense
+ *    with no job attached, so the audit shows the strength directly instead.
+ *
+ * Polarity is made unmistakable by colour + the needle landing in the matching
+ * zone, so high-is-good and high-is-bad never get confused.
  */
 export function RiskMeter({
   value,
   mode,
+  metric = "risk",
   context,
   lede,
   sectionNo = "01",
@@ -38,6 +45,8 @@ export function RiskMeter({
   value: number;
   /** Picks the default eyebrow context ("vs cette offre" / "ce CV en général"). */
   mode?: "vsjob" | "cv";
+  /** "risk" = high is bad (vs-JD). "strength" = high is good (CV audit). */
+  metric?: "risk" | "strength";
   /** Overrides the context string derived from `mode`. */
   context?: string;
   /** Verdict sentence; falls back to a generic per-band line. */
@@ -56,9 +65,37 @@ export function RiskMeter({
   const rm = t.riskMeter;
   const reduce = useReducedMotion();
   const v = Math.max(0, Math.min(100, Math.round(value)));
-  const band = riskBand(v);
-  const ledeText = lede ?? rm.lede[band];
-  const ctx = context ?? (mode === "cv" ? rm.contextCv : mode === "vsjob" ? rm.contextVsJob : undefined);
+  const strength = metric === "strength";
+
+  // Colour band. For strength, invert so a HIGH value reads green (good).
+  const colorBand = strength ? riskBand(100 - v) : riskBand(v);
+  // Strength tier keys read high-is-good; risk keys read low-is-good.
+  const strengthTier = v >= 67 ? "strong" : v >= 34 ? "decent" : "weak";
+  const riskTier = riskBand(v);
+
+  const eyebrow = strength ? rm.strength.eyebrow : rm.eyebrow;
+  const verdictText = strength ? rm.strength.verdict[strengthTier] : rm.verdict[riskTier];
+  const ledeText =
+    lede ?? (strength ? rm.strength.lede[strengthTier] : rm.lede[riskTier]);
+  const ctx =
+    context ??
+    (strength
+      ? rm.strength.contextCv
+      : mode === "cv"
+        ? rm.contextCv
+        : mode === "vsjob"
+          ? rm.contextVsJob
+          : undefined);
+  // Track zones left→right. Risk: good→bad (green|amber|red). Strength: bad→good.
+  const zones = strength
+    ? ["bg-rc-red", "bg-rc-amber", "bg-rc-green"]
+    : ["bg-rc-green", "bg-rc-amber", "bg-rc-red"];
+  // Band labels under the track, left→right.
+  const bandLabels = strength
+    ? [rm.strength.bands.weak, rm.strength.bands.decent, rm.strength.bands.strong]
+    : [rm.bands.low, rm.bands.mid, rm.bands.high];
+  // Strength is a 0–100 score, not a percentage — drop the "%".
+  const unit = strength ? "" : "%";
 
   if (pending) {
     return (
@@ -66,7 +103,7 @@ export function RiskMeter({
         <div className="mb-4 flex items-center gap-2">
           <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-rc-hint" aria-hidden />
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
-            § {sectionNo} · {rm.eyebrow}
+            § {sectionNo} · {eyebrow}
           </span>
           {ctx && (
             <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
@@ -79,7 +116,7 @@ export function RiskMeter({
             style={{ fontSize: "clamp(64px, 9vw, 92px)" }}
             aria-hidden
           >
-            ··<span style={{ fontSize: "0.4em" }}>%</span>
+            ··{unit && <span style={{ fontSize: "0.4em" }}>{unit}</span>}
           </div>
           <div className="min-w-[180px] flex-1 pt-2">
             <p
@@ -94,16 +131,16 @@ export function RiskMeter({
         {/* Neutral 3-zone track, no needle — the score isn't final yet. */}
         <div className="mt-7">
           <div className="relative flex h-[13px] overflow-hidden rounded-full opacity-40 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
-            <div className="h-full bg-rc-green" style={{ flex: 33 }} />
-            <div className="h-full bg-rc-amber" style={{ flex: 34 }} />
-            <div className="h-full bg-rc-red" style={{ flex: 33 }} />
+            <div className={`h-full ${zones[0]}`} style={{ flex: 33 }} />
+            <div className={`h-full ${zones[1]}`} style={{ flex: 34 }} />
+            <div className={`h-full ${zones[2]}`} style={{ flex: 33 }} />
           </div>
           <div className="mt-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.09em] text-rc-hint">
             <span>0</span>
             <div className="flex flex-1 justify-around">
-              <span>{rm.bands.low}</span>
-              <span>{rm.bands.mid}</span>
-              <span>{rm.bands.high}</span>
+              <span>{bandLabels[0]}</span>
+              <span>{bandLabels[1]}</span>
+              <span>{bandLabels[2]}</span>
             </div>
             <span>100</span>
           </div>
@@ -113,11 +150,11 @@ export function RiskMeter({
   }
 
   return (
-    <section aria-label={`${rm.eyebrow}: ${v}% — ${rm.verdict[band]}`}>
+    <section aria-label={`${eyebrow}: ${v}${unit} — ${verdictText}`}>
       <div className="mb-4 flex items-center gap-2">
-        <span className={`h-[6px] w-[6px] rounded-full ${SOLID[band]}`} aria-hidden />
+        <span className={`h-[6px] w-[6px] rounded-full ${SOLID[colorBand]}`} aria-hidden />
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
-          § {sectionNo} · {rm.eyebrow}
+          § {sectionNo} · {eyebrow}
         </span>
         {ctx && (
           <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
@@ -126,17 +163,17 @@ export function RiskMeter({
 
       <div className="flex flex-wrap items-start gap-x-5 gap-y-3">
         <div
-          className={`font-mono font-bold leading-[0.82] tracking-[-0.05em] ${FG[band]}`}
+          className={`font-mono font-bold leading-[0.82] tracking-[-0.05em] ${FG[colorBand]}`}
           style={{ fontSize: "clamp(64px, 9vw, 92px)" }}
         >
           {v}
-          <span className="opacity-40" style={{ fontSize: "0.4em" }}>%</span>
+          {unit && <span className="opacity-40" style={{ fontSize: "0.4em" }}>{unit}</span>}
         </div>
         <div className="min-w-[180px] flex-1 pt-2">
           <span
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] ${PILL[band]}`}
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] ${PILL[colorBand]}`}
           >
-            {rm.verdict[band]}
+            {verdictText}
           </span>
           {ledeText && (
             <p
@@ -152,9 +189,9 @@ export function RiskMeter({
       {/* Linear meter — 3 zones + needle + value bubble */}
       <div className="mt-7">
         <div className="relative flex h-[13px] overflow-hidden rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
-          <div className="h-full bg-rc-green" style={{ flex: 33 }} />
-          <div className="h-full bg-rc-amber" style={{ flex: 34 }} />
-          <div className="h-full bg-rc-red" style={{ flex: 33 }} />
+          <div className={`h-full ${zones[0]}`} style={{ flex: 33 }} />
+          <div className={`h-full ${zones[1]}`} style={{ flex: 34 }} />
+          <div className={`h-full ${zones[2]}`} style={{ flex: 33 }} />
           <motion.div
             className="absolute -top-[8px] -bottom-[8px] w-[3px] -translate-x-1/2 rounded bg-rc-text"
             initial={reduce ? false : { left: "0%" }}
@@ -163,22 +200,22 @@ export function RiskMeter({
             style={{ left: `${v}%` }}
           />
           <motion.div
-            className={`absolute -top-[40px] -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-[3px] font-mono text-[10.5px] font-bold text-white ${SOLID[band]}`}
+            className={`absolute -top-[40px] -translate-x-1/2 whitespace-nowrap rounded-md px-2 py-[3px] font-mono text-[10.5px] font-bold text-white ${SOLID[colorBand]}`}
             initial={reduce ? false : { left: "0%" }}
             animate={{ left: `${v}%` }}
             transition={{ duration: 0.6, ease: [0.3, 0.85, 0.3, 1] }}
             style={{ left: `${v}%` }}
           >
-            {v}%
-            <span className={`absolute -bottom-[3px] left-1/2 h-[7px] w-[7px] -translate-x-1/2 rotate-45 ${SOLID[band]}`} />
+            {v}{unit}
+            <span className={`absolute -bottom-[3px] left-1/2 h-[7px] w-[7px] -translate-x-1/2 rotate-45 ${SOLID[colorBand]}`} />
           </motion.div>
         </div>
         <div className="mt-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.09em] text-rc-hint">
           <span>0</span>
           <div className="flex flex-1 justify-around">
-            <span>{rm.bands.low}</span>
-            <span>{rm.bands.mid}</span>
-            <span>{rm.bands.high}</span>
+            <span>{bandLabels[0]}</span>
+            <span>{bandLabels[1]}</span>
+            <span>{bandLabels[2]}</span>
           </div>
           <span>100</span>
         </div>
