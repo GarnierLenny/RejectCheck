@@ -51,6 +51,42 @@ DOMAIN OUTCOME METRICS:
 JD MATCH COVERAGE:
 - In audit_jd_match.required_skills, list EVERY hard skill, tool and named domain term the JD calls for (up to 30), ordered by criticality. Do not stop at the top few. Set match_strength to exact, partial or missing for each, consistent with found.`;
 
+/**
+ * Role-agnostic subset of SHARED_ANALYSIS_RULES adapted for the STANDALONE CV
+ * audit (no job description). The vs-JD role prompts can't be reused verbatim
+ * here — they assume a JD, an ATS keyword simulation, and 0-10 skill scoring the
+ * cv-review schema doesn't have. So this ports only the rules that hold on a
+ * cold recruiter read: evidence anchoring, score/issue consistency, anti-
+ * inflation, anonymisation, honest ATS-format inference, the seniority ladder,
+ * overqualification, tenure, and outcome metrics. Appended to the cv-review
+ * system prompt so the audit inherits the same guardrails as the analysis.
+ */
+export const CV_REVIEW_SHARED_RULES = `### CROSS-ROLE AUDIT RULES (cold recruiter read, no job description — apply on top of everything above)
+
+EVIDENCE ANCHORING:
+- Anchor every issue, red flag, gap and quality note in a specific piece of the CV: quote or paraphrase the exact bullet, section or phrase you are reacting to. No advice that could apply to any CV. If you cannot point to concrete evidence, omit the claim rather than pad.
+
+SCORE / ISSUE CONSISTENCY:
+- The cv_quality sub-scores, ats_audit.score and audit_cv.score must be consistent with the issues you list. Three or more critical issues cannot coexist with a sub-score above 55. Recalibrate the score to fit the issues, never the reverse.
+
+DOWNWARD CALIBRATION (anti-inflation):
+- Do not score a dimension high on self-declared skills alone. hard_skills and impact reward PROOF OF WORK: named projects, shipped deliverables, quantified outcomes, or explicit years of hands-on use evidenced in the experience section. A Skills list with no supporting evidence in the experience caps hard_skills around 40. A high score with no artifact is an error: recalibrate DOWN. This is about missing proof, never about redaction.
+
+ANONYMISATION:
+- A redacted name, anonymised employer, or stripped contact detail is intentional and expected. Never lower a score or raise an issue, red flag or gap because of it. Judge only the substance present: scope, impact, skills, seniority, dates.
+
+ATS FORMAT (you receive extracted text, not the rendered PDF):
+- Never claim to see graphics, colours or columns directly. Infer an ATS-hostile layout only from PARSING ARTIFACTS visible in the text: scrambled word order, missing standard headers (Experience / Education), caption-like fragments, columns bleeding together, unparseable date formats. If the text parses cleanly, do not invent a format problem and keep ats_format / ats_audit.score high.
+
+SENIORITY LADDER & OVERQUALIFICATION:
+- Derive the role family's standard ladder (3 to 5 rungs) and judge projected seniority against it from scope, team size and autonomy, not titles. If the CV projects materially ABOVE its target_roles, note the flight-risk / salary-expectation perception; if it projects BELOW its claimed titles, note the credibility gap. Never invent numbers.
+
+TENURE:
+- Flag job-hopping only when average tenure is under 18 months across 3 or more recent roles (under 24 months for senior or leadership roles). Agency, contract, consulting or freelance short stints are normal and are not a flag. A single short stint with a clear reason is not a flag.
+
+DOMAIN OUTCOME METRICS:
+- Identify the 3 to 5 outcome metrics this role family is judged on and reward bullets that quantify them. Treat a total absence of any outcome metric as a hidden_red_flag.`;
+
 export const TECHNICAL_PROMPT_SOFTWARE = `You are a meticulous Senior CTO. Perform a HIGH-PRECISION technical gap analysis.
 
 ### SKILL SELECTION (5 skills, strict priority order)

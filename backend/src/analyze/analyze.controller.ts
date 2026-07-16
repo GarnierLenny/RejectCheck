@@ -45,6 +45,13 @@ const CvReviewRequestSchema = z.object({
     .preprocess((v) => v === 'true' || v === true, z.boolean())
     .optional()
     .default(false),
+  // "This is my CV": opt in to enrich from the signed-in user's own linked
+  // profile (GitHub / portfolio / role) + persistent digest cache. Default
+  // false, so a stranger's CV is audited strictly request-scoped (id=82).
+  useOwnProfile: z
+    .preprocess((v) => v === 'true' || v === true, z.boolean())
+    .optional()
+    .default(false),
 });
 import { AnalyzeResponseDto } from './dto/analyze-response.dto';
 import { CoverLetterSchema } from './dto/cover-letter.dto';
@@ -60,6 +67,8 @@ import { AnalyzeCvUseCase } from './application/analyze-cv.use-case';
 import { ReviewCvUseCase } from './application/review-cv.use-case';
 import { RescanKeywordsUseCase } from './application/rescan-keywords.use-case';
 import { computeDeltas } from './domain/rescan-delta';
+import { computeCvReviewDeltas } from './domain/cv-review-rescan-delta';
+import type { CvReviewResponse } from './dto/cv-review-response.dto';
 import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case';
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
@@ -397,7 +406,7 @@ export class AnalyzeController {
     if (!parsed.success) {
       return res.status(400).json({ message: parsed.error.issues[0].message });
     }
-    const { githubUsername, locale, auditMode } = parsed.data;
+    const { githubUsername, locale, auditMode, useOwnProfile } = parsed.data;
     // Identity comes from the verified JWT, not the request body.
     const isRegistered = !!email;
 
@@ -438,6 +447,7 @@ export class AnalyzeController {
           isRegistered,
           locale,
           auditMode,
+          useOwnProfile,
         },
         (e) => {
           if (e.type === 'step') write({ step: e.step });
@@ -979,6 +989,139 @@ export class AnalyzeController {
           role: result.job_details?.title ?? null,
         });
       }
+    } catch (err: any) {
+      if (res.writableEnded) return;
+      write({
+        step: 'error',
+        message: err?.message || 'Re-scan failed',
+        code: err?.code || err?.response?.code,
+        details: err?.details ?? err?.response?.details,
+      });
+    } finally {
+      if (!res.writableEnded) res.end();
+    }
+  }
+
+  /**
+   * CV-audit re-scan (no job description): re-audit an inline-edited CV, produce
+   * a fresh quality assessment linked to the original (parentAnalysisId), and
+   * emit a `cv_review_rescan_deltas` frame with the before/after movement on the
+   * six cv_quality sub-scores + the anchored overall + resolved/new issue counts.
+   * Consumes quota/credits like a normal audit. This is the measurable loop the
+   * standalone audit was missing (fix your bullets, watch the score move).
+   */
+  @Throttle({ default: { limit: 10, ttl: 5 * 60_000 } })
+  @UseGuards(SupabaseGuard)
+  @Post(':id/rescan-cv-review')
+  @ApiOperation({
+    summary:
+      'Full re-audit from inline-edited CV text (no JD), linked to the original (consumes quota/credits)',
+  })
+  async rescanCvReview(
+    @Body() body: unknown,
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+    @Res() res: SseResponse,
+    @Req() req: Request,
+  ): Promise<void> {
+    const id = parseInt(rawId, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ message: 'Invalid ID' });
+      return;
+    }
+
+    const parsedBody = z
+      .object({
+        cvText: z.string(),
+        locale: z.enum(['en', 'fr']).optional().default('en'),
+      })
+      .safeParse(body);
+    if (!parsedBody.success) {
+      res.status(400).json({ message: parsedBody.error.issues[0].message });
+      return;
+    }
+    const { cvText, locale } = parsedBody.data;
+    if (cvText.trim().length < MIN_INLINE_CV_CHARS) {
+      res.status(400).json({
+        message:
+          'The edited CV is too short to re-scan. Keep your full CV text, not just the edits.',
+      });
+      return;
+    }
+
+    return this.streamCvReviewRescan(res, req, id, email, cvText, locale);
+  }
+
+  /**
+   * Streaming body for the CV-audit re-scan. Loads the parent (proves ownership,
+   * confirms it is a CV audit), streams the fresh audit as SSE, then emits the
+   * before/after quality deltas.
+   */
+  private async streamCvReviewRescan(
+    res: SseResponse,
+    req: Request,
+    id: number,
+    email: string,
+    cvText: string,
+    locale: 'en' | 'fr',
+  ): Promise<void> {
+    let parent;
+    try {
+      parent = await this.getAnalysisUc.execute(id, email);
+    } catch {
+      res.status(404).json({ message: 'Analysis not found' });
+      return;
+    }
+    const parentResult = parent.result as unknown as CvReviewResponse | null;
+    // A CV audit is distinguished by cv_quality (a vs-JD analysis has breakdown
+    // instead). Refuse to re-scan a vs-JD analysis through this route.
+    if (!parentResult || !('cv_quality' in (parentResult as object))) {
+      res
+        .status(400)
+        .json({ message: 'This analysis is not a CV audit to re-scan.' });
+      return;
+    }
+
+    const ip = req.ip;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const write = (data: object) =>
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+    try {
+      const { result, analysisId } = await this.reviewCvUc.execute(
+        {
+          cvText,
+          email,
+          ip,
+          isRegistered: true,
+          locale,
+          parentAnalysisId: id,
+        },
+        (e) => {
+          if (e.type === 'step') write({ step: e.step });
+          else if (e.type === 'generating')
+            write({ step: 'generating', section: e.section });
+          else if (e.type === 'section')
+            write({ step: 'section', key: e.key, value: e.value });
+          else if (e.type === 'analysis_done')
+            write({
+              step: 'analysis_done',
+              result: e.result,
+              analysisId: e.analysisId,
+              claimToken: e.claimToken ?? null,
+            });
+        },
+      );
+
+      // Before/after diff against the original audit — the payoff of the loop.
+      const deltas = computeCvReviewDeltas(parentResult, result);
+      write({ step: 'cv_review_rescan_deltas', parentAnalysisId: id, deltas });
+      write({ step: 'done', result, analysisId });
     } catch (err: any) {
       if (res.writableEnded) return;
       write({

@@ -157,9 +157,16 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
     expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
   });
 
-  it('scrapes the profile portfolio only when explicitly enabled', async () => {
+  it('does NOT scrape the profile portfolio when the flag is on but useOwnProfile is unset (stranger audit, id=82 guard)', async () => {
+    const { uc, portfolioScraper, reviewCv } = makeRegisteredUseCase('true');
+    await uc.execute(cmd); // no useOwnProfile -> request-scoped, never touch owner data
+    expect(portfolioScraper.fetch).not.toHaveBeenCalled();
+    expect(reviewCv.mock.calls[0][0].portfolioUrl).toBeNull();
+  });
+
+  it('scrapes the profile portfolio only when useOwnProfile AND the flag are set', async () => {
     const { uc, portfolioScraper } = makeRegisteredUseCase('true');
-    await uc.execute(cmd);
+    await uc.execute({ ...cmd, useOwnProfile: true });
     expect(portfolioScraper.fetch).toHaveBeenCalledWith('https://lennygarnier.com');
   });
 });

@@ -36,6 +36,14 @@ export type GenerateProfileDigestCommand = {
   githubUsername?: string | null;
   portfolioUrl?: string | null;
   locale?: string;
+  /**
+   * Request-scoped generation: build the digest ONLY from the values passed in
+   * this command, never falling back to the caller's stored Profile row, and do
+   * NOT persist the result under their email. Set when auditing someone else's
+   * CV (the public-share tactic) so the owner's data can never leak into, or be
+   * polluted by, a stranger's audit (incident id=82).
+   */
+  requestScopedOnly?: boolean;
 };
 
 /**
@@ -70,7 +78,11 @@ export class GenerateProfileDigestUseCase {
     // If the caller didn't pass inline values for LinkedIn / GitHub / portfolio,
     // pull them from the stored Profile row. (Useful for the manual refresh
     // endpoint, which only has an email.)
-    const stored = await this.profiles.findByEmail(cmd.email).catch(() => null);
+    // Request-scoped audits never read the caller's stored profile — the digest
+    // is built only from what this request supplied.
+    const stored = cmd.requestScopedOnly
+      ? null
+      : await this.profiles.findByEmail(cmd.email).catch(() => null);
 
     const githubUsername =
       cmd.githubUsername !== undefined
@@ -134,7 +146,11 @@ export class GenerateProfileDigestUseCase {
       portfolioUrl: portfolioUrl ? portfolioUrl.trim().toLowerCase() : null,
     };
 
-    await this.digests.save(cmd.email, digest, hashes);
+    // Never persist a request-scoped (stranger's) digest under the caller's
+    // email — that would pollute the owner's own cached digest.
+    if (!cmd.requestScopedOnly) {
+      await this.digests.save(cmd.email, digest, hashes);
+    }
 
     this.logger.log(
       `ProfileDigest saved for ${cmd.email} ` +

@@ -14,6 +14,8 @@ import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
 import { AnalysisShell } from "./AnalysisShell";
 import { RiskMeter } from "./RiskMeter";
+import { CvAuditRescanPanel } from "./CvAuditRescanPanel";
+import { CvChecksScorecard } from "./CvChecksScorecard";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -669,6 +671,29 @@ export function CvAuditResult({
                   })}
                 </div>
               </div>
+            </section>
+          )}
+
+          {/* ── §02.4 Deterministic structural checks — display-only, shown to
+              everyone (owner + public share). It never triggers a rewrite, so
+              it's safe on a shared link; the interactive re-scan below stays
+              owner-only. ── */}
+          {reconstructedCv && reconstructedCv.trim().length > 0 && (
+            <section data-ca-sec="s2c" id="s2c" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <CvChecksScorecard cvText={reconstructedCv} />
+            </section>
+          )}
+
+          {/* ── §02.5 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
+          {q && !readOnly && _analysisId && accessToken && (
+            <section data-ca-sec="s2b" id="s2b" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <CvAuditRescanPanel
+                analysisId={_analysisId}
+                accessToken={accessToken}
+                reconstructedCv={reconstructedCv}
+                currentOverall={q.overall}
+                bulletReviews={result.bullet_reviews?.bullets}
+              />
             </section>
           )}
 

@@ -33,6 +33,8 @@ import {
   shapeCvReviewForPlan,
   shapeSectionForPlan,
 } from '../domain/analysis-shaper';
+import { anchorCvQuality } from '../domain/score/compose-cv-review-score';
+import { sanitizeCvReviewFabrication } from '../domain/anti-fabrication';
 import { isOwnerEmail } from '../domain/owner';
 import { QuotaExceededException } from '../../common/exceptions';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
@@ -66,6 +68,23 @@ export type ReviewCvCommand = {
   locale?: string;
   /** Owner teaser flag from the request; only honored for OWNER_EMAILS. */
   auditMode?: boolean;
+  /**
+   * Inline-edited CV text for the re-scan loop. When set, file extraction/OCR
+   * is skipped and this text is audited directly. Mutually exclusive with
+   * cvBuffer in practice (the re-scan endpoint sends text, the upload sends a
+   * buffer).
+   */
+  cvText?: string;
+  /** Links a re-scan back to the original audit for a before/after chain. */
+  parentAnalysisId?: number;
+  /**
+   * "This is MY CV": opt-in to enrich the audit from the signed-in user's own
+   * linked profile (GitHub / portfolio / declared role) and use their
+   * persistent digest cache. Default false, so auditing someone else's CV (the
+   * public-share tactic) is strictly request-scoped and never touches the
+   * owner's data (incident id=82).
+   */
+  useOwnProfile?: boolean;
 };
 
 export type ReviewCvResult = {
@@ -115,7 +134,8 @@ export class ReviewCvUseCase {
     cmd: ReviewCvCommand,
     onEvent?: (event: ReviewCvEvent) => void,
   ): Promise<ReviewCvResult> {
-    if (!cmd.cvBuffer) throw new BadRequestException('CV is required');
+    if (!cmd.cvBuffer && !cmd.cvText)
+      throw new BadRequestException('CV is required');
 
     const emit = (event: ReviewCvEvent) => onEvent?.(event);
     const emitStep = (step: string) => emit({ type: 'step', step });
@@ -139,7 +159,11 @@ export class ReviewCvUseCase {
     if (cmd.githubUsername) emitStep('analyzing_github');
 
     const [cvSource, linkedinText, linkedinTextFormatted, githubSnapshot] = await Promise.all([
-      this.extractCvSource(cmd.cvBuffer, cmd.cvMimeType),
+      // Inline re-scan sends edited TEXT (no file to parse); the upload path
+      // parses/OCRs the buffer.
+      cmd.cvText != null
+        ? Promise.resolve({ text: cmd.cvText, formatted: cmd.cvText })
+        : this.extractCvSource(cmd.cvBuffer as Buffer, cmd.cvMimeType),
       this.tryParse(cmd.linkedinBuffer),
       this.tryParseFormatted(cmd.linkedinBuffer),
       cmd.githubUsername
@@ -163,31 +187,36 @@ export class ReviewCvUseCase {
       ? JSON.stringify(githubSnapshot, null, 2)
       : '';
 
+    // Cross-source cross-checking (the ProfileDigest, powering the Consistency +
+    // Timeline views) is REQUEST-SCOPED by default: it only compares sources
+    // supplied FOR THIS candidate in THIS request, never the signed-in user's
+    // stored profile. That is what makes it safe to audit a stranger's CV and
+    // share it publicly. Own-profile enrichment (GitHub / portfolio / declared
+    // role, plus the persistent digest cache) is opt-in via useOwnProfile
+    // ("this is my CV"). The incident id=82 leak was the owner's profile
+    // bleeding into strangers' audits: never re-open that path by default.
+    const useOwnProfile = cmd.useOwnProfile ?? false;
+
     const profile =
-      cmd.email && cmd.isRegistered
+      useOwnProfile && cmd.email && cmd.isRegistered
         ? await this.profiles.findByEmail(cmd.email).catch(() => null)
         : null;
 
-    // Profile digest (cross-source synthesis powering the Consistency + Timeline
-    // views) is behind a flag, OFF by default. When disabled the review runs on
-    // the uploaded CV + GitHub + LinkedIn directly, with no cross-profile
-    // enrichment. See PROFILE_DIGEST_ENABLED.
+    // Cross-source needs the CV plus at least one more source PROVIDED IN THE
+    // REQUEST (an uploaded LinkedIn, or a GitHub username typed for this
+    // candidate). A lone CV (the common anonymous case) never triggers it, and
+    // an inline text re-scan carries no second source either.
+    const hasRequestMultiSource = !!(cmd.linkedinBuffer || cmd.githubUsername);
     const digestEnabled =
-      !isOwnerAudit &&
-      this.config.get<string>('PROFILE_DIGEST_ENABLED') === 'true';
+      !!cmd.email &&
+      cmd.isRegistered &&
+      (!!cmd.cvBuffer || !!cmd.cvText) &&
+      hasRequestMultiSource;
 
-    // The portfolio comes from the signed-in user's OWN profile, not from this
-    // upload. Feeding it as a source makes the model cross-check the uploaded
-    // CV against the owner's portfolio — fine when you review your own CV, but
-    // wrong (and it leaks the owner's data) when you review someone else's,
-    // surfacing your portfolio as fake "identity mismatch" inconsistencies.
-    // OFF by default (opt-in), same safe default as the digest: relying on an
-    // env var being set to 'false' in prod was a footgun that leaked the
-    // owner's portfolio into strangers' CV audits. Set
-    // CV_REVIEW_PORTFOLIO_ENABLED=true to re-enable it for the audit-your-own-CV
-    // case. Audit mode always forces it off (auditing someone else's CV).
+    // The portfolio is inherently the signed-in user's OWN data: only ever used
+    // when they explicitly opt in to auditing their own CV.
     const portfolioEnabled =
-      !isOwnerAudit &&
+      useOwnProfile &&
       this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') === 'true';
     const portfolioUrl = portfolioEnabled ? profile?.portfolioUrl ?? null : null;
     const portfolioMarkdown = portfolioUrl
@@ -198,14 +227,17 @@ export class ReviewCvUseCase {
       : '';
 
     let digest: ProfileDigest | null = null;
-    if (digestEnabled && cmd.email && cmd.isRegistered) {
+    if (digestEnabled) {
       digest = await this.resolveDigest({
-        email: cmd.email,
-        cvBuffer: cmd.cvBuffer,
+        email: cmd.email as string,
+        cvBuffer: cmd.cvBuffer ?? null,
         cvText,
         linkedinText,
-        githubUsername: cmd.githubUsername ?? profile?.githubUsername ?? null,
+        githubUsername:
+          cmd.githubUsername ??
+          (useOwnProfile ? profile?.githubUsername ?? null : null),
         portfolioUrl,
+        requestScopedOnly: !useOwnProfile,
         locale: cmd.locale,
       });
     }
@@ -219,12 +251,20 @@ export class ReviewCvUseCase {
     };
     const sectionParser = new SectionStreamParser({
       onSectionStart: (key) => emit({ type: 'generating', section: key }),
-      onSection: (key, value) =>
+      onSection: (key, value) => {
+        // Anchor the streamed cv_quality so the live headline matches the final
+        // payload (no visible jump): overall is recomputed from the six
+        // sub-scores by the same pure function the provider applies at the end.
+        const anchored =
+          key === 'cv_quality'
+            ? anchorCvQuality(value as Parameters<typeof anchorCvQuality>[0])
+            : value;
         emit({
           type: 'section',
           key,
-          value: shapeSectionForPlan(key, value, shapeCtx),
-        }),
+          value: shapeSectionForPlan(key, anchored, shapeCtx),
+        });
+      },
     });
 
     const result = await this.claude.reviewCv({
@@ -236,9 +276,16 @@ export class ReviewCvUseCase {
       digest,
       lean: isOwnerAudit,
       locale: cmd.locale,
-      userRoleType: profile?.roleType ?? null,
+      // Only frame the audit with the signed-in user's declared role when they
+      // opted into "my CV"; auditing a stranger falls back to role inference
+      // (a nurse's CV must not be judged as the owner's role family).
+      userRoleType: useOwnProfile ? profile?.roleType ?? null : null,
       onDelta: (delta) => sectionParser.push(delta),
     });
+
+    // Neutralise any number the model invented in a rewrite that has no basis
+    // in the CV, before we persist / return / share it (anti-fabrication).
+    sanitizeCvReviewFabrication(result, cvText);
 
     const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
 
@@ -401,6 +448,8 @@ export class ReviewCvUseCase {
       email: cmd.email,
       ip: cmd.ip,
       creditCost: CREDIT_COSTS.review,
+      // Chain a re-scan back to the audit it corrects (before/after lineage).
+      parentAnalysisId: cmd.parentAnalysisId ?? null,
     });
 
     return { analysisId: created.id, claimToken: null };
@@ -408,11 +457,12 @@ export class ReviewCvUseCase {
 
   private async resolveDigest(input: {
     email: string;
-    cvBuffer: Buffer;
+    cvBuffer: Buffer | null;
     cvText: string;
     linkedinText: string;
     githubUsername: string | null;
     portfolioUrl: string | null;
+    requestScopedOnly: boolean;
     locale?: string;
   }): Promise<ProfileDigest | null> {
     const extraSourceCount =
@@ -421,15 +471,46 @@ export class ReviewCvUseCase {
       (input.portfolioUrl ? 1 : 0);
     if (extraSourceCount === 0) return null;
 
+    // Request-scoped (auditing someone else's CV): never touch the owner-keyed
+    // digest cache or their stored profile. Generate a transient digest from
+    // this request's sources only.
+    if (input.requestScopedOnly) {
+      try {
+        const { digest } = await this.generateDigestUc.execute({
+          email: input.email,
+          cvBuffer: input.cvBuffer ?? undefined,
+          cvText: input.cvText,
+          linkedinText: input.linkedinText || null,
+          githubUsername: input.githubUsername,
+          portfolioUrl: input.portfolioUrl,
+          requestScopedOnly: true,
+          locale: input.locale,
+        });
+        return digest;
+      } catch (err: any) {
+        this.logger.warn(
+          `[DIGEST] request_scoped_failed err=${err?.message || err}`,
+        );
+        return null;
+      }
+    }
+
+    // Own-CV path: reuse the persistent, owner-keyed cache when unchanged.
+    const cvHash = input.cvBuffer
+      ? sha256Hex(input.cvBuffer)
+      : input.cvText
+        ? sha256Hex(Buffer.from(input.cvText))
+        : null;
     const currentHashes: DigestSourceHashes = {
-      cv: sha256Hex(input.cvBuffer),
-      linkedin: input.linkedinText ? sha256Hex(Buffer.from(input.linkedinText)) : null,
+      cv: cvHash,
+      linkedin: input.linkedinText
+        ? sha256Hex(Buffer.from(input.linkedinText))
+        : null,
       githubUsername: input.githubUsername?.toLowerCase() ?? null,
       portfolioUrl: input.portfolioUrl?.trim().toLowerCase() ?? null,
     };
 
     const stored = await this.digests.findByEmail(input.email).catch(() => null);
-
     if (stored && hashesMatch(stored.hashes, currentHashes)) {
       return stored.digest;
     }
@@ -437,7 +518,7 @@ export class ReviewCvUseCase {
     try {
       const { digest } = await this.generateDigestUc.execute({
         email: input.email,
-        cvBuffer: input.cvBuffer,
+        cvBuffer: input.cvBuffer ?? undefined,
         cvText: input.cvText,
         linkedinText: input.linkedinText || null,
         githubUsername: input.githubUsername,

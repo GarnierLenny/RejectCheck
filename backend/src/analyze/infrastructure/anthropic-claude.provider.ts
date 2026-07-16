@@ -58,7 +58,12 @@ import {
   TECHNICAL_PROMPT_SALES,
   TECHNICAL_PROMPT_GENERIC,
   SHARED_ANALYSIS_RULES,
+  CV_REVIEW_SHARED_RULES,
 } from './system-technical-prompts';
+import {
+  anchorCvQuality,
+  deriveCvQualityVerdict,
+} from '../domain/score/compose-cv-review-score';
 
 const MODEL = 'claude-sonnet-4-6';
 // The whole analysis (and CV review) runs on Sonnet 4.6. We tried Haiku 4.5 to
@@ -294,7 +299,9 @@ For seniority in projected_profile: base it strictly on scope of impact describe
 
 Use markdown in text fields (narrative, descriptions, issue text).
 
-Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a colon instead.`;
+Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a colon instead.
+
+${CV_REVIEW_SHARED_RULES}`;
 
     const userMessage = this.buildCvReviewUserMessage(input);
 
@@ -341,13 +348,18 @@ Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a 
       }
 
       const i = toolUse.input as Record<string, any>;
-      const scoreRaw = i.cv_quality?.overall ?? 50;
-      const verdict =
-        scoreRaw >= 70 ? 'High' : scoreRaw >= 40 ? 'Medium' : 'Low';
+      // Anchor the QUALITY headline: recompute cv_quality.overall as a pure
+      // weighted average of the six sub-scores. The schema advertised overall as
+      // exactly that, but nothing enforced it — it was taken raw from the model
+      // (`?? 50`), so the headline could silently contradict its own parts and
+      // twitch run-to-run. Now it can't. See compose-cv-review-score.ts.
+      const cvQuality = anchorCvQuality(i.cv_quality ?? {});
+      const score = cvQuality.overall;
+      const verdict = deriveCvQualityVerdict(score);
 
       const raw: CvReviewResponse = {
-        score: scoreRaw,
-        cv_quality: i.cv_quality,
+        score,
+        cv_quality: cvQuality,
         cv_quality_notes: i.cv_quality_notes,
         skill_radar: i.skill_radar,
         projected_profile: i.projected_profile,
@@ -384,10 +396,13 @@ Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a 
       input.userRoleType,
     );
 
-    let profileCtx = '';
-    if (input.userRoleType) {
-      profileCtx = `CANDIDATE PROFILE (self-declared):\n- Role family: ${input.userRoleType}\n\n---\n\n`;
-    }
+    // Make the cold read role-aware. With a declared role family, calibrate the
+    // ladder/metrics/artifact against it; without one, force explicit role
+    // inference before scoring so a non-tech CV isn't judged on a generic
+    // (dev-shaped) mental model.
+    const profileCtx = input.userRoleType
+      ? `CANDIDATE ROLE FAMILY (self-declared): ${input.userRoleType}. Judge the quality scores, seniority ladder, outcome metrics and the primary proof-of-competence artifact against THIS role family's norms.\n\n---\n\n`
+      : `ROLE INFERENCE (do this FIRST, before scoring): from the CV's most recent titles and responsibilities, name (a) the role family in one phrase, (b) its 3 to 5 outcome metrics, (c) its standard seniority ladder, (d) its primary proof-of-competence artifact. Judge every score against THAT scaffold.\n\n---\n\n`;
 
     let evidenceBlock: string;
     if (input.digest) {

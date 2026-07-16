@@ -56,6 +56,7 @@ import {
   type KeywordMatchResult,
 } from '../domain/keyword-match/keyword-match';
 import { anchorScores, anchorBreakdown } from '../domain/score/compose-score';
+import { sanitizeAnalyzeFabrication } from '../domain/anti-fabrication';
 
 const MAX_TEXT_CHARS = 12000;
 
@@ -457,6 +458,10 @@ export class AnalyzeCvUseCase {
     // beneath it (same trust guardrail as deriveAtsWouldPass). Stable, not
     // bit-deterministic — see domain/score/compose-score.ts.
     result = anchorScores(result, keywordMatch.coverageScore);
+
+    // Neutralise any number the model invented in a bullet rewrite or ATS
+    // insertion that has no basis in the CV (anti-fabrication guard).
+    sanitizeAnalyzeFabrication(result, cvText);
 
     const persistStart = Date.now();
     const { analysisId, claimToken } = await this.persist({
