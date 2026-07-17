@@ -73,15 +73,15 @@ export async function GET(
   const { result, jobLabel, company, profile } = data;
   const isCvReview = !!(result as { cv_quality?: unknown }).cv_quality;
   const cvQ = (result as { cv_quality?: { overall: number } }).cv_quality;
-  const score: number = isCvReview ? (cvQ?.overall ?? 0) : (result as { score: number }).score;
+  // vs-JD: display competitiveness (100 − stored rejection risk); CV audit: quality. Both higher = better.
+  const score: number = isCvReview ? (cvQ?.overall ?? 0) : 100 - (result as { score: number }).score;
   const displayName = profile?.displayName ?? "Anonymous";
   const initials = displayName.slice(0, 2).toUpperCase();
   const avatarUrl = profile?.avatarUrl ?? null;
   const positionLabel = [jobLabel, company].filter(Boolean).join(" @ ");
 
-  const scoreColor = isCvReview
-    ? score >= 70 ? "#2D9B6F" : score >= 40 ? "#c47f00" : "#C93A39"
-    : score >= 70 ? "#C93A39" : score >= 40 ? "#c47f00" : "#2D9B6F";
+  // Both scores are now higher = better (green high, red low).
+  const scoreColor = score >= 70 ? "#2D9B6F" : score >= 40 ? "#c47f00" : "#C93A39";
 
   const skillRadar = (result as { skill_radar?: { axes: { score: number; label: string }[] } }).skill_radar;
   const techAnalysis = (result as { technical_analysis?: { skills: { current: number; expected: number; name: string }[] } }).technical_analysis;
@@ -167,9 +167,9 @@ export async function GET(
 
             {/* Score */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, color: scoreColor }}>{`${score}%`}</div>
+              <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, color: scoreColor }}>{`${score}`}</div>
               <div style={{ fontFamily: "monospace", fontSize: 22, letterSpacing: "0.18em", textTransform: "uppercase", color: "#6b6860" }}>
-                {isCvReview ? "CV Score" : "Rejection risk"}
+                {isCvReview ? "CV Score" : "Competitiveness"}
               </div>
             </div>
           </div>

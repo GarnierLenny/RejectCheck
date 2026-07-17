@@ -456,10 +456,13 @@ export function CvAuditResult({
         {/* ── Main content ── */}
         <main ref={mainRef} style={{ padding: "48px 64px 120px", overflowY: "auto", height: "100%", scrollbarWidth: "none" }}>
 
-          {/* ── Rejection-risk hero (unified RiskMeter) — risk = 100 − CV quality ── */}
+          {/* ── CV-strength hero (unified RiskMeter, strength polarity) ──
+               No job is attached, so "rejection risk" is meaningless here: we
+               show the CV quality directly (higher = better) instead of the
+               inverted 100 − quality that used to read as a risk score. ── */}
           {q && (
             <div style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
-              <RiskMeter value={100 - q.overall} mode="cv" />
+              <RiskMeter value={q.overall} mode="cv" metric="strength" />
             </div>
           )}
 

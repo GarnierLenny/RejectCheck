@@ -41,9 +41,10 @@ const CRITICAL_ISSUE_CAP = 9;
 const FATAL_BULLET_RISK = 2;
 const FATAL_BULLET_CAP = 8;
 
-// Verdict bands on the composite risk.
-const VERDICT_LOW_MAX = 30;
-const VERDICT_HIGH_MIN = 65;
+// Verdict bands on the composite risk. Backend: compose-score.ts (Strong >= 80
+// competitiveness -> risk <= 20; Weak < 40 -> risk > 60).
+const VERDICT_LOW_MAX = 20;
+const VERDICT_HIGH_MIN = 60;
 
 export type Verdict = "Low" | "Medium" | "High";
 
@@ -54,6 +55,15 @@ function clamp0100(n: number): number {
 /** Round to the nearest QUANT_STEP, clamped 0-100. Backend: quantize(). */
 export function quantize(n: number, step: number = QUANT_STEP): number {
   return Math.round(clamp0100(n) / step) * step;
+}
+
+/** Deflation knob. Backend: compose-score.ts DEFLATION. Must stay < 1. */
+const DEFLATION = 0.85;
+
+/** Deflate a raw 0-100 fit score. Backend: compose-score.ts deflate(). */
+function deflate(raw: number): number {
+  const x = clamp0100(raw);
+  return clamp0100(x + (DEFLATION * x * (x - 100)) / 100);
 }
 
 /** Verdict from the risk band. Backend: deriveVerdict(). */
@@ -107,11 +117,12 @@ export type ProjectRiskInput = {
 
 /**
  * Projected anchored rejection risk + verdict. Mirrors composeRisk(): weighted
- * fit inverted to risk, plus capped hard-signal penalties, quantized.
+ * fit DEFLATED then inverted to risk, plus capped hard-signal penalties,
+ * quantized.
  *
  * Parity check (matches compose-score.spec.ts "composite formula lock"):
  * coverage 62, tech 65, exp 45, github 60, linkedin 40, ats 60, 1 red flag,
- * 1 critical, 1 fatal → risk 50 / Medium.
+ * 1 critical, 1 fatal → risk 70 / High.
  */
 export function projectRisk(input: ProjectRiskInput): {
   risk: number;
@@ -152,6 +163,6 @@ export function projectRisk(input: ProjectRiskInput): {
       Math.max(0, input.fatalBulletCount) * FATAL_BULLET_RISK,
     );
 
-  const risk = quantize(100 - fit + penalty);
+  const risk = quantize(100 - deflate(fit) + penalty);
   return { risk, verdict: deriveVerdict(risk) };
 }

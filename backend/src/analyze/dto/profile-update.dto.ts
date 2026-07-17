@@ -25,6 +25,12 @@ export const ProfileUpdateSchema = z
       .optional(),
     techStack: z.array(z.string().max(40)).max(3).optional(),
     languages: z.array(z.string().max(40)).max(20).optional(),
+    country: z.string().max(80).nullable().optional(),
+    remotePreference: z
+      .enum(['remote', 'hybrid', 'onsite', 'flexible'])
+      .nullable()
+      .optional(),
+    needsSponsorship: z.boolean().nullable().optional(),
     onboardedAt: z.coerce.date().nullable().optional(),
     onboardingSkipped: z.boolean().optional(),
   })

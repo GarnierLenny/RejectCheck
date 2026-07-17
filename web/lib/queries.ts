@@ -28,6 +28,8 @@ export type ExperienceLevel =
   | 'lead'
   | 'switcher';
 
+export type RemotePreference = 'remote' | 'hybrid' | 'onsite' | 'flexible';
+
 export type Profile = {
   username: string | null;
   usernameUpdatedAt: string | null;
@@ -49,6 +51,9 @@ export type Profile = {
   experienceLevel: ExperienceLevel | null;
   techStack: string[];
   languages: string[];
+  country: string | null;
+  remotePreference: RemotePreference | null;
+  needsSponsorship: boolean | null;
   onboardedAt: string | null;
   onboardingSkipped: boolean;
   /**

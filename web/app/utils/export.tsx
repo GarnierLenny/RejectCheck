@@ -54,13 +54,18 @@ export function generateMarkdown(result: AnalysisResult): string {
 
   const b: string[] = [];
 
+  // Competitiveness = 100 − rejection risk (higher = better).
+  const competitiveness = 100 - result.score;
+  const compVerdict =
+    result.verdict === "High" ? "Weak" : result.verdict === "Medium" ? "Decent" : result.verdict === "Low" ? "Strong" : result.verdict;
+
   // 1. YAML Frontmatter
   b.push(`---
 type: RejectCheck Analysis
 job: "${jobDisplay}"
 date: ${new Date().toISOString().split('T')[0]}
-score: ${result.score}
-verdict: "${result.verdict}"
+competitiveness: ${competitiveness}
+verdict: "${compVerdict}"
 confidence: ${result.confidence?.score ?? 'N/A'}
 ---`);
 
@@ -69,7 +74,7 @@ confidence: ${result.confidence?.score ?? 'N/A'}
   b.push(`> [!abstract] **Analysis Summary**
 > - **Job:** ${jobDisplay}
 > - **Date:** ${dateStr}
-> - **Rejection Risk:** ${result.score}% - **${result.verdict}**${result.confidence ? `\n> - **Confidence:** ${result.confidence.score}% - ${result.confidence.reason}` : ''}`);
+> - **Competitiveness:** ${competitiveness} - **${compVerdict}**${result.confidence ? `\n> - **Confidence:** ${result.confidence.score}% - ${result.confidence.reason}` : ''}`);
 
   // 3. Score Breakdown (Table)
   if (result.breakdown) {

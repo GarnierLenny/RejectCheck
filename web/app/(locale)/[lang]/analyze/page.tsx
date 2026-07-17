@@ -1220,7 +1220,7 @@ function AnalyzeContent() {
           shareUrl={shareUrl}
           displayName={profile?.displayName ?? user?.email?.split("@")[0] ?? "You"}
           isCvReview={!!result.cv_quality}
-          score={result.cv_quality ? result.cv_quality.overall : result.score}
+          score={result.cv_quality ? result.cv_quality.overall : 100 - result.score}
           jobLabel={null}
           company={null}
           onClose={() => { setShareToken(null); setShareUrl(null); }}

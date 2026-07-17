@@ -24,7 +24,7 @@ describe('anchorCvQuality', () => {
 
   it('recomputes overall as the quantized weighted average of the six sub-scores', () => {
     // Marketing-sample sub-scores. Quantized: impact 20, clarity 50, hard 40,
-    // consistency 55, soft 30, ats 50. Weighted avg = 38.1 -> quantize -> 40.
+    // consistency 55, soft 30, ats 50. Weighted avg = 38.1 -> deflate ~18 -> 20.
     const out = anchorCvQuality({
       clarity: 48,
       impact: 18,
@@ -33,10 +33,10 @@ describe('anchorCvQuality', () => {
       consistency: 55,
       ats_format: 50,
     });
-    expect(out.overall).toBe(40);
+    expect(out.overall).toBe(20);
   });
 
-  it('never lets overall contradict its parts: all-equal sub-scores yield that value', () => {
+  it('deflates an all-equal sub-score set (60 -> 40) instead of echoing it', () => {
     const out = anchorCvQuality({
       clarity: 60,
       impact: 60,
@@ -45,7 +45,8 @@ describe('anchorCvQuality', () => {
       consistency: 60,
       ats_format: 60,
     });
-    expect(out.overall).toBe(60);
+    // deflate(60) = 39.6 -> quantize -> 40: a "60-average" CV is only Decent.
+    expect(out.overall).toBe(40);
   });
 
   it('ignores the model-supplied overall entirely (pure function of the sub-scores)', () => {
@@ -59,14 +60,36 @@ describe('anchorCvQuality', () => {
     };
     const withInflatedOverall = anchorCvQuality({ ...base, overall: 99 });
     const withLowOverall = anchorCvQuality({ ...base, overall: 5 });
-    expect(withInflatedOverall.overall).toBe(70);
-    expect(withLowOverall.overall).toBe(70);
+    // Pure function of the sub-scores: deflate(70) = 52.15 -> quantize -> 50.
+    expect(withInflatedOverall.overall).toBe(50);
+    expect(withLowOverall.overall).toBe(50);
   });
 
   it('is defensive against a missing / partial cv_quality object', () => {
     const out = anchorCvQuality({});
     expect(out.overall).toBe(0);
     expect(out.impact).toBe(0);
+  });
+
+  it('subtracts a credibility penalty so a flagged CV is punished, not merely light', () => {
+    const subs = {
+      clarity: 80,
+      impact: 80,
+      hard_skills: 80,
+      soft_skills: 80,
+      consistency: 80,
+      ats_format: 80,
+    };
+    const clean = anchorCvQuality(subs).overall;
+    // deflate(80)=66.4 -> 65 clean ; penalty 2*4+1*3+1*2=13 -> quantize(53.4)=55.
+    const flagged = anchorCvQuality(subs, {
+      redFlagCount: 2,
+      criticalIssueCount: 1,
+      fatalBulletCount: 1,
+    }).overall;
+    expect(clean).toBe(65);
+    expect(flagged).toBe(55);
+    expect(flagged).toBeLessThan(clean);
   });
 
   it('has weights that sum to 1', () => {
@@ -77,11 +100,12 @@ describe('anchorCvQuality', () => {
 
 describe('deriveCvQualityVerdict', () => {
   it('maps the quality headline to bands (higher = better)', () => {
-    expect(deriveCvQualityVerdict(70)).toBe('High');
+    // Shared bands: Strong >= 80, Decent 40-79, Weak < 40.
+    expect(deriveCvQualityVerdict(80)).toBe('High');
     expect(deriveCvQualityVerdict(85)).toBe('High');
+    expect(deriveCvQualityVerdict(79)).toBe('Medium');
     expect(deriveCvQualityVerdict(40)).toBe('Medium');
-    expect(deriveCvQualityVerdict(65)).toBe('Medium');
-    expect(deriveCvQualityVerdict(35)).toBe('Low');
+    expect(deriveCvQualityVerdict(39)).toBe('Low');
     expect(deriveCvQualityVerdict(0)).toBe('Low');
   });
 });

@@ -20,6 +20,7 @@ import { RescanPanel } from "./rescan/RescanPanel";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { useLanguage } from "../../context/language";
+import { useProfile } from "../../lib/queries";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -63,11 +64,6 @@ const R_SM = "4px";
 const R_MD = "8px";
 const SHADOW_XS = "0 1px 2px rgba(26,22,18,0.06)";
 const SHADOW_SM = "0 1px 3px rgba(26,22,18,0.08), 0 1px 2px rgba(26,22,18,0.04)";
-
-const heroHeadline = (
-  n: number,
-  hl: { below: string; competitive: string; strong: string },
-) => (n >= 50 ? hl.below : n >= 35 ? hl.competitive : hl.strong);
 
 const sevColor = (s: string) =>
   s === "critical" ? "var(--rc-red)" : s === "major" ? "var(--rc-amber)" : "var(--rc-hint)";
@@ -995,6 +991,24 @@ export function AnalysisLayout({
   const hasHired = userPlan === "hired";
   const jd = result.job_details;
 
+  // Personalized work-eligibility alerts (owner view only): the collectable
+  // blind spots we now know about this candidate. Never applied on the shared
+  // read-only view — that profile belongs to the viewer, not the analysis owner.
+  const { data: viewerProfile } = useProfile();
+  const workAlerts = useMemo(() => {
+    if (readOnly || !viewerProfile) return [] as string[];
+    const bs = t.analysisLayout.blindSpots.alerts;
+    const out: string[] = [];
+    if (viewerProfile.needsSponsorship === true) out.push(bs.sponsorship);
+    if (
+      viewerProfile.remotePreference === "remote" &&
+      (jd?.work_setting === "on-site" || jd?.work_setting === "hybrid")
+    ) {
+      out.push(bs.remote);
+    }
+    return out;
+  }, [readOnly, viewerProfile, jd?.work_setting, t]);
+
   const matchBadge = (result.ats_simulation && !result.ats_simulation.would_pass ? 1 : 0) + (result.audit.jd_match?.required_skills.filter((s) => !s.found).length ?? 0);
   const cvBadge = result.audit.cv.issues.filter((i) => i.severity === "critical").length;
   const signalsBadge = (result.audit.github?.issues.length ?? 0) + (result.audit.linkedin?.issues.length ?? 0);
@@ -1039,7 +1053,7 @@ export function AnalysisLayout({
           order.map((id, i) => [id, String(i + 1).padStart(2, "0")]),
         );
         const NAV: Record<string, { label: string; badge: number; premium?: boolean }> = {
-          risk: { label: t.riskMeter.eyebrow, badge: 0 },
+          risk: { label: t.riskMeter.competitiveness.eyebrow, badge: 0 },
           match: { label: t.analysisLayout.tabs.match, badge: matchBadge },
           cv: { label: t.analysisLayout.tabs.cv, badge: cvBadge },
           cover: { label: t.analysisLayout.tabs.cover, badge: coverBadge },
@@ -1088,9 +1102,9 @@ export function AnalysisLayout({
               </div>
             )}
 
-            {/* §01 — Rejection risk */}
+            {/* §01 — Competitiveness (displayed as 100 − rejection risk) */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
-              <RiskMeter value={result.score} mode="vsjob" lede={heroHeadline(result.score, t.analysisLayout.heroHeadline)} sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
                   <MD>{result.technical_analysis.reasoning}</MD>
@@ -1132,6 +1146,37 @@ export function AnalysisLayout({
                   {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
                 </div>
               )}
+
+              {/* Personalized hard-mismatch alerts (owner only): the collectable
+                  blind spots we now know about — the sponsorship / remote filters
+                  that cut before a CV is read. */}
+              {workAlerts.length > 0 && (
+                <div style={{ marginTop: 20, padding: "14px 16px", borderRadius: R_SM, border: "1px solid color-mix(in srgb, var(--rc-amber) 45%, transparent)", background: "color-mix(in srgb, var(--rc-amber) 8%, transparent)" }}>
+                  <Eyebrow style={{ display: "block", marginBottom: 8, color: "var(--rc-amber)" }}>{t.analysisLayout.blindSpots.alerts.title}</Eyebrow>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.6, color: "var(--rc-text)" }}>
+                    {workAlerts.map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* What this score can't see — kills the "70 = 70% odds" read by
+                  naming the outcome factors no CV-vs-JD score can model. */}
+              <div style={{ marginTop: 20, padding: "14px 16px", borderRadius: R_SM, border: "1px dashed var(--rc-border)", background: "var(--rc-surface-hero)" }}>
+                <Eyebrow style={{ display: "block", marginBottom: 8, color: "var(--rc-hint)" }}>{t.analysisLayout.blindSpots.title}</Eyebrow>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-muted)", margin: 0 }}>
+                  {t.analysisLayout.blindSpots.intro}
+                </p>
+                <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontFamily: "var(--font-sans)", fontSize: 12.5, lineHeight: 1.6, color: "var(--rc-muted)" }}>
+                  {t.analysisLayout.blindSpots.factors.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-text)", margin: "8px 0 0", fontWeight: 500 }}>
+                  {t.analysisLayout.blindSpots.outro}
+                </p>
+              </div>
             </section>
 
             {/* §02 — Match */}

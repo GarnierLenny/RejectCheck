@@ -76,13 +76,14 @@ export function SharedAnalysisView({
 
   // ── vs-job: the full narrative report, read-only — same layout the owner sees.
   if (!isCvReview) {
-    // Risk score: higher = worse (red), so the chip colour matches the meter.
+    // Competitiveness = 100 − rejection risk: higher = better (green), matching the meter.
+    const comp = 100 - result.score;
     const scoreColor =
-      result.score >= 70
-        ? "var(--rc-red)"
-        : result.score >= 40
+      comp >= 67
+        ? "var(--rc-green)"
+        : comp >= 34
           ? "var(--rc-amber)"
-          : "var(--rc-green)";
+          : "var(--rc-red)";
 
     return (
       <div className="h-screen flex flex-col overflow-hidden bg-rc-bg text-rc-text font-sans">
@@ -100,7 +101,7 @@ export function SharedAnalysisView({
                 {positionLabel ? <span className="hidden md:inline"> · {positionLabel}</span> : null}
               </span>
               <span className="font-mono text-[13px] font-bold shrink-0" style={{ color: scoreColor }}>
-                {result.score}%
+                {comp}
               </span>
             </div>
           </div>

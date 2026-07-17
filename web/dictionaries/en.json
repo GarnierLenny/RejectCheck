@@ -782,7 +782,29 @@
     },
     "contextVsJob": "vs this job",
     "contextCv": "this CV overall",
-    "computing": "Computing score…"
+    "computing": "Computing score…",
+    "strength": {
+      "eyebrow": "CV strength",
+      "verdict": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "bands": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "lede": {
+        "weak": "Big gaps to close before this competes.",
+        "decent": "Solid base, a few fixes will sharpen it.",
+        "strong": "Little left to fix that we can see."
+      },
+      "context": "this CV overall"
+    },
+    "competitiveness": {
+      "eyebrow": "Competitiveness",
+      "verdict": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "bands": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "lede": {
+        "weak": "As it stands, this would likely be passed over.",
+        "decent": "Workable, a few gaps to close first.",
+        "strong": "Strong match, few reasons to pass on this."
+      },
+      "context": "vs this job"
+    }
   },
   "resultNudge": {
     "eyebrow": "Free account",
@@ -1607,7 +1629,11 @@
       "languagesHint": "Conversational or better. Used to detect language mismatches with the target market.",
       "retakeButton": "Re-take onboarding",
       "retakeHint": "Walk through the full 4-question flow again. Existing values are pre-filled.",
-      "linksRedirect": "Manage links (GitHub, LinkedIn, Portfolio) in Public profile and Autofill analysis."
+      "linksRedirect": "Manage links (GitHub, LinkedIn, Portfolio) in Public profile and Autofill analysis.",
+      "remoteLabel": "Preferred way to work",
+      "workAuthLabel": "Work authorization",
+      "countryLabel": "Where you're based",
+      "workHint": "Location, remote fit and visa status decide a lot of rejections no CV score can see. We factor these into your analyses."
     },
     "publicProfile": {
       "cardTitle": "Public profile",
@@ -2207,6 +2233,36 @@
       "titleAccent": "on the curve?",
       "sub": "Junior CVs and Senior CVs get rejected for completely different reasons. This tells the model which red flags to look for."
     },
+    "work": {
+      "eyebrow": "Where & how you work",
+      "title": "The things a CV",
+      "titleAccent": "can't say",
+      "sub": "Location, remote fit and visa status decide a lot of rejections, and no CV score can see them. Tell us once and we'll factor them in. All optional.",
+      "modeLabel": "Preferred way to work",
+      "mode": {
+        "remote": "Remote",
+        "hybrid": "Hybrid",
+        "onsite": "On-site",
+        "flexible": "Flexible"
+      },
+      "modeMeta": {
+        "remote": "Fully remote only",
+        "hybrid": "A few days in office",
+        "onsite": "Happy in the office",
+        "flexible": "Open to anything"
+      },
+      "authLabel": "Work authorization",
+      "sponsorship": {
+        "authorized": "Already authorized",
+        "needs": "I need sponsorship"
+      },
+      "sponsorshipMeta": {
+        "authorized": "I can work where I apply",
+        "needs": "I need a visa or work permit"
+      },
+      "locationLabel": "Where you're based (optional)",
+      "locationPlaceholder": "e.g. Berlin, Germany"
+    },
     "step3": {
       "eyebrow": "03 · Your stack",
       "title": "Pick your",
@@ -2246,7 +2302,57 @@
       "title": "Your radar is",
       "titleAccent": "calibrated.",
       "sub": "We've tuned the model to your role, level, and stack. Time to put your CV through it. Most people are surprised by what comes back.",
-      "cta": "Take me to /analyze →"
+      "cta": "Take me to /analyze →",
+      "ctaWithCv": "Run my first check →"
+    },
+    "reveal": {
+      "tunedFor": "Tuned for",
+      "screenTitle": "What recruiters screen you against",
+      "dropTitle": "Drop your CV to run your first check now",
+      "dropHint": "PDF or image. Optional, you can do this later.",
+      "dropStaged": "Staged, ready to run",
+      "points": {
+        "software": [
+          "Proof you shipped, not just listed: real projects, commits, impact you can point to.",
+          "Signal you can work at their scale: depth in a stack beats a wall of buzzwords.",
+          "A CV that survives the ATS keyword pass before a human ever sees it."
+        ],
+        "product": [
+          "Outcomes with numbers: what moved, by how much, because of you.",
+          "Evidence you owned the problem, not just carried the roadmap ticket.",
+          "A story a hiring manager can repeat in the debrief without notes."
+        ],
+        "design": [
+          "A portfolio that shows the thinking, not just the final pixels.",
+          "Proof your work shipped and moved a metric, not just looked good.",
+          "Range that matches their surface: product, brand, systems, whatever they need."
+        ],
+        "data": [
+          "Business impact, not model accuracy in a vacuum.",
+          "Proof you go from messy data to a decision someone acted on.",
+          "The exact tooling in their stack, screened before a human reads a line."
+        ],
+        "marketing": [
+          "Channels you actually moved, with the numbers to back them.",
+          "Proof you can attribute results, not just claim them.",
+          "Evidence you own a funnel end to end, not one narrow slice."
+        ],
+        "ops": [
+          "Process you built or fixed, with the before and after to prove it.",
+          "Scope: how much you ran, how many people, how much money moved.",
+          "Signal you make things run without being asked twice."
+        ],
+        "sales": [
+          "Quota, attainment, and the numbers that back the story.",
+          "Proof you close, not just fill a pipeline.",
+          "A track record that reads the same whether the market was up or down."
+        ],
+        "other": [
+          "Concrete outcomes, not a list of responsibilities.",
+          "Proof the work mattered: what changed because you were there.",
+          "A CV that clears the keyword filter before a human reads it."
+        ]
+      }
     },
     "roles": {
       "software": "Software / Dev",
@@ -2375,6 +2481,23 @@
       "competitive": "Competitive — with a few gaps to close.",
       "strong": "Strong match. Polish and apply."
     },
+    "blindSpots": {
+      "title": "What this score can't see",
+      "intro": "Competitiveness measures how well you match this posting, not your odds of an interview. Those hinge on things no CV score can see:",
+      "factors": [
+        "how many others applied",
+        "when you applied (early, or after the shortlist was set)",
+        "referrals and internal candidates",
+        "your visa or sponsorship needs, and where you're based",
+        "whether the role is genuinely still open"
+      ],
+      "outro": "A strong score with no replies usually points at one of these, not at your CV.",
+      "alerts": {
+        "title": "For your situation",
+        "sponsorship": "You told us you need visa sponsorship. If this employer doesn't offer it, that's likely your biggest blocker here, and no CV score can see it.",
+        "remote": "This role is on-site or hybrid, but you prefer remote. That's often a hard filter before your CV is even read."
+      }
+    },
     "report": {
       "positioningSub": "Before a single bullet is read, two things set the first impression: the level you project, and the voice you write in.",
       "strengthPrefix": "Strength ·",
@@ -2436,6 +2559,7 @@
       "atsPass": "Now passes the ATS keyword filter",
       "atsFail": "Still short of the ATS keyword filter",
       "riskScore": "Rejection risk",
+      "competitiveness": "Competitiveness",
       "openUpdated": "Open the updated report",
       "signIn": "Sign in to re-scan your CV and track your progress.",
       "noSkills": "This job lists no recognised skills, so there is nothing to track here.",

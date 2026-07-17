@@ -21,7 +21,8 @@
  * Pure: no I/O, no dates, no randomness. Trivially unit-testable.
  */
 
-import { quantize } from './compose-score';
+import { quantize, deflate, composePenalty } from './compose-score';
+import type { HardSignalCounts } from './compose-score';
 
 /**
  * Weights over the six cv_quality sub-scores (sum to 1). Impact carries the most
@@ -50,12 +51,20 @@ export type CvQualitySubScores = {
 export type AnchoredCvQuality = CvQualitySubScores & { overall: number };
 
 /**
- * Quantize the six sub-scores and recompute `overall` as their weighted average
- * (also quantized). Defensive against a missing/partial cv_quality object so it
- * is safe to call on a streaming section that hasn't fully assembled yet.
+ * Quantize the six sub-scores and recompute `overall` as their (deflated)
+ * weighted average, minus a credibility penalty for the hard signals a recruiter
+ * rejects on. Defensive against a missing/partial cv_quality object so it is
+ * safe to call on a streaming section that hasn't fully assembled yet.
+ *
+ * `penalty` is optional: the streaming call omits it (the red flags haven't
+ * arrived yet, so the live headline is deflation-only and settles a few points
+ * lower when the final payload lands). The final provider call passes the
+ * counts so a CV with a fabrication or fatal bullet is punished, not merely
+ * short on positives — the same penalty the vs-JD composite applies.
  */
 export function anchorCvQuality(
   raw: Partial<CvQualitySubScores> & { overall?: number },
+  penalty?: HardSignalCounts,
 ): AnchoredCvQuality {
   const subs: CvQualitySubScores = {
     clarity: quantize(raw.clarity ?? 0),
@@ -66,7 +75,10 @@ export function anchorCvQuality(
     ats_format: quantize(raw.ats_format ?? 0),
   };
 
-  const overall = quantize(
+  // Deflate the weighted average before quantizing: the six LLM sub-scores
+  // cluster generously, so a merely-decent CV would otherwise land ~80. The
+  // same curve as the vs-JD composite keeps both scorers on one wavelength.
+  const base = deflate(
     subs.impact * CV_QUALITY_WEIGHTS.impact +
       subs.clarity * CV_QUALITY_WEIGHTS.clarity +
       subs.hard_skills * CV_QUALITY_WEIGHTS.hard_skills +
@@ -74,6 +86,7 @@ export function anchorCvQuality(
       subs.soft_skills * CV_QUALITY_WEIGHTS.soft_skills +
       subs.ats_format * CV_QUALITY_WEIGHTS.ats_format,
   );
+  const overall = quantize(base - (penalty ? composePenalty(penalty) : 0));
 
   return { ...subs, overall };
 }
@@ -84,7 +97,8 @@ export function anchorCvQuality(
  * frontend ScoreSidebar keeps rendering the same way.
  */
 export function deriveCvQualityVerdict(overall: number): 'Low' | 'Medium' | 'High' {
-  if (overall >= 70) return 'High';
+  // Shared bands with the vs-JD scorer and RiskMeter: Strong >= 80, Weak < 40.
+  if (overall >= 80) return 'High';
   if (overall >= 40) return 'Medium';
   return 'Low';
 }

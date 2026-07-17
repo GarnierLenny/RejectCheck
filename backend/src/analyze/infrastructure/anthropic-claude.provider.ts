@@ -353,7 +353,25 @@ ${CV_REVIEW_SHARED_RULES}`;
       // exactly that, but nothing enforced it — it was taken raw from the model
       // (`?? 50`), so the headline could silently contradict its own parts and
       // twitch run-to-run. Now it can't. See compose-cv-review-score.ts.
-      const cvQuality = anchorCvQuality(i.cv_quality ?? {});
+      // Credibility penalty: a CV with a fabrication, an impossible timeline or a
+      // fatal bullet must be punished, not merely light on positives. Count the
+      // same hard signals the vs-JD composite uses, plus critical cross-profile
+      // inconsistencies (the audit's fabrication tell).
+      const countCritical = (arr: unknown): number =>
+        (Array.isArray(arr) ? arr : []).filter(
+          (x) => (x as { severity?: string })?.severity === 'critical',
+        ).length;
+      const cvQuality = anchorCvQuality(i.cv_quality ?? {}, {
+        redFlagCount: (i.hidden_red_flags ?? []).length,
+        criticalIssueCount:
+          countCritical(i.audit_cv?.issues) +
+          countCritical(i.audit_github?.issues) +
+          countCritical(i.audit_linkedin?.issues) +
+          countCritical(i.cross_profile_inconsistencies),
+        fatalBulletCount: (i.bullet_reviews?.bullets ?? []).filter(
+          (b: { verdict?: string }) => b?.verdict === 'fatal',
+        ).length,
+      });
       const score = cvQuality.overall;
       const verdict = deriveCvQualityVerdict(score);
 
