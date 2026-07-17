@@ -255,6 +255,12 @@ model Profile {
   languages           String[]  @default([])
   onboardedAt         DateTime?
   onboardingSkipped   Boolean   @default(false)
+  // Work-eligibility signals (the score's blind spots): person-level, stable,
+  // collected once at onboarding. Reused across analyses to flag hard mismatches
+  // (e.g. needs sponsorship + foreign on-site role) the CV-vs-JD score can't see.
+  country             String?
+  remotePreference    String? // "remote" | "hybrid" | "onsite" | "flexible"
+  needsSponsorship    Boolean? // true = needs sponsorship, false = authorized, null = unanswered
   // ProfileDigest — generated once per user by a Haiku vision call, refreshed
   // when any source (CV hash, LinkedIn text, GitHub username, portfolio URL)
   // changes. The digest fuses all sources into a single compact synthesis

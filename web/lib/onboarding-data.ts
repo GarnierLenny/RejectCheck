@@ -1,7 +1,7 @@
 // Static data for the onboarding flow + Settings → Targeting section.
 // Ported from the design mockup at /Users/lenny.garnier/Downloads/Onboarding.html.
 
-import type { ExperienceLevel, RoleType } from './queries'
+import type { ExperienceLevel, RemotePreference, RoleType } from './queries'
 
 export type RoleOption = {
   id: RoleType
@@ -31,6 +31,22 @@ export const EXPERIENCE_LEVELS: ExperienceOption[] = [
   { id: 'senior' },
   { id: 'lead' },
   { id: 'switcher' },
+]
+
+// Work-eligibility step. Labels live under `onboarding.work.*` in the dictionary.
+export type RemoteOption = { id: RemotePreference }
+export const REMOTE_MODES: RemoteOption[] = [
+  { id: 'remote' },
+  { id: 'hybrid' },
+  { id: 'onsite' },
+  { id: 'flexible' },
+]
+
+// Maps to Profile.needsSponsorship: 'authorized' → false, 'needs' → true.
+export type SponsorshipOption = { id: 'authorized' | 'needs' }
+export const SPONSORSHIP_OPTIONS: SponsorshipOption[] = [
+  { id: 'authorized' },
+  { id: 'needs' },
 ]
 
 export const STACKS_PRIMARY: string[] = [

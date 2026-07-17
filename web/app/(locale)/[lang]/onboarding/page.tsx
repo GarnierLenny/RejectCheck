@@ -7,7 +7,7 @@ import { useLanguage } from "../../../../context/language";
 import { useProfile } from "../../../../lib/queries";
 import { useUpdateProfile } from "../../../../lib/mutations";
 import { TECH_ROLES } from "../../../../lib/onboarding-data";
-import type { ExperienceLevel, RoleType } from "../../../../lib/queries";
+import type { ExperienceLevel, RemotePreference, RoleType } from "../../../../lib/queries";
 import { OnboardingTopbar } from "../../../components/onboarding/OnboardingTopbar";
 import { OnboardingBottomBar } from "../../../components/onboarding/OnboardingBottomBar";
 import { StepRole } from "../../../components/onboarding/StepRole";
@@ -15,12 +15,15 @@ import { StepExperience } from "../../../components/onboarding/StepExperience";
 import { StepStack } from "../../../components/onboarding/StepStack";
 import { StepLanguages } from "../../../components/onboarding/StepLanguages";
 import { StepLinks } from "../../../components/onboarding/StepLinks";
+import { StepWork } from "../../../components/onboarding/StepWork";
 import { StepDone } from "../../../components/onboarding/StepDone";
 import { BlueprintBackdrop } from "../../../components/BlueprintBackdrop";
 
 const MAX_STACKS = 3;
 
-type StepId = 1 | 2 | 3 | 4 | 5 | 6;
+// Flow order lives in `visibleSteps`, not in these numbers. 7 (work) slots in
+// after languages, before links, without renumbering the existing steps.
+type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 function buildPayload(args: {
   role: RoleType | null;
@@ -31,6 +34,9 @@ function buildPayload(args: {
   github: string;
   portfolio: string;
   linkedinUrl: string | null;
+  remotePreference: RemotePreference | null;
+  needsSponsorship: boolean | null;
+  country: string;
 }) {
   return {
     roleType: args.role,
@@ -41,6 +47,9 @@ function buildPayload(args: {
     githubUsername: args.github.trim() || undefined,
     portfolioUrl: args.portfolio.trim() || undefined,
     linkedinUrl: args.linkedinUrl ?? undefined,
+    remotePreference: args.remotePreference,
+    needsSponsorship: args.needsSponsorship,
+    country: args.country.trim() || null,
   };
 }
 
@@ -60,6 +69,9 @@ export default function OnboardingPage() {
   const [github, setGithub] = useState("");
   const [portfolio, setPortfolio] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState<string | null>(null);
+  const [remotePref, setRemotePref] = useState<RemotePreference | null>(null);
+  const [needsSponsorship, setNeedsSponsorship] = useState<boolean | null>(null);
+  const [country, setCountry] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -74,6 +86,9 @@ export default function OnboardingPage() {
     setGithub(profile.githubUsername ?? "");
     setPortfolio(profile.portfolioUrl ?? "");
     setLinkedinUrl(profile.linkedinUrl ?? null);
+    setRemotePref(profile.remotePreference ?? null);
+    setNeedsSponsorship(profile.needsSponsorship ?? null);
+    setCountry(profile.country ?? "");
     setHydrated(true);
   }, [profile, hydrated]);
 
@@ -86,8 +101,8 @@ export default function OnboardingPage() {
 
   // Visible steps in flow order, including the success view.
   const visibleSteps: StepId[] = showStack
-    ? [1, 2, 3, 4, 5, 6]
-    : [1, 2, 4, 5, 6];
+    ? [1, 2, 3, 4, 7, 5, 6]
+    : [1, 2, 4, 7, 5, 6];
   const currentIndex = visibleSteps.indexOf(currentStep);
   // Total exposed in step counter (excludes the final Done).
   const totalSteps = visibleSteps.length - 1;
@@ -146,6 +161,9 @@ export default function OnboardingPage() {
           github,
           portfolio,
           linkedinUrl,
+          remotePreference: remotePref,
+          needsSponsorship,
+          country,
         }),
         onboardedAt: new Date().toISOString(),
         onboardingSkipped: false,
@@ -169,6 +187,9 @@ export default function OnboardingPage() {
           github,
           portfolio,
           linkedinUrl,
+          remotePreference: remotePref,
+          needsSponsorship,
+          country,
         }),
         onboardingSkipped: true,
       });
@@ -211,6 +232,14 @@ export default function OnboardingPage() {
           label: t.onboarding.continue,
           onClick: nextStep,
           disabled: langs.length === 0,
+          showHelper: true,
+        };
+      case 7:
+        // Optional step: never gate Continue on an answer.
+        return {
+          label: t.onboarding.continue,
+          onClick: nextStep,
+          disabled: false,
           showHelper: true,
         };
       case 5:
@@ -317,6 +346,17 @@ export default function OnboardingPage() {
           )}
           {currentStep === 4 && (
             <StepLanguages t={t} langs={langs} onToggle={toggleLang} />
+          )}
+          {currentStep === 7 && (
+            <StepWork
+              t={t}
+              remotePreference={remotePref}
+              needsSponsorship={needsSponsorship}
+              country={country}
+              onRemoteChange={setRemotePref}
+              onSponsorshipChange={setNeedsSponsorship}
+              onCountryChange={setCountry}
+            />
           )}
           {currentStep === 5 && role && (
             <StepLinks

@@ -2229,6 +2229,36 @@
       "titleAccent": "on the curve?",
       "sub": "Junior CVs and Senior CVs get rejected for completely different reasons. This tells the model which red flags to look for."
     },
+    "work": {
+      "eyebrow": "Where & how you work",
+      "title": "The things a CV",
+      "titleAccent": "can't say",
+      "sub": "Location, remote fit and visa status decide a lot of rejections, and no CV score can see them. Tell us once and we'll factor them in. All optional.",
+      "modeLabel": "Preferred way to work",
+      "mode": {
+        "remote": "Remote",
+        "hybrid": "Hybrid",
+        "onsite": "On-site",
+        "flexible": "Flexible"
+      },
+      "modeMeta": {
+        "remote": "Fully remote only",
+        "hybrid": "A few days in office",
+        "onsite": "Happy in the office",
+        "flexible": "Open to anything"
+      },
+      "authLabel": "Work authorization",
+      "sponsorship": {
+        "authorized": "Already authorized",
+        "needs": "I need sponsorship"
+      },
+      "sponsorshipMeta": {
+        "authorized": "I can work where I apply",
+        "needs": "I need a visa or work permit"
+      },
+      "locationLabel": "Where you're based (optional)",
+      "locationPlaceholder": "e.g. Berlin, Germany"
+    },
     "step3": {
       "eyebrow": "03 · Your stack",
       "title": "Pick your",

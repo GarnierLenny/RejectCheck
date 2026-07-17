@@ -2229,6 +2229,36 @@
       "titleAccent": "sur la courbe ?",
       "sub": "Les CV junior et senior se font rejeter pour des raisons complètement différentes. C'est comme ça qu'on sait quels red flags chercher."
     },
+    "work": {
+      "eyebrow": "Où & comment tu travailles",
+      "title": "Ce qu'un CV",
+      "titleAccent": "ne dit pas",
+      "sub": "La localisation, le remote et le statut visa décident beaucoup de rejets, et aucun score de CV ne les voit. Dis-le une fois, on en tient compte. Tout est optionnel.",
+      "modeLabel": "Ta façon de travailler",
+      "mode": {
+        "remote": "Remote",
+        "hybrid": "Hybride",
+        "onsite": "Sur site",
+        "flexible": "Flexible"
+      },
+      "modeMeta": {
+        "remote": "100% remote uniquement",
+        "hybrid": "Quelques jours au bureau",
+        "onsite": "À l'aise au bureau",
+        "flexible": "Ouvert à tout"
+      },
+      "authLabel": "Droit de travailler",
+      "sponsorship": {
+        "authorized": "Déjà autorisé",
+        "needs": "J'ai besoin d'un sponsor"
+      },
+      "sponsorshipMeta": {
+        "authorized": "Je peux travailler là où je postule",
+        "needs": "Il me faut un visa ou permis"
+      },
+      "locationLabel": "Où tu es basé (optionnel)",
+      "locationPlaceholder": "ex : Berlin, Allemagne"
+    },
     "step3": {
       "eyebrow": "03 · Ta stack",
       "title": "Choisis tes",

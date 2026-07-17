@@ -128,6 +128,9 @@ export type Profile = {
   experienceLevel: string | null;
   techStack: string[];
   languages: string[];
+  country: string | null;
+  remotePreference: string | null;
+  needsSponsorship: boolean | null;
   onboardedAt: Date | null;
   onboardingSkipped: boolean;
   /**
@@ -161,6 +164,9 @@ export type ProfileUpdate = {
   experienceLevel?: string | null;
   techStack?: string[];
   languages?: string[];
+  country?: string | null;
+  remotePreference?: string | null;
+  needsSponsorship?: boolean | null;
   onboardedAt?: Date | null;
   onboardingSkipped?: boolean;
 };
