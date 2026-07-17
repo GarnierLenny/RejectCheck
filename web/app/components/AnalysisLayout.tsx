@@ -20,6 +20,7 @@ import { RescanPanel } from "./rescan/RescanPanel";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { useLanguage } from "../../context/language";
+import { useProfile } from "../../lib/queries";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -990,6 +991,24 @@ export function AnalysisLayout({
   const hasHired = userPlan === "hired";
   const jd = result.job_details;
 
+  // Personalized work-eligibility alerts (owner view only): the collectable
+  // blind spots we now know about this candidate. Never applied on the shared
+  // read-only view — that profile belongs to the viewer, not the analysis owner.
+  const { data: viewerProfile } = useProfile();
+  const workAlerts = useMemo(() => {
+    if (readOnly || !viewerProfile) return [] as string[];
+    const bs = t.analysisLayout.blindSpots.alerts;
+    const out: string[] = [];
+    if (viewerProfile.needsSponsorship === true) out.push(bs.sponsorship);
+    if (
+      viewerProfile.remotePreference === "remote" &&
+      (jd?.work_setting === "on-site" || jd?.work_setting === "hybrid")
+    ) {
+      out.push(bs.remote);
+    }
+    return out;
+  }, [readOnly, viewerProfile, jd?.work_setting, t]);
+
   const matchBadge = (result.ats_simulation && !result.ats_simulation.would_pass ? 1 : 0) + (result.audit.jd_match?.required_skills.filter((s) => !s.found).length ?? 0);
   const cvBadge = result.audit.cv.issues.filter((i) => i.severity === "critical").length;
   const signalsBadge = (result.audit.github?.issues.length ?? 0) + (result.audit.linkedin?.issues.length ?? 0);
@@ -1125,6 +1144,20 @@ export function AnalysisLayout({
                   <Eyebrow style={{ marginRight: 16, color: "var(--rc-hint)", whiteSpace: "nowrap" }}>{t.analysisLayout.hero.targetRole}</Eyebrow>
                   <Mono style={{ fontSize: 14, fontWeight: 700, color: "var(--rc-text)", whiteSpace: "nowrap" }}>{jd.pay}</Mono>
                   {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
+                </div>
+              )}
+
+              {/* Personalized hard-mismatch alerts (owner only): the collectable
+                  blind spots we now know about — the sponsorship / remote filters
+                  that cut before a CV is read. */}
+              {workAlerts.length > 0 && (
+                <div style={{ marginTop: 20, padding: "14px 16px", borderRadius: R_SM, border: "1px solid color-mix(in srgb, var(--rc-amber) 45%, transparent)", background: "color-mix(in srgb, var(--rc-amber) 8%, transparent)" }}>
+                  <Eyebrow style={{ display: "block", marginBottom: 8, color: "var(--rc-amber)" }}>{t.analysisLayout.blindSpots.alerts.title}</Eyebrow>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.6, color: "var(--rc-text)" }}>
+                    {workAlerts.map((a, i) => (
+                      <li key={i}>{a}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

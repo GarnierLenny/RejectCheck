@@ -10,6 +10,7 @@ import { useUpdateProfile } from "../../../lib/mutations";
 import {
   EXPERIENCE_LEVELS,
   LANGS_PRIMARY,
+  REMOTE_MODES,
   ROLES,
   STACKS_PRIMARY,
   TECH_ROLES,
@@ -17,6 +18,7 @@ import {
 import type {
   ExperienceLevel,
   Profile,
+  RemotePreference,
   RoleType,
 } from "../../../lib/queries";
 
@@ -52,12 +54,18 @@ export function TargetingSettings({
   const [xp, setXp] = useState<ExperienceLevel | "">("");
   const [stacks, setStacks] = useState<string[]>([]);
   const [langs, setLangs] = useState<string[]>([]);
+  const [remotePref, setRemotePref] = useState<RemotePreference | "">("");
+  const [sponsorship, setSponsorship] = useState<"" | "authorized" | "needs">("");
+  const [country, setCountry] = useState("");
 
   const [roleSaved, setRoleSaved] = useState(false);
   const [roleOtherSaved, setRoleOtherSaved] = useState(false);
   const [xpSaved, setXpSaved] = useState(false);
   const [stacksSaved, setStacksSaved] = useState(false);
   const [langsSaved, setLangsSaved] = useState(false);
+  const [remoteSaved, setRemoteSaved] = useState(false);
+  const [sponsorshipSaved, setSponsorshipSaved] = useState(false);
+  const [countrySaved, setCountrySaved] = useState(false);
 
   const [retaking, setRetaking] = useState(false);
 
@@ -68,6 +76,15 @@ export function TargetingSettings({
     setXp(profile.experienceLevel ?? "");
     setStacks(profile.techStack ?? []);
     setLangs(profile.languages ?? []);
+    setRemotePref(profile.remotePreference ?? "");
+    setSponsorship(
+      profile.needsSponsorship === true
+        ? "needs"
+        : profile.needsSponsorship === false
+          ? "authorized"
+          : "",
+    );
+    setCountry(profile.country ?? "");
   }, [profile]);
 
   function flash(setter: (v: boolean) => void) {
@@ -127,6 +144,30 @@ export function TargetingSettings({
     setLangs(next);
     await updateProfile.mutateAsync({ languages: next });
     flash(setLangsSaved);
+  }
+
+  async function handleRemoteChange(next: RemotePreference | "") {
+    setRemotePref(next);
+    if (next === (profile?.remotePreference ?? "")) return;
+    await updateProfile.mutateAsync({
+      remotePreference: next === "" ? null : next,
+    });
+    flash(setRemoteSaved);
+  }
+
+  async function handleSponsorshipChange(next: "" | "authorized" | "needs") {
+    setSponsorship(next);
+    const value = next === "" ? null : next === "needs";
+    if (value === (profile?.needsSponsorship ?? null)) return;
+    await updateProfile.mutateAsync({ needsSponsorship: value });
+    flash(setSponsorshipSaved);
+  }
+
+  async function handleCountryBlur() {
+    const current = profile?.country ?? "";
+    if (country.trim() === current) return;
+    await updateProfile.mutateAsync({ country: country.trim() || null });
+    flash(setCountrySaved);
   }
 
   async function handleRetake() {
@@ -311,6 +352,85 @@ export function TargetingSettings({
         <Caption as="p" className="block mt-2">
           {t.settingsTab.targeting.languagesHint}
         </Caption>
+      </div>
+
+      {/* Work eligibility — the collectable blind spots (location, remote, visa) */}
+      <div className="flex flex-col gap-5 border-t border-rc-border pt-6">
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <FieldLabel htmlFor="targeting-remote">
+              {t.settingsTab.targeting.remoteLabel}
+            </FieldLabel>
+            <SavedBadge show={remoteSaved} label={t.settingsTab.savedBadge} />
+          </div>
+          <select
+            id="targeting-remote"
+            value={remotePref}
+            onChange={(e) =>
+              handleRemoteChange(e.target.value as RemotePreference | "")
+            }
+            className={inputClass}
+          >
+            <option value="">—</option>
+            {REMOTE_MODES.map((m) => (
+              <option key={m.id} value={m.id}>
+                {t.onboarding.work.mode[m.id]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <FieldLabel htmlFor="targeting-sponsorship">
+              {t.settingsTab.targeting.workAuthLabel}
+            </FieldLabel>
+            <SavedBadge
+              show={sponsorshipSaved}
+              label={t.settingsTab.savedBadge}
+            />
+          </div>
+          <select
+            id="targeting-sponsorship"
+            value={sponsorship}
+            onChange={(e) =>
+              handleSponsorshipChange(
+                e.target.value as "" | "authorized" | "needs",
+              )
+            }
+            className={inputClass}
+          >
+            <option value="">—</option>
+            <option value="authorized">
+              {t.onboarding.work.sponsorship.authorized}
+            </option>
+            <option value="needs">
+              {t.onboarding.work.sponsorship.needs}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <FieldLabel htmlFor="targeting-country">
+              {t.settingsTab.targeting.countryLabel}
+            </FieldLabel>
+            <SavedBadge show={countrySaved} label={t.settingsTab.savedBadge} />
+          </div>
+          <input
+            id="targeting-country"
+            type="text"
+            value={country}
+            maxLength={80}
+            onChange={(e) => setCountry(e.target.value)}
+            onBlur={handleCountryBlur}
+            placeholder={t.onboarding.work.locationPlaceholder}
+            className={inputClass}
+          />
+          <Caption as="p" className="block mt-1.5">
+            {t.settingsTab.targeting.workHint}
+          </Caption>
+        </div>
       </div>
 
       {/* URL fields are managed elsewhere — link out */}

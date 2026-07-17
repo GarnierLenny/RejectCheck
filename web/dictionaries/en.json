@@ -1629,7 +1629,11 @@
       "languagesHint": "Conversational or better. Used to detect language mismatches with the target market.",
       "retakeButton": "Re-take onboarding",
       "retakeHint": "Walk through the full 4-question flow again. Existing values are pre-filled.",
-      "linksRedirect": "Manage links (GitHub, LinkedIn, Portfolio) in Public profile and Autofill analysis."
+      "linksRedirect": "Manage links (GitHub, LinkedIn, Portfolio) in Public profile and Autofill analysis.",
+      "remoteLabel": "Preferred way to work",
+      "workAuthLabel": "Work authorization",
+      "countryLabel": "Where you're based",
+      "workHint": "Location, remote fit and visa status decide a lot of rejections no CV score can see. We factor these into your analyses."
     },
     "publicProfile": {
       "cardTitle": "Public profile",
@@ -2437,7 +2441,12 @@
         "your visa or sponsorship needs, and where you're based",
         "whether the role is genuinely still open"
       ],
-      "outro": "A strong score with no replies usually points at one of these, not at your CV."
+      "outro": "A strong score with no replies usually points at one of these, not at your CV.",
+      "alerts": {
+        "title": "For your situation",
+        "sponsorship": "You told us you need visa sponsorship. If this employer doesn't offer it, that's likely your biggest blocker here, and no CV score can see it.",
+        "remote": "This role is on-site or hybrid, but you prefer remote. That's often a hard filter before your CV is even read."
+      }
     },
     "report": {
       "positioningSub": "Before a single bullet is read, two things set the first impression: the level you project, and the voice you write in.",
