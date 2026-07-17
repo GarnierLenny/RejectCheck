@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { setPendingCv } from "../../../../lib/pending-cv";
 import { useAuth } from "../../../../context/auth";
 import { useLanguage } from "../../../../context/language";
 import { useProfile } from "../../../../lib/queries";
@@ -72,6 +73,9 @@ export default function OnboardingPage() {
   const [remotePref, setRemotePref] = useState<RemotePreference | null>(null);
   const [needsSponsorship, setNeedsSponsorship] = useState<boolean | null>(null);
   const [country, setCountry] = useState("");
+  // Optional CV staged on the final (Done) screen to run the first check
+  // immediately: handed to /analyze via setPendingCv, mirroring the landing hero.
+  const [doneCvFile, setDoneCvFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -253,8 +257,11 @@ export default function OnboardingPage() {
         };
       case 6:
         return {
-          label: t.onboarding.step6.cta,
-          onClick: () => router.push(localePath("/analyze")),
+          label: doneCvFile ? t.onboarding.step6.ctaWithCv : t.onboarding.step6.cta,
+          onClick: () => {
+            if (doneCvFile) setPendingCv(doneCvFile, "");
+            router.push(localePath("/analyze"));
+          },
           disabled: false,
           showHelper: false,
         };
@@ -267,6 +274,7 @@ export default function OnboardingPage() {
     stacks.length,
     langs.length,
     submitting,
+    doneCvFile,
     t,
     router,
     localePath,
@@ -371,7 +379,17 @@ export default function OnboardingPage() {
               session={session}
             />
           )}
-          {currentStep === 6 && <StepDone t={t} />}
+          {currentStep === 6 && (
+            <StepDone
+              t={t}
+              role={role}
+              roleOther={roleOther}
+              xp={xp}
+              stacks={stacks}
+              cvFile={doneCvFile}
+              onCvChange={setDoneCvFile}
+            />
+          )}
         </div>
       </main>
 

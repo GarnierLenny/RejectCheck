@@ -2302,7 +2302,57 @@
       "title": "Your radar is",
       "titleAccent": "calibrated.",
       "sub": "We've tuned the model to your role, level, and stack. Time to put your CV through it. Most people are surprised by what comes back.",
-      "cta": "Take me to /analyze →"
+      "cta": "Take me to /analyze →",
+      "ctaWithCv": "Run my first check →"
+    },
+    "reveal": {
+      "tunedFor": "Tuned for",
+      "screenTitle": "What recruiters screen you against",
+      "dropTitle": "Drop your CV to run your first check now",
+      "dropHint": "PDF or image. Optional, you can do this later.",
+      "dropStaged": "Staged, ready to run",
+      "points": {
+        "software": [
+          "Proof you shipped, not just listed: real projects, commits, impact you can point to.",
+          "Signal you can work at their scale: depth in a stack beats a wall of buzzwords.",
+          "A CV that survives the ATS keyword pass before a human ever sees it."
+        ],
+        "product": [
+          "Outcomes with numbers: what moved, by how much, because of you.",
+          "Evidence you owned the problem, not just carried the roadmap ticket.",
+          "A story a hiring manager can repeat in the debrief without notes."
+        ],
+        "design": [
+          "A portfolio that shows the thinking, not just the final pixels.",
+          "Proof your work shipped and moved a metric, not just looked good.",
+          "Range that matches their surface: product, brand, systems, whatever they need."
+        ],
+        "data": [
+          "Business impact, not model accuracy in a vacuum.",
+          "Proof you go from messy data to a decision someone acted on.",
+          "The exact tooling in their stack, screened before a human reads a line."
+        ],
+        "marketing": [
+          "Channels you actually moved, with the numbers to back them.",
+          "Proof you can attribute results, not just claim them.",
+          "Evidence you own a funnel end to end, not one narrow slice."
+        ],
+        "ops": [
+          "Process you built or fixed, with the before and after to prove it.",
+          "Scope: how much you ran, how many people, how much money moved.",
+          "Signal you make things run without being asked twice."
+        ],
+        "sales": [
+          "Quota, attainment, and the numbers that back the story.",
+          "Proof you close, not just fill a pipeline.",
+          "A track record that reads the same whether the market was up or down."
+        ],
+        "other": [
+          "Concrete outcomes, not a list of responsibilities.",
+          "Proof the work mattered: what changed because you were there.",
+          "A CV that clears the keyword filter before a human reads it."
+        ]
+      }
     },
     "roles": {
       "software": "Software / Dev",

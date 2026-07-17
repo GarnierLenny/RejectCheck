@@ -2302,7 +2302,57 @@
       "title": "Ton radar est",
       "titleAccent": "calibré.",
       "sub": "On a ajusté le modèle à ton métier, ton niveau, ta stack. Maintenant passe ton CV dedans. La plupart des gens sont surpris par ce qui en sort.",
-      "cta": "M'emmener vers /analyze →"
+      "cta": "M'emmener vers /analyze →",
+      "ctaWithCv": "Lancer ma première analyse →"
+    },
+    "reveal": {
+      "tunedFor": "Calibré pour",
+      "screenTitle": "Ce que les recruteurs regardent vraiment",
+      "dropTitle": "Dépose ton CV pour lancer ta première analyse",
+      "dropHint": "PDF ou image. Optionnel, tu peux le faire plus tard.",
+      "dropStaged": "Prêt, en attente de lancement",
+      "points": {
+        "software": [
+          "La preuve que tu as livré, pas juste listé : vrais projets, commits, impact concret.",
+          "Le signal que tu tiens leur échelle : la profondeur d'une stack vaut mieux qu'un mur de buzzwords.",
+          "Un CV qui passe le filtre ATS avant même qu'un humain le lise."
+        ],
+        "product": [
+          "Des résultats chiffrés : ce qui a bougé, de combien, grâce à toi.",
+          "La preuve que tu as porté le problème, pas juste coché le ticket de roadmap.",
+          "Un récit que le manager peut répéter en débrief sans ses notes."
+        ],
+        "design": [
+          "Un portfolio qui montre la réflexion, pas juste le pixel final.",
+          "La preuve que ton travail a été livré et a bougé une métrique, pas juste fait joli.",
+          "Une polyvalence qui colle à leur besoin : produit, marque, design system, selon le poste."
+        ],
+        "data": [
+          "L'impact business, pas la précision d'un modèle hors sol.",
+          "La preuve que tu passes d'une donnée sale à une décision suivie d'effet.",
+          "Les outils exacts de leur stack, filtrés avant qu'un humain lise une ligne."
+        ],
+        "marketing": [
+          "Les canaux que tu as vraiment fait bouger, chiffres à l'appui.",
+          "La preuve que tu attribues les résultats, pas juste que tu les revendiques.",
+          "Le signal que tu possèdes un funnel de bout en bout, pas une tranche."
+        ],
+        "ops": [
+          "Le process que tu as construit ou réparé, avec l'avant et l'après pour le prouver.",
+          "Le périmètre : combien tu gérais, combien de personnes, combien d'argent.",
+          "Le signal que tu fais tourner les choses sans qu'on te le redemande."
+        ],
+        "sales": [
+          "Quota, atteinte, et les chiffres qui tiennent le récit.",
+          "La preuve que tu signes, pas juste que tu remplis un pipeline.",
+          "Un track record stable, que le marché soit haut ou bas."
+        ],
+        "other": [
+          "Des résultats concrets, pas une liste de responsabilités.",
+          "La preuve que le travail a compté : ce qui a changé grâce à toi.",
+          "Un CV qui passe le filtre mots-clés avant qu'un humain le lise."
+        ]
+      }
     },
     "roles": {
       "software": "Software / Dev",

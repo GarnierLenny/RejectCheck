@@ -43,6 +43,7 @@ export default function OnboardingPreviewPage() {
   const [remotePref, setRemotePref] = useState<RemotePreference | null>(null);
   const [needsSponsorship, setNeedsSponsorship] = useState<boolean | null>(null);
   const [country, setCountry] = useState("");
+  const [doneCvFile, setDoneCvFile] = useState<File | null>(null);
 
   const showStack = role !== null && TECH_ROLES.includes(role);
   const visibleSteps: StepId[] = showStack
@@ -101,9 +102,9 @@ export default function OnboardingPreviewPage() {
       case 5:
         return { label: t.onboarding.step5.finish, onClick: () => goToStep(6), disabled: false, showHelper: true };
       case 6:
-        return { label: t.onboarding.step6.cta, onClick: () => goToStep(1), disabled: false, showHelper: false };
+        return { label: doneCvFile ? t.onboarding.step6.ctaWithCv : t.onboarding.step6.cta, onClick: () => goToStep(1), disabled: false, showHelper: false };
     }
-  }, [currentStep, role, roleOther, xp, stacks.length, langs.length, t, nextStep]);
+  }, [currentStep, role, roleOther, xp, stacks.length, langs.length, doneCvFile, t, nextStep]);
 
   const stepLabel = (() => {
     if (currentStep === 6)
@@ -158,7 +159,17 @@ export default function OnboardingPreviewPage() {
               session={null}
             />
           )}
-          {currentStep === 6 && <StepDone t={t} />}
+          {currentStep === 6 && (
+            <StepDone
+              t={t}
+              role={role}
+              roleOther={roleOther}
+              xp={xp}
+              stacks={stacks}
+              cvFile={doneCvFile}
+              onCvChange={setDoneCvFile}
+            />
+          )}
         </div>
       </main>
 
