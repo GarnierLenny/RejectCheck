@@ -116,13 +116,36 @@ export type AnchoredBreakdown = {
   linkedin_signal: number | null;
 };
 
-export type ComposeRiskInput = {
-  breakdown: AnchoredBreakdown;
-  atsScore: number;
+export type HardSignalCounts = {
   redFlagCount: number;
   criticalIssueCount: number;
   fatalBulletCount: number;
 };
+
+export type ComposeRiskInput = {
+  breakdown: AnchoredBreakdown;
+  atsScore: number;
+} & HardSignalCounts;
+
+/**
+ * Additive point penalty for the hard rejection signals a recruiter reacts to,
+ * each capped so a noisy list can't dominate. Shared by the vs-JD composite
+ * (adds to risk) and the CV-audit quality (subtracts from quality), so a red
+ * flag costs the same on both screens.
+ */
+export function composePenalty(c: HardSignalCounts): number {
+  return (
+    Math.min(REDFLAG_CAP, Math.max(0, c.redFlagCount) * REDFLAG_RISK) +
+    Math.min(
+      CRITICAL_ISSUE_CAP,
+      Math.max(0, c.criticalIssueCount) * CRITICAL_ISSUE_RISK,
+    ) +
+    Math.min(
+      FATAL_BULLET_CAP,
+      Math.max(0, c.fatalBulletCount) * FATAL_BULLET_RISK,
+    )
+  );
+}
 
 /**
  * Recompute the overall rejection risk from the anchored parts. Higher = weaker
@@ -150,16 +173,7 @@ export function composeRisk(input: ComposeRiskInput): number {
       ? 0
       : parts.reduce((sum, [v, w]) => sum + clamp0100(v) * w, 0) / totalWeight;
 
-  const penalty =
-    Math.min(REDFLAG_CAP, Math.max(0, input.redFlagCount) * REDFLAG_RISK) +
-    Math.min(
-      CRITICAL_ISSUE_CAP,
-      Math.max(0, input.criticalIssueCount) * CRITICAL_ISSUE_RISK,
-    ) +
-    Math.min(
-      FATAL_BULLET_CAP,
-      Math.max(0, input.fatalBulletCount) * FATAL_BULLET_RISK,
-    );
+  const penalty = composePenalty(input);
 
   // Deflate the fit (competitiveness) before inverting to risk, then add the
   // hard-signal penalties. Deflation spreads the generous LLM cluster; penalties

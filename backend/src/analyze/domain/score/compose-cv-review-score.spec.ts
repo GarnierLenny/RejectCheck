@@ -71,6 +71,27 @@ describe('anchorCvQuality', () => {
     expect(out.impact).toBe(0);
   });
 
+  it('subtracts a credibility penalty so a flagged CV is punished, not merely light', () => {
+    const subs = {
+      clarity: 80,
+      impact: 80,
+      hard_skills: 80,
+      soft_skills: 80,
+      consistency: 80,
+      ats_format: 80,
+    };
+    const clean = anchorCvQuality(subs).overall;
+    // deflate(80)=66.4 -> 65 clean ; penalty 2*4+1*3+1*2=13 -> quantize(53.4)=55.
+    const flagged = anchorCvQuality(subs, {
+      redFlagCount: 2,
+      criticalIssueCount: 1,
+      fatalBulletCount: 1,
+    }).overall;
+    expect(clean).toBe(65);
+    expect(flagged).toBe(55);
+    expect(flagged).toBeLessThan(clean);
+  });
+
   it('has weights that sum to 1', () => {
     const sum = Object.values(CV_QUALITY_WEIGHTS).reduce((a, b) => a + b, 0);
     expect(sum).toBeCloseTo(1, 10);
