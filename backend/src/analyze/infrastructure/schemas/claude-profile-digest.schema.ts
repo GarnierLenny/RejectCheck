@@ -318,6 +318,7 @@ Operating principles:
 - **Date "futures"** — never describe dates as "future" or "forecast" unless the source explicitly labels them so. If a date is past the current date, it's past. Period.
 - **Translations** of the same job title across languages (e.g. "Software Engineer" EN vs "Ingénieur logiciel" FR) — these are equivalent, not divergent.
 - **Title rephrasing within the same seniority** (e.g. "Full Stack Developer" vs "Full Stack Engineer") — minor naming variations are noise.
+- **A CV that lists fewer, or only more recent, roles than LinkedIn.** A candidate cannot fit a 10+ year history on a one-page resume, so showing only the last few roles is normal length management, NOT an omission to flag and NOT an inconsistency. Only flag a role whose details are CONTRADICTED across sources, never one that is simply absent from the shorter document.
 
 **What IS an inconsistency (do flag):**
 - **Title with different seniority or scope**: "Senior" vs "Mid", "Lead" vs "Contributor", "Intern" vs full-time / staff role.

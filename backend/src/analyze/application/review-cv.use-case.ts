@@ -35,6 +35,7 @@ import {
 } from '../domain/analysis-shaper';
 import { anchorCvQuality } from '../domain/score/compose-cv-review-score';
 import { sanitizeCvReviewFabrication } from '../domain/anti-fabrication';
+import { assignCvReviewIssueIds } from '../domain/cv-review-issues';
 import { isOwnerEmail } from '../domain/owner';
 import { QuotaExceededException } from '../../common/exceptions';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
@@ -286,6 +287,10 @@ export class ReviewCvUseCase {
     // Neutralise any number the model invented in a rewrite that has no basis
     // in the CV, before we persist / return / share it (anti-fabrication).
     sanitizeCvReviewFabrication(result, cvText);
+    // Stable issue ids so a re-scan diffs by identity, not array position. A
+    // strong CV reading clean is enforced at the prompt (return few/zero
+    // issues), NOT by hiding genuine findings post-hoc. See cv-review-issues.ts.
+    assignCvReviewIssueIds(result);
 
     const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
 

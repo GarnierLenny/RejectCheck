@@ -40,3 +40,9 @@ pnpm-debug.log*
 # Tooling artifacts
 .superpowers/
 .worktrees/
+
+# Calibration corpora — raw resumes are third-party PII (scraped, CC0 does NOT
+# waive the data subjects' rights). Never commit them. Only the calibration
+# script + the aggregate role-archetypes.json (no PII) are tracked.
+datasets/resumes/
+datasets/**/*.zip

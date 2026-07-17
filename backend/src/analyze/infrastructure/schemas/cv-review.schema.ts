@@ -55,7 +55,7 @@ const auditSchema = (description: string, maxIssues: number) => ({
       type: 'array' as const,
       items: ISSUE_SCHEMA,
       maxItems: maxIssues,
-      description: `Up to ${maxIssues} issues ordered by severity (critical → minor). Be exhaustive within the cap — list every recruiter-relevant finding. Do not pad or repeat.`,
+      description: `Up to ${maxIssues} issues, ordered by severity (critical first). Only genuine, recruiter-relevant findings. The cap is a ceiling, never a quota: fewer is better, return zero on a clean CV, and never pad, split, or reword a weakness to fill a slot.`,
     },
   },
   required: ['score', 'issues'],
@@ -111,7 +111,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
             minimum: 0,
             maximum: 100,
             description:
-              'Internal CV consistency: timeline without gaps or overlaps, titles matching described responsibilities, claimed skills reflected in actual experience, no contradictions across sections.',
+              'Internal CV consistency: titles matching described responsibilities, claimed skills reflected in actual experience, no contradictions across sections. A CV that lists only recent roles is normal length management, NOT a timeline gap: judge only contradictions among the roles actually present, never legitimately omitted older ones.',
           },
           ats_format: {
             type: 'number' as const,

@@ -48,7 +48,7 @@ type Props = {
 
 const COPY = {
   en: {
-    kicker: "§ 02.5 · Re-audit loop",
+    kicker: "§ 02.6 · Re-audit loop",
     title: "Fix your CV, watch the score move.",
     intro:
       "Edit your CV below and re-audit it. Your six quality scores are re-judged and you see exactly what moved. Uses one analysis credit.",
@@ -62,12 +62,14 @@ const COPY = {
     overall: "Overall quality",
     resolved: "resolved",
     appeared: "new",
+    noNew: "no new issues introduced",
+    held: "The score held: the recruiter-judgment dimensions didn't shift this pass. Keep tightening bullets, then re-audit.",
     open: "Open the updated audit",
     tooShort: "Keep your full CV text, not just the edits.",
     error: "Re-audit failed. Try again.",
   },
   fr: {
-    kicker: "§ 02.5 · Boucle de re-audit",
+    kicker: "§ 02.6 · Boucle de re-audit",
     title: "Corrige ton CV, regarde le score bouger.",
     intro:
       "Édite ton CV ci-dessous et relance l'audit. Tes six scores de qualité sont re-jugés et tu vois exactement ce qui a bougé. Consomme un crédit d'analyse.",
@@ -81,6 +83,8 @@ const COPY = {
     overall: "Qualité globale",
     resolved: "résolues",
     appeared: "nouvelles",
+    noNew: "aucune nouvelle issue introduite",
+    held: "Le score a tenu : les dimensions de jugement recruteur n'ont pas bougé sur cette passe. Resserre encore les bullets, puis relance.",
     open: "Ouvrir l'audit mis à jour",
     tooShort: "Garde tout le texte de ton CV, pas seulement les corrections.",
     error: "Le re-audit a échoué. Réessaie.",
@@ -119,6 +123,34 @@ function fmtDelta(delta: number | null): string {
 
 const MONO = { fontFamily: "var(--rc-mono, ui-monospace, monospace)" } as const;
 const SANS = { fontFamily: "var(--rc-sans, system-ui, sans-serif)" } as const;
+
+/** The sub-score that gained the most on this re-audit (for the "what moved" line). */
+function biggestMover(
+  deltas: CvReviewRescanDeltas,
+): { key: keyof CvReviewRescanDeltas["subScores"]; delta: number } | null {
+  let best: { key: keyof CvReviewRescanDeltas["subScores"]; delta: number } | null = null;
+  for (const key of SUB_ORDER) {
+    const d = deltas.subScores[key];
+    if (d.delta != null && d.delta > 0 && (best === null || d.delta > best.delta)) {
+      best = { key, delta: d.delta };
+    }
+  }
+  return best;
+}
+
+/** The sub-score that fell the most on this re-audit (for an honest drop line). */
+function biggestDrop(
+  deltas: CvReviewRescanDeltas,
+): { key: keyof CvReviewRescanDeltas["subScores"]; delta: number } | null {
+  let best: { key: keyof CvReviewRescanDeltas["subScores"]; delta: number } | null = null;
+  for (const key of SUB_ORDER) {
+    const d = deltas.subScores[key];
+    if (d.delta != null && d.delta < 0 && (best === null || d.delta < best.delta)) {
+      best = { key, delta: d.delta };
+    }
+  }
+  return best;
+}
 
 export function CvAuditRescanPanel({
   analysisId,
@@ -362,6 +394,38 @@ export function CvAuditRescanPanel({
               </span>
             </div>
 
+            {/* What moved / why it held (item 2: honest score explanation) */}
+            {(() => {
+              const od = deltas.overall.delta;
+              let text: string;
+              if (od != null && od > 0) {
+                const mv = biggestMover(deltas);
+                text = mv
+                  ? langKey === "fr"
+                    ? `Score global +${od}. Plus gros gain : ${SUB_LABELS[mv.key][langKey]} +${mv.delta}.`
+                    : `Overall +${od}. Biggest gain: ${SUB_LABELS[mv.key][langKey]} +${mv.delta}.`
+                  : langKey === "fr"
+                    ? `Score global +${od}.`
+                    : `Overall +${od}.`;
+              } else if (od != null && od < 0) {
+                const dr = biggestDrop(deltas);
+                text = dr
+                  ? langKey === "fr"
+                    ? `Score global ${od}. Plus grosse baisse : ${SUB_LABELS[dr.key][langKey]} ${dr.delta}.`
+                    : `Overall ${od}. Biggest drop: ${SUB_LABELS[dr.key][langKey]} ${dr.delta}.`
+                  : langKey === "fr"
+                    ? `Score global ${od}.`
+                    : `Overall ${od}.`;
+              } else {
+                text = L.held;
+              }
+              return (
+                <div style={{ ...SANS, fontSize: 13, color: "var(--rc-hint)", marginBottom: 18, lineHeight: 1.5 }}>
+                  {text}
+                </div>
+              );
+            })()}
+
             {/* Six sub-score movements */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
               {SUB_ORDER.map((key) => {
@@ -401,6 +465,23 @@ export function CvAuditRescanPanel({
               {deltas.newIssueCount > 0 && (
                 <span style={{ ...MONO, fontSize: 12, color: "var(--rc-red)", fontWeight: 700 }}>
                   {deltas.newIssueCount} {L.appeared}
+                </span>
+              )}
+              {deltas.newIssueCount === 0 && (
+                <span
+                  style={{
+                    ...MONO,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    // Green only when there was real progress; a no-op re-scan
+                    // shows it neutral rather than earning a false win.
+                    color:
+                      deltas.resolvedIssueCount > 0 || (deltas.overall.delta ?? 0) > 0
+                        ? "var(--rc-green)"
+                        : "var(--rc-hint)",
+                  }}
+                >
+                  {L.noNew}
                 </span>
               )}
               {newId != null && (

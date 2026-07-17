@@ -85,7 +85,14 @@ TENURE:
 - Flag job-hopping only when average tenure is under 18 months across 3 or more recent roles (under 24 months for senior or leadership roles). Agency, contract, consulting or freelance short stints are normal and are not a flag. A single short stint with a clear reason is not a flag.
 
 DOMAIN OUTCOME METRICS:
-- Identify the 3 to 5 outcome metrics this role family is judged on and reward bullets that quantify them. Treat a total absence of any outcome metric as a hidden_red_flag.`;
+- Identify the 3 to 5 outcome metrics this role family is judged on and reward bullets that quantify them. Treat a total absence of any outcome metric as a hidden_red_flag.
+
+ISSUE DISCIPLINE (never manufacture problems):
+- The issue caps are ceilings, not quotas. Return only genuine, recruiter-relevant issues. On a strong CV, return few or even zero issues rather than padding to the cap. Never invent, split, or reword a weakness to fill an empty slot. A clean CV that scores well should read as clean, not nitpicked.
+- Order every issue list by severity and stop when the real issues run out.
+
+SITUATION AWARENESS (do not apply rigid rules blindly):
+- A one-page CV that lists only the most recent roles is normal: a candidate cannot fit a 10+ year history on one page. Never flag legitimately omitted older roles, and never demand that everything fit on one page or that the whole career be listed. Judge the substance that is present, not what a longer document elsewhere might contain.`;
 
 export const TECHNICAL_PROMPT_SOFTWARE = `You are a meticulous Senior CTO. Perform a HIGH-PRECISION technical gap analysis.
 

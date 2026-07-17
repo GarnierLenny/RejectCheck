@@ -16,6 +16,8 @@ import { AnalysisShell } from "./AnalysisShell";
 import { RiskMeter } from "./RiskMeter";
 import { CvAuditRescanPanel } from "./CvAuditRescanPanel";
 import { CvChecksScorecard } from "./CvChecksScorecard";
+import { CvBenchmarkPanel } from "./CvBenchmarkPanel";
+import { CvNextLever } from "./CvNextLever";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -623,6 +625,10 @@ export function CvAuditResult({
           </section>
 
           {/* ── §02 Quality breakdown ── */}
+          {/* The resume ceiling (A): the one highest-leverage move to Strong,
+              derived from the weakest weighted sub-score. Display-only. */}
+          {q && <CvNextLever quality={q} notes={result.cv_quality_notes} />}
+
           {q && (
             <section data-ca-sec="s2" id="s2" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <div style={{ marginBottom: 32 }}>
@@ -687,7 +693,21 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §02.5 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
+          {/* ── §02.5 Benchmark vs typical resumes in the role (display-only,
+              everyone). The panel renders its own section, and returns null when
+              the role can't be resolved to a calibrated family (confidence gate),
+              falling back to the deterministic scorecard above with no empty gap. ── */}
+          {reconstructedCv && reconstructedCv.trim().length > 0 && (
+            <CvBenchmarkPanel
+              cvText={reconstructedCv}
+              roleHints={[
+                ...(result.projected_profile?.target_roles ?? []),
+                ...(result.projected_profile?.domains ?? []),
+              ]}
+            />
+          )}
+
+          {/* ── §02.6 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
           {q && !readOnly && _analysisId && accessToken && (
             <section data-ca-sec="s2b" id="s2b" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <CvAuditRescanPanel

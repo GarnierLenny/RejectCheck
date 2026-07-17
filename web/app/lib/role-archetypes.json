@@ -1,0 +1,440 @@
+{
+  "source": "kaggle/snehaanbhawal/resume-dataset (CC0, livecareer)",
+  "note": "aggregate structural bands only; typical not outcome-labeled",
+  "families": {
+    "consulting": {
+      "n": 115,
+      "avg_bullets_detected": 37.4,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 7.4,
+          "median": 14.5,
+          "p75": 26.7
+        },
+        "action_verb_pct": {
+          "p25": 14.3,
+          "median": 23.2,
+          "p75": 35.4
+        },
+        "metric_density": {
+          "p25": 2.4,
+          "median": 3.4,
+          "p75": 4.6
+        },
+        "avg_bullet_len": {
+          "p25": 11.6,
+          "median": 14.4,
+          "p75": 16.6
+        },
+        "word_count": {
+          "p25": 695.0,
+          "median": 829,
+          "p75": 1068.0
+        }
+      }
+    },
+    "design": {
+      "n": 307,
+      "avg_bullets_detected": 37.2,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 4.2,
+          "median": 9.7,
+          "p75": 20.5
+        },
+        "action_verb_pct": {
+          "p25": 9.4,
+          "median": 20.0,
+          "p75": 33.3
+        },
+        "metric_density": {
+          "p25": 2.5,
+          "median": 3.5,
+          "p75": 4.8
+        },
+        "avg_bullet_len": {
+          "p25": 10.2,
+          "median": 12.3,
+          "p75": 14.7
+        },
+        "word_count": {
+          "p25": 603.0,
+          "median": 754,
+          "p75": 920.0
+        }
+      }
+    },
+    "education": {
+      "n": 102,
+      "avg_bullets_detected": 37.3,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 4.2,
+          "median": 10.2,
+          "p75": 20.8
+        },
+        "action_verb_pct": {
+          "p25": 10.0,
+          "median": 21.3,
+          "p75": 30.1
+        },
+        "metric_density": {
+          "p25": 2.6,
+          "median": 3.4,
+          "p75": 4.7
+        },
+        "avg_bullet_len": {
+          "p25": 10.1,
+          "median": 11.9,
+          "p75": 13.2
+        },
+        "word_count": {
+          "p25": 489.8,
+          "median": 719.0,
+          "p75": 818.2
+        }
+      }
+    },
+    "engineering": {
+      "n": 118,
+      "avg_bullets_detected": 35.4,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 8.2,
+          "median": 16.0,
+          "p75": 30.5
+        },
+        "action_verb_pct": {
+          "p25": 9.5,
+          "median": 20.9,
+          "p75": 31.3
+        },
+        "metric_density": {
+          "p25": 2.8,
+          "median": 3.7,
+          "p75": 5.1
+        },
+        "avg_bullet_len": {
+          "p25": 11.7,
+          "median": 14.0,
+          "p75": 16.4
+        },
+        "word_count": {
+          "p25": 646.2,
+          "median": 783.5,
+          "p75": 969.5
+        }
+      }
+    },
+    "finance": {
+      "n": 351,
+      "avg_bullets_detected": 38.7,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 6.8,
+          "median": 13.7,
+          "p75": 22.7
+        },
+        "action_verb_pct": {
+          "p25": 10.9,
+          "median": 20.0,
+          "p75": 31.6
+        },
+        "metric_density": {
+          "p25": 2.3,
+          "median": 3.2,
+          "p75": 4.4
+        },
+        "avg_bullet_len": {
+          "p25": 11.2,
+          "median": 13.5,
+          "p75": 16.1
+        },
+        "word_count": {
+          "p25": 670.0,
+          "median": 750,
+          "p75": 910.0
+        }
+      }
+    },
+    "healthcare": {
+      "n": 232,
+      "avg_bullets_detected": 39.9,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 3.3,
+          "median": 9.8,
+          "p75": 20.5
+        },
+        "action_verb_pct": {
+          "p25": 9.5,
+          "median": 19.2,
+          "p75": 32.0
+        },
+        "metric_density": {
+          "p25": 2.5,
+          "median": 3.2,
+          "p75": 4.5
+        },
+        "avg_bullet_len": {
+          "p25": 10.5,
+          "median": 12.1,
+          "p75": 14.7
+        },
+        "word_count": {
+          "p25": 653.0,
+          "median": 745.5,
+          "p75": 951.5
+        }
+      }
+    },
+    "hospitality": {
+      "n": 118,
+      "avg_bullets_detected": 38.5,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 4.2,
+          "median": 9.8,
+          "p75": 23.6
+        },
+        "action_verb_pct": {
+          "p25": 8.2,
+          "median": 15.4,
+          "p75": 28.3
+        },
+        "metric_density": {
+          "p25": 2.5,
+          "median": 3.9,
+          "p75": 5.2
+        },
+        "avg_bullet_len": {
+          "p25": 10.3,
+          "median": 11.8,
+          "p75": 14.2
+        },
+        "word_count": {
+          "p25": 647.5,
+          "median": 770.0,
+          "p75": 907.2
+        }
+      }
+    },
+    "hr": {
+      "n": 110,
+      "avg_bullets_detected": 40.4,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 5.6,
+          "median": 11.1,
+          "p75": 15.6
+        },
+        "action_verb_pct": {
+          "p25": 12.8,
+          "median": 26.9,
+          "p75": 36.6
+        },
+        "metric_density": {
+          "p25": 2.1,
+          "median": 2.7,
+          "p75": 3.6
+        },
+        "avg_bullet_len": {
+          "p25": 10.6,
+          "median": 13.0,
+          "p75": 14.7
+        },
+        "word_count": {
+          "p25": 673.0,
+          "median": 749.0,
+          "p75": 914.8
+        }
+      }
+    },
+    "legal": {
+      "n": 118,
+      "avg_bullets_detected": 43.1,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 3.2,
+          "median": 8.2,
+          "p75": 15.5
+        },
+        "action_verb_pct": {
+          "p25": 9.7,
+          "median": 17.5,
+          "p75": 27.3
+        },
+        "metric_density": {
+          "p25": 2.1,
+          "median": 2.9,
+          "p75": 4.1
+        },
+        "avg_bullet_len": {
+          "p25": 10.6,
+          "median": 11.9,
+          "p75": 13.3
+        },
+        "word_count": {
+          "p25": 650.8,
+          "median": 756.5,
+          "p75": 952.8
+        }
+      }
+    },
+    "marketing": {
+      "n": 207,
+      "avg_bullets_detected": 38.3,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 5.6,
+          "median": 12.5,
+          "p75": 22.2
+        },
+        "action_verb_pct": {
+          "p25": 16.7,
+          "median": 27.8,
+          "p75": 42.6
+        },
+        "metric_density": {
+          "p25": 2.3,
+          "median": 3.4,
+          "p75": 4.7
+        },
+        "avg_bullet_len": {
+          "p25": 11.4,
+          "median": 13.7,
+          "p75": 16.6
+        },
+        "word_count": {
+          "p25": 652.0,
+          "median": 772,
+          "p75": 940.0
+        }
+      }
+    },
+    "operations": {
+      "n": 139,
+      "avg_bullets_detected": 35.4,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 6.8,
+          "median": 15.8,
+          "p75": 26.1
+        },
+        "action_verb_pct": {
+          "p25": 7.5,
+          "median": 17.1,
+          "p75": 28.6
+        },
+        "metric_density": {
+          "p25": 2.8,
+          "median": 3.8,
+          "p75": 5.5
+        },
+        "avg_bullet_len": {
+          "p25": 10.7,
+          "median": 12.9,
+          "p75": 15.7
+        },
+        "word_count": {
+          "p25": 657.0,
+          "median": 774,
+          "p75": 948.0
+        }
+      }
+    },
+    "sales": {
+      "n": 236,
+      "avg_bullets_detected": 36.4,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 2.8,
+          "median": 12.2,
+          "p75": 22.2
+        },
+        "action_verb_pct": {
+          "p25": 12.1,
+          "median": 24.2,
+          "p75": 35.7
+        },
+        "metric_density": {
+          "p25": 2.4,
+          "median": 3.7,
+          "p75": 4.9
+        },
+        "avg_bullet_len": {
+          "p25": 10.3,
+          "median": 12.0,
+          "p75": 15.0
+        },
+        "word_count": {
+          "p25": 512.5,
+          "median": 724.5,
+          "p75": 889.5
+        }
+      }
+    },
+    "software": {
+      "n": 120,
+      "avg_bullets_detected": 39.9,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 6.3,
+          "median": 13.4,
+          "p75": 26.2
+        },
+        "action_verb_pct": {
+          "p25": 8.2,
+          "median": 20.2,
+          "p75": 35.0
+        },
+        "metric_density": {
+          "p25": 2.5,
+          "median": 3.4,
+          "p75": 5.2
+        },
+        "avg_bullet_len": {
+          "p25": 10.9,
+          "median": 13.9,
+          "p75": 16.1
+        },
+        "word_count": {
+          "p25": 696.2,
+          "median": 839.0,
+          "p75": 1094.8
+        }
+      }
+    },
+    "trades": {
+      "n": 211,
+      "avg_bullets_detected": 41.9,
+      "axes": {
+        "quantified_bullet_pct": {
+          "p25": 5.3,
+          "median": 12.7,
+          "p75": 25.5
+        },
+        "action_verb_pct": {
+          "p25": 6.7,
+          "median": 16.2,
+          "p75": 26.6
+        },
+        "metric_density": {
+          "p25": 2.5,
+          "median": 3.5,
+          "p75": 4.7
+        },
+        "avg_bullet_len": {
+          "p25": 10.7,
+          "median": 12.7,
+          "p75": 15.2
+        },
+        "word_count": {
+          "p25": 656.0,
+          "median": 780,
+          "p75": 953.0
+        }
+      }
+    }
+  }
+}

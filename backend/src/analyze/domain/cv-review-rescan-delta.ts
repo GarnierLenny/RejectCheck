@@ -14,6 +14,7 @@
 
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 import type { Delta } from './rescan-delta';
+import { computeIssueId } from './cv-review-issues';
 
 export type CvReviewRescanDeltas = {
   /** Anchored quality headline (weighted average of the six sub-scores). */
@@ -41,9 +42,15 @@ function toDelta(before: number | null, after: number | null): Delta {
   return { before, after, delta };
 }
 
-/** Stable identity of an audit issue across re-scans (id, else the `what` text). */
-function issueKey(issue: { id?: string; what?: string }): string {
-  return issue.id ?? issue.what ?? '';
+/**
+ * Stable identity of an audit issue across re-scans. Prefers the assigned id,
+ * else recomputes the SAME hash from category + text. Critical: a legacy parent
+ * row stored before ids existed has no `id`, while a fresh re-audit does — using
+ * the shared computeIssueId as the fallback keeps both sides in the same key
+ * space, so the first re-scan of an old audit doesn't report total churn.
+ */
+function issueKey(issue: { id?: string; category?: string; what?: string }): string {
+  return issue.id ?? computeIssueId(issue.category, issue.what);
 }
 
 /** Collect every audit-issue key across cv / github / linkedin. */

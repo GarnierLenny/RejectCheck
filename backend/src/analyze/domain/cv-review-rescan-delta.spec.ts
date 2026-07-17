@@ -1,4 +1,5 @@
 import { computeCvReviewDeltas } from './cv-review-rescan-delta';
+import { assignCvReviewIssueIds, computeIssueId } from './cv-review-issues';
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 
 type PartialQuality = Partial<CvReviewResponse['cv_quality']>;
@@ -6,7 +7,7 @@ type PartialQuality = Partial<CvReviewResponse['cv_quality']>;
 function mk(opts: {
   quality?: PartialQuality;
   atsScore?: number;
-  cvIssues?: Array<{ what: string }>;
+  cvIssues?: Array<{ id?: string; category?: string; what: string }>;
 }): CvReviewResponse {
   const quality = {
     overall: 40,
@@ -60,6 +61,37 @@ describe('computeCvReviewDeltas', () => {
     const issues = [{ what: 'A' }, { what: 'B' }];
     const d = computeCvReviewDeltas(mk({ cvIssues: issues }), mk({ cvIssues: issues }));
     expect(d.resolvedIssueCount).toBe(0);
+    expect(d.newIssueCount).toBe(0);
+  });
+
+  it('reports zero churn for a LEGACY parent (no ids) vs a fresh child (ids assigned)', () => {
+    // The regression the reviewer caught: a parent stored before ids existed
+    // has raw-text issues and no id; the child gets hashed ids. Keying the
+    // legacy side through computeIssueId keeps both in the same space.
+    const parent = mk({
+      cvIssues: [
+        { category: 'impact', what: 'Bullets lack metrics' },
+        { category: 'format', what: 'Inconsistent dates' },
+      ],
+    });
+    const child = mk({
+      cvIssues: [
+        { id: computeIssueId('impact', 'Bullets lack metrics'), category: 'impact', what: 'Bullets lack metrics' },
+        { id: computeIssueId('format', 'Inconsistent dates'), category: 'format', what: 'Inconsistent dates' },
+      ],
+    });
+    const d = computeCvReviewDeltas(parent, child);
+    expect(d.resolvedIssueCount).toBe(0);
+    expect(d.newIssueCount).toBe(0);
+  });
+
+  it('still detects a genuinely resolved issue after ids are assigned', () => {
+    const parent = mk({ cvIssues: [{ category: 'impact', what: 'no metrics' }, { category: 'tone', what: 'passive voice' }] });
+    // child fixed the passive-voice one; assignCvReviewIssueIds stamps ids.
+    const child = mk({ cvIssues: [{ category: 'impact', what: 'no metrics' }] });
+    assignCvReviewIssueIds(child);
+    const d = computeCvReviewDeltas(parent, child);
+    expect(d.resolvedIssueCount).toBe(1); // passive voice gone
     expect(d.newIssueCount).toBe(0);
   });
 });
