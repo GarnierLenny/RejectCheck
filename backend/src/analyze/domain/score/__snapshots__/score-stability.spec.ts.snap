@@ -15,8 +15,8 @@ exports[`score stability — deterministic (golden set) composite formula lock p
     "linkedin_signal": 40,
     "tech_stack_fit": 65,
   },
-  "score": 50,
-  "verdict": "Medium",
+  "score": 70,
+  "verdict": "High",
 }
 `;
 

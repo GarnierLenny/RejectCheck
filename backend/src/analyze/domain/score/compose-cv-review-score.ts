@@ -21,7 +21,7 @@
  * Pure: no I/O, no dates, no randomness. Trivially unit-testable.
  */
 
-import { quantize } from './compose-score';
+import { quantize, deflate } from './compose-score';
 
 /**
  * Weights over the six cv_quality sub-scores (sum to 1). Impact carries the most
@@ -66,13 +66,18 @@ export function anchorCvQuality(
     ats_format: quantize(raw.ats_format ?? 0),
   };
 
+  // Deflate the weighted average before quantizing: the six LLM sub-scores
+  // cluster generously, so a merely-decent CV would otherwise land ~80. The
+  // same curve as the vs-JD composite keeps both scorers on one wavelength.
   const overall = quantize(
-    subs.impact * CV_QUALITY_WEIGHTS.impact +
-      subs.clarity * CV_QUALITY_WEIGHTS.clarity +
-      subs.hard_skills * CV_QUALITY_WEIGHTS.hard_skills +
-      subs.consistency * CV_QUALITY_WEIGHTS.consistency +
-      subs.soft_skills * CV_QUALITY_WEIGHTS.soft_skills +
-      subs.ats_format * CV_QUALITY_WEIGHTS.ats_format,
+    deflate(
+      subs.impact * CV_QUALITY_WEIGHTS.impact +
+        subs.clarity * CV_QUALITY_WEIGHTS.clarity +
+        subs.hard_skills * CV_QUALITY_WEIGHTS.hard_skills +
+        subs.consistency * CV_QUALITY_WEIGHTS.consistency +
+        subs.soft_skills * CV_QUALITY_WEIGHTS.soft_skills +
+        subs.ats_format * CV_QUALITY_WEIGHTS.ats_format,
+    ),
   );
 
   return { ...subs, overall };
@@ -84,7 +89,8 @@ export function anchorCvQuality(
  * frontend ScoreSidebar keeps rendering the same way.
  */
 export function deriveCvQualityVerdict(overall: number): 'Low' | 'Medium' | 'High' {
-  if (overall >= 70) return 'High';
+  // Shared bands with the vs-JD scorer and RiskMeter: Strong >= 80, Weak < 40.
+  if (overall >= 80) return 'High';
   if (overall >= 40) return 'Medium';
   return 'Low';
 }

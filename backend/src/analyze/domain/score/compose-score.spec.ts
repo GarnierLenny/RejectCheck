@@ -41,11 +41,12 @@ describe('quantize', () => {
 
 describe('deriveVerdict', () => {
   it('bands risk into Low / Medium / High', () => {
+    // Strong >= 80 competitiveness (risk <= 20); Weak < 40 (risk > 60).
     expect(deriveVerdict(0)).toBe('Low');
-    expect(deriveVerdict(30)).toBe('Low');
-    expect(deriveVerdict(35)).toBe('Medium');
-    expect(deriveVerdict(64)).toBe('Medium');
-    expect(deriveVerdict(65)).toBe('High');
+    expect(deriveVerdict(20)).toBe('Low');
+    expect(deriveVerdict(21)).toBe('Medium');
+    expect(deriveVerdict(59)).toBe('Medium');
+    expect(deriveVerdict(60)).toBe('High');
     expect(deriveVerdict(100)).toBe('High');
   });
 });
@@ -85,7 +86,7 @@ describe('composeRisk', () => {
 
   it('renormalises weights when github/linkedin are absent', () => {
     // fit = (80*.3 + 60*.25 + 40*.2 + 50*.1) / .85 = 52 / .85 = 61.18
-    // risk = quantize(100 - 61.18) = quantize(38.82) = 40
+    // deflate(61.18) ~= 41 ; risk = quantize(100 - 41) = quantize(59) = 60
     expect(
       composeRisk({
         breakdown: fullBreakdown({
@@ -98,12 +99,12 @@ describe('composeRisk', () => {
         atsScore: 50,
         ...noPenalties,
       }),
-    ).toBe(40);
+    ).toBe(60);
   });
 
   it('adds capped penalties for hard rejection signals', () => {
-    // Same fit (40 base risk) + penalties: redflags 3*4=12 (cap 12),
-    // critical 2*3=6, fatal 1*2=2 => +20 => quantize(58.82) = 60
+    // Same deflated base (~59 risk) + penalties: redflags 3*4=12 (cap 12),
+    // critical 2*3=6, fatal 1*2=2 => +20 => quantize(79) = 80
     expect(
       composeRisk({
         breakdown: fullBreakdown({
@@ -118,7 +119,7 @@ describe('composeRisk', () => {
         criticalIssueCount: 2,
         fatalBulletCount: 1,
       }),
-    ).toBe(60);
+    ).toBe(80);
   });
 
   it('caps each penalty so a noisy list cannot dominate', () => {

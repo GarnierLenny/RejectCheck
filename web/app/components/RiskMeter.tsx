@@ -73,10 +73,18 @@ export function RiskMeter({
   // High-is-better label set (same shape, different copy per metric).
   const hb = metric === "competitiveness" ? rm.competitiveness : rm.strength;
 
-  // Colour band. When higher-is-better, invert so a HIGH value reads green (good).
-  const colorBand = higherBetter ? riskBand(100 - v) : riskBand(v);
-  const tier = v >= 67 ? "strong" : v >= 34 ? "decent" : "weak";
+  // Shared competitiveness/quality bands: Strong >= 80, Decent >= 40, Weak < 40.
+  const tier = v >= 80 ? "strong" : v >= 40 ? "decent" : "weak";
   const riskTier = riskBand(v);
+  // Colour follows the tier when higher-is-better (green only at Strong), else
+  // the risk band.
+  const colorBand: Band = higherBetter
+    ? tier === "strong"
+      ? "low"
+      : tier === "decent"
+        ? "mid"
+        : "high"
+    : riskBand(v);
 
   const eyebrow = higherBetter ? hb.eyebrow : rm.eyebrow;
   const verdictText = higherBetter ? hb.verdict[tier] : rm.verdict[riskTier];

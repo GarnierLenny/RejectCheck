@@ -62,9 +62,14 @@ const CRITICAL_ISSUE_CAP = 9;
 const FATAL_BULLET_RISK = 2;
 const FATAL_BULLET_CAP = 8;
 
-/** Verdict bands on the composite risk (0 = strong match, 100 = weak match). */
-const VERDICT_LOW_MAX = 30;
-const VERDICT_HIGH_MIN = 65;
+/**
+ * Verdict bands on the composite risk (0 = strong match, 100 = weak match).
+ * Aligned with the shared competitiveness bands: Strong >= 80 (risk <= 20),
+ * Weak < 40 (risk > 60). Same cutoffs the CV-audit scorer and RiskMeter use, so
+ * an equal number means an equal tier on both screens.
+ */
+const VERDICT_LOW_MAX = 20;
+const VERDICT_HIGH_MIN = 60;
 
 /** Clamp to the 0-100 score range. */
 function clamp0100(n: number): number {
@@ -74,6 +79,26 @@ function clamp0100(n: number): number {
 /** Round to the nearest QUANT_STEP, clamped to 0-100. */
 export function quantize(n: number, step: number = QUANT_STEP): number {
   return Math.round(clamp0100(n) / step) * step;
+}
+
+/**
+ * Deflation strength for {@link deflate}. LLM sub-scores cluster generously in
+ * the 70-90 band, so a merely-decent dossier scores like an excellent one. This
+ * spreads that cluster downward. Tunable knob (0 = no deflation, higher = more).
+ * Must stay < 1 to keep {@link deflate} monotonically increasing.
+ */
+export const DEFLATION = 0.85;
+
+/**
+ * Deflate a raw 0-100 fit/quality score to spread the compressed high cluster.
+ * Anchored parabola: keeps the endpoints (0 -> 0, 100 -> 100) but pulls the
+ * middle down, so a genuinely strong dossier stays high while an average one
+ * drops to mid. This calibrates the MEASUREMENT (LLM generosity), it is NOT a
+ * market-outcome guess. Shared by the vs-JD composite and the CV-audit quality.
+ */
+export function deflate(raw: number): number {
+  const x = clamp0100(raw);
+  return clamp0100(x + (DEFLATION * x * (x - 100)) / 100);
 }
 
 /** Verdict is a pure function of the risk band — never trusted from the model. */
@@ -136,7 +161,10 @@ export function composeRisk(input: ComposeRiskInput): number {
       Math.max(0, input.fatalBulletCount) * FATAL_BULLET_RISK,
     );
 
-  return quantize(100 - fit + penalty);
+  // Deflate the fit (competitiveness) before inverting to risk, then add the
+  // hard-signal penalties. Deflation spreads the generous LLM cluster; penalties
+  // still bite on top.
+  return quantize(100 - deflate(fit) + penalty);
 }
 
 /**
