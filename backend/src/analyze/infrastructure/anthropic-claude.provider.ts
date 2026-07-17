@@ -306,7 +306,8 @@ ${CV_REVIEW_SHARED_RULES}`;
     const userMessage = this.buildCvReviewUserMessage(input);
 
     try {
-      const msg = await this.withSentry('review_cv', async () => {
+      let rawToolJson = '';
+      const { toolInput: i, usage } = await this.withSentry('review_cv', async () => {
         const stream = this.anthropic.messages.stream({
           model: MODEL,
           max_tokens: MAX_TOKENS,
@@ -326,28 +327,44 @@ ${CV_REVIEW_SHARED_RULES}`;
         });
         stream.on('inputJson', (partialJson) => {
           if (firstDeltaAt === null) firstDeltaAt = Date.now();
+          rawToolJson += partialJson;
           input.onDelta?.(partialJson);
         });
-        return stream.finalMessage();
+        try {
+          const msg = await stream.finalMessage();
+          const toolUse = msg.content.find(
+            (block) => (block as { type?: string }).type === 'tool_use',
+          ) as ToolUseBlock | undefined;
+          if (!toolUse) {
+            this.logger.error(
+              `Claude returned no tool_use block (review_cv): ${JSON.stringify(msg.content).slice(0, 300)}`,
+            );
+            throw new InternalServerErrorException('CV review failed');
+          }
+          return { toolInput: toolUse.input as Record<string, any>, usage: msg.usage };
+        } catch (streamErr: any) {
+          // The SDK strict-parses the streamed tool input. On large outputs the
+          // model occasionally appends a stray character after the complete JSON
+          // object, which makes JSON.parse throw ("non-whitespace after JSON")
+          // and would otherwise fail the whole audit. Recover from the raw
+          // accumulated stream by taking the first balanced top-level object.
+          if (streamErr instanceof InternalServerErrorException) throw streamErr;
+          const recovered = extractBalancedJson(rawToolJson);
+          if (!recovered) throw streamErr;
+          this.logger.warn(
+            `review_cv: recovered from streamed tool-input parse error (len=${rawToolJson.length}): ${streamErr?.message}`,
+          );
+          return { toolInput: recovered, usage: null };
+        }
       });
 
-      this.logTimingLine('review_cv', MAX_TOKENS, requestStartedAt, firstDeltaAt, msg.usage, {
-        digest: !!input.digest,
-      });
-      this.logCacheUsage('review_cv', msg.usage);
-
-      const toolUse = msg.content.find(
-        (block) => (block as { type?: string }).type === 'tool_use',
-      ) as ToolUseBlock | undefined;
-
-      if (!toolUse) {
-        this.logger.error(
-          `Claude returned no tool_use block (review_cv): ${JSON.stringify(msg.content).slice(0, 300)}`,
-        );
-        throw new InternalServerErrorException('CV review failed');
+      if (usage) {
+        this.logTimingLine('review_cv', MAX_TOKENS, requestStartedAt, firstDeltaAt, usage, {
+          digest: !!input.digest,
+        });
+        this.logCacheUsage('review_cv', usage);
       }
 
-      const i = toolUse.input as Record<string, any>;
       // Anchor the QUALITY headline: recompute cv_quality.overall as a pure
       // weighted average of the six sub-scores. The schema advertised overall as
       // exactly that, but nothing enforced it — it was taken raw from the model
@@ -522,7 +539,8 @@ Formatting rules:
     const tool = buildAnalysisTool(input.generateBridgeProject ?? true, lean);
 
     try {
-      const msg = await this.withSentry('analyze', async () => {
+      let rawToolJson = '';
+      const { toolInput: i, usage } = await this.withSentry('analyze', async () => {
         const stream = this.anthropic.messages.stream({
           model: MODEL,
           max_tokens: MAX_TOKENS,
@@ -553,33 +571,45 @@ Formatting rules:
         });
         stream.on('inputJson', (partialJson) => {
           if (firstDeltaAt === null) firstDeltaAt = Date.now();
+          rawToolJson += partialJson;
           input.onDelta?.(partialJson);
         });
-        return stream.finalMessage();
+        try {
+          const msg = await stream.finalMessage();
+          const toolUse = msg.content.find(
+            (block) => (block as { type?: string }).type === 'tool_use',
+          ) as ToolUseBlock | undefined;
+          if (!toolUse) {
+            this.logger.error(
+              `Claude returned no tool_use block (analyze): ${JSON.stringify(msg.content).slice(0, 300)}`,
+            );
+            throw new InternalServerErrorException('Analysis failed');
+          }
+          return { toolInput: toolUse.input as Record<string, any>, usage: msg.usage };
+        } catch (streamErr: any) {
+          // Same streamed tool-input recovery as review_cv: a stray char after
+          // the complete JSON object would otherwise fail the whole analysis.
+          if (streamErr instanceof InternalServerErrorException) throw streamErr;
+          const recovered = extractBalancedJson(rawToolJson);
+          if (!recovered) throw streamErr;
+          this.logger.warn(
+            `analyze: recovered from streamed tool-input parse error (len=${rawToolJson.length}): ${streamErr?.message}`,
+          );
+          return { toolInput: recovered, usage: null };
+        }
       });
 
-      this.logTimingLine(
-        'analyze',
-        MAX_TOKENS,
-        requestStartedAt,
-        firstDeltaAt,
-        msg.usage,
-        { digest: !!input.digest },
-      );
-      this.logCacheUsage('analyze', msg.usage);
-
-      const toolUse = msg.content.find(
-        (block) => (block as { type?: string }).type === 'tool_use',
-      ) as ToolUseBlock | undefined;
-
-      if (!toolUse) {
-        this.logger.error(
-          `Claude returned no tool_use block (analyze): ${JSON.stringify(msg.content).slice(0, 300)}`,
+      if (usage) {
+        this.logTimingLine(
+          'analyze',
+          MAX_TOKENS,
+          requestStartedAt,
+          firstDeltaAt,
+          usage,
+          { digest: !!input.digest },
         );
-        throw new InternalServerErrorException('Analysis failed');
+        this.logCacheUsage('analyze', usage);
       }
-
-      const i = toolUse.input as Record<string, any>;
       // Observability for the resilient `.catch` on audit.github / audit.linkedin
       // in AnalyzeResponseSchema: track how often Claude drifts off-shape so we
       // can decide whether the tool prompt needs tightening.
@@ -1386,4 +1416,42 @@ function formatChallengeStats(
     lines.push(`  recent: ${recent}`);
   }
   return lines.join('\n');
+}
+
+/**
+ * Extract the first balanced top-level JSON object from a string, tolerating
+ * trailing junk after it. The streaming SDK strict-parses the accumulated
+ * tool-input JSON; on large outputs the model occasionally appends a stray
+ * character after the complete object, so JSON.parse throws ("non-whitespace
+ * after JSON"). Re-parsing just the first balanced { ... } recovers the audit.
+ * Returns null when no balanced object is present (a genuinely truncated stream).
+ */
+export function extractBalancedJson(s: string): Record<string, any> | null {
+  const start = s.indexOf('{');
+  if (start === -1) return null;
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < s.length; i += 1) {
+    const c = s[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === '\\') esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"') inStr = true;
+    else if (c === '{') depth += 1;
+    else if (c === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(s.slice(start, i + 1)) as Record<string, any>;
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
 }
