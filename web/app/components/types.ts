@@ -180,6 +180,10 @@ export type HiddenRedFlag = {
 export type SeniorityAnalysis = {
   expected: string;
   detected: string;
+  /** Evidence behind `detected` (titles/years/scope claimed). Absent on old rows. */
+  detected_signals?: string[];
+  /** Evidence behind `expected` (what the writing actually reads as). Absent on old rows. */
+  expected_signals?: string[];
   gap: string;
   strength: string;
   fix?: Fix;

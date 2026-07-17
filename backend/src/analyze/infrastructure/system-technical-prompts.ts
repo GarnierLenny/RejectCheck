@@ -80,6 +80,8 @@ ATS FORMAT (you receive extracted text, not the rendered PDF):
 
 SENIORITY LADDER & OVERQUALIFICATION:
 - Derive the role family's standard ladder (3 to 5 rungs) and judge projected seniority against it from scope, team size and autonomy, not titles. If the CV projects materially ABOVE its target_roles, note the flight-risk / salary-expectation perception; if it projects BELOW its claimed titles, note the credibility gap. Never invent numbers.
+- Always populate seniority_analysis.detected_signals (2 to 4 short phrases) with the concrete evidence behind detected: the titles held, years stated, or scope claimed. Populate expected_signals (2 to 4 short phrases) with what the WRITING actually conveys: the scope, autonomy, team size and impact a recruiter reads off the bullets. Each phrase must quote or paraphrase real CV content, never generic advice.
+- seniority_analysis.gap must be a real one-sentence explanation of WHY the levels align or differ, grounded in those signals. Even when detected and expected match, explain what makes them consistent. Never return the literal word "none" or an empty gap.
 
 TENURE:
 - Flag job-hopping only when average tenure is under 18 months across 3 or more recent roles (under 24 months for senior or leadership roles). Agency, contract, consulting or freelance short stints are normal and are not a flag. A single short stint with a clear reason is not a flag.

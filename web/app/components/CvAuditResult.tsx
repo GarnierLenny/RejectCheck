@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import type { AnalysisResult, Issue } from "./types";
 import { Github, Linkedin } from "react-bootstrap-icons";
 import { Md } from "./Md";
@@ -12,7 +12,7 @@ import { CoverLetterTab } from "./tabs/CoverLetterTab";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
-import { AnalysisShell } from "./AnalysisShell";
+import { AnalysisShell, type HighlightMap } from "./AnalysisShell";
 import { RiskMeter } from "./RiskMeter";
 import { CvAuditRescanPanel } from "./CvAuditRescanPanel";
 import { CvChecksScorecard } from "./CvChecksScorecard";
@@ -33,12 +33,6 @@ function qualityBg(n: number): string {
   return "var(--rc-red-bg)";
 }
 
-function qualityBorder(n: number): string {
-  if (n >= 70) return "var(--rc-green-border)";
-  if (n >= 50) return "var(--rc-amber-border)";
-  return "var(--rc-red-border)";
-}
-
 function qualityLabel(n: number): string {
   if (n >= 80) return "strong";
   if (n >= 70) return "good";
@@ -46,10 +40,26 @@ function qualityLabel(n: number): string {
   return "poor";
 }
 
+// Per-source cards speak the SAME weak/decent/strong language as the hero
+// RiskMeter (weak <40 · decent 40-79 · strong ≥80), so the big score above and
+// the source cards below never read as two contradicting verdicts. Kept separate
+// from qualityColor/qualityLabel, which §02's per-dimension bars anchor at 70.
 function sourceVerdictLabel(score: number): string {
-  if (score >= 70) return "Strong · good signal";
-  if (score >= 50) return "Mid-tier · room to grow";
-  return "Thin · undersells";
+  if (score >= 80) return "Strong · good signal";
+  if (score >= 40) return "Decent · room to grow";
+  return "Weak · undersells";
+}
+
+function sourceColor(n: number): string {
+  if (n >= 80) return "var(--rc-green)";
+  if (n >= 40) return "var(--rc-amber)";
+  return "var(--rc-red)";
+}
+
+function sourceBorder(n: number): string {
+  if (n >= 80) return "var(--rc-green-border)";
+  if (n >= 40) return "var(--rc-amber-border)";
+  return "var(--rc-red-border)";
 }
 
 function sevClass(sev: string) {
@@ -115,6 +125,25 @@ const SEC_NUM: React.CSSProperties = {
 
 function SecNumLine() {
   return <span style={{ width: 28, height: 1, background: "var(--rc-text)", display: "inline-block", flexShrink: 0 }} />;
+}
+
+/** Evidence list for §03 seniority: the concrete signals behind a verdict. */
+function SenioritySignalList({ accent, kicker, items }: { accent: string; kicker: string; items: string[] }) {
+  return (
+    <div style={{ border: "1px solid var(--rc-border)", borderRadius: 6, padding: "14px 16px", background: "var(--rc-surface)" }}>
+      <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: accent, fontWeight: 700, marginBottom: 10 }}>
+        {kicker}
+      </div>
+      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+        {items.map((s, i) => (
+          <li key={i} style={{ display: "flex", gap: 8, ...SANS, fontSize: 13.5, lineHeight: 1.5, color: "var(--rc-text)" }}>
+            <span style={{ color: accent, flexShrink: 0, marginTop: 6, fontSize: 8, lineHeight: 1 }}>▸</span>
+            <span>{s}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -244,6 +273,28 @@ export function CvAuditResult({
 
   // §01 one move
   const topIssue = mergedIssues.find((i) => i.severity === "critical") ?? mergedIssues[0];
+
+  // Left parsed-CV highlights: underline the improvable bullets (so the user can
+  // click one to jump to its editor in the re-audit panel), plus any per-source
+  // highlight terms the model returned. Clicking a bullet sets `focusBullet`,
+  // which the re-scan panel scrolls to.
+  const [focusBullet, setFocusBullet] = useState<{ term: string; n: number } | null>(null);
+  const highlightsByDoc = useMemo((): Partial<Record<"cv", HighlightMap>> => {
+    const seen = new Set<string>();
+    const weak = (result.bullet_reviews?.bullets ?? [])
+      .filter((b) => b.verdict !== "strong" && (b.original ?? "").trim().length > 0)
+      .filter((b) => (seen.has(b.original) ? false : (seen.add(b.original), true)))
+      .map((b) => ({ term: b.original, tooltip: b.why || "Weak bullet, click to rewrite" }));
+    const ht = result.highlight_terms?.cv;
+    const map: HighlightMap = {
+      flags: ht ? ht.flags.map((e) => ({ term: e.term, tooltip: e.tooltip })) : [],
+      issues: ht ? ht.issues.map((e) => ({ term: e.term, tooltip: e.tooltip })) : [],
+      skills: ht ? ht.skills.map((s) => ({ term: s })) : [],
+      weak,
+      metrics: ht ? ht.metrics.map((e) => ({ term: e.term, tooltip: e.tooltip })) : [],
+    };
+    return { cv: map };
+  }, [result.bullet_reviews, result.highlight_terms]);
 
   // §02 quality
   const q = result.cv_quality;
@@ -421,6 +472,8 @@ export function CvAuditResult({
         mlBlobUrl={mlBlobUrl}
         reconstructedCv={reconstructedCv}
         liText={liText}
+        highlightsByDoc={highlightsByDoc}
+        onHighlightTermClick={(term) => setFocusBullet((f) => ({ term, n: (f?.n ?? 0) + 1 }))}
         renderRight={() => (
           <div className="rc-toc-grid" style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "240px 1fr", maxWidth: 1380, margin: "0 auto", width: "100%" }}>
 
@@ -465,6 +518,9 @@ export function CvAuditResult({
           {q && (
             <div style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
               <RiskMeter value={q.overall} mode="cv" metric="strength" />
+              <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "18px 0 0", maxWidth: 640 }}>
+                Your overall CV strength, scored across the six quality dimensions below (clarity, impact, hard and soft skills, consistency, ATS format). The per-source cards under it read each channel on its own.
+              </p>
             </div>
           )}
 
@@ -493,14 +549,20 @@ export function CvAuditResult({
             </div>
 
             {/* Source cards */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ ...EYEBROW }}>Signal by source</div>
+              <p style={{ ...SANS, fontSize: 12.5, color: "var(--rc-hint)", margin: "6px 0 0", maxWidth: 640 }}>
+                How each channel reads on its own audit: score, issues found, and strengths worth keeping. Same weak / decent / strong scale as the overall above.
+              </p>
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
 
               {/* CV card — always shown */}
               {(() => {
                 const score = result.audit.cv.score;
-                const col = qualityColor(score);
+                const col = sourceColor(score);
                 const bg = qualityBg(score);
-                const bdr = qualityBorder(score);
+                const bdr = sourceBorder(score);
                 return (
                   <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
@@ -524,9 +586,9 @@ export function CvAuditResult({
               {/* GitHub card */}
               {result.audit.github.score !== null && (() => {
                 const score = result.audit.github.score!;
-                const col = qualityColor(score);
+                const col = sourceColor(score);
                 const bg = qualityBg(score);
-                const bdr = qualityBorder(score);
+                const bdr = sourceBorder(score);
                 void bg;
                 return (
                   <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px" }}>
@@ -549,9 +611,9 @@ export function CvAuditResult({
               {/* LinkedIn card */}
               {result.audit.linkedin.score !== null && (() => {
                 const score = result.audit.linkedin.score!;
-                const col = qualityColor(score);
+                const col = sourceColor(score);
                 const bg = qualityBg(score);
-                const bdr = qualityBorder(score);
+                const bdr = sourceBorder(score);
                 void bg;
                 return (
                   <div style={{ background: "var(--rc-surface)", border: `1px solid ${bdr}`, borderRadius: 6, padding: "20px 22px" }}>
@@ -583,9 +645,9 @@ export function CvAuditResult({
           {/* ── §01 The one move ── */}
           <section data-ca-sec="s1" id="s1" style={{ paddingBottom: 64, paddingTop: 0 }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 01 · The one move that matters</div>
+              <div style={SEC_NUM}><SecNumLine />§ 01 · Where to start</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                If you do <span style={DISPLAY_ITALIC}>one thing</span>, do this.
+                Your urgent <span style={DISPLAY_ITALIC}>fix</span>, and your <span style={DISPLAY_ITALIC}>lever</span>.
               </h2>
             </div>
 
@@ -598,7 +660,7 @@ export function CvAuditResult({
               }}>
                 <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ width: 6, height: 6, borderRadius: 99, background: "var(--rc-red)", display: "inline-block", animation: "pulse 2s infinite" }} />
-                  Highest-impact fix
+                  Fix this now · highest impact
                 </div>
                 <p style={{ ...SANS, fontSize: 16, lineHeight: 1.55, color: "var(--rc-text)", margin: 0 }}>
                   <Md>{topIssue.what}</Md>
@@ -619,15 +681,27 @@ export function CvAuditResult({
               </div>
             ) : (
               <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, padding: "24px 28px", ...SANS, fontSize: 14, color: "var(--rc-muted)" }}>
-                No critical issues found — your CV is in good shape.
+                No critical issues found. Your CV is in good shape.
               </div>
+            )}
+
+            {/* The lever: the highest-leverage quality dimension to reach Strong,
+                derived from the weakest weighted sub-score. Display-only. It sits
+                under the fix so §01 reads as two complementary moves, not two
+                competing "one things". */}
+            {q && (
+              <>
+                <p style={{ ...SANS, fontSize: 13.5, lineHeight: 1.55, color: "var(--rc-muted)", margin: "20px 0 8px", maxWidth: 680 }}>
+                  {topIssue
+                    ? "That is the single issue to fix first. Your lever below is the quality dimension that moves your overall score the most toward Strong."
+                    : "Your lever below is the quality dimension that moves your overall score the most toward Strong."}
+                </p>
+                <CvNextLever quality={q} notes={result.cv_quality_notes} />
+              </>
             )}
           </section>
 
           {/* ── §02 Quality breakdown ── */}
-          {/* The resume ceiling (A): the one highest-leverage move to Strong,
-              derived from the weakest weighted sub-score. Display-only. */}
-          {q && <CvNextLever quality={q} notes={result.cv_quality_notes} />}
 
           {q && (
             <section data-ca-sec="s2" id="s2" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
@@ -716,6 +790,8 @@ export function CvAuditResult({
                 reconstructedCv={reconstructedCv}
                 currentOverall={q.overall}
                 bulletReviews={result.bullet_reviews?.bullets}
+                focusedOriginal={focusBullet?.term ?? null}
+                focusNonce={focusBullet?.n ?? 0}
               />
             </section>
           )}
@@ -787,25 +863,52 @@ export function CvAuditResult({
               </div>
             </div>
 
-            {/* Gap insight */}
-            {result.seniority_analysis.gap && (
-              <div style={{ ...SANS, fontSize: 15, lineHeight: 1.65, color: "var(--rc-text)", marginBottom: 16 }}>
-                <Md>{result.seniority_analysis.gap}</Md>
-              </div>
-            )}
+            {(() => {
+              const sen = result.seniority_analysis;
+              const rawGap = (sen.gap ?? "").trim();
+              // The model used to return the literal "none" when aligned; render a
+              // real explanation instead of printing that word.
+              const gapIsEmpty = !rawGap || rawGap.toLowerCase() === "none";
+              const gapText = gapIsEmpty
+                ? `Your titles and how your CV actually reads both land at ${sen.detected}. The signals below line up, so nothing over- or under-sells your level.`
+                : rawGap;
+              const detSignals = sen.detected_signals ?? [];
+              const expSignals = sen.expected_signals ?? [];
+              const hasEvidence = detSignals.length > 0 || expSignals.length > 0;
+              return (
+                <>
+                  {/* Gap insight — the reasoning behind the verdict */}
+                  <div style={{ ...SANS, fontSize: 15, lineHeight: 1.65, color: "var(--rc-text)", marginBottom: hasEvidence ? 20 : 16 }}>
+                    <Md>{gapText}</Md>
+                  </div>
 
-            {/* Strength quote */}
-            {result.seniority_analysis.strength && (
-              <blockquote style={{
-                margin: 0,
-                padding: "14px 20px",
-                borderRadius: 6,
-                background: "var(--rc-amber-bg)",
-                ...SANS, fontSize: 14, fontStyle: "italic", lineHeight: 1.6, color: "var(--rc-muted)",
-              }}>
-                <Md>{result.seniority_analysis.strength}</Md>
-              </blockquote>
-            )}
+                  {/* Evidence: what the titles claim vs. what the writing reads as */}
+                  {hasEvidence && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 16 }}>
+                      {detSignals.length > 0 && (
+                        <SenioritySignalList accent="var(--rc-amber)" kicker={`Titles claim · ${sen.detected}`} items={detSignals} />
+                      )}
+                      {expSignals.length > 0 && (
+                        <SenioritySignalList accent={hasGap ? "var(--rc-red)" : "var(--rc-green)"} kicker={`Writing reads as · ${sen.expected}`} items={expSignals} />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Strength quote */}
+                  {sen.strength && (
+                    <blockquote style={{
+                      margin: 0,
+                      padding: "14px 20px",
+                      borderRadius: 6,
+                      background: "var(--rc-amber-bg)",
+                      ...SANS, fontSize: 14, fontStyle: "italic", lineHeight: 1.6, color: "var(--rc-muted)",
+                    }}>
+                      <Md>{sen.strength}</Md>
+                    </blockquote>
+                  )}
+                </>
+              );
+            })()}
           </section>
 
           {/* ── §04 Timeline & consistency ── */}

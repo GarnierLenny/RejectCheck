@@ -312,10 +312,24 @@ export const SUBMIT_CV_REVIEW_TOOL = {
             description:
               'Seniority level the CV claims (from titles, years of experience stated).',
           },
+          detected_signals: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 4,
+            description:
+              'The concrete evidence behind `detected`: titles held, years stated, scope claimed. 2 to 4 short phrases, each anchored in real CV content.',
+          },
+          expected_signals: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            maxItems: 4,
+            description:
+              'What the WRITING actually conveys behind `expected`: the scope, autonomy, team size and impact a recruiter reads off the bullets. 2 to 4 short phrases, each anchored in real CV content.',
+          },
           gap: {
             type: 'string' as const,
             description:
-              'Description of the gap between projected and claimed, or "none" if aligned.',
+              'One sentence explaining WHY the levels align or differ, grounded in the signals. Explain the consistency even when aligned. Never the literal word "none".',
           },
           strength: {
             type: 'string' as const,

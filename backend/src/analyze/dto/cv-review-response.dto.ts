@@ -87,6 +87,9 @@ export const CvReviewResponseSchema = z.object({
   seniority_analysis: z.object({
     expected: z.string(),
     detected: z.string(),
+    // Optional so pre-densification DB rows (without evidence signals) still replay.
+    detected_signals: z.array(z.string()).max(4).optional(),
+    expected_signals: z.array(z.string()).max(4).optional(),
     gap: z.string(),
     strength: z.string(),
   }),

@@ -36,6 +36,8 @@ export type AnalysisShellProps = {
   /** Per-document highlights — takes precedence over `highlights` for each tab. */
   highlightsByDoc?: Partial<Record<DocTab, HighlightMap>>;
   onHighlightTypeClick?: (type: keyof HighlightMap) => void;
+  /** Fired with the exact clicked term (e.g. a weak bullet) so the report can focus it. */
+  onHighlightTermClick?: (term: string) => void;
   /**
    * Drop the left source-document column and let the report fill the width.
    * Used by the public shared view, which never carries the CV (privacy) — an
@@ -172,6 +174,7 @@ function highlightLine(
   highlights: HighlightMap,
   entries: ReturnType<typeof buildEntries>,
   onTermClick?: (type: HType) => void,
+  onTermFire?: (term: string) => void,
 ): React.ReactNode {
   if (!entries.length) return text;
   const escaped = entries.map(e =>
@@ -193,7 +196,7 @@ function highlightLine(
             key={i}
             htype={entry.type}
             tooltip={entry.tooltip}
-            onClick={onTermClick ? (e) => { e.stopPropagation(); onTermClick(entry.type); } : undefined}
+            onClick={(onTermClick || onTermFire) ? (e) => { e.stopPropagation(); onTermClick?.(entry.type); onTermFire?.(entry.term); } : undefined}
           >
             {p}
           </HighlightMark>
@@ -207,7 +210,7 @@ function highlightLine(
 
 const EMPTY_HIGHLIGHTS: HighlightMap = { flags: [], issues: [], skills: [], weak: [], metrics: [] };
 
-function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick }: { text: string; highlights?: HighlightMap; onTermClick?: (type: HType) => void }) {
+function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick, onTermFire }: { text: string; highlights?: HighlightMap; onTermClick?: (type: HType) => void; onTermFire?: (term: string) => void }) {
   const entries = buildEntries(highlights);
   const hasAny = entries.length > 0;
   const lines = normalizeCvLines(text);
@@ -239,8 +242,8 @@ function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick }: { te
               ? { paddingTop: 1, paddingBottom: 1 }
               : {};
             if (first && i < 5 && trimmed.length <= 70) {
-              if (i === 0) { first = false; return <div key={i} style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick)}</div>; }
-              return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--rc-hint)", marginBottom: i === 1 ? 24 : 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick)}</div>;
+              if (i === 0) { first = false; return <div key={i} style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>; }
+              return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--rc-hint)", marginBottom: i === 1 ? 24 : 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
             }
             if (first && trimmed.length > 70) first = false;
             if (SECTION_RE.test(trimmed)) {
@@ -253,20 +256,20 @@ function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick }: { te
               );
             }
             if (ROLE_LINE_RE.test(trimmed)) {
-              return <div key={i} style={{ fontSize: 14.5, fontWeight: 600, marginTop: 16, marginBottom: 2, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick)}</div>;
+              return <div key={i} style={{ fontSize: 14.5, fontWeight: 600, marginTop: 16, marginBottom: 2, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
             }
             if (/^\d{4}/.test(trimmed) || /^[A-Za-z]+\s\d{4}/.test(trimmed)) {
-              return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)", marginBottom: 8, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick)}</div>;
+              return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)", marginBottom: 8, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
             }
             if (trimmed.startsWith("•") || trimmed.startsWith("-") || trimmed.startsWith("·")) {
               return (
                 <div key={i} style={{ display: "flex", gap: 8, marginBottom: 5, ...hitBlock }}>
                   <span style={{ color: ht ? H[ht].dot : "var(--rc-border)", flexShrink: 0, marginTop: 6, fontSize: 8, lineHeight: 1 }}>▸</span>
-                  <span style={{ color: "var(--rc-muted)" }}>{highlightLine(trimmed.replace(/^[•\-·]\s*/, ""), highlights, entries, onTermClick)}</span>
+                  <span style={{ color: "var(--rc-muted)" }}>{highlightLine(trimmed.replace(/^[•\-·]\s*/, ""), highlights, entries, onTermClick, onTermFire)}</span>
                 </div>
               );
             }
-            return <div key={i} style={{ marginBottom: 5, color: "var(--rc-muted)", ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick)}</div>;
+            return <div key={i} style={{ marginBottom: 5, color: "var(--rc-muted)", ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
           })}
         </div>
       </div>
@@ -290,6 +293,7 @@ export function AnalysisShell({
   highlights = EMPTY_HIGHLIGHTS,
   highlightsByDoc,
   onHighlightTypeClick,
+  onHighlightTermClick,
   hideDocPanel = false,
   renderRight,
 }: AnalysisShellProps) {
@@ -378,6 +382,7 @@ export function AnalysisShell({
                       text={parsedText}
                       highlights={activeHighlights}
                       onTermClick={currentDoc.id === "cv" ? onHighlightTypeClick : undefined}
+                      onTermFire={currentDoc.id === "cv" ? onHighlightTermClick : undefined}
                     />
                   </div>
                 );

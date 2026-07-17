@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check } from "lucide-react";
 import { consumeSSE } from "../../lib/sse";
 import { useLanguage } from "../../context/language";
 
@@ -35,6 +36,7 @@ type SsePayload =
 type BulletReview = {
   original?: string;
   verdict?: string;
+  why?: string;
   rewrite?: string | null;
 };
 
@@ -44,6 +46,10 @@ type Props = {
   reconstructedCv: string | null;
   currentOverall: number;
   bulletReviews?: BulletReview[];
+  /** Set when the user clicks a highlighted bullet in the left parsed-CV panel. */
+  focusedOriginal?: string | null;
+  /** Bumped on each left-panel click so re-clicking the same bullet re-focuses. */
+  focusNonce?: number;
 };
 
 const COPY = {
@@ -51,11 +57,16 @@ const COPY = {
     kicker: "§ 02.6 · Re-audit loop",
     title: "Fix your CV, watch the score move.",
     intro:
-      "Edit your CV below and re-audit it. Your six quality scores are re-judged and you see exactly what moved. Uses one analysis credit.",
+      "Accept or tweak the suggested rewrites for your weak bullets. We rebuild your CV from your edits, no pasting. Re-audit and your six quality scores are re-judged so you see exactly what moved. Uses one analysis credit.",
     weakHeading: "Weak or fatal bullets to fix first",
     suggestion: "Suggested rewrite",
     editorLabel: "Your CV text",
     placeholder: "Paste or edit your full CV text here, then re-audit.",
+    accept: "Accept",
+    accepted: "Accepted",
+    rewritePlaceholder: "Write your improved bullet",
+    hint: "Tip: click a highlighted bullet in your CV on the left to jump straight to it.",
+    noneAccepted: "Accept at least one rewrite to re-audit.",
     run: "Re-audit my CV",
     running: "Re-auditing, this takes a moment...",
     resultTitle: "What moved",
@@ -72,11 +83,16 @@ const COPY = {
     kicker: "§ 02.6 · Boucle de re-audit",
     title: "Corrige ton CV, regarde le score bouger.",
     intro:
-      "Édite ton CV ci-dessous et relance l'audit. Tes six scores de qualité sont re-jugés et tu vois exactement ce qui a bougé. Consomme un crédit d'analyse.",
+      "Accepte ou ajuste les réécritures suggérées pour tes bullets faibles. On reconstruit ton CV à partir de tes modifications, sans copier-coller. Relance l'audit : tes six scores de qualité sont re-jugés et tu vois exactement ce qui a bougé. Consomme un crédit d'analyse.",
     weakHeading: "Bullets faibles ou fatals à corriger en priorité",
     suggestion: "Réécriture suggérée",
     editorLabel: "Le texte de ton CV",
     placeholder: "Colle ou édite le texte complet de ton CV ici, puis relance l'audit.",
+    accept: "Accepter",
+    accepted: "Accepté",
+    rewritePlaceholder: "Écris ta version améliorée",
+    hint: "Astuce : clique un bullet surligné dans ton CV à gauche pour aller droit dessus.",
+    noneAccepted: "Accepte au moins une réécriture pour relancer l'audit.",
     run: "Re-auditer mon CV",
     running: "Re-audit en cours, ça prend un instant...",
     resultTitle: "Ce qui a bougé",
@@ -158,26 +174,91 @@ export function CvAuditRescanPanel({
   reconstructedCv,
   currentOverall,
   bulletReviews,
+  focusedOriginal = null,
+  focusNonce = 0,
 }: Props) {
   const { locale, localePath } = useLanguage();
   const L = locale === "fr" ? COPY.fr : COPY.en;
   const langKey = locale === "fr" ? "fr" : "en";
 
-  const [text, setText] = useState(reconstructedCv ?? "");
+  // Editable weak/fatal bullets (verdict != strong), prefilled with the model's
+  // rewrite. The user accepts or tweaks each, and we rebuild the CV from those
+  // edits, no pasting.
+  const improvable = useMemo(
+    () =>
+      (bulletReviews ?? []).filter(
+        (b) => b.verdict && b.verdict !== "strong" && (b.original ?? "").trim().length > 0,
+      ),
+    [bulletReviews],
+  );
+
+  const base = reconstructedCv ?? "";
+  const editorMode = base.trim().length > 0 && improvable.length > 0;
+
+  // original -> user's edited text (defaults to the suggested rewrite).
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [accepted, setAccepted] = useState<Set<string>>(new Set());
+  // Fallback path only: raw CV textarea, used when there is no parsed CV or no bullets.
+  const [fallbackText, setFallbackText] = useState(base);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deltas, setDeltas] = useState<CvReviewRescanDeltas | null>(null);
   const [newId, setNewId] = useState<number | null>(null);
 
-  const weak = (bulletReviews ?? [])
-    .filter((b) => b.verdict && b.verdict !== "strong" && b.rewrite)
-    .slice(0, 5);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [pulse, setPulse] = useState<string | null>(null);
 
-  const canRun = !!analysisId && !!accessToken && text.trim().length >= MIN_CHARS && !busy;
+  const valueOf = (b: BulletReview): string => {
+    const o = b.original ?? "";
+    return edits[o] ?? b.rewrite ?? o;
+  };
+  const isResolved = (b: BulletReview): boolean => {
+    const o = (b.original ?? "").trim();
+    const v = valueOf(b).trim();
+    return accepted.has(b.original ?? "") && v.length > 0 && v !== o;
+  };
+  const dirtyCount = improvable.filter(isResolved).length;
+
+  const buildEditedCv = (): string => {
+    let out = base;
+    for (const b of improvable) {
+      if (isResolved(b) && b.original) out = out.replace(b.original, valueOf(b).trim());
+    }
+    return out;
+  };
+
+  const assembledCv = editorMode ? buildEditedCv() : fallbackText.trim();
+  const canRun =
+    !!analysisId &&
+    !!accessToken &&
+    !busy &&
+    assembledCv.trim().length >= MIN_CHARS &&
+    (editorMode ? dirtyCount > 0 : true);
+
+  const toggleAccept = (original: string) => {
+    setAccepted((prev) => {
+      const next = new Set(prev);
+      if (next.has(original)) next.delete(original);
+      else next.add(original);
+      return next;
+    });
+  };
+
+  // Left-panel bullet click: scroll its editor card into view and pulse it.
+  useEffect(() => {
+    if (!focusedOriginal) return;
+    const el = cardRefs.current[focusedOriginal];
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setPulse(focusedOriginal);
+    const t = setTimeout(() => setPulse(null), 1600);
+    return () => clearTimeout(t);
+  }, [focusNonce, focusedOriginal]);
 
   const run = async () => {
     if (!analysisId || !accessToken || busy) return;
-    const cvText = text.trim();
+    const cvText = assembledCv.trim();
     if (cvText.length < MIN_CHARS) {
       setError(L.tooShort);
       return;
@@ -267,8 +348,8 @@ export function CvAuditRescanPanel({
           padding: "24px 28px",
         }}
       >
-        {weak.length > 0 && (
-          <div style={{ marginBottom: 20 }}>
+        {editorMode ? (
+          <div style={{ marginBottom: 4 }}>
             <div
               style={{
                 ...MONO,
@@ -277,69 +358,156 @@ export function CvAuditRescanPanel({
                 textTransform: "uppercase",
                 color: "var(--rc-hint)",
                 fontWeight: 700,
-                marginBottom: 10,
+                marginBottom: 6,
               }}
             >
               {L.weakHeading}
             </div>
-            {weak.map((b, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: "10px 0",
-                  borderTop: i === 0 ? "none" : "1px solid var(--rc-border)",
-                }}
-              >
-                <div style={{ ...SANS, fontSize: 13, color: "var(--rc-text)", opacity: 0.75, textDecoration: "line-through" }}>
-                  {b.original}
-                </div>
-                {b.rewrite && (
-                  <div style={{ ...SANS, fontSize: 13, color: "var(--rc-green)", marginTop: 4 }}>
-                    <span style={{ ...MONO, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--rc-hint)", marginRight: 6 }}>
-                      {L.suggestion}
-                    </span>
-                    {b.rewrite}
+            <p style={{ ...SANS, fontSize: 12.5, color: "var(--rc-hint)", margin: "0 0 14px", lineHeight: 1.5 }}>
+              {L.hint}
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {improvable.map((b, i) => {
+                const o = b.original ?? "";
+                const resolved = isResolved(b);
+                const isPulse = pulse === o;
+                const value = valueOf(b);
+                return (
+                  <div
+                    key={`${o.slice(0, 30)}-${i}`}
+                    ref={(el) => {
+                      cardRefs.current[o] = el;
+                    }}
+                    style={{
+                      border: `1px solid ${resolved ? "var(--rc-green-border)" : isPulse ? "var(--rc-red)" : "var(--rc-border)"}`,
+                      borderRadius: 8,
+                      padding: "12px 14px",
+                      background: resolved ? "var(--rc-green-bg)" : "var(--rc-bg, transparent)",
+                      boxShadow: isPulse ? "0 0 0 3px color-mix(in srgb, var(--rc-red) 18%, transparent)" : "none",
+                      transition: "box-shadow 0.3s, border-color 0.3s",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      <span
+                        style={{
+                          ...MONO,
+                          fontSize: 9,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          padding: "2px 6px",
+                          borderRadius: 3,
+                          color: b.verdict === "fatal" ? "var(--rc-red)" : "var(--rc-amber)",
+                          background: b.verdict === "fatal" ? "var(--rc-red-bg)" : "var(--rc-amber-bg)",
+                        }}
+                      >
+                        {b.verdict}
+                      </span>
+                      {b.why && (
+                        <span style={{ ...SANS, fontSize: 11.5, color: "var(--rc-muted)" }}>{b.why}</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleAccept(o)}
+                        disabled={busy}
+                        style={{
+                          marginLeft: "auto",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          ...MONO,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          padding: "5px 10px",
+                          borderRadius: 5,
+                          cursor: busy ? "default" : "pointer",
+                          border: `1px solid ${resolved ? "var(--rc-green)" : "var(--rc-border)"}`,
+                          background: resolved ? "var(--rc-green)" : "transparent",
+                          color: resolved ? "#fff" : "var(--rc-text)",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Check size={12} strokeWidth={3} />
+                        {resolved ? L.accepted : L.accept}
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        ...SANS,
+                        fontSize: 12.5,
+                        color: "var(--rc-hint)",
+                        textDecoration: resolved ? "line-through" : "none",
+                        marginBottom: 6,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {o}
+                    </div>
+                    <textarea
+                      value={value}
+                      onChange={(e) => setEdits((prev) => ({ ...prev, [o]: e.target.value }))}
+                      rows={2}
+                      placeholder={L.rewritePlaceholder}
+                      disabled={busy}
+                      style={{
+                        ...SANS,
+                        width: "100%",
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                        color: "var(--rc-text)",
+                        background: "var(--rc-surface)",
+                        border: "1px solid var(--rc-border)",
+                        borderRadius: 5,
+                        padding: "8px 10px",
+                        resize: "vertical",
+                        boxSizing: "border-box",
+                      }}
+                    />
                   </div>
-                )}
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
+        ) : (
+          <>
+            <label
+              style={{
+                ...MONO,
+                display: "block",
+                fontSize: 10,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--rc-hint)",
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              {L.editorLabel}
+            </label>
+            <textarea
+              value={fallbackText}
+              onChange={(e) => setFallbackText(e.target.value)}
+              placeholder={L.placeholder}
+              rows={12}
+              disabled={busy}
+              style={{
+                ...SANS,
+                width: "100%",
+                fontSize: 13,
+                lineHeight: 1.6,
+                color: "var(--rc-text)",
+                background: "var(--rc-bg, transparent)",
+                border: "1px solid var(--rc-border)",
+                borderRadius: 6,
+                padding: "12px 14px",
+                resize: "vertical",
+                boxSizing: "border-box",
+              }}
+            />
+          </>
         )}
-
-        <label
-          style={{
-            ...MONO,
-            display: "block",
-            fontSize: 10,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: "var(--rc-hint)",
-            fontWeight: 700,
-            marginBottom: 8,
-          }}
-        >
-          {L.editorLabel}
-        </label>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={L.placeholder}
-          rows={12}
-          disabled={busy}
-          style={{
-            ...SANS,
-            width: "100%",
-            fontSize: 13,
-            lineHeight: 1.6,
-            color: "var(--rc-text)",
-            background: "var(--rc-bg, transparent)",
-            border: "1px solid var(--rc-border)",
-            borderRadius: 6,
-            padding: "12px 14px",
-            resize: "vertical",
-            boxSizing: "border-box",
-          }}
-        />
 
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 14, flexWrap: "wrap" }}>
           <button
@@ -362,6 +530,14 @@ export function CvAuditRescanPanel({
           >
             {busy ? L.running : L.run}
           </button>
+          {editorMode && dirtyCount > 0 && !busy && (
+            <span style={{ ...MONO, fontSize: 11, color: "var(--rc-green)", fontWeight: 700 }}>
+              {dirtyCount} {L.accepted.toLowerCase()}
+            </span>
+          )}
+          {editorMode && dirtyCount === 0 && !error && (
+            <span style={{ ...SANS, fontSize: 13, color: "var(--rc-hint)" }}>{L.noneAccepted}</span>
+          )}
           {error && (
             <span style={{ ...SANS, fontSize: 13, color: "var(--rc-red)" }}>{error}</span>
           )}

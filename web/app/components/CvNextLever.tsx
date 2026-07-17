@@ -31,7 +31,7 @@ export function CvNextLever({ quality, notes }: Props) {
   const isStrong = overall >= STRONG;
   if (!lever && !isStrong) return null;
 
-  const kicker = lang === "fr" ? "TON LEVIER N°1" : "YOUR ONE LEVER";
+  const kicker = lang === "fr" ? "TON LEVIER" : "YOUR LEVERAGE MOVE";
   const dim = lever ? DIM_LABEL[lever.dimension][lang] : "";
 
   const headline = isStrong
