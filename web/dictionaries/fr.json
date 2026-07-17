@@ -2397,6 +2397,18 @@
       "competitive": "Compétitif — avec quelques écarts à combler.",
       "strong": "Bon match. Peaufine et postule."
     },
+    "blindSpots": {
+      "title": "Ce que ce score ne voit pas",
+      "intro": "La compétitivité mesure à quel point tu colles à cette annonce, pas tes chances d'entretien. Celles-ci dépendent de facteurs qu'aucun score de CV ne peut voir :",
+      "factors": [
+        "combien d'autres ont postulé",
+        "quand tu as postulé (tôt, ou après que la shortlist soit faite)",
+        "les référés et candidats internes",
+        "ton besoin de visa ou sponsorship, et là où tu es basé",
+        "si le poste est vraiment encore ouvert"
+      ],
+      "outro": "Un bon score sans réponse pointe souvent vers l'un de ces facteurs, pas vers ton CV."
+    },
     "report": {
       "positioningSub": "Avant même qu'une ligne soit lue, deux choses fixent la première impression : le niveau que tu projettes et la voix que tu emploies.",
       "strengthPrefix": "Atout ·",

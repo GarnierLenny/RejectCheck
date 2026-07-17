@@ -1127,6 +1127,23 @@ export function AnalysisLayout({
                   {jdMeta && <><Mono style={{ color: "var(--rc-border)", margin: "0 12px" }}>/</Mono><Mono style={{ fontSize: 12, color: "var(--rc-muted)", letterSpacing: "0.01em" }}>{jdMeta}</Mono></>}
                 </div>
               )}
+
+              {/* What this score can't see — kills the "70 = 70% odds" read by
+                  naming the outcome factors no CV-vs-JD score can model. */}
+              <div style={{ marginTop: 20, padding: "14px 16px", borderRadius: R_SM, border: "1px dashed var(--rc-border)", background: "var(--rc-surface-hero)" }}>
+                <Eyebrow style={{ display: "block", marginBottom: 8, color: "var(--rc-hint)" }}>{t.analysisLayout.blindSpots.title}</Eyebrow>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-muted)", margin: 0 }}>
+                  {t.analysisLayout.blindSpots.intro}
+                </p>
+                <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontFamily: "var(--font-sans)", fontSize: 12.5, lineHeight: 1.6, color: "var(--rc-muted)" }}>
+                  {t.analysisLayout.blindSpots.factors.map((f, i) => (
+                    <li key={i}>{f}</li>
+                  ))}
+                </ul>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-text)", margin: "8px 0 0", fontWeight: 500 }}>
+                  {t.analysisLayout.blindSpots.outro}
+                </p>
+              </div>
             </section>
 
             {/* §02 — Match */}

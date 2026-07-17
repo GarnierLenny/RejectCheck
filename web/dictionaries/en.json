@@ -2397,6 +2397,18 @@
       "competitive": "Competitive — with a few gaps to close.",
       "strong": "Strong match. Polish and apply."
     },
+    "blindSpots": {
+      "title": "What this score can't see",
+      "intro": "Competitiveness measures how well you match this posting, not your odds of an interview. Those hinge on things no CV score can see:",
+      "factors": [
+        "how many others applied",
+        "when you applied (early, or after the shortlist was set)",
+        "referrals and internal candidates",
+        "your visa or sponsorship needs, and where you're based",
+        "whether the role is genuinely still open"
+      ],
+      "outro": "A strong score with no replies usually points at one of these, not at your CV."
+    },
     "report": {
       "positioningSub": "Before a single bullet is read, two things set the first impression: the level you project, and the voice you write in.",
       "strengthPrefix": "Strength ·",
