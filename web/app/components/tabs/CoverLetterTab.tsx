@@ -100,7 +100,7 @@ export function CoverLetterTab({ analysisId, isPremium, company, candidateName, 
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
         <div>
           <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: "0 0 6px", lineHeight: 1.1 }}>
-            Addresses the JD <span style={DISPLAY_ITALIC}>point by point.</span>
+            {t.coverLetterTab.headline} <span style={DISPLAY_ITALIC}>{t.coverLetterTab.headlineAccent}</span>
           </h3>
           <p style={{ ...MONO, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--rc-hint)", margin: 0 }}>
             {t.coverLetterTab.subtitle}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download, CheckCircle2, Copy, Check, RefreshCw, Loader2 } from "lucide-react";
 import type { AnalysisResult } from "../types";
-import { CvMarkdownRenderer } from "../CvMarkdownRenderer";
+import { CvPdfPreview } from "../CvPdfPreview";
 import { useGenerateCoverLetter } from "../../../lib/mutations";
 import { generateCvPdf, generateCoverLetterPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
@@ -239,9 +239,7 @@ export function RewriteTab({ result, reconstructedCv, isRewriting, onRewrite, an
                 {t.rewriteTab.cv.regenerate}
               </button>
             </div>
-            <div style={{ height: 520, overflowY: "auto", borderRadius: R_MD, border: "1px solid rgba(201,58,57,0.2)", background: "var(--rc-surface)", padding: "28px 32px" }}>
-              <CvMarkdownRenderer markdown={reconstructedCv} />
-            </div>
+            <CvPdfPreview cvText={reconstructedCv} />
             <button
               onClick={async () => { setIsExportingCv(true); try { await generateCvPdf(reconstructedCv, "cv-rewritten.pdf"); } finally { setIsExportingCv(false); } }}
               disabled={isExportingCv}

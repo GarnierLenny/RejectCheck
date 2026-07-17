@@ -978,6 +978,8 @@
   "coverLetterTab": {
     "title": "Lettre de motivation",
     "subtitle": "Générée par IA à partir de vos résultats d'analyse",
+    "headline": "Rédigée depuis ton audit,",
+    "headlineAccent": "prête à adapter.",
     "languageLabel": "Langue",
     "autoDetected": "Détectée automatiquement",
     "generateButton": "Générer la lettre",
@@ -991,7 +993,7 @@
     "error": "Impossible de générer la lettre. Veuillez réessayer.",
     "premiumBadge": "Fonctionnalité HIRED",
     "premiumTitle": "Générateur de lettre de motivation",
-    "premiumDesc": "Analyse vos points forts et lacunes pour rédiger une lettre qui répond directement aux exigences du poste.",
+    "premiumDesc": "Analyse vos points forts et lacunes pour rédiger une lettre à adapter à n'importe quel poste.",
     "unlockButton": "Passer à HIRED - 39,99€/mois"
   },
   "analyzeNav": {

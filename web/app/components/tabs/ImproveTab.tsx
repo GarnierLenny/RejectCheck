@@ -4,7 +4,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Loader2, Download, CheckCircle2, Wand2, Zap, ScanSearch, TrendingUp, FileWarning } from "lucide-react";
 import { generateCvPdf } from "../../utils/export";
-import { CvMarkdownRenderer } from "../CvMarkdownRenderer";
+import { CvPdfPreview } from "../CvPdfPreview";
 import { useLanguage } from "../../../context/language";
 import { PremiumPaywall } from "../PremiumFeature";
 
@@ -80,9 +80,7 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
           <div style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 10 }}>
             {t.improveTab.yourImprovedCv}
           </div>
-          <div style={{ height: 520, overflowY: "auto", borderRadius: 6, border: "1px solid rgba(201,58,57,0.2)", background: "var(--rc-surface)", padding: "28px 32px" }}>
-            <CvMarkdownRenderer markdown={reconstructedCv} />
-          </div>
+          <CvPdfPreview cvText={reconstructedCv} />
         </div>
 
         <button

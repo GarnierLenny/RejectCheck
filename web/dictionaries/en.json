@@ -978,6 +978,8 @@
   "coverLetterTab": {
     "title": "Cover Letter",
     "subtitle": "AI-generated from your analysis results",
+    "headline": "Written from your audit,",
+    "headlineAccent": "ready to tailor.",
     "languageLabel": "Language",
     "autoDetected": "Auto-detected",
     "generateButton": "Generate Cover Letter",
@@ -991,7 +993,7 @@
     "error": "Could not generate cover letter. Please try again.",
     "premiumBadge": "HIRED Feature",
     "premiumTitle": "Cover Letter Generator",
-    "premiumDesc": "Analyzes your gaps and strengths to write a letter that directly addresses what the job requires.",
+    "premiumDesc": "Analyzes your gaps and strengths to write a letter you can tailor to any role.",
     "unlockButton": "Upgrade to HIRED - 39.99€/month"
   },
   "analyzeNav": {

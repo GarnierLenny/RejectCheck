@@ -316,9 +316,6 @@ export function CvAuditResult({
   // §04 cross-source
   const inconsistencies = result.cross_profile_inconsistencies ?? [];
 
-  // §06 before/after
-  const tone = result.cv_tone;
-  const hasRewrites = tone.detected !== "active" && (tone.rewrites?.length ?? 0) > 0;
 
   // §07 roadmap
   type RoadItem = { id: string; title: string; detail?: string; time: string; pts: string; now: boolean };
@@ -494,17 +491,16 @@ export function CvAuditResult({
             {tocItem("s3", "03", "Seniority gap", null)}
             {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && tocItem("s4", "04", "Timeline", null)}
             {tocItem("s5", "05", "All findings", null)}
-            {hasRewrites && tocItem("s6", "06", "Before / after", null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Action</div>
-            {tocItem("s7", "07", "Roadmap", null)}
+            {tocItem("s7", "06", "Roadmap", null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Premium</div>
-            {tocItem(hasShortlisted ? "s8"  : "s-pro", "08", "CV rewrite",   hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
-            {tocItem(hasShortlisted ? "s9"  : "s-pro", "09", "Cover letter", hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
-            {tocItem(hasHired       ? "s10" : "s-pro", "10", "AI mock",      hasHired       ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
+            {tocItem(hasShortlisted ? "s8"  : "s-pro", "07", "CV rewrite",   hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+            {tocItem(hasShortlisted ? "s9"  : "s-pro", "08", "Cover letter", hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+            {tocItem(hasHired       ? "s10" : "s-pro", "09", "AI mock",      hasHired       ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
           </div>
         </aside>
 
@@ -1019,9 +1015,18 @@ export function CvAuditResult({
                       {issue.why && (
                         <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: 0 }}><Md>{issue.why}</Md></p>
                       )}
-                      {(issue.fix as { example?: { before?: string } } | undefined)?.example?.before && (
-                        <div style={{ marginTop: 8, ...MONO, fontSize: 11, color: "var(--rc-hint)", fontStyle: "italic", borderLeft: "2px solid var(--rc-border)", paddingLeft: 10 }}>
-                          {(issue.fix as { example: { before: string } }).example.before}
+                      {issue.fix?.example && (issue.fix.example.before || issue.fix.example.after) && (
+                        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6, borderLeft: "2px solid var(--rc-border)", paddingLeft: 12 }}>
+                          {issue.fix.example.before && (
+                            <div style={{ ...SANS, fontSize: 13, fontStyle: "italic", color: "var(--rc-muted)", textDecoration: "line-through", lineHeight: 1.5 }}>
+                              − {issue.fix.example.before}
+                            </div>
+                          )}
+                          {issue.fix.example.after && (
+                            <div style={{ ...SANS, fontSize: 13, color: "var(--rc-green)", lineHeight: 1.5, fontWeight: 500 }}>
+                              + {issue.fix.example.after}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1031,38 +1036,10 @@ export function CvAuditResult({
             )}
           </section>
 
-          {/* ── §06 Before / after ── */}
-          {hasRewrites && (
-            <section data-ca-sec="s6" id="s6" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />§ 06 · Before / after</div>
-                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                  Rewrites <span style={DISPLAY_ITALIC}>your bullets are asking for</span>.
-                </h2>
-              </div>
-
-              {(tone.rewrites ?? []).map((rewrite, idx) => (
-                <div key={idx} style={{ padding: "20px 0", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)", display: "grid", gridTemplateColumns: "40px 1fr", gap: 16 }}>
-                  <div style={{ ...MONO, fontSize: 11, color: "var(--rc-hint)", fontWeight: 700, paddingTop: 3 }}>B {idx + 1}</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {tone.examples[idx] && (
-                      <div style={{ ...SANS, fontSize: 14, fontStyle: "italic", color: "var(--rc-muted)", textDecoration: "line-through", lineHeight: 1.5 }}>
-                        − {tone.examples[idx]}
-                      </div>
-                    )}
-                    <div style={{ ...SANS, fontSize: 14, color: "var(--rc-green)", lineHeight: 1.5, fontWeight: 500 }}>
-                      + {rewrite}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* ── §07 Roadmap ── */}
+          {/* ── §06 Roadmap ── */}
           <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 07 · Roadmap</div>
+              <div style={SEC_NUM}><SecNumLine />§ 06 · Roadmap</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 In <span style={DISPLAY_ITALIC}>a few hours</span>, your profile reads one band up.
               </h2>
@@ -1099,10 +1076,10 @@ export function CvAuditResult({
             ))}
           </section>
 
-          {/* ── §08 CV rewrite (shortlisted) ── */}
+          {/* ── §07 CV rewrite (shortlisted) ── */}
           {hasShortlisted && (
             <section data-ca-sec="s8" id="s8" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 08 · CV rewrite</div>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 07 · CV rewrite</div>
               <ImproveTab
                 reconstructedCv={reconstructedCv}
                 isLoading={isRewriting}
@@ -1113,10 +1090,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §09 Cover letter (shortlisted) ── */}
+          {/* ── §08 Cover letter (shortlisted) ── */}
           {hasShortlisted && (
             <section data-ca-sec="s9" id="s9" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 09 · Cover letter</div>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 08 · Cover letter</div>
               <CoverLetterTab
                 analysisId={_analysisId}
                 isPremium={true}
@@ -1127,10 +1104,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §10 AI mock interview (hired) ── */}
+          {/* ── §09 AI mock interview (hired) ── */}
           {AI_INTERVIEW_ENABLED && hasHired && (
             <section data-ca-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 10 · AI mock interview</div>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 09 · AI mock interview</div>
               <InterviewTab
                 isPremium={true}
                 analysisId={_analysisId}
@@ -1141,14 +1118,14 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §08–09 Paywall (free / partial) ── */}
+          {/* ── §07–08 Paywall (free / partial) ── */}
           {userPlan !== "hired" && (!hasShortlisted || AI_INTERVIEW_ENABLED) && (() => {
             type ProFeature = { num: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>; name: string; desc: string };
             const shortlistedFeatures: ProFeature[] = [
-              { num: "§ 08", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
-              { num: "§ 09", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on — ready to tailor for any role." },
+              { num: "§ 07", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
+              { num: "§ 08", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on, ready to tailor for any role." },
             ];
-            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "§ 10", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots — scored debrief at the end." } : null;
+            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "§ 09", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots, scored debrief at the end." } : null;
             const isExpanded = hasShortlisted ? true : proTier === "hired";
 
             const featureCard = (f: ProFeature, borderRight = false, borderTop = false) => (
@@ -1174,7 +1151,7 @@ export function CvAuditResult({
 
                 <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
                   <div>
-                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 10 · Hired feature" : AI_INTERVIEW_ENABLED ? "§ 08–10 · Pro features" : "§ 08–09 · Pro features"}</div>
+                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 09 · Hired feature" : AI_INTERVIEW_ENABLED ? "§ 07–09 · Pro features" : "§ 07–08 · Pro features"}</div>
                     <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(26px,2.8vw,36px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.05 }}>
                       Your audit is done. <span style={DISPLAY_ITALIC}>Now fix it.</span>
                     </h2>
