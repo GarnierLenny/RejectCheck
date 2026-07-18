@@ -94,4 +94,34 @@ describe('computeCvReviewDeltas', () => {
     expect(d.resolvedIssueCount).toBe(1); // passive voice gone
     expect(d.newIssueCount).toBe(0);
   });
+
+  it('deltas are unchanged when both sides carry experience_analysis', () => {
+    // The per-role deep-dive is display-only: the rescan delta reads scores
+    // and audit issues, never experience_analysis or its 5-level findings.
+    const experience = (what: string) => [
+      {
+        company: 'Acme',
+        title: 'Engineer',
+        start: '2021-01',
+        end: 'present',
+        sources: ['cv'],
+        seniority_read: 'mid',
+        seniority_alignment: 'matches_title',
+        ratings: { scope: 3, ownership: 3, impact: 2 },
+        hard_skills: [],
+        soft_skills: [],
+        findings: [{ severity: 'critical', what, why: 'display-only' }],
+        margin_note: 'note',
+      },
+    ];
+    const before = mk({ quality: { overall: 40, impact: 20 }, cvIssues: [{ what: 'A' }] });
+    const after = mk({ quality: { overall: 55, impact: 45 }, cvIssues: [{ what: 'B' }] });
+    const plain = computeCvReviewDeltas(before, after);
+
+    const beforeX = { ...before, experience_analysis: experience('old finding') } as CvReviewResponse;
+    const afterX = { ...after, experience_analysis: experience('new finding') } as CvReviewResponse;
+    const withExperience = computeCvReviewDeltas(beforeX, afterX);
+
+    expect(withExperience).toEqual(plain);
+  });
 });

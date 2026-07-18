@@ -12,6 +12,190 @@ import {
 } from './claude-profile-digest.schema';
 import { BULLET_REVIEWS_PROPERTY } from './claude-analysis.schema';
 
+// Mirrors the private SOURCE_ENUM of claude-profile-digest.schema.ts (not
+// exported there). Keep in sync if a new source type is ever added.
+const SOURCE_ENUM = ['cv', 'linkedin', 'github', 'portfolio'] as const;
+
+/**
+ * Per-role deep-dive: one entry per role on the CV, judged ONLY on that role's
+ * own bullets. Powers the Experience deep-dive section and (aggregated in the
+ * frontend) the "Reads strong" card of the Recruiter radar. The 5-level
+ * severity enum is LOCAL to these findings: global issue lists and the scoring
+ * penalty keep their 3 levels and never read it.
+ */
+const EXPERIENCE_ANALYSIS_PROPERTY = {
+  type: 'array' as const,
+  maxItems: 8,
+  description:
+    "Per-role recruiter deep-dive. ONE entry per role on the CV, most recent first, up to 8. Judge each entry ONLY on the bullets of that role: never import evidence or doubts from another role. Caps are ceilings, never quotas.",
+  items: {
+    type: 'object' as const,
+    properties: {
+      company: {
+        type: 'string' as const,
+        description: 'Company name, verbatim from the CV.',
+      },
+      title: {
+        type: 'string' as const,
+        description: 'Job title, verbatim from the CV.',
+      },
+      start: {
+        type: ['string', 'null'] as ['string', 'null'],
+        description:
+          "ISO yyyy-mm as written in the CV (month 01 if only a year is given), or null when the CV states no start date. Never guess.",
+      },
+      end: {
+        type: ['string', 'null'] as ['string', 'null'],
+        description:
+          "ISO yyyy-mm, or 'present' for a current role (month 12 if only a year is given), or null when the CV states no end date. Never guess.",
+      },
+      sources: {
+        type: 'array' as const,
+        items: { type: 'string' as const, enum: SOURCE_ENUM },
+        minItems: 1,
+        description:
+          'Which provided source(s) mention this role. If only the CV does, list only "cv".',
+      },
+      seniority_read: {
+        type: 'string' as const,
+        enum: ['junior', 'mid', 'senior', 'lead', 'staff', 'principal'],
+        description:
+          "The seniority this role's bullets actually project: judge from scope, autonomy and decision depth described, never from the title.",
+      },
+      seniority_alignment: {
+        type: 'string' as const,
+        enum: ['above_title', 'matches_title', 'below_title'],
+        description:
+          'How seniority_read compares to the stated title: above_title = the work reads more senior than the title; below_title = the title claims more than the bullets show.',
+      },
+      ratings: {
+        type: 'object' as const,
+        description:
+          "Recruiter ratings for this role, integers 1-5, judged only on this role's bullets (see the rubric in the system rules).",
+        properties: {
+          scope: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 5,
+            description:
+              'Size of the problem handled: 1 = isolated tasks, 5 = an org-level or company-level surface.',
+          },
+          ownership: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 5,
+            description:
+              'Held vs assisted: 1 = helped or supported with no owned outcome, 5 = accountable for the outcome and made the calls.',
+          },
+          impact: {
+            type: 'integer' as const,
+            minimum: 1,
+            maximum: 5,
+            description:
+              'Proof it mattered: 1 = no outcome stated, 5 = quantified outcomes with durable effect.',
+          },
+        },
+        required: ['scope', 'ownership', 'impact'],
+      },
+      hard_skills: {
+        type: 'array' as const,
+        maxItems: 8,
+        description:
+          "Hard skills exercised in THIS role, up to 8. proven needs an artifact, deliverable or number in this role's own bullets; a mention in a skills list is always claimed.",
+        items: {
+          type: 'object' as const,
+          properties: {
+            name: {
+              type: 'string' as const,
+              description: 'Skill name. ≤ 20 chars.',
+            },
+            status: {
+              type: 'string' as const,
+              enum: ['proven', 'claimed'],
+            },
+            evidence: {
+              type: ['string', 'null'] as ['string', 'null'],
+              description:
+                "The exact bullet fact that proves it, ≤ 15 words. MUST be null when status is claimed.",
+            },
+          },
+          required: ['name', 'status', 'evidence'],
+        },
+      },
+      soft_skills: {
+        type: 'array' as const,
+        maxItems: 4,
+        description:
+          "Soft skills evidenced in THIS role's bullets, up to 4. Same proven vs claimed bar as hard_skills.",
+        items: {
+          type: 'object' as const,
+          properties: {
+            name: {
+              type: 'string' as const,
+              description: 'Skill name. ≤ 20 chars.',
+            },
+            status: {
+              type: 'string' as const,
+              enum: ['proven', 'claimed'],
+            },
+            evidence: {
+              type: ['string', 'null'] as ['string', 'null'],
+              description:
+                "The exact bullet fact that proves it, ≤ 15 words. MUST be null when status is claimed.",
+            },
+          },
+          required: ['name', 'status', 'evidence'],
+        },
+      },
+      findings: {
+        type: 'array' as const,
+        maxItems: 6,
+        description:
+          'Role-level findings, up to 6, ordered by severity (critical first). Ceilings, never quotas: a clean role gets zero findings. info = a genuine POSITIVE leverage point only, never a problem.',
+        items: {
+          type: 'object' as const,
+          properties: {
+            severity: {
+              type: 'string' as const,
+              enum: ['critical', 'major', 'medium', 'minor', 'info'],
+            },
+            what: {
+              type: 'string' as const,
+              description:
+                'The finding, anchored in a specific bullet or absence of this role. ≤ 25 words.',
+            },
+            why: {
+              type: 'string' as const,
+              description:
+                'How a recruiter reads it, or (for info) how to leverage it. ≤ 25 words.',
+            },
+          },
+          required: ['severity', 'what', 'why'],
+        },
+      },
+      margin_note: {
+        type: 'string' as const,
+        description:
+          "The one-line note a recruiter would scribble in the margin next to this role: examiner's voice, specific to this role, ≤ 45 words.",
+      },
+    },
+    required: [
+      'company',
+      'title',
+      'start',
+      'end',
+      'sources',
+      'seniority_read',
+      'seniority_alignment',
+      'ratings',
+      'hard_skills',
+      'soft_skills',
+      'findings',
+      'margin_note',
+    ],
+  },
+};
+
 const ISSUE_SCHEMA = {
   type: 'object' as const,
   properties: {
@@ -214,13 +398,20 @@ export const SUBMIT_CV_REVIEW_TOOL = {
                   minimum: 0,
                   maximum: 100,
                 },
+                expected: {
+                  type: 'number' as const,
+                  minimum: 0,
+                  maximum: 100,
+                  description:
+                    'The level a typical candidate at the CLAIMED seniority (seniority_analysis.detected) shows on this axis. Calibrate from that seniority band alone, independently of the actual score: expected must never drift toward score, and gaps in either direction are normal and informative.',
+                },
                 evidence: {
                   type: 'string' as const,
                   description:
                     'One concrete CV/GitHub fact supporting this score. ≤ 20 words. E.g. "4 years Node.js across 3 companies, 2 public APIs" or "React mentioned once, 2022 side project only".',
                 },
               },
-              required: ['label', 'score', 'evidence'],
+              required: ['label', 'score', 'expected', 'evidence'],
             },
           },
         },
@@ -367,6 +558,8 @@ export const SUBMIT_CV_REVIEW_TOOL = {
 
       bullet_reviews: BULLET_REVIEWS_PROPERTY,
 
+      experience_analysis: EXPERIENCE_ANALYSIS_PROPERTY,
+
       audit_cv: auditSchema(
         'CV audit: structure, clarity, impact, completeness. Score always present (not null).',
         10,
@@ -385,7 +578,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
         items: TIMELINE_ENTRY,
         maxItems: 40,
         description:
-          'Per-source chronology — ONE entry per source-occurrence of a job. Only populate when at least 2 sources are available (CV + LinkedIn and/or GitHub). Empty array if only CV is present. Use dates verbatim from each source — do NOT reconcile.',
+          'Per-source chronology: ONE entry per role per source. ALWAYS populate. With CV only, one entry per CV role. Use dates verbatim from each source, do NOT reconcile. Omit undated roles.',
       },
 
       cross_profile_inconsistencies: {
@@ -428,6 +621,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
       'seniority_analysis',
       'cv_tone',
       'bullet_reviews',
+      'experience_analysis',
       'audit_cv',
       'audit_github',
       'audit_linkedin',
@@ -440,21 +634,26 @@ export const SUBMIT_CV_REVIEW_TOOL = {
 
 /**
  * CV-review tool for the owner "audit mode": drops `bullet_reviews` (the
- * biggest actionable block, and the only premium content on a review) so a
- * teaser audit of a stranger's CV — shared read-only, never unlocked — doesn't
- * burn tokens generating rewrites nobody will see.
+ * biggest actionable block, and the only premium content on a review) and
+ * `experience_analysis` (the per-role deep-dive, the other token-heavy block)
+ * so a teaser audit of a stranger's CV, shared read-only and never unlocked,
+ * doesn't burn tokens generating depth nobody will see.
  */
 export function buildCvReviewTool(lean = false) {
   if (!lean) return SUBMIT_CV_REVIEW_TOOL;
-  const { bullet_reviews: _dropped, ...properties } =
-    SUBMIT_CV_REVIEW_TOOL.input_schema.properties;
+  const LEAN_DROPPED = ['bullet_reviews', 'experience_analysis'];
+  const {
+    bullet_reviews: _droppedBullets,
+    experience_analysis: _droppedExperience,
+    ...properties
+  } = SUBMIT_CV_REVIEW_TOOL.input_schema.properties;
   return {
     ...SUBMIT_CV_REVIEW_TOOL,
     input_schema: {
       ...SUBMIT_CV_REVIEW_TOOL.input_schema,
       properties,
       required: SUBMIT_CV_REVIEW_TOOL.input_schema.required.filter(
-        (k) => k !== 'bullet_reviews',
+        (k) => !LEAN_DROPPED.includes(k),
       ),
     },
   };

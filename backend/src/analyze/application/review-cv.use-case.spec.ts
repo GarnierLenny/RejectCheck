@@ -1,5 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { ReviewCvUseCase } from './review-cv.use-case';
+import { CvReviewResponseSchema } from '../dto/cv-review-response.dto';
+import { anchorCvQuality } from '../domain/score/compose-cv-review-score';
 
 /**
  * Guards for the CV-audit source extraction:
@@ -241,5 +243,141 @@ describe('ReviewCvUseCase — owner audit mode', () => {
     expect(reviewCv.mock.calls[0][0].lean).toBe(false);
     // Normal path runs the quota reservation.
     expect(analyses.creditsSince).toHaveBeenCalled();
+  });
+});
+
+/**
+ * The per-role experience_analysis block (CV-audit redesign, PR1):
+ *  - the DTO accepts and preserves the new fields (the zod parse strips unknown
+ *    keys, so a DTO lagging the tool schema would silently drop the section);
+ *  - the anchored quality score is IDENTICAL with and without it: the 5-level
+ *    finding severities are display-only, composePenalty never reads them;
+ *  - pre-migration rows (no experience_analysis, no expected on radar axes)
+ *    still parse (backward compat).
+ */
+describe('ReviewCvUseCase: experience_analysis DTO + score invariance', () => {
+  const experienceAnalysis = [
+    {
+      company: 'Acme',
+      title: 'Senior Backend Engineer',
+      start: '2022-03',
+      end: 'present',
+      sources: ['cv'],
+      seniority_read: 'mid',
+      seniority_alignment: 'below_title',
+      ratings: { scope: 3, ownership: 4, impact: 2 },
+      hard_skills: [
+        { name: 'Node.js', status: 'proven', evidence: 'Shipped the payments API in Node' },
+        { name: 'Kubernetes', status: 'claimed', evidence: null },
+      ],
+      soft_skills: [{ name: 'Mentoring', status: 'claimed', evidence: null }],
+      findings: [
+        // A critical here must NOT feed the score penalty (local enum).
+        { severity: 'critical', what: 'Claims a rewrite the dates make impossible', why: 'Reads as fabrication' },
+        { severity: 'medium', what: 'Main deliverable has no outcome', why: 'Recruiter cannot size the impact' },
+        { severity: 'info', what: 'Payments migration is a strong anchor', why: 'Lead the role with it' },
+      ],
+      margin_note: 'Solid ownership, but nothing tells me it mattered.',
+    },
+    {
+      company: 'Globex',
+      title: 'Backend Developer',
+      start: null,
+      end: null,
+      sources: ['cv'],
+      seniority_read: 'junior',
+      seniority_alignment: 'matches_title',
+      ratings: { scope: 2, ownership: 2, impact: 1 },
+      hard_skills: [],
+      soft_skills: [],
+      findings: [],
+      margin_note: 'Undated and thin: reads like filler.',
+    },
+  ];
+
+  function fixture(withExperience: boolean) {
+    return {
+      score: 55,
+      cv_quality: {
+        overall: 55,
+        clarity: 60,
+        impact: 45,
+        hard_skills: 55,
+        soft_skills: 50,
+        consistency: 65,
+        ats_format: 70,
+      },
+      skill_radar: {
+        axes: [
+          { label: 'Backend', score: 70, expected: 75, evidence: '4 years Node.js across 2 companies' },
+          { label: 'Frontend', score: 40, expected: 55, evidence: 'React mentioned once, side project' },
+          { label: 'DevOps', score: 30, expected: 50, evidence: 'No infra bullets anywhere' },
+          { label: 'Leadership', score: 35, expected: 45, evidence: 'No team-size or mentoring bullets' },
+        ],
+      },
+      projected_profile: {
+        seniority: 'mid',
+        target_roles: ['Backend Developer'],
+        domains: ['B2B SaaS'],
+        narrative: 'A backend developer with ownership but no proof of impact.',
+        profile_type: 'specialist',
+      },
+      ats_audit: { score: 70, issues: [] },
+      seniority_analysis: {
+        expected: 'mid',
+        detected: 'senior',
+        gap: 'The title says senior but the bullets read mid.',
+        strength: 'Owned a service end to end.',
+      },
+      cv_tone: { detected: 'mixed', examples: [], rewrites: [] },
+      audit: {
+        cv: {
+          score: 55,
+          issues: [
+            { severity: 'critical', category: 'impact', what: 'No metrics anywhere', why: 'Reads unproven' },
+          ],
+        },
+        github: { score: null, issues: [] },
+        linkedin: { score: null, issues: [] },
+      },
+      hidden_red_flags: [{ flag: 'gap', perception: '9 months unexplained' }],
+      ...(withExperience ? { experience_analysis: experienceAnalysis } : {}),
+    };
+  }
+
+  it('parses and preserves experience_analysis and expected through the DTO', () => {
+    const parsed = CvReviewResponseSchema.parse(fixture(true));
+    expect(parsed.experience_analysis).toEqual(experienceAnalysis);
+    expect(parsed.skill_radar?.axes[0].expected).toBe(75);
+  });
+
+  it('anchored quality score is identical with and without experience_analysis', () => {
+    // Mirror of the provider's penalty wiring (anthropic-claude.provider.ts):
+    // experience_analysis findings are absent from it BY DESIGN.
+    const countCritical = (arr: unknown): number =>
+      (Array.isArray(arr) ? arr : []).filter(
+        (x) => (x as { severity?: string })?.severity === 'critical',
+      ).length;
+    const anchor = (r: ReturnType<typeof fixture>) =>
+      anchorCvQuality(r.cv_quality, {
+        redFlagCount: r.hidden_red_flags.length,
+        criticalIssueCount:
+          countCritical(r.audit.cv.issues) +
+          countCritical(r.audit.github.issues) +
+          countCritical(r.audit.linkedin.issues),
+        fatalBulletCount: 0,
+      });
+    expect(anchor(fixture(true))).toEqual(anchor(fixture(false)));
+  });
+
+  it('backward compat: a pre-migration row without the new fields parses', () => {
+    const legacy = fixture(false);
+    // Old rows also predate `expected` on the radar axes.
+    legacy.skill_radar.axes = legacy.skill_radar.axes.map(
+      ({ expected: _e, ...axis }) => axis,
+    ) as typeof legacy.skill_radar.axes;
+    const parsed = CvReviewResponseSchema.parse(legacy);
+    expect(parsed.experience_analysis).toBeUndefined();
+    expect(parsed.skill_radar?.axes[0]).not.toHaveProperty('expected');
   });
 });

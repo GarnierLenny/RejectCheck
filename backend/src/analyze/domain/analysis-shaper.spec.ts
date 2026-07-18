@@ -276,6 +276,55 @@ describe('shapeCvReviewForPlan', () => {
     const shaped = shapeCvReviewForPlan(review, SHORTLISTED);
     expect(JSON.stringify(shaped)).toContain('SECRET_REWRITE');
   });
+
+  it('free: experience_analysis and radar expected pass through untouched, only rewrites nulled', () => {
+    // The CV-audit redesign is all-free by product decision: the per-role
+    // deep-dive and the expected calibration are never redacted. The only
+    // premium content on a review remains the bullet rewrites.
+    const experience = [
+      {
+        company: 'Acme',
+        title: 'Engineer',
+        start: '2021-01',
+        end: 'present',
+        sources: ['cv'],
+        seniority_read: 'mid',
+        seniority_alignment: 'matches_title',
+        ratings: { scope: 3, ownership: 3, impact: 2 },
+        hard_skills: [
+          { name: 'Node.js', status: 'proven', evidence: 'Shipped checkout in Node' },
+        ],
+        soft_skills: [{ name: 'Mentoring', status: 'claimed', evidence: null }],
+        findings: [
+          { severity: 'info', what: 'Checkout is a strong anchor', why: 'Lead with it' },
+        ],
+        margin_note: 'Owns things, proves little.',
+      },
+    ];
+    const radar = {
+      axes: [{ label: 'Backend', score: 70, expected: 75, evidence: 'ok' }],
+    };
+    const fullReview = {
+      ...(review as Record<string, unknown>),
+      experience_analysis: experience,
+      skill_radar: radar,
+    } as never;
+
+    const shaped = shapeCvReviewForPlan(fullReview, FREE) as unknown as {
+      experience_analysis: unknown;
+      skill_radar: unknown;
+      bullet_reviews: { bullets: Array<{ rewrite: unknown }> };
+    };
+    // Same reference: shaping never clones or redacts the new sections.
+    expect(shaped.experience_analysis).toBe(experience);
+    expect(shaped.skill_radar).toBe(radar);
+    expect(shaped.bullet_reviews.bullets[0].rewrite).toBeNull();
+  });
+
+  it('streams experience_analysis unshaped for free users (shapeSectionForPlan passthrough)', () => {
+    const value = [{ company: 'Acme', findings: [] }];
+    expect(shapeSectionForPlan('experience_analysis', value, FREE)).toBe(value);
+  });
 });
 
 describe('shapeStoredResultForPlan', () => {

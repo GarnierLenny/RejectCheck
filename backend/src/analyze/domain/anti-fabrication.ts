@@ -82,6 +82,17 @@ export function sanitizeAnalyzeFabrication(
 /**
  * Neutralise fabricated numbers in a standalone CV audit: bullet rewrites and
  * the passive-phrase rewrites. Mutates in place and returns the result.
+ *
+ * `experience_analysis` is deliberately EXEMPT from number-stripping (plan
+ * decision D5). The stripper protects PASTE-READY text the candidate would
+ * ship on their CV; the deep-dive fields (findings what/why, skill evidence,
+ * margin_note) are ANALYTIC prose about the CV, never pasted into it. They
+ * legitimately carry derived counts with no verbatim counterpart in the source
+ * ("3 of 5 bullets have no outcome", "14 months tenure" computed from dates),
+ * so machine-stripping would mutilate correct arithmetic into "[X] of [X]
+ * bullets". The guard there is the prompt rule (every number must exist in the
+ * documents or be date arithmetic, otherwise omit) plus the staging re-read,
+ * and the byte-identical passthrough is pinned in anti-fabrication.spec.ts.
  */
 export function sanitizeCvReviewFabrication(
   result: CvReviewResponse,

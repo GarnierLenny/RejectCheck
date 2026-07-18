@@ -35,12 +35,73 @@ export const SkillRadarSchema = z.object({
       z.object({
         label: z.string(),
         score: z.number().min(0).max(100),
+        // Expected level at the CLAIMED seniority. Optional so pre-migration
+        // rows (generated before the axis carried it) still replay.
+        expected: z.number().min(0).max(100).optional(),
         evidence: z.string(),
       }),
     )
     .min(4)
     .max(6),
 });
+
+const ExperienceSkillSchema = z.object({
+  name: z.string(),
+  status: z.enum(['proven', 'claimed']),
+  // Null is mandatory when status is claimed (enforced by the prompt rules).
+  evidence: z.string().nullable(),
+});
+
+/**
+ * Per-role deep-dive entries (mirror of the experience_analysis tool block).
+ * The 5-level finding severity is LOCAL to this block: global issue lists and
+ * the scoring penalty keep their 3 levels and never read it.
+ */
+export const ExperienceAnalysisSchema = z
+  .array(
+    z.object({
+      company: z.string(),
+      title: z.string(),
+      start: z.string().nullable(),
+      end: z.string().nullable(),
+      sources: z
+        .array(z.enum(['cv', 'linkedin', 'github', 'portfolio']))
+        .min(1),
+      seniority_read: z.enum([
+        'junior',
+        'mid',
+        'senior',
+        'lead',
+        'staff',
+        'principal',
+      ]),
+      seniority_alignment: z.enum([
+        'above_title',
+        'matches_title',
+        'below_title',
+      ]),
+      ratings: z.object({
+        scope: z.number().int().min(1).max(5),
+        ownership: z.number().int().min(1).max(5),
+        impact: z.number().int().min(1).max(5),
+      }),
+      // Tool caps are 8 / 4 / 6: headroom so an off-by-one never fails.
+      hard_skills: z.array(ExperienceSkillSchema).max(10),
+      soft_skills: z.array(ExperienceSkillSchema).max(6),
+      findings: z
+        .array(
+          z.object({
+            severity: z.enum(['critical', 'major', 'medium', 'minor', 'info']),
+            what: z.string(),
+            why: z.string(),
+          }),
+        )
+        .max(8),
+      margin_note: z.string(),
+    }),
+  )
+  // Tool cap is 8: headroom so an off-by-one never fails the review.
+  .max(10);
 
 export const PositioningGapsSchema = z.object({
   target_role: z.string(),
@@ -101,6 +162,9 @@ export const CvReviewResponseSchema = z.object({
   }),
   // Optional so pre-densification DB rows replay.
   bullet_reviews: BulletReviewsSchema.optional(),
+  // Optional so rows generated before the per-role deep-dive existed (and lean
+  // owner audits, which drop it) still replay.
+  experience_analysis: ExperienceAnalysisSchema.optional(),
   audit: z.object({
     cv: z.object({
       score: z.number().min(0).max(100),

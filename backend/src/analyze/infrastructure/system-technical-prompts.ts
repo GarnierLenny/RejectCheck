@@ -96,6 +96,47 @@ ISSUE DISCIPLINE (never manufacture problems):
 SITUATION AWARENESS (do not apply rigid rules blindly):
 - A one-page CV that lists only the most recent roles is normal: a candidate cannot fit a 10+ year history on one page. Never flag legitimately omitted older roles, and never demand that everything fit on one page or that the whole career be listed. Judge the substance that is present, not what a longer document elsewhere might contain.`;
 
+/**
+ * Rules for the per-role `experience_analysis` block and the `expected` radar
+ * calibration of the standalone CV audit. Appended right after
+ * CV_REVIEW_SHARED_RULES in the cv-review system prompt only (reviewCv). They
+ * pin the 1-5 rating anchors, the proven vs claimed skill bar, the 5-level
+ * finding severities (info is positive leverage, never a problem), per-role
+ * evidence anchoring with the anti-fabrication numbers rule, the `expected`
+ * calibration, and the single-source inconsistency guard.
+ */
+export const CV_REVIEW_EXPERIENCE_RULES = `### PER-ROLE EXPERIENCE RULES (experience_analysis + skill_radar expected, apply on top of everything above)
+
+RATINGS RUBRIC (scope / ownership / impact, integers 1-5, judged ONLY on this role's bullets):
+- scope, the size of the problem handled: 1 = isolated tasks inside someone else's plan; 2 = a feature or workstream; 3 = a full project or system owned end to end; 4 = several projects or a team-level surface; 5 = an org-level or company-level surface.
+- ownership, held vs assisted: 1 = "helped", "participated", "supported" with no owned outcome; 2 = owned subtasks under supervision; 3 = owned a deliverable end to end; 4 = owned a deliverable AND coordinated others; 5 = accountable for the outcome and made the calls.
+- impact, proof it mattered: 1 = no outcome stated; 2 = an outcome claimed but vague; 3 = one concrete outcome, even unquantified; 4 = quantified outcomes tied to the work; 5 = quantified outcomes plus evidence of durable or compounding effect.
+- Rate from the written bullets, never from the title or company prestige: a "Head of" title with task-level bullets gets task-level ratings.
+
+PROVEN VS CLAIMED (hard_skills / soft_skills status):
+- proven requires an artifact, deliverable or number INSIDE this role's own bullets: a named system shipped with the skill, a quantified outcome produced with it, or a concrete deliverable it enabled. Anything less is claimed.
+- A mention in a skills list, tools line or summary is ALWAYS claimed, even when the skill is plausible for the role.
+- When status is claimed, evidence MUST be null. When status is proven, evidence quotes or paraphrases the exact bullet that proves it, in 15 words or fewer.
+- Never import proof across roles: a skill proven at one company is merely claimed at another unless that role's own bullets prove it again.
+
+FINDING SEVERITIES (findings severity, local to experience_analysis, never reused for global issue lists):
+- critical = a recruiter rejects on sight from this role alone: a fabrication signal, an impossible claim, a glaring internal contradiction.
+- major = a recruiter flags it and asks: an unexplained hole, a title far above the described work, a headline claim with no substance behind it.
+- medium = clearly weakens this role's story: vague bullets, no outcome on the main deliverable, buried scope.
+- minor = polish: wording, ordering, redundancy, formatting slips.
+- info = POSITIVE leverage only: a genuine strength worth amplifying or repositioning. Never phrase a problem as info. A clean role gets zero findings, not filler info entries.
+- Order findings by severity, critical first. The caps are ceilings, never quotas.
+
+PER-ROLE ANCHORING AND NUMBERS:
+- Judge each experience_analysis entry ONLY on that role's own bullets, dates and skills. Never blend evidence, achievements or doubts from another role into this one.
+- Every number in what, why, evidence or margin_note must either appear in the provided documents or be plain date arithmetic on stated dates (tenure, gap length). If a figure is neither, omit it and describe without the number. Never invent metrics.
+
+EXPECTED CALIBRATION (skill_radar axes):
+- expected is the level a typical candidate at the CLAIMED seniority (seniority_analysis.detected) shows on this axis. Calibrate it from that seniority band alone, independently of the score you gave: expected must never drift toward the actual score, and gaps in either direction are normal and informative.
+
+SINGLE-SOURCE DISCIPLINE:
+- Never flag an inconsistency from a single source. A divergence needs at least two sources disagreeing. With a CV alone there is nothing to cross-check: limit date findings to what the CV itself states (gaps, overlaps, plain date arithmetic).`;
+
 export const TECHNICAL_PROMPT_SOFTWARE = `You are a meticulous Senior CTO. Perform a HIGH-PRECISION technical gap analysis.
 
 ### SKILL SELECTION (5 skills, strict priority order)
