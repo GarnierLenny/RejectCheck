@@ -12,7 +12,7 @@ type Props = {
 
 const COPY = {
   en: {
-    kicker: "§ 02.5 · Benchmark",
+    kicker: "§ 06.3 · Benchmark",
     title: "You vs typical resumes in your field.",
     basis: (n: number, fam: string) =>
       `Based on ${n} ${fam} resumes (typical resumes, not outcome-labeled). "Strong" = the top quartile.`,
@@ -27,7 +27,7 @@ const COPY = {
     nextLabel: "Your one lever",
   },
   fr: {
-    kicker: "§ 02.5 · Benchmark",
+    kicker: "§ 06.3 · Benchmark",
     title: "Toi vs les CV typiques de ton domaine.",
     basis: (n: number, fam: string) =>
       `Basé sur ${n} CV ${fam} (CV typiques, pas labellisés par résultat). "Fort" = le quartile supérieur.`,
@@ -122,7 +122,7 @@ export function CvBenchmarkPanel({ cvText, roleHints }: Props) {
   const famLabel = (FAMILY_LABEL[bench.family] ?? { en: bench.family, fr: bench.family })[lang];
 
   return (
-    <section data-ca-sec="s2d" id="s2d" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+    <section data-ca-sec="s6d" id="s6d" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
       <div style={{ marginBottom: 24 }}>
         <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 12 }}>
           {L.kicker}

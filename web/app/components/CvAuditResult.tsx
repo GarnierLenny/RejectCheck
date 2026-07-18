@@ -18,6 +18,14 @@ import { CvAuditRescanPanel } from "./CvAuditRescanPanel";
 import { CvChecksScorecard } from "./CvChecksScorecard";
 import { CvBenchmarkPanel } from "./CvBenchmarkPanel";
 import { CvNextLever } from "./CvNextLever";
+import { CvGlanceStrip } from "./CvGlanceStrip";
+import { CvRecruiterRadar } from "./CvRecruiterRadar";
+import { CvExperienceDeepDive } from "./CvExperienceDeepDive";
+import { CvTimelineConsistency } from "./CvTimelineConsistency";
+import { computeTimelineDecorations, computeTimelineConsistency } from "../lib/timeline-consistency";
+import { attributeBulletsToRoles } from "../lib/experience-bullets";
+import { computeCvChecks, checksSummary } from "../lib/cv-checks";
+import { resolveRoleFamily } from "../lib/role-benchmark";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -245,7 +253,9 @@ export function CvAuditResult({
     );
     sections.forEach((s) => io.observe(s));
     return () => io.disconnect();
-  }, []);
+    // Re-register when the result changes: sections that mount mid-stream
+    // (radar, deep-dive, benchmark) would otherwise never be observed.
+  }, [result]);
 
   const scrollTo = (id: string) => {
     mainRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: "smooth" });
@@ -273,6 +283,37 @@ export function CvAuditResult({
 
   // §01 one move
   const topIssue = mergedIssues.find((i) => i.severity === "critical") ?? mergedIssues[0];
+
+  // ── New-report derived data (radar, deep-dive, timeline consistency, glance) ──
+  const experiences = useMemo(() => result.experience_analysis ?? [], [result.experience_analysis]);
+  const timelineEntries = useMemo(() => result.timeline_entries ?? [], [result.timeline_entries]);
+  const decorations = useMemo(() => computeTimelineDecorations(timelineEntries, now), [timelineEntries, now]);
+  const consistencyRows = useMemo(
+    () => computeTimelineConsistency(timelineEntries, result.cross_profile_inconsistencies, now),
+    [timelineEntries, result.cross_profile_inconsistencies, now],
+  );
+  // Glance chip: warn+fail count; null (chip omitted) when there is no timeline to check.
+  const timelineFlags = timelineEntries.length > 0
+    ? consistencyRows.filter((r) => r.status === "warn" || r.status === "fail").length
+    : null;
+  const bulletTallies = useMemo(
+    () => attributeBulletsToRoles(reconstructedCv, experiences, result.bullet_reviews?.bullets),
+    [reconstructedCv, experiences, result.bullet_reviews],
+  );
+  const checksPassed = useMemo(() => {
+    if (!reconstructedCv || reconstructedCv.trim().length === 0) return null;
+    const s = checksSummary(computeCvChecks(reconstructedCv));
+    return { passed: s.pass, total: s.pass + s.warn + s.fail };
+  }, [reconstructedCv]);
+  const sevCounts = {
+    critical: mergedIssues.filter((i) => i.severity === "critical").length,
+    major: mergedIssues.filter((i) => i.severity === "major").length,
+    minor: mergedIssues.filter((i) => i.severity === "minor").length,
+  };
+  const benchmarkFamily = resolveRoleFamily([
+    ...(result.projected_profile?.target_roles ?? []),
+    ...(result.projected_profile?.domains ?? []),
+  ]);
 
   // Left parsed-CV highlights: underline the improvable bullets (so the user can
   // click one to jump to its editor in the re-audit panel), plus any per-source
@@ -484,23 +525,32 @@ export function CvAuditResult({
           overflowY: "auto",
           scrollbarWidth: "none",
         }}>
-          <div style={{ ...EYEBROW, marginBottom: 14, paddingLeft: 8 }}>Audit</div>
+          <div style={{ ...EYEBROW, marginBottom: 14, paddingLeft: 8 }}>How you read</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {tocItem("s1", "01", "The one move", null)}
-            {tocItem("s2", "02", "Quality breakdown", null)}
-            {tocItem("s3", "03", "Seniority gap", null)}
-            {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && tocItem("s4", "04", "Timeline", null)}
-            {tocItem("s5", "05", "All findings", null)}
+            {tocItem("s1", "01", "Where to start", sevCounts.critical > 0 ? tocBadge(`${sevCounts.critical} crit`, "crit") : null)}
+            {(result.skill_radar?.axes?.length ?? 0) > 0 && tocItem("s2", "02", "Recruiter radar", tocBadge("New", "lock"))}
+            {experiences.length > 0 && tocItem("s3", "03", "Experience deep-dive", tocBadge("New", "lock"))}
+            {(inconsistencies.length > 0 || timelineEntries.length > 0) &&
+              tocItem("s4", "04", "Timeline", timelineFlags != null && timelineFlags > 0 ? tocBadge(`${timelineFlags} flag${timelineFlags !== 1 ? "s" : ""}`, "warn") : null)}
+            {tocItem("s5", "05", "Seniority gap", null)}
+
+            <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
+            <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Why this score</div>
+            {tocItem("s6", "06", "Quality breakdown", null)}
+            {checksPassed != null && tocItem("s6c", "06.2", "Structural checks", null)}
+            {checksPassed != null && benchmarkFamily != null && tocItem("s6d", "06.3", "Benchmark", null)}
+            {tocItem("s7", "07", "All findings", tocBadge(`${mergedIssues.length}`, allFindingsBadgeVariant))}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Action</div>
-            {tocItem("s7", "06", "Roadmap", null)}
+            {tocItem("s8", "08", "Roadmap", null)}
+            {q && !readOnly && _analysisId && accessToken && tocItem("s9", "09", "Re-audit loop", null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Premium</div>
-            {tocItem(hasShortlisted ? "s8"  : "s-pro", "07", "CV rewrite",   hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
-            {tocItem(hasShortlisted ? "s9"  : "s-pro", "08", "Cover letter", hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
-            {tocItem(hasHired       ? "s10" : "s-pro", "09", "AI mock",      hasHired       ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
+            {tocItem(hasShortlisted ? "s10" : "s-pro", "10", "CV rewrite",   hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+            {tocItem(hasShortlisted ? "s11" : "s-pro", "11", "Cover letter", hasShortlisted ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasShortlisted)}
+            {AI_INTERVIEW_ENABLED && tocItem(hasHired ? "s12" : "s-pro", "12", "AI mock", hasHired ? tocBadge("✓", "ok") : tocBadge("◆", "lock"), !hasHired)}
           </div>
         </aside>
 
@@ -517,6 +567,7 @@ export function CvAuditResult({
               <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "18px 0 0", maxWidth: 640 }}>
                 Your overall CV strength, scored across the six quality dimensions below (clarity, impact, hard and soft skills, consistency, ATS format). The per-source cards under it read each channel on its own.
               </p>
+              <CvGlanceStrip mergedCounts={sevCounts} checksPassed={checksPassed} timelineFlags={timelineFlags} overall={q.overall} />
             </div>
           )}
 
@@ -697,12 +748,25 @@ export function CvAuditResult({
             )}
           </section>
 
-          {/* ── §02 Quality breakdown ── */}
+          {/* ── §02 Recruiter radar (renders its own section, null without axes) ── */}
+          {result.skill_radar && (result.skill_radar.axes?.length ?? 0) > 0 && (
+            <CvRecruiterRadar
+              radar={result.skill_radar}
+              seniorityDetected={result.seniority_analysis?.detected ?? null}
+              experiences={experiences}
+              redFlags={result.hidden_red_flags}
+            />
+          )}
+
+          {/* ── §03 Experience deep-dive (renders its own section, null when empty) ── */}
+          <CvExperienceDeepDive experiences={experiences} tallies={bulletTallies} onlyCv={sourceCount === 1} />
+
+          {/* ── §06 Quality breakdown ── */}
 
           {q && (
-            <section data-ca-sec="s2" id="s2" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+            <section data-ca-sec="s6" id="s6" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />§ 02 · Quality breakdown</div>
+                <div style={SEC_NUM}><SecNumLine />§ 06 · Quality breakdown</div>
                 <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                   Six dimensions of how your CV <span style={DISPLAY_ITALIC}>reads</span>.
                 </h2>
@@ -753,17 +817,17 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §02.4 Deterministic structural checks — display-only, shown to
+          {/* ── §06.2 Deterministic structural checks — display-only, shown to
               everyone (owner + public share). It never triggers a rewrite, so
               it's safe on a shared link; the interactive re-scan below stays
               owner-only. ── */}
           {reconstructedCv && reconstructedCv.trim().length > 0 && (
-            <section data-ca-sec="s2c" id="s2c" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+            <section data-ca-sec="s6c" id="s6c" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <CvChecksScorecard cvText={reconstructedCv} />
             </section>
           )}
 
-          {/* ── §02.5 Benchmark vs typical resumes in the role (display-only,
+          {/* ── §06.3 Benchmark vs typical resumes in the role (display-only,
               everyone). The panel renders its own section, and returns null when
               the role can't be resolved to a calibrated family (confidence gate),
               falling back to the deterministic scorecard above with no empty gap. ── */}
@@ -777,25 +841,85 @@ export function CvAuditResult({
             />
           )}
 
-          {/* ── §02.6 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
-          {q && !readOnly && _analysisId && accessToken && (
-            <section data-ca-sec="s2b" id="s2b" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <CvAuditRescanPanel
-                analysisId={_analysisId}
-                accessToken={accessToken}
-                reconstructedCv={reconstructedCv}
-                currentOverall={q.overall}
-                bulletReviews={result.bullet_reviews?.bullets}
-                focusedOriginal={focusBullet?.term ?? null}
-                focusNonce={focusBullet?.n ?? 0}
-              />
+          {/* ── §04 Timeline & consistency ── */}
+          {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && (
+            <section data-ca-sec="s4" id="s4" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <div style={{ marginBottom: 32 }}>
+                <div style={SEC_NUM}><SecNumLine />§ 04 · Timeline &amp; consistency</div>
+                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
+                  {result.timeline_entries?.length
+                    ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across your profiles.</span></>
+                    : inconsistencies.length === 1
+                      ? <>One <span style={DISPLAY_ITALIC}>inconsistency</span> across your profiles.</>
+                      : <>{inconsistencies.length} <span style={DISPLAY_ITALIC}>inconsistencies</span> across your profiles.</>
+                  }
+                </h2>
+              </div>
+
+              {result.timeline_entries && result.timeline_entries.length > 0 && (() => {
+                const markers = inconsistencies
+                  .map((inc) => {
+                    if (!inc.anchor_date) return null;
+                    const m = inc.anchor_date.match(/^(\d{4})-(\d{1,2})$/);
+                    if (!m) return null;
+                    const d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, 15);
+                    return { date: d, severity: inc.severity, description: inc.description, field: inc.field, sources: inc.sources };
+                  })
+                  .filter((x): x is NonNullable<typeof x> => x !== null);
+                return <SourceTimeline entries={result.timeline_entries} markers={markers} gaps={decorations.gaps} highlightOverlaps size="roomy" />;
+              })()}
+
+              {timelineEntries.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <CvTimelineConsistency rows={consistencyRows} />
+                </div>
+              )}
+
+              {inconsistencies.length > 0 && (
+                <div style={{ marginTop: result.timeline_entries?.length ? 48 : 0 }}>
+                  {result.timeline_entries?.length ? (
+                    <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(18px,2vw,24px)", letterSpacing: "-0.02em", margin: "0 0 20px", lineHeight: 1.1 }}>
+                      {inconsistencies.length} inconsistenc{inconsistencies.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across profiles.</span>
+                    </h3>
+                  ) : null}
+                  {inconsistencies.map((inc, idx) => {
+                    const sev = sevClass(inc.severity);
+                    const impactStr = inc.severity === "critical" ? "−12" : inc.severity === "major" ? "−6" : "−3";
+                    return (
+                      <div key={idx} style={{ padding: "20px 0", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)", display: "grid", gridTemplateColumns: "80px 1fr 48px", gap: 16, alignItems: "start" }}>
+                        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 7px", borderRadius: 4, color: sev.color, background: sev.bg, border: `1px solid ${sev.border}`, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4, alignSelf: "start", justifySelf: "center" }}>
+                          <span style={{ width: 4, height: 4, borderRadius: 99, background: "currentColor", display: "inline-block" }} />{inc.severity}
+                        </span>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)" }}>
+                              {inc.field.replace(/_/g, " ")}
+                            </span>
+                            {inc.sources.map((src) => (
+                              <span key={src} style={{ ...MONO, fontSize: 9, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--rc-border)", color: "var(--rc-hint)", background: "var(--rc-surface)" }}>{src}</span>
+                            ))}
+                          </div>
+                          <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)", marginBottom: 4 }}><Md>{inc.description}</Md></div>
+                          {inc.recruiter_perception && (
+                            <p style={{ ...SANS, fontSize: 13, fontStyle: "italic", lineHeight: 1.55, color: "var(--rc-muted)", margin: 0 }}>&ldquo;<Md>{inc.recruiter_perception}</Md>&rdquo;</p>
+                          )}
+                        </div>
+                        <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.06em", color: "var(--rc-hint)", textTransform: "uppercase", textAlign: "right", whiteSpace: "nowrap" as const }}>
+                          Impact
+                          <strong style={{ display: "block", ...MONO, fontWeight: 700, fontSize: 16, color: "var(--rc-red)", marginTop: 2 }}>{impactStr}</strong>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </section>
           )}
 
-          {/* ── §03 Seniority gap ── */}
-          <section data-ca-sec="s3" id="s3" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+          {/* ── §05 Seniority gap ── */}
+          <section data-ca-sec="s5" id="s5" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 03 · Seniority gap</div>
+              <div style={SEC_NUM}><SecNumLine />§ 05 · Seniority gap</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 {hasGap
                   ? <>Your writing <span style={DISPLAY_ITALIC}>reads below</span> your titles.</>
@@ -907,79 +1031,10 @@ export function CvAuditResult({
             })()}
           </section>
 
-          {/* ── §04 Timeline & consistency ── */}
-          {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && (
-            <section data-ca-sec="s4" id="s4" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />§ 04 · Timeline &amp; consistency</div>
-                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                  {result.timeline_entries?.length
-                    ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across your profiles.</span></>
-                    : inconsistencies.length === 1
-                      ? <>One <span style={DISPLAY_ITALIC}>inconsistency</span> across your profiles.</>
-                      : <>{inconsistencies.length} <span style={DISPLAY_ITALIC}>inconsistencies</span> across your profiles.</>
-                  }
-                </h2>
-              </div>
-
-              {result.timeline_entries && result.timeline_entries.length > 0 && (() => {
-                const markers = inconsistencies
-                  .map((inc) => {
-                    if (!inc.anchor_date) return null;
-                    const m = inc.anchor_date.match(/^(\d{4})-(\d{1,2})$/);
-                    if (!m) return null;
-                    const d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, 15);
-                    return { date: d, severity: inc.severity, description: inc.description, field: inc.field, sources: inc.sources };
-                  })
-                  .filter((x): x is NonNullable<typeof x> => x !== null);
-                return <SourceTimeline entries={result.timeline_entries} markers={markers} />;
-              })()}
-
-              {inconsistencies.length > 0 && (
-                <div style={{ marginTop: result.timeline_entries?.length ? 48 : 0 }}>
-                  {result.timeline_entries?.length ? (
-                    <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(18px,2vw,24px)", letterSpacing: "-0.02em", margin: "0 0 20px", lineHeight: 1.1 }}>
-                      {inconsistencies.length} inconsistenc{inconsistencies.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across profiles.</span>
-                    </h3>
-                  ) : null}
-                  {inconsistencies.map((inc, idx) => {
-                    const sev = sevClass(inc.severity);
-                    const impactStr = inc.severity === "critical" ? "−12" : inc.severity === "major" ? "−6" : "−3";
-                    return (
-                      <div key={idx} style={{ padding: "20px 0", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)", display: "grid", gridTemplateColumns: "80px 1fr 48px", gap: 16, alignItems: "start" }}>
-                        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 7px", borderRadius: 4, color: sev.color, background: sev.bg, border: `1px solid ${sev.border}`, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4, alignSelf: "start", justifySelf: "center" }}>
-                          <span style={{ width: 4, height: 4, borderRadius: 99, background: "currentColor", display: "inline-block" }} />{inc.severity}
-                        </span>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                            <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)" }}>
-                              {inc.field.replace(/_/g, " ")}
-                            </span>
-                            {inc.sources.map((src) => (
-                              <span key={src} style={{ ...MONO, fontSize: 9, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--rc-border)", color: "var(--rc-hint)", background: "var(--rc-surface)" }}>{src}</span>
-                            ))}
-                          </div>
-                          <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)", marginBottom: 4 }}><Md>{inc.description}</Md></div>
-                          {inc.recruiter_perception && (
-                            <p style={{ ...SANS, fontSize: 13, fontStyle: "italic", lineHeight: 1.55, color: "var(--rc-muted)", margin: 0 }}>&ldquo;<Md>{inc.recruiter_perception}</Md>&rdquo;</p>
-                          )}
-                        </div>
-                        <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.06em", color: "var(--rc-hint)", textTransform: "uppercase", textAlign: "right", whiteSpace: "nowrap" as const }}>
-                          Impact
-                          <strong style={{ display: "block", ...MONO, fontWeight: 700, fontSize: 16, color: "var(--rc-red)", marginTop: 2 }}>{impactStr}</strong>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* ── §05 All findings ── */}
-          <section data-ca-sec="s5" id="s5" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+          {/* ── §07 All findings ── */}
+          <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 05 · Findings · merged by severity</div>
+              <div style={SEC_NUM}><SecNumLine />§ 07 · Findings · merged by severity</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 All signals, <span style={DISPLAY_ITALIC}>ranked</span>.
               </h2>
@@ -1036,10 +1091,10 @@ export function CvAuditResult({
             )}
           </section>
 
-          {/* ── §06 Roadmap ── */}
-          <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+          {/* ── §08 Roadmap ── */}
+          <section data-ca-sec="s8" id="s8" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 06 · Roadmap</div>
+              <div style={SEC_NUM}><SecNumLine />§ 08 · Roadmap</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 In <span style={DISPLAY_ITALIC}>a few hours</span>, your profile reads one band up.
               </h2>
@@ -1076,10 +1131,25 @@ export function CvAuditResult({
             ))}
           </section>
 
-          {/* ── §07 CV rewrite (shortlisted) ── */}
+          {/* ── §09 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
+          {q && !readOnly && _analysisId && accessToken && (
+            <section data-ca-sec="s9" id="s9" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <CvAuditRescanPanel
+                analysisId={_analysisId}
+                accessToken={accessToken}
+                reconstructedCv={reconstructedCv}
+                currentOverall={q.overall}
+                bulletReviews={result.bullet_reviews?.bullets}
+                focusedOriginal={focusBullet?.term ?? null}
+                focusNonce={focusBullet?.n ?? 0}
+              />
+            </section>
+          )}
+
+          {/* ── §10 CV rewrite (shortlisted) ── */}
           {hasShortlisted && (
-            <section data-ca-sec="s8" id="s8" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 07 · CV rewrite</div>
+            <section data-ca-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 10 · CV rewrite</div>
               <ImproveTab
                 reconstructedCv={reconstructedCv}
                 isLoading={isRewriting}
@@ -1090,10 +1160,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §08 Cover letter (shortlisted) ── */}
+          {/* ── §11 Cover letter (shortlisted) ── */}
           {hasShortlisted && (
-            <section data-ca-sec="s9" id="s9" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 08 · Cover letter</div>
+            <section data-ca-sec="s11" id="s11" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 11 · Cover letter</div>
               <CoverLetterTab
                 analysisId={_analysisId}
                 isPremium={true}
@@ -1104,10 +1174,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §09 AI mock interview (hired) ── */}
+          {/* ── §12 AI mock interview (hired) ── */}
           {AI_INTERVIEW_ENABLED && hasHired && (
-            <section data-ca-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 09 · AI mock interview</div>
+            <section data-ca-sec="s12" id="s12" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 12 · AI mock interview</div>
               <InterviewTab
                 isPremium={true}
                 analysisId={_analysisId}
@@ -1118,14 +1188,14 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §07–08 Paywall (free / partial) ── */}
+          {/* ── §10-12 Paywall (free / partial) ── */}
           {userPlan !== "hired" && (!hasShortlisted || AI_INTERVIEW_ENABLED) && (() => {
             type ProFeature = { num: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>; name: string; desc: string };
             const shortlistedFeatures: ProFeature[] = [
-              { num: "§ 07", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
-              { num: "§ 08", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on, ready to tailor for any role." },
+              { num: "§ 10", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
+              { num: "§ 11", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on, ready to tailor for any role." },
             ];
-            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "§ 09", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots, scored debrief at the end." } : null;
+            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "§ 12", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots, scored debrief at the end." } : null;
             const isExpanded = hasShortlisted ? true : proTier === "hired";
 
             const featureCard = (f: ProFeature, borderRight = false, borderTop = false) => (
@@ -1151,7 +1221,7 @@ export function CvAuditResult({
 
                 <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
                   <div>
-                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 09 · Hired feature" : AI_INTERVIEW_ENABLED ? "§ 07–09 · Pro features" : "§ 07–08 · Pro features"}</div>
+                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 12 · Hired feature" : AI_INTERVIEW_ENABLED ? "§ 10-12 · Pro features" : "§ 10-11 · Pro features"}</div>
                     <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(26px,2.8vw,36px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.05 }}>
                       Your audit is done. <span style={DISPLAY_ITALIC}>Now fix it.</span>
                     </h2>

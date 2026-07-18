@@ -317,11 +317,42 @@ export type SkillRadarAxis = {
   label: string;
   score: number;
   evidence: string;
+  /** Expected level (0-100) at the CLAIMED seniority. Absent on old rows. */
+  expected?: number;
 };
 
 export type SkillRadar = {
   axes: SkillRadarAxis[];
 };
+
+// =============================================================================
+// Per-experience deep-dive (CV-audit redesign). Present only on CV-review
+// analyses produced after the experience_analysis rollout; absent on old rows.
+// =============================================================================
+
+export type SkillStatus = 'proven' | 'claimed'
+
+export interface ExperienceSkill { name: string; status: SkillStatus; evidence: string | null }
+
+/**
+ * 5-level severity is LOCAL to per-experience findings ('info' is a positive
+ * lever, never a problem). Global issues and scoring keep the 3-level scale.
+ */
+export type ExperienceFindingSeverity = 'critical' | 'major' | 'medium' | 'minor' | 'info'
+
+export interface ExperienceFinding { severity: ExperienceFindingSeverity; what: string; why: string }
+
+export interface ExperienceAnalysis {
+  company: string; title: string;
+  start: string | null; end: string | null; // 'yyyy-mm' | 'present' | null
+  sources: Array<'cv' | 'linkedin' | 'github' | 'portfolio'>;
+  seniority_read: 'junior' | 'mid' | 'senior' | 'lead' | 'staff' | 'principal';
+  seniority_alignment: 'above_title' | 'matches_title' | 'below_title';
+  ratings: { scope: number; ownership: number; impact: number }; // int 1-5
+  hard_skills: ExperienceSkill[]; soft_skills: ExperienceSkill[];
+  findings: ExperienceFinding[];
+  margin_note: string;
+}
 
 export type ProjectedProfile = {
   seniority: string;
@@ -329,6 +360,16 @@ export type ProjectedProfile = {
   domains: string[];
   narrative: string;
   profile_type: 'specialist' | 'generalist' | 'transitioning';
+};
+
+/** One reviewed CV bullet (item of `bullet_reviews.bullets`). */
+export type BulletReviewItem = {
+  original: string;
+  section: string;
+  verdict: "strong" | "weak" | "fatal";
+  flags: string[];
+  why: string;
+  rewrite: string | null;
 };
 
 export type CvReviewAtsIssue = {
@@ -378,6 +419,12 @@ export type AnalysisResult = {
   projected_profile?: ProjectedProfile;
   /** CV-review ATS structural audit. Present only on CV-review analyses. */
   ats_audit?: CvReviewAts;
+  /**
+   * Per-role deep-dive (most recent first). Present only on CV-review
+   * analyses produced after the experience_analysis rollout; absent on old
+   * rows and on lean payloads.
+   */
+  experience_analysis?: ExperienceAnalysis[];
   technical_analysis?: {
     skills: TechnicalSkill[];
     skill_priority: string[];
@@ -434,14 +481,7 @@ export type AnalysisResult = {
    * server-side) and on bullets the model judged already strong.
    */
   bullet_reviews?: {
-    bullets: Array<{
-      original: string;
-      section: string;
-      verdict: "strong" | "weak" | "fatal";
-      flags: string[];
-      why: string;
-      rewrite: string | null;
-    }>;
+    bullets: BulletReviewItem[];
   };
   /**
    * Present only on redacted (free) payloads: counts of premium content
