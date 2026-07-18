@@ -55,6 +55,42 @@ describe('sanitizeCvReviewFabrication', () => {
     );
     expect(result.cv_tone!.rewrites![0]).toBe('Owned checkout, cut drop-off [X]%');
   });
+
+  it('leaves experience_analysis byte-identical, numbers included (D5 exemption)', () => {
+    // The stripper protects paste-ready rewrites; the deep-dive fields are
+    // analytic prose about the CV that legitimately carries derived counts
+    // ("3 of 5 bullets", tenure arithmetic) with no verbatim counterpart in
+    // the source. Machine-stripping would mutilate correct arithmetic, so the
+    // guard is the prompt rule, not this sanitizer. See anti-fabrication.ts.
+    const cv = 'Shipped a checkout flow used by many teams.';
+    const experience = [
+      {
+        company: 'Acme',
+        title: 'Engineer',
+        start: '2021-01',
+        end: '2022-03',
+        sources: ['cv'],
+        seniority_read: 'mid',
+        seniority_alignment: 'matches_title',
+        ratings: { scope: 3, ownership: 3, impact: 2 },
+        hard_skills: [
+          { name: 'Node.js', status: 'proven', evidence: 'Shipped checkout across 3 squads' },
+        ],
+        soft_skills: [],
+        findings: [
+          { severity: 'medium', what: '3 of 5 bullets have no outcome', why: '60% of the role reads unproven' },
+        ],
+        margin_note: '14 months of tenure, 0 quantified results.',
+      },
+    ];
+    const result = {
+      experience_analysis: experience,
+    } as unknown as CvReviewResponse;
+    const before = JSON.stringify(result.experience_analysis);
+
+    sanitizeCvReviewFabrication(result, cv);
+    expect(JSON.stringify(result.experience_analysis)).toBe(before);
+  });
 });
 
 describe('sanitizeAnalyzeFabrication', () => {

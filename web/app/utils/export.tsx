@@ -1,5 +1,6 @@
 import type { AnalysisResult } from "../components/types";
 import React from "react";
+import { computeTimelineConsistency } from "../lib/timeline-consistency";
 
 // @react-pdf/renderer (~3 MB) and the PDF template components are imported
 // dynamically inside the generate*Pdf functions below, so importing this module
@@ -285,6 +286,49 @@ ${project.success_criteria.map((c: string) => `- [ ] ${c}`).join('\n')}`);
     if (project.what_matters && project.what_matters.length > 0) {
       b.push(`### 🚀 Actionable Steps
 ${project.what_matters.map((s: string) => `- ${s}`).join('\n')}`);
+    }
+  }
+
+  // 9b. Recruiter radar (CV-audit payloads)
+  const radarAxes = result.skill_radar?.axes ?? [];
+  if (radarAxes.length > 0) {
+    b.push(`## 🎯 Recruiter Radar`);
+    b.push(radarAxes.map((ax) => {
+      const expected = ax.expected != null ? ` (expected ${ax.expected})` : "";
+      return `- **${ax.label}:** ${ax.score}/100${expected}${ax.evidence ? ` · ${ax.evidence}` : ""}`;
+    }).join('\n'));
+  }
+
+  // 9c. Experience deep-dive (CV-audit payloads)
+  const xp = result.experience_analysis ?? [];
+  if (xp.length > 0) {
+    b.push(`## 🗂️ Experience Deep-Dive`);
+    xp.forEach((e) => {
+      const dates = e.start || e.end ? ` · ${e.start ?? "?"} → ${e.end ?? "?"}` : "";
+      const lines: string[] = [];
+      lines.push(`### ${e.title} · ${e.company}${dates}`);
+      lines.push(`**Reads:** ${e.seniority_read} (${e.seniority_alignment.replace(/_/g, " ")}) · **Scope** ${e.ratings.scope}/5 · **Ownership** ${e.ratings.ownership}/5 · **Impact** ${e.ratings.impact}/5`);
+      const skill = (s: { name: string; status: string; evidence: string | null }) =>
+        `${s.name} (${s.status}${s.evidence ? `: ${s.evidence}` : ""})`;
+      if (e.hard_skills.length > 0) lines.push(`**Hard skills:** ${e.hard_skills.map(skill).join(" · ")}`);
+      if (e.soft_skills.length > 0) lines.push(`**Soft skills:** ${e.soft_skills.map(skill).join(" · ")}`);
+      if (e.findings.length > 0) lines.push(e.findings.map((f) => `- **[${f.severity}]** ${f.what}${f.why ? ` · ${f.why}` : ""}`).join('\n'));
+      if (e.margin_note) lines.push(`> ${e.margin_note}`);
+      b.push(lines.join('\n\n'));
+    });
+  }
+
+  // 9d. Timeline consistency checks (deterministic, CV-audit payloads)
+  if ((result.timeline_entries?.length ?? 0) > 0) {
+    const rows = computeTimelineConsistency(result.timeline_entries!, result.cross_profile_inconsistencies);
+    const shown = rows.filter((r) => r.status !== "na");
+    if (shown.length > 0) {
+      b.push(`## 🕰️ Timeline Consistency`);
+      const mark = (st: string) => (st === "pass" ? "✅" : st === "warn" ? "⚠️" : "❌");
+      b.push(shown.map((r) => {
+        const data = Object.entries(r.data).map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`).join(", ");
+        return `- ${mark(r.status)} **${r.id.replace(/_/g, " ")}**${data ? ` · ${data}` : ""}`;
+      }).join('\n'));
     }
   }
 

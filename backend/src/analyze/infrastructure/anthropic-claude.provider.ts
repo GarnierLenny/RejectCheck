@@ -59,6 +59,7 @@ import {
   TECHNICAL_PROMPT_GENERIC,
   SHARED_ANALYSIS_RULES,
   CV_REVIEW_SHARED_RULES,
+  CV_REVIEW_EXPERIENCE_RULES,
 } from './system-technical-prompts';
 import {
   anchorCvQuality,
@@ -277,10 +278,13 @@ export class AnthropicClaudeProvider implements ClaudeProvider {
     let firstDeltaAt: number | null = null;
     // Densified review (10 cv issues + 6+6 audits + bullet_reviews + 5 red
     // flags) runs ~7-9k tokens typical. Bumped 12k -> 16k for the P1 changes
-    // (bullets up to 40 + per-issue fixes + 6 quality notes) so a long CV's
-    // final sections don't truncate. Lean (owner audit) drops bullet_reviews.
+    // (bullets up to 40 + per-issue fixes + 6 quality notes), then 16k -> 20k
+    // for the per-role experience_analysis block (up to 8 roles x ratings +
+    // skills + findings + margin note, ~3-5k extra output) so a long CV's
+    // final sections don't truncate. Lean (owner audit) drops bullet_reviews
+    // AND experience_analysis, so 8k still holds there.
     const lean = input.lean ?? false;
-    const MAX_TOKENS = lean ? 8000 : 16000;
+    const MAX_TOKENS = lean ? 8000 : 20000;
 
     const systemPrompt = `You are an expert career consultant and CV reviewer with 15 years of recruiting experience. You evaluate CVs as a senior recruiter would — without any specific job offer — assessing quality, positioning, and red flags.
 
@@ -301,7 +305,9 @@ Use markdown in text fields (narrative, descriptions, issue text).
 
 Never use long dashes (—, –, ―) anywhere in your output. Use a comma or a colon instead.
 
-${CV_REVIEW_SHARED_RULES}`;
+${CV_REVIEW_SHARED_RULES}
+
+${CV_REVIEW_EXPERIENCE_RULES}`;
 
     const userMessage = this.buildCvReviewUserMessage(input);
 
@@ -403,6 +409,7 @@ ${CV_REVIEW_SHARED_RULES}`;
         seniority_analysis: i.seniority_analysis,
         cv_tone: i.cv_tone,
         bullet_reviews: i.bullet_reviews,
+        experience_analysis: i.experience_analysis,
         audit: {
           cv: i.audit_cv,
           github: i.audit_github,

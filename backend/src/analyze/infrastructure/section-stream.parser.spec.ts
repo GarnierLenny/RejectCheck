@@ -129,4 +129,43 @@ describe('SectionStreamParser', () => {
       ['b', { c: 'd, e: f' }],
     ]);
   });
+
+  it('emits experience_analysis as its own section event (generic parser, no wiring needed)', () => {
+    // The CV-audit deep-dive rides the same generic top-level detection as
+    // every other section: a synthetic review stream containing the new key
+    // must emit it complete, between its neighbours, with nested arrays,
+    // nulls and enum strings intact.
+    const review = JSON.stringify({
+      bullet_reviews: { bullets: [] },
+      experience_analysis: [
+        {
+          company: 'Acme "Corp"',
+          title: 'Senior Backend Engineer',
+          start: '2022-03',
+          end: 'present',
+          sources: ['cv'],
+          seniority_read: 'mid',
+          seniority_alignment: 'below_title',
+          ratings: { scope: 3, ownership: 4, impact: 2 },
+          hard_skills: [{ name: 'Node.js', status: 'proven', evidence: 'Shipped payments API' }],
+          soft_skills: [{ name: 'Mentoring', status: 'claimed', evidence: null }],
+          findings: [{ severity: 'info', what: 'Strong anchor: payments', why: 'Lead with it' }],
+          margin_note: 'Owns things, proves little.',
+        },
+      ],
+      audit_cv: { score: 48, issues: [] },
+    });
+
+    for (const size of [1, 7, review.length]) {
+      const { sections, starts } = run(review, size);
+      expect(sections.map(([k]) => k)).toEqual([
+        'bullet_reviews',
+        'experience_analysis',
+        'audit_cv',
+      ]);
+      expect(starts).toContain('experience_analysis');
+      const value = Object.fromEntries(sections).experience_analysis;
+      expect(value).toEqual(JSON.parse(review).experience_analysis);
+    }
+  });
 });

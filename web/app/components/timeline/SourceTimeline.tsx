@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { CrossProfileInconsistency, TimelineEntry } from "../types";
+import type { GapSegment } from "../../lib/timeline-consistency";
 
 const SOURCE_ORDER: TimelineEntry["source"][] = ["cv", "linkedin", "portfolio", "github"];
 
@@ -16,11 +17,19 @@ const SOURCE_COLORS: Record<TimelineEntry["source"], { bg: string; text: string;
   portfolio: { bg: "transparent", text: "var(--rc-text)", border: "var(--rc-border)" },
 };
 
-const TRACK_H    = 58;
-const BAR_H      = TRACK_H - 12;
-const INCONS_H   = 36;   // dedicated inconsistencies row
-const TICK_AREA  = 28;
-const LABEL_W    = 120;
+type TimelineSize = "default" | "roomy";
+
+const SIZE_PRESETS: Record<TimelineSize, {
+  TRACK_H: number; BAR_H: number; INCONS_H: number; TICK_AREA: number;
+  TITLE_FS: number; COMPANY_FS: number;
+}> = {
+  default: { TRACK_H: 58, BAR_H: 46, INCONS_H: 36, TICK_AREA: 28, TITLE_FS: 11, COMPANY_FS: 10 },
+  roomy:   { TRACK_H: 72, BAR_H: 56, INCONS_H: 44, TICK_AREA: 32, TITLE_FS: 12, COMPANY_FS: 10.5 },
+};
+
+const LABEL_W = 120;
+
+const MONTH_MS = 1000 * 60 * 60 * 24 * 30.44;
 
 type Marker = {
   date: Date;
@@ -32,7 +41,8 @@ type Marker = {
 
 type TooltipState =
   | { kind: "entry";  entry: TimelineEntry; clientX: number; clientY: number }
-  | { kind: "marker"; marker: Marker;       clientX: number; clientY: number };
+  | { kind: "marker"; marker: Marker;       clientX: number; clientY: number }
+  | { kind: "gap";    gap: GapSegment;      clientX: number; clientY: number };
 
 // Greedy interval scheduling: assign each entry to the earliest available track.
 function assignTracks(items: { start: Date; end: Date }[]): number[] {
@@ -45,7 +55,23 @@ function assignTracks(items: { start: Date; end: Date }[]): number[] {
   });
 }
 
-export function SourceTimeline({ entries, markers }: { entries: TimelineEntry[]; markers: Marker[] }) {
+export function SourceTimeline({
+  entries,
+  markers,
+  gaps,
+  highlightOverlaps = false,
+  size = "default",
+}: {
+  entries: TimelineEntry[];
+  markers: Marker[];
+  /** Unexplained-gap segments rendered as hatched blocks in the matching source lane. */
+  gaps?: GapSegment[];
+  /** When true, same-lane overlapping bars render outline-style (surface bg + source-color border). */
+  highlightOverlaps?: boolean;
+  /** 'roomy' enlarges tracks and bar typography; 'default' keeps the compact layout. */
+  size?: TimelineSize;
+}) {
+  const { TRACK_H, BAR_H, INCONS_H, TICK_AREA, TITLE_FS, COMPANY_FS } = SIZE_PRESETS[size];
   const today = useMemo(() => new Date(), []);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
@@ -102,7 +128,28 @@ export function SourceTimeline({ entries, markers }: { entries: TimelineEntry[];
       offset += count * TRACK_H;
     }
     return { trackCounts, laneOffsets, totalLaneH: offset };
-  }, [lanes, laneLayout, markers.length]);
+  }, [lanes, laneLayout, markers.length, TRACK_H, INCONS_H]);
+
+  // Per-lane indices of entries that share > 1 month with another entry in
+  // the same lane. Only computed when highlightOverlaps is on.
+  const overlapSets = useMemo(() => {
+    const result = new Map<TimelineEntry["source"], Set<number>>();
+    if (!highlightOverlaps) return result;
+    for (const src of lanes) {
+      const items = laneLayout.get(src) ?? [];
+      const set = new Set<number>();
+      for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) {
+          const shared =
+            Math.min(items[i].end.getTime(), items[j].end.getTime()) -
+            Math.max(items[i].start.getTime(), items[j].start.getTime());
+          if (shared > MONTH_MS) { set.add(i); set.add(j); }
+        }
+      }
+      if (set.size) result.set(src, set);
+    }
+    return result;
+  }, [highlightOverlaps, lanes, laneLayout]);
 
   const chartHeight = totalLaneH + TICK_AREA;
 
@@ -246,6 +293,7 @@ export function SourceTimeline({ entries, markers }: { entries: TimelineEntry[];
                 const w = xFor(end) - x;
                 const future = end.getTime() > today.getTime();
                 const colors = SOURCE_COLORS[entry.source];
+                const overlapped = overlapSets.get(src)?.has(idx) ?? false;
                 const barTop = laneOffset + track * TRACK_H + (TRACK_H - BAR_H) / 2;
                 return (
                   <div
@@ -255,9 +303,13 @@ export function SourceTimeline({ entries, markers }: { entries: TimelineEntry[];
                       left: `${x}%`, width: `${w}%`,
                       top: barTop, height: BAR_H,
                       cursor: "default",
-                      background: future ? "transparent" : (colors.border ? "var(--rc-surface)" : colors.bg),
-                      color: future ? "var(--rc-text)" : colors.text,
-                      border: future ? "1px dashed var(--rc-red)" : colors.border ? `1px solid ${colors.border}` : "none",
+                      background: future ? "transparent" : (overlapped || colors.border) ? "var(--rc-surface)" : colors.bg,
+                      color: future || overlapped ? "var(--rc-text)" : colors.text,
+                      border: future
+                        ? "1px dashed var(--rc-red)"
+                        : overlapped
+                          ? `1px solid ${colors.border ?? colors.bg}`
+                          : colors.border ? `1px solid ${colors.border}` : "none",
                       opacity: future ? 0.7 : 1,
                       zIndex: 1,
                     }}
@@ -265,12 +317,52 @@ export function SourceTimeline({ entries, markers }: { entries: TimelineEntry[];
                     onMouseMove={(e) => setTooltip((t) => t ? { ...t, clientX: e.clientX, clientY: e.clientY } : t)}
                     onMouseLeave={() => setTooltip(null)}
                   >
-                    <div className="text-[11px] font-medium leading-tight truncate">{entry.title}</div>
-                    <div className="text-[10px] leading-tight truncate" style={{ opacity: 0.65 }}>{entry.company}</div>
+                    <div className="font-medium leading-tight truncate" style={{ fontSize: TITLE_FS }}>{entry.title}</div>
+                    <div className="leading-tight truncate" style={{ fontSize: COMPANY_FS, opacity: 0.65 }}>{entry.company}</div>
                   </div>
                 );
               })
             )}
+
+            {/* Unexplained gaps — hatched segments in the lane's first track */}
+            {(gaps ?? []).map((gap, idx) => {
+              if (!laneOffsets.has(gap.source)) return null;
+              const start = parseYearMonth(gap.start);
+              const end = parseYearMonth(gap.end);
+              if (!start || !end) return null;
+              const x = xFor(start);
+              const w = xFor(end) - x;
+              if (w <= 0) return null;
+              const top = (laneOffsets.get(gap.source) ?? 0) + (TRACK_H - BAR_H) / 2;
+              const showLabel = w >= 4; // hide the label when the segment is too narrow
+              return (
+                <div
+                  key={`gap-${idx}`}
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    left: `${x}%`, width: `${w}%`,
+                    top, height: BAR_H,
+                    borderRadius: 3,
+                    background: "repeating-linear-gradient(45deg, transparent 0 5px, rgba(224,123,0,0.22) 5px 8px)",
+                    border: "1px dashed var(--rc-amber)",
+                    cursor: "default",
+                    zIndex: 1,
+                  }}
+                  onMouseEnter={(e) => setTooltip({ kind: "gap", gap, clientX: e.clientX, clientY: e.clientY })}
+                  onMouseMove={(e) => setTooltip((t) => t ? { ...t, clientX: e.clientX, clientY: e.clientY } : t)}
+                  onMouseLeave={() => setTooltip(null)}
+                >
+                  {showLabel && (
+                    <span style={{
+                      fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase",
+                      fontWeight: 700, color: "var(--rc-amber)", whiteSpace: "nowrap",
+                    }}>
+                      {gap.months}-mo gap
+                    </span>
+                  )}
+                </div>
+              );
+            })}
 
           </div>
         </div>
@@ -290,6 +382,21 @@ export function SourceTimeline({ entries, markers }: { entries: TimelineEntry[];
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, opacity: 0.65, marginBottom: 6 }}>{tooltip.entry.company}</div>
                 <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", opacity: 0.5 }}>
                   {tooltip.entry.start} → {tooltip.entry.end === "present" ? "present" : tooltip.entry.end}
+                </div>
+              </>
+            ) : tooltip.kind === "gap" ? (
+              <>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-amber)", fontWeight: 700, marginBottom: 4 }}>
+                  gap · unexplained
+                </div>
+                <div style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 13, marginBottom: 2 }}>
+                  {tooltip.gap.months} months with no entry
+                </div>
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, opacity: 0.65, marginBottom: 6 }}>
+                  No role, study or project claimed between {tooltip.gap.afterCompany} and {tooltip.gap.beforeCompany}
+                </div>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.06em", opacity: 0.5 }}>
+                  {tooltip.gap.start} → {tooltip.gap.end}
                 </div>
               </>
             ) : (
