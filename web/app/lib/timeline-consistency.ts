@@ -25,6 +25,13 @@ import type { CrossProfileInconsistency, TimelineEntry } from "../components/typ
 /** A gap is only "unexplained" beyond this many whole months (exactly 3 = fine). */
 export const GAP_MONTHS = 3;
 
+/**
+ * A gap that ended more than this many months ago is "old": recruiters weigh
+ * recent history, so an early-career gap from years back warns (low weight)
+ * instead of failing. 72 months = 6 years.
+ */
+const RECENT_GAP_MONTHS = 72;
+
 /** Overlaps of a single month are normal handovers — only report beyond this. */
 const OVERLAP_MONTHS = 1;
 
@@ -125,6 +132,80 @@ function datedEntries(entries: TimelineEntry[], nowIdx: number): DatedEntry[] {
   return out;
 }
 
+// ── Education (explains gaps: studying is not a career break) ────────────────
+
+const YEAR = /^(\d{4})$/;
+
+/**
+ * Loose date parse for education spans only: accepts a bare 'yyyy' in addition
+ * to strict 'yyyy-mm', so a degree listed with a completion year still bounds a
+ * study period. Start rounds to January, end to December of that year.
+ */
+function looseMonth(value: string | null | undefined, nowIdx: number, end: boolean): number | null {
+  const strict = monthIndex(value, nowIdx);
+  if (strict !== null) return strict;
+  const m = value ? YEAR.exec(value.trim()) : null;
+  if (!m) return null;
+  return Number(m[1]) * 12 + (end ? 11 : 0);
+}
+
+/**
+ * Education entries are not type-tagged in the timeline schema, so we detect
+ * them from degree/institution keywords in the title or company. Strong,
+ * unambiguous cues only ('master' bare would catch "Scrum Master", so we don't
+ * include it): institution words plus degree names/abbreviations.
+ */
+const EDUCATION_CUES = [
+  "university", "université", "universite", "college", "collège", "ecole", "école",
+  "institute", "institut", "polytechnic", "academy", "académie", "academie", "faculty",
+  "msc", "m.sc", "bsc", "b.sc", "beng", "b.eng", "meng", "m.eng", "mba", "phd", "ph.d",
+  "bachelor", "master's", "masters", "master of", "doctorate", "diploma", "diplôme", "diplome",
+  "degree", "licence", "baccalauréat", "baccalaureat", "bootcamp",
+];
+
+function isEducationEntry(entry: TimelineEntry): boolean {
+  const hay = `${entry.title} ${entry.company}`.toLowerCase();
+  return EDUCATION_CUES.some((c) => hay.includes(c));
+}
+
+/** Study periods per source, loosely dated, used to explain away gaps. */
+function educationSpans(entries: TimelineEntry[], nowIdx: number): Map<TimelineSource, Array<[number, number]>> {
+  const bySource = new Map<TimelineSource, Array<[number, number]>>();
+  for (const e of entries) {
+    if (!isEducationEntry(e)) continue;
+    const start = looseMonth(e.start, nowIdx, false);
+    const end = looseMonth(e.end, nowIdx, true);
+    if (start === null || end === null || end < start) continue;
+    const arr = bySource.get(e.source) ?? [];
+    arr.push([start, end]);
+    bySource.set(e.source, arr);
+  }
+  return bySource;
+}
+
+/**
+ * True when study periods cover enough of [gapStart, gapEnd] that the leftover
+ * uncovered stretch is within the normal-gap tolerance — i.e. the "gap" is
+ * really a degree, not an unexplained break.
+ */
+function gapExplainedByStudy(gapStart: number, gapEnd: number, spans: Array<[number, number]>): boolean {
+  const clipped = spans
+    .map(([s, e]) => [Math.max(s, gapStart), Math.min(e, gapEnd)] as [number, number])
+    .filter(([s, e]) => e >= s)
+    .sort((a, b) => a[0] - b[0]);
+  let covered = 0;
+  let cursor = gapStart - 1;
+  for (const [s, e] of clipped) {
+    const from = Math.max(s, cursor + 1);
+    if (e >= from) {
+      covered += e - from + 1;
+      cursor = e;
+    }
+  }
+  const gapLen = gapEnd - gapStart + 1;
+  return gapLen - covered <= GAP_MONTHS;
+}
+
 function groupBySource(dated: DatedEntry[]): Map<TimelineSource, DatedEntry[]> {
   const bySource = new Map<TimelineSource, DatedEntry[]>();
   for (const d of dated) {
@@ -142,13 +223,16 @@ export function computeTimelineDecorations(
   now: Date = new Date(),
 ): TimelineDecorations {
   const nowIdx = nowIndex(now);
-  const bySource = groupBySource(datedEntries(entries ?? [], nowIdx));
+  const all = entries ?? [];
+  const bySource = groupBySource(datedEntries(all, nowIdx));
+  const eduBySource = educationSpans(all, nowIdx);
 
   const gaps: GapSegment[] = [];
   const overlaps: OverlapSegment[] = [];
 
   for (const [source, lane] of bySource) {
     const sorted = [...lane].sort((a, b) => a.start - b.start || a.end - b.end);
+    const eduSpans = eduBySource.get(source) ?? [];
 
     // Gaps: walk chronologically against the furthest end seen so far, so a
     // short contained role never fabricates a gap after a longer one.
@@ -157,7 +241,8 @@ export function computeTimelineDecorations(
     for (let i = 1; i < sorted.length; i++) {
       const cur = sorted[i];
       const months = cur.start - runningEnd - 1;
-      if (months > GAP_MONTHS) {
+      // A stretch covered by study is a degree, not an unexplained break.
+      if (months > GAP_MONTHS && !gapExplainedByStudy(runningEnd + 1, cur.start - 1, eduSpans)) {
         gaps.push({
           source,
           start: formatMonth(runningEnd + 1),
@@ -257,14 +342,22 @@ export function computeTimelineConsistency(
 
   const rows: ConsistencyRow[] = [];
 
-  // 1. Unexplained gaps — fail on any >3-month gap in the CV lane.
+  // 1. Unexplained gaps — study-covered gaps are already dropped in decorations.
+  //    A recent gap fails (recruiters will ask); an old early-career gap only
+  //    warns (low weight), since screening focuses on the last few years.
   const cvGaps = decorations.gaps.filter((g) => g.source === "cv");
+  const recentGaps = cvGaps.filter((g) => {
+    const endIdx = monthIndex(g.end, nowIdx);
+    return endIdx === null || nowIdx - endIdx <= RECENT_GAP_MONTHS;
+  });
+  const oldGaps = cvGaps.filter((g) => !recentGaps.includes(g));
+  const scoredGaps = recentGaps.length > 0 ? recentGaps : oldGaps;
   rows.push({
     id: "unexplained_gaps",
-    status: cvGaps.length > 0 ? "fail" : "pass",
+    status: recentGaps.length > 0 ? "fail" : oldGaps.length > 0 ? "warn" : "pass",
     data: {
-      gaps: cvGaps.length,
-      longest_months: cvGaps.reduce((max, g) => Math.max(max, g.months), 0),
+      gaps: scoredGaps.length,
+      longest_months: scoredGaps.reduce((max, g) => Math.max(max, g.months), 0),
     },
   });
 

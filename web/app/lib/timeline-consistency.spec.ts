@@ -80,6 +80,59 @@ describe("computeTimelineConsistency", () => {
     expect(row(over, "unexplained_gaps").data).toEqual({ gaps: 1, longest_months: 4 });
   });
 
+  it("old early-career gap warns (low weight) instead of failing", () => {
+    // Gap 2011-07..2011-12 (6 months) ended ~14 years before NOW → old.
+    const rows = computeTimelineConsistency(
+      [
+        entry("cv", "Acme", "Engineer", "2010-01", "2011-06"),
+        entry("cv", "Globex", "Engineer", "2012-01", "present"),
+      ],
+      undefined,
+      NOW,
+    );
+    const gaps = row(rows, "unexplained_gaps");
+    expect(gaps.status).toBe("warn");
+    expect(gaps.data).toEqual({ gaps: 1, longest_months: 6 });
+  });
+
+  it("a recent gap still fails even when an old gap is also present", () => {
+    const rows = computeTimelineConsistency(
+      [
+        entry("cv", "Acme", "Engineer", "2010-01", "2011-06"), // old gap after
+        entry("cv", "Globex", "Engineer", "2012-01", "2024-06"), // recent gap after
+        entry("cv", "Initech", "Engineer", "2024-11", "present"),
+      ],
+      undefined,
+      NOW,
+    );
+    // 2024-07..2024-10 (4mo) is recent → fail, and the count reflects recent only.
+    const gaps = row(rows, "unexplained_gaps");
+    expect(gaps.status).toBe("fail");
+    expect(gaps.data).toEqual({ gaps: 1, longest_months: 4 });
+  });
+
+  it("a gap covered by a degree (year-only dates) is not flagged", () => {
+    const rows = computeTimelineConsistency(
+      [
+        entry("cv", "Acme", "Technician", "2014-01", "2015-06"),
+        // Year-only dates → excluded from range math, but recognized as study.
+        entry("cv", "University of Bristol", "BEng Aerospace", "2015", "2019"),
+        entry("cv", "Globex", "Engineer", "2019-09", "present"),
+      ],
+      undefined,
+      NOW,
+    );
+    expect(row(rows, "unexplained_gaps").status).toBe("pass");
+    expect(computeTimelineDecorations(
+      [
+        entry("cv", "Acme", "Technician", "2014-01", "2015-06"),
+        entry("cv", "University of Bristol", "BEng Aerospace", "2015", "2019"),
+        entry("cv", "Globex", "Engineer", "2019-09", "present"),
+      ],
+      NOW,
+    ).gaps).toEqual([]);
+  });
+
   it("freelance overlap warns, never fails", () => {
     const rows = computeTimelineConsistency(
       [

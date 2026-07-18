@@ -26,6 +26,7 @@ import { computeTimelineDecorations, computeTimelineConsistency } from "../lib/t
 import { attributeBulletsToRoles } from "../lib/experience-bullets";
 import { computeCvChecks, checksSummary } from "../lib/cv-checks";
 import { resolveRoleFamily } from "../lib/role-benchmark";
+import { checkAuditConsistency } from "../lib/audit-consistency";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -256,6 +257,21 @@ export function CvAuditResult({
     // Re-register when the result changes: sections that mount mid-stream
     // (radar, deep-dive, benchmark) would otherwise never be observed.
   }, [result]);
+
+  // Deterministic consistency guard — dev-only, non-blocking. Surfaces
+  // cross-field contradictions (e.g. an overall score that disagrees with its
+  // own dimensions) at zero token cost so they never ship silently. In prod,
+  // route this to your logger instead of hiding it.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const problems = checkAuditConsistency(result, reconstructedCv ?? undefined);
+    if (problems.length > 0) {
+      console.warn(
+        `[audit-consistency] ${problems.length} contradiction(s):\n` +
+          problems.map((p) => `  · [${p.severity}] ${p.code}: ${p.message}`).join("\n"),
+      );
+    }
+  }, [result, reconstructedCv]);
 
   const scrollTo = (id: string) => {
     mainRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: "smooth" });

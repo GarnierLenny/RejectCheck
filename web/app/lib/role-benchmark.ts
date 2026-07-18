@@ -17,7 +17,13 @@ type FamilyData = { n: number; avg_bullets_detected: number; axes: Record<string
 
 const FAMILIES = (ARCHETYPES as { families: Record<string, FamilyData> }).families;
 
-/** Free-text role hints -> archetype family, first match wins (specific first). */
+/**
+ * Free-text role hints -> archetype family. We score each family by how many of
+ * its cues the hints hit and take the highest, so one incidental cue (e.g.
+ * "auditor" on a quality engineer, which used to grab "finance") can't outrank
+ * the family the CV matches on several signals. Ties break toward the earlier,
+ * more specific family in this list.
+ */
 const FAMILY_CUES: Array<[string, string[]]> = [
   ["software", ["software","developer"," dev ","full stack","fullstack","frontend","front-end","backend","back-end","devops","programmer","web developer","mobile developer","ios","android","data scientist","data engineer","machine learning"," ml ","data analyst","sre","cloud engineer"]],
   ["design", ["designer"," ux"," ui ","product design","graphic","visual design","creative director","illustrat","art director","brand design"]],
@@ -29,7 +35,7 @@ const FAMILY_CUES: Array<[string, string[]]> = [
   ["healthcare", ["nurse","nursing","medical","clinical","physician","therapist","healthcare","patient","pharmac","dental","caregiver","fitness","personal trainer"]],
   ["education", ["teacher","teaching","education","professor","instructor","tutor","lecturer","curriculum","faculty"]],
   ["consulting", ["consultant","consulting","advisory","strategy"]],
-  ["engineering", ["mechanical","civil engineer","electrical engineer","industrial engineer","manufacturing","aerospace","structural","hardware engineer","chemical engineer"]],
+  ["engineering", ["mechanical","civil engineer","electrical engineer","industrial engineer","manufacturing","aerospace","aeronautical","aviation","avionics","structural","hardware engineer","chemical engineer","quality engineer","quality assurance","quality control","qa engineer","process engineer","reliability engineer","maintenance engineer","repair engineer","propulsion","turbine","mechatronic"]],
   ["operations", ["operations","logistics","supply chain","procurement","warehouse","aviation","bpo","dispatch"]],
   ["hospitality", ["hospitality","hotel","restaurant","chef","culinary","food service","barista","guest service"]],
   ["trades", ["construction","electrician","plumber","mechanic","automotive","technician","welder","hvac","carpenter","agriculture","farm","driver"]],
@@ -37,10 +43,14 @@ const FAMILY_CUES: Array<[string, string[]]> = [
 
 export function resolveRoleFamily(hints: string[]): string | null {
   const hay = " " + hints.join(" ").toLowerCase() + " ";
+  let best: { family: string; score: number } | null = null;
   for (const [family, cues] of FAMILY_CUES) {
-    if (FAMILIES[family] && cues.some((c) => hay.includes(c))) return family;
+    if (!FAMILIES[family]) continue;
+    const score = cues.reduce((n, c) => (hay.includes(c) ? n + 1 : n), 0);
+    // Strictly-greater keeps the earlier (more specific) family on a tie.
+    if (score > 0 && (best === null || score > best.score)) best = { family, score };
   }
-  return null;
+  return best?.family ?? null;
 }
 
 export type BenchAxisKey = "quantified_bullet_pct" | "action_verb_pct" | "metric_density";

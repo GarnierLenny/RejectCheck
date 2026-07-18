@@ -43,6 +43,9 @@ const COPY = {
     gaps: {
       passT: "No unexplained gaps",
       passD: "every transition between roles is covered.",
+      warnT: "Old gap · low weight",
+      warnD: (months: string | null) =>
+        `${months ? `a ${months} break` : "a break"} early in your history. Recruiters weigh recent years, so this one rarely comes up; a short line on the CV still closes it.`,
       failT: "Unexplained gap",
       failTail: "no explanation on any source. Recruiters will ask; answer it on the CV first.",
       failOne: (months: string) => `${months} with no entry, `,
@@ -98,6 +101,9 @@ const COPY = {
     gaps: {
       passT: "Aucun trou inexpliqué",
       passD: "chaque transition entre rôles est couverte.",
+      warnT: "Trou ancien · peu de poids",
+      warnD: (months: string | null) =>
+        `${months ? `un trou de ${months}` : "un trou"} en début de parcours. Les recruteurs regardent surtout les années récentes ; celui-ci ressort rarement, une ligne sur le CV suffit à le clore.`,
       failT: "Trou inexpliqué",
       failTail: "sans explication sur aucune source. Les recruteurs demanderont ; réponds-y d'abord sur le CV.",
       failOne: (months: string) => `${months} sans entrée, `,
@@ -159,6 +165,9 @@ function rowCopy(row: ConsistencyRow, L: Lang): { title: string; detail: string 
       const c = L.gaps;
       if (ok) return { title: c.passT, detail: c.passD };
       const months = num(d, "months", "longest_months");
+      if (row.status === "warn") {
+        return { title: c.warnT, detail: c.warnD(months !== null && months > 0 ? L.months(months) : null) };
+      }
       const count = num(d, "gaps");
       const lead =
         months !== null && months > 0
