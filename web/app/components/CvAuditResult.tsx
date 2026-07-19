@@ -27,6 +27,7 @@ import { attributeBulletsToRoles } from "../lib/experience-bullets";
 import { computeCvChecks, checksSummary } from "../lib/cv-checks";
 import { resolveRoleFamily } from "../lib/role-benchmark";
 import { checkAuditConsistency } from "../lib/audit-consistency";
+import { explainOverall, hardSignalCountsFromResult } from "../lib/cv-quality-score";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -365,6 +366,36 @@ export function CvAuditResult({
   ] : [];
   const weakDimsCount = qualityDims.filter((d) => d.score < 70).length;
 
+  // Make the headline math visible: overall is the six dimensions weight-averaged,
+  // deflated (LLM scores cluster high), then penalised for hard rejection signals.
+  // Without this, a low overall under high dimensions reads as a contradiction.
+  const overallCounts = hardSignalCountsFromResult(result);
+  const overallBreakdown = q
+    ? explainOverall(
+        {
+          clarity: q.clarity,
+          impact: q.impact,
+          hard_skills: q.hard_skills,
+          soft_skills: q.soft_skills,
+          consistency: q.consistency,
+          ats_format: q.ats_format,
+        },
+        overallCounts,
+      )
+    : null;
+  const overallPenaltyPhrase = overallBreakdown
+    ? [
+        overallBreakdown.penaltyParts.redFlags > 0 &&
+          `${overallCounts.redFlagCount} red flag${overallCounts.redFlagCount === 1 ? "" : "s"}`,
+        overallBreakdown.penaltyParts.criticalIssues > 0 &&
+          `${overallCounts.criticalIssueCount} critical issue${overallCounts.criticalIssueCount === 1 ? "" : "s"}`,
+        overallBreakdown.penaltyParts.fatalBullets > 0 &&
+          `${overallCounts.fatalBulletCount} fatal bullet${overallCounts.fatalBulletCount === 1 ? "" : "s"}`,
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : "";
+
   // §03 seniority
   const detectedIdx = seniorityIndex(result.seniority_analysis.detected);
   const expectedIdx = seniorityIndex(result.seniority_analysis.expected);
@@ -581,8 +612,19 @@ export function CvAuditResult({
             <div style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
               <RiskMeter value={q.overall} mode="cv" metric="strength" />
               <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "18px 0 0", maxWidth: 640 }}>
-                Your overall CV strength, scored across the six quality dimensions below (clarity, impact, hard and soft skills, consistency, ATS format). The per-source cards under it read each channel on its own.
+                Your overall CV strength, built from the six quality dimensions below (clarity, impact, hard and soft skills, consistency, ATS format) on a strict recruiter curve. The per-source cards under it read each channel on its own.
               </p>
+              {overallBreakdown && (
+                <p style={{ ...MONO, fontSize: 11.5, lineHeight: 1.6, color: "var(--rc-hint)", margin: "10px 0 0", maxWidth: 640 }}>
+                  How it lands: six dimensions average{" "}
+                  <strong style={{ color: "var(--rc-muted)" }}>{Math.round(overallBreakdown.weightedAverage)}</strong>, calibrated down to{" "}
+                  <strong style={{ color: "var(--rc-muted)" }}>{Math.round(overallBreakdown.deflated)}</strong> (scores cluster high, so the curve keeps &ldquo;strong&rdquo; meaningful)
+                  {overallBreakdown.penalty > 0 && (
+                    <>, minus <strong style={{ color: "var(--rc-red)" }}>{overallBreakdown.penalty}</strong> for {overallPenaltyPhrase}</>
+                  )}
+                  , landing at <strong style={{ color: "var(--rc-text)" }}>{overallBreakdown.overall}</strong>.
+                </p>
+              )}
               <CvGlanceStrip mergedCounts={sevCounts} checksPassed={checksPassed} timelineFlags={timelineFlags} overall={q.overall} />
             </div>
           )}

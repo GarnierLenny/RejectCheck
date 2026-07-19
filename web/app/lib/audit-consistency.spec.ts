@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { AnalysisResult, CvQuality, Issue } from "../components/types";
 import { checkAuditConsistency } from "./audit-consistency";
 
+// Dimensions weight-average to 59, which deflates to ~38 -> anchored overall 40
+// with no penalties. That is the coherent headline for these six numbers.
 const GOOD_QUALITY: CvQuality = {
-  overall: 62,
+  overall: 40,
   clarity: 70,
   impact: 40,
   hard_skills: 60,
@@ -31,17 +33,32 @@ describe("checkAuditConsistency", () => {
     expect(checkAuditConsistency(result())).toEqual([]);
   });
 
-  it("flags an overall that sits far from its dimension mean (the 15-vs-62 bug)", () => {
-    const r = result({ cv_quality: { ...GOOD_QUALITY, overall: 15 } });
+  it("flags an overall the anchor formula cannot reproduce (stale/raw row)", () => {
+    // 62 looks like a raw model guess: the anchor derives 40 for these dims.
+    const r = result({ cv_quality: { ...GOOD_QUALITY, overall: 62 } });
     const found = checkAuditConsistency(r);
     expect(found.map((f) => f.code)).toContain("overall_vs_dimensions");
     expect(found.find((f) => f.code === "overall_vs_dimensions")?.severity).toBe("error");
   });
 
-  it("allows an overall within tolerance of the mean", () => {
-    // mean of the six is ~62.5; 50 is within 15 pts.
-    const r = result({ cv_quality: { ...GOOD_QUALITY, overall: 50 } });
-    expect(checkAuditConsistency(r)).toEqual([]);
+  it("does NOT flag a low overall when deflation + penalties explain it (the 15 case)", () => {
+    // Same dims, but 3 red flags + 2 critical issues + 3 fatal bullets push the
+    // anchored overall down to 15. That is correct, not a contradiction.
+    const r = result({
+      cv_quality: { ...GOOD_QUALITY, overall: 15 },
+      hidden_red_flags: [{}, {}, {}],
+      audit: {
+        cv: {
+          score: 55,
+          strengths: [],
+          issues: [issue("crit a"), issue("crit b")],
+        },
+      },
+      bullet_reviews: {
+        bullets: [{ verdict: "fatal" }, { verdict: "fatal" }, { verdict: "fatal" }],
+      },
+    });
+    expect(checkAuditConsistency(r).map((f) => f.code)).not.toContain("overall_vs_dimensions");
   });
 
   it("flags an out-of-range score", () => {

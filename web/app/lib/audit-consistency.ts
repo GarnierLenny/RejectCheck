@@ -17,6 +17,7 @@
 
 import type { AnalysisResult, CvQuality } from "../components/types";
 import { computeCvMetrics } from "./cv-checks";
+import { explainOverall, hardSignalCountsFromResult } from "./cv-quality-score";
 
 export type AuditInconsistencySeverity = "error" | "warn";
 
@@ -28,8 +29,14 @@ export type AuditInconsistency = {
   message: string;
 };
 
-/** Max points the headline overall may sit from its six-dimension mean. */
-export const OVERALL_TOLERANCE = 15;
+/**
+ * Max points the stored overall may differ from the value the anchor formula
+ * derives from the same dimensions and hard-signal counts. The frontend mirror
+ * reproduces the backend math exactly, so a correctly-anchored payload drifts 0;
+ * a small slack absorbs quantization/streaming edge cases. A larger drift means
+ * overall did NOT come from the anchor (e.g. a stale pre-anchor row).
+ */
+export const OVERALL_TOLERANCE = 6;
 
 /** Max points two scores OF THE SAME CONCEPT (e.g. ATS) may diverge. */
 export const SAME_CONCEPT_TOLERANCE = 25;
@@ -52,10 +59,6 @@ const NO_QUANT =
 
 function isScore(n: unknown): n is number {
   return typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 100;
-}
-
-function mean(nums: number[]): number {
-  return nums.reduce((s, n) => s + n, 0) / nums.length;
 }
 
 /**
@@ -91,17 +94,29 @@ export function checkAuditConsistency(
       });
     }
 
-    // 2. The headline overall must track its own six dimensions. This is the
-    //    "15 sitting under an average of 62" contradiction.
+    // 2. The headline overall must equal what the anchor derives from the six
+    //    dimensions and the hard-signal penalties. A low overall under high
+    //    dimensions is fine IF deflation + penalties explain it; a value the
+    //    formula can't reproduce means the anchor didn't run (stale/raw row).
     const validDims = dims.filter(isScore);
     if (isScore(q.overall) && validDims.length === DIMENSION_KEYS.length) {
-      const m = mean(validDims);
-      const drift = Math.abs(q.overall - m);
+      const expected = explainOverall(
+        {
+          clarity: q.clarity,
+          impact: q.impact,
+          hard_skills: q.hard_skills,
+          soft_skills: q.soft_skills,
+          consistency: q.consistency,
+          ats_format: q.ats_format,
+        },
+        hardSignalCountsFromResult(result),
+      ).overall;
+      const drift = Math.abs(q.overall - expected);
       if (drift > OVERALL_TOLERANCE) {
         out.push({
           code: "overall_vs_dimensions",
           severity: "error",
-          message: `cv_quality.overall (${q.overall}) is ${Math.round(drift)} pts from its dimension mean (${Math.round(m)}); expected within ${OVERALL_TOLERANCE}`,
+          message: `cv_quality.overall (${q.overall}) is ${Math.round(drift)} pts from the anchored value (${expected}) derived from its dimensions and hard-signal penalties; the anchor may not have run`,
         });
       }
     }
