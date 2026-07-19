@@ -255,8 +255,8 @@ export function CvReviewTab({ result, actions }: { result: AnalysisResult; actio
                   ? `Vous écrivez comme un ${seniority_analysis.expected}. Vos titres suggèrent ${seniority_analysis.detected}.`
                   : `Your writing reads ${seniority_analysis.expected}. Your titles suggest ${seniority_analysis.detected}.`)
               : (fr
-                  ? `Profil cohérent — ${seniority_analysis.expected}`
-                  : `Consistent profile — ${seniority_analysis.expected}`)
+                  ? `Profil cohérent : ${seniority_analysis.expected}`
+                  : `Consistent profile: ${seniority_analysis.expected}`)
           }
           subtitle={fr
             ? 'Analyse du niveau perçu par un recruteur à la lecture du CV.'

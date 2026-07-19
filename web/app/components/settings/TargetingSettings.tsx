@@ -212,7 +212,7 @@ export function TargetingSettings({
           }
           className={inputClass}
         >
-          <option value="">—</option>
+          <option value="">-</option>
           {ROLES.map((r) => (
             <option key={r.id} value={r.id}>
               {t.onboarding.roles[r.id]}
@@ -263,7 +263,7 @@ export function TargetingSettings({
           }
           className={inputClass}
         >
-          <option value="">—</option>
+          <option value="">-</option>
           {EXPERIENCE_LEVELS.map((x) => (
             <option key={x.id} value={x.id}>
               {t.onboarding.experience[x.id]} · {t.onboarding.experienceMeta[x.id]}
@@ -371,7 +371,7 @@ export function TargetingSettings({
             }
             className={inputClass}
           >
-            <option value="">—</option>
+            <option value="">-</option>
             {REMOTE_MODES.map((m) => (
               <option key={m.id} value={m.id}>
                 {t.onboarding.work.mode[m.id]}
@@ -400,7 +400,7 @@ export function TargetingSettings({
             }
             className={inputClass}
           >
-            <option value="">—</option>
+            <option value="">-</option>
             <option value="authorized">
               {t.onboarding.work.sponsorship.authorized}
             </option>

@@ -207,7 +207,7 @@ export function RoadmapTab({ result }: Props) {
                                 title={impact.reasoning ?? t.roadmapSalaryImpact.tooltip}
                               >
                                 +{currencyGlyph(impact.currency)}
-                                {formatImpactValue(impact.impact_min, period)}–
+                                {formatImpactValue(impact.impact_min, period)}-
                                 {formatImpactValue(impact.impact_max, period)}
                                 {periodSuffix}
                               </span>

@@ -185,13 +185,13 @@ function StatBarRow({ label, value, threshold }: { label: string; value: number 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
       <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--rc-hint)", minWidth: 68, flexShrink: 1, wordBreak: "break-word" }}>{label}</span>
-      <Mono style={{ fontSize: 12, fontWeight: 700, color: c, width: 22, textAlign: "right", flexShrink: 0 }}>{value ?? "—"}</Mono>
+      <Mono style={{ fontSize: 12, fontWeight: 700, color: c, width: 22, textAlign: "right", flexShrink: 0 }}>{value ?? "-"}</Mono>
       <div style={{ flex: 1, minWidth: 40, position: "relative", height: 6, background: "rgba(0,0,0,0.06)", borderRadius: 9999 }}>
         {value !== null && <div style={{ position: "absolute", inset: 0, right: "auto", width: `${value}%`, background: c, borderRadius: 9999 }} />}
         <div style={{ position: "absolute", left: `${threshold}%`, top: -3, width: 2, height: 12, background: "rgba(0,0,0,0.28)", transform: "translateX(-1px)" }} />
       </div>
       <Mono style={{ fontSize: 11, fontWeight: 700, color: c, width: 12, textAlign: "center", flexShrink: 0 }}>
-        {pass ? "✓" : value === null ? "—" : "✗"}
+        {pass ? "✓" : value === null ? "-" : "✗"}
       </Mono>
     </div>
   );

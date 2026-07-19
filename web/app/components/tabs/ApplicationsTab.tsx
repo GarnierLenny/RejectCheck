@@ -776,7 +776,7 @@ export function ApplicationsTab({
           <span className="font-mono text-[10px] text-rc-muted">
             {filteredApplications.length === 0
               ? (search ? 'No results' : '0 applications')
-              : `${pagination.pageIndex * PAGE_SIZE + 1}–${Math.min((pagination.pageIndex + 1) * PAGE_SIZE, filteredApplications.length)} of ${filteredApplications.length}`}
+              : `${pagination.pageIndex * PAGE_SIZE + 1}-${Math.min((pagination.pageIndex + 1) * PAGE_SIZE, filteredApplications.length)} of ${filteredApplications.length}`}
           </span>
           <div className="flex items-center gap-1">
             <button

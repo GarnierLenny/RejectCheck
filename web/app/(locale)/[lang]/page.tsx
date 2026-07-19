@@ -119,7 +119,7 @@ const HERO_PROJECT = {
 
 const HERO_FINDINGS: { sev: string; color: string; text: React.ReactNode }[] = [
   { sev: "Critical", color: "var(--rc-red)",   text: <>No <b>distributed-systems ownership</b>. Required in 4 of 5 similar postings.</> },
-  { sev: "Major",    color: "var(--rc-amber)", text: "8-month gap (2021–22) isn’t addressed anywhere on the CV." },
+  { sev: "Major",    color: "var(--rc-amber)", text: "8-month gap (2021-22) isn’t addressed anywhere on the CV." },
   { sev: "Good",     color: "var(--rc-green)", text: "Strong open-source track record: 12 repos, 400+ stars. Keep it featured." },
 ];
 
@@ -381,9 +381,9 @@ function HeroNegotiation() {
   return (
     <div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 14px", marginBottom: 9 }}>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: candColor }}>You</b> <span style={{ color: candColor }}>{fmtK(cand.min)}–{fmtK(cand.max)}</span></span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: "var(--rc-amber)" }}>Market</b> <span style={{ color: "var(--rc-amber)" }}>{fmtK(market.min)}–{fmtK(market.max)}</span></span>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: "var(--rc-text)" }}>Offer</b> <span style={{ color: "var(--rc-muted)" }}>{fmtK(offer.min)}–{fmtK(offer.max)}</span></span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: candColor }}>You</b> <span style={{ color: candColor }}>{fmtK(cand.min)}-{fmtK(cand.max)}</span></span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: "var(--rc-amber)" }}>Market</b> <span style={{ color: "var(--rc-amber)" }}>{fmtK(market.min)}-{fmtK(market.max)}</span></span>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}><b style={{ color: "var(--rc-text)" }}>Offer</b> <span style={{ color: "var(--rc-muted)" }}>{fmtK(offer.min)}-{fmtK(offer.max)}</span></span>
       </div>
       <div style={{ position: "relative", height: 44, borderRadius: 5, overflow: "hidden", border: "1px solid var(--rc-border)" }}>
         <div style={{ position: "absolute", inset: 0, display: "flex" }}>

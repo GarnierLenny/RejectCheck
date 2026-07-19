@@ -24,7 +24,7 @@ const CANONICAL = `${SITE_URL}/fr${PAGE_PATH}`
 
 const TITLE = 'CV Développeur : l’Analyse IA qui Lit Aussi ton GitHub'
 const DESCRIPTION =
-  'Analyse de CV développeur gratuite : on audite ton CV, ton GitHub et ton LinkedIn comme un recruteur tech. Mots-clés ATS par stack, signaux de séniorité, signaux d’alerte — en moins de 60 secondes.'
+  'Analyse de CV développeur gratuite : on audite ton CV, ton GitHub et ton LinkedIn comme un recruteur tech. Mots-clés ATS par stack, signaux de séniorité, signaux d’alerte, en moins de 60 secondes.'
 
 const FAQ_ITEMS = [
   {
@@ -50,12 +50,12 @@ const FAQ_ITEMS = [
   {
     question: 'Comment bien signaler ma séniorité de développeur ?',
     answer:
-      'Par des preuves, pas des adjectifs. « J’ai pris en charge et livré » bat « j’ai aidé à construire ». L’impact mesurable (« utilisé par 10k utilisateurs », « p95 réduit de 40 % ») bat la liste de tâches. Les systèmes en production, l’ownership et le leadership signalent la séniorité — encore faut-il qu’ils matchent le niveau de l’offre. RejectCheck repère où tes signaux de séniorité dépassent ou n’atteignent pas le rôle visé.',
+      'Par des preuves, pas des adjectifs. « J’ai pris en charge et livré » bat « j’ai aidé à construire ». L’impact mesurable (« utilisé par 10k utilisateurs », « p95 réduit de 40 % ») bat la liste de tâches. Les systèmes en production, l’ownership et le leadership signalent la séniorité, encore faut-il qu’ils matchent le niveau de l’offre. RejectCheck repère où tes signaux de séniorité dépassent ou n’atteignent pas le rôle visé.',
   },
   {
     question: 'C’est gratuit ?',
     answer:
-      'La première analyse est gratuite, sans inscription. Tu déposes ton CV, tu colles l’offre visée, tu ajoutes éventuellement ton GitHub et un export LinkedIn — et tu obtiens ton diagnostic en moins de 60 secondes.',
+      'La première analyse est gratuite, sans inscription. Tu déposes ton CV, tu colles l’offre visée, tu ajoutes éventuellement ton GitHub et un export LinkedIn, et tu obtiens ton diagnostic en moins de 60 secondes.',
   },
 ]
 
@@ -135,21 +135,21 @@ export default async function CvDeveloppeurPage({
     {
       step: '03',
       title: 'Ta séniorité est mal signalée',
-      body: '« A participé à » ne prouve rien. Sans impact mesurable ni ownership visible, un bon profil passe pour junior — ou un junior pour un imposteur face à une offre senior.',
+      body: '« A participé à » ne prouve rien. Sans impact mesurable ni ownership visible, un bon profil passe pour junior, ou un junior pour un imposteur face à une offre senior.',
     },
   ]
 
   const githubSignals = [
     { label: 'Activité réelle', body: 'Fréquence et régularité des commits, projets vivants vs repos abandonnés. Un GitHub actif soutient ce que ton CV affirme.' },
-    { label: 'Qualité des repos', body: 'README clairs, structure de projet, tests, documentation. Un recruteur tech ouvre tes repos — on regarde ce qu’il y trouve.' },
+    { label: 'Qualité des repos', body: 'README clairs, structure de projet, tests, documentation. Un recruteur tech ouvre tes repos, on regarde ce qu’il y trouve.' },
     { label: 'Cohérence CV ↔ GitHub', body: 'Chaque compétence du CV est-elle adossée à du code ? Les incohérences sont des signaux d’alerte qu’on remonte avec le même poids qu’un recruteur.' },
     { label: 'Signaux de stack', body: 'Les langages et outils visibles dans ton GitHub matchent-ils l’offre ? On compare ton activité réelle aux mots-clés attendus.' },
   ]
 
   const atsTraps = [
-    { label: 'Synonymes de stack', body: '« K8s » vs « Kubernetes », « TS » vs « TypeScript », « JS » vs « JavaScript ». L’ATS favorise la formulation exacte de l’offre — on signale chaque écart.' },
+    { label: 'Synonymes de stack', body: '« K8s » vs « Kubernetes », « TS » vs « TypeScript », « JS » vs « JavaScript ». L’ATS favorise la formulation exacte de l’offre, on signale chaque écart.' },
     { label: 'Pièges d’intitulés FR', body: '« Intégrateur Web » vs « Développeur Front-end », « Ingénieur d’études » vs « Software Engineer » : un mauvais intitulé te fait rater des offres pourtant faites pour toi.' },
-    { label: 'Mots-clés par offre', body: 'On score ton CV face à une offre précise et on te rend les mots-clés manquants avec leur poids — pas une liste générique.' },
+    { label: 'Mots-clés par offre', body: 'On score ton CV face à une offre précise et on te rend les mots-clés manquants avec leur poids, pas une liste générique.' },
     { label: 'Mise en forme', body: 'Colonnes multiples, encadrés, icônes, PDF non lisible : tout ce qui casse silencieusement la lecture automatique avant qu’un humain te voie.' },
   ]
 
@@ -160,7 +160,7 @@ export default async function CvDeveloppeurPage({
   ]
   const seniorItems = [
     'Ownership et impact mesurable : « pris en charge et livré », « p95 réduit de 40 % ».',
-    'Systèmes en production, échelle, leadership technique — les signaux que cherche un manager.',
+    'Systèmes en production, échelle, leadership technique : les signaux que cherche un manager.',
     'Cohérence entre le niveau revendiqué, l’offre visée et ce que montre ton GitHub.',
   ]
 
@@ -199,7 +199,7 @@ export default async function CvDeveloppeurPage({
           <p className="text-rc-muted text-[16px] md:text-[17px] leading-[1.7] max-w-[640px] mb-10">
             Les checkers ATS génériques s’arrêtent aux mots-clés. Pour un développeur, ton vrai
             CV c’est aussi ton GitHub. RejectCheck audite ton CV, ton GitHub et ton LinkedIn comme
-            un recruteur tech — et te dit, avant de postuler, ce qui ferait rejeter ta candidature.
+            un recruteur tech, et te dit, avant de postuler, ce qui ferait rejeter ta candidature.
           </p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Link
@@ -230,8 +230,8 @@ export default async function CvDeveloppeurPage({
               Un CV de développeur se fait rejeter pour des raisons que les checkers génériques ne voient pas.
             </h2>
             <p className="text-rc-muted text-[15px] md:text-[16px] leading-[1.7] max-w-[700px] mb-12">
-              Le matching de mots-clés ne raconte qu’un tiers de l’histoire. Les deux autres tiers —
-              ton GitHub et tes signaux de séniorité — sont exactement ce qu’un recruteur tech
+              Le matching de mots-clés ne raconte qu’un tiers de l’histoire. Les deux autres tiers,
+              ton GitHub et tes signaux de séniorité, sont exactement ce qu’un recruteur tech
               regarde, et exactement ce que les outils génériques ignorent.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -310,7 +310,7 @@ export default async function CvDeveloppeurPage({
                 <ul className="space-y-3">
                   {juniorItems.map((item) => (
                     <li key={item} className="text-[14px] text-rc-muted leading-[1.6] flex gap-2.5">
-                      <span className="text-rc-red shrink-0">—</span>
+                      <span className="text-rc-red shrink-0">-</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -321,7 +321,7 @@ export default async function CvDeveloppeurPage({
                 <ul className="space-y-3">
                   {seniorItems.map((item) => (
                     <li key={item} className="text-[14px] text-rc-muted leading-[1.6] flex gap-2.5">
-                      <span className="text-rc-red shrink-0">—</span>
+                      <span className="text-rc-red shrink-0">-</span>
                       <span>{item}</span>
                     </li>
                   ))}
@@ -364,7 +364,7 @@ export default async function CvDeveloppeurPage({
               </span>
             </div>
             <h2 className="text-[26px] md:text-[34px] font-semibold leading-[1.15] tracking-[-0.02em] text-rc-text mb-10">
-              CV développeur — ce que tu te demandes
+              CV développeur : ce que tu te demandes
             </h2>
             <div className="space-y-3">
               {FAQ_ITEMS.map((item) => (

@@ -55,8 +55,8 @@ export async function generateMetadata({
       : `${name} · ${score} competitiveness · RejectCheck`;
 
   const description = isCvReview
-    ? `See ${name}'s CV score on RejectCheck — layout, keywords, ATS compatibility and more.`
-    : `See ${name}'s full application analysis on RejectCheck — ATS score, red flags, skill gap, and more.`;
+    ? `See ${name}'s CV score on RejectCheck: layout, keywords, ATS compatibility and more.`
+    : `See ${name}'s full application analysis on RejectCheck: ATS score, red flags, skill gap, and more.`;
 
   return {
     title,

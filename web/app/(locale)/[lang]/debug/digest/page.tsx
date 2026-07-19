@@ -56,13 +56,13 @@ export default function DigestDebugPage() {
       <div className="space-y-3">
         <div>
           <label className="block text-xs uppercase tracking-widest text-rc-hint mb-1">
-            CV text (paste raw text — no PDF here)
+            CV text (paste raw text, no PDF here)
           </label>
           <textarea
             value={cvText}
             onChange={(e) => setCvText(e.target.value)}
             rows={10}
-            placeholder="Lenny Garnier — Product Designer · 5 years..."
+            placeholder="Lenny Garnier, Product Designer · 5 years..."
             className="w-full bg-rc-surface border border-rc-border p-3 font-mono text-xs"
           />
         </div>

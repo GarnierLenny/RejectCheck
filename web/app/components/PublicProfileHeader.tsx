@@ -231,7 +231,7 @@ export function PublicProfileHeader({ profile }: Props) {
                   {/* Footer */}
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[10px] text-rc-hint">
-                      {resetDays !== null ? `Reset dans ${resetDays}j` : "—"}
+                      {resetDays !== null ? `Reset dans ${resetDays}j` : "-"}
                     </span>
                     <Link
                       href={localePath("/credits")}

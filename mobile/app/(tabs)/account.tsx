@@ -45,7 +45,7 @@ export default function Account() {
               marginTop: Spacing.two,
             }}
           >
-            {session?.user.email ?? '—'}
+            {session?.user.email ?? '-'}
           </Text>
         </Card>
 

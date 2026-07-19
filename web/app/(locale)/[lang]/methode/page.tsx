@@ -46,7 +46,7 @@ const COPY: Record<Locale, Copy> = {
     bcHome: 'Home',
     bcCurrent: 'Method',
     eyebrow: 'The Method · How RejectCheck scores your CV',
-    h1Pre: 'A CV is judged on six dimensions —',
+    h1Pre: 'A CV is judged on six dimensions,',
     h1Em: 'before anyone calls it a “no.”',
     intro:
       'RejectCheck turns “rejected, no reason given” into a structured diagnosis. Every CV is scored on six dimensions, against three filters it has to clear before a human makes a decision. These are the named frameworks behind every RejectCheck score.',
@@ -54,13 +54,13 @@ const COPY: Record<Locale, Copy> = {
     dimsEyebrow: 'The framework',
     dimsH2: 'RejectCheck’s 6 rejection dimensions',
     dimsLead:
-      'Your overall score is a weighted average across these six. A CV rarely fails on all of them — it usually fails sharply on one or two, and that’s what gets it filtered out.',
+      'Your overall score is a weighted average across these six. A CV rarely fails on all of them: it usually fails sharply on one or two, and that’s what gets it filtered out.',
     dimensions: [
       { term: 'Clarity', def: 'How fast a recruiter can parse what you do, at what level, and why you fit. Buried titles, wall-of-text bullets, and vague scope all cost clarity.' },
       { term: 'Impact', def: 'Measurable outcomes over task lists. “Reduced p95 latency by 40%” beats “responsible for performance.” Numbers and ownership carry impact.' },
-      { term: 'Hard skills', def: 'The technical stack and tools you show versus what the role demands — including exact keyword matches the ATS rewards (“Kubernetes”, not “K8s”).' },
-      { term: 'Soft skills', def: 'Signals of communication, collaboration, and leadership a hiring manager reads between the lines — ownership language, cross-team work, mentoring.' },
-      { term: 'Consistency', def: 'Whether your CV, GitHub, and LinkedIn tell the same story. Claimed skills with no code, titles that don’t match, dead projects — each is a red flag.' },
+      { term: 'Hard skills', def: 'The technical stack and tools you show versus what the role demands, including exact keyword matches the ATS rewards (“Kubernetes”, not “K8s”).' },
+      { term: 'Soft skills', def: 'Signals of communication, collaboration, and leadership a hiring manager reads between the lines: ownership language, cross-team work, mentoring.' },
+      { term: 'Consistency', def: 'Whether your CV, GitHub, and LinkedIn tell the same story. Claimed skills with no code, titles that don’t match, dead projects: each is a red flag.' },
       { term: 'ATS format', def: 'Machine-readability: single column, standard headings, no tables or images. The cleanest content still fails if the parser can’t extract it.' },
     ],
     filtersSetName: 'RejectCheck’s 3-Filter Pipeline',
@@ -70,7 +70,7 @@ const COPY: Record<Locale, Copy> = {
       'Passing one filter doesn’t mean passing the next. RejectCheck audits all three in a single pass, so you see where you’d actually drop out.',
     filters: [
       { n: '01', name: 'The ATS', body: 'An automated keyword and parsing filter. Most applications to a popular posting are screened out here, before any human attention.' },
-      { n: '02', name: 'The 6-second HR scan', body: 'A recruiter skims for red flags — gaps, vague titles, obvious mismatches — in seconds. Survive this and you reach a real evaluation.' },
+      { n: '02', name: 'The 6-second HR scan', body: 'In seconds, a recruiter skims for red flags: gaps, vague titles, obvious mismatches. Survive this and you reach a real evaluation.' },
       { n: '03', name: 'The hiring manager review', body: 'Depth: GitHub signal, seniority match, project relevance, whether the story holds up. This is where the dev-specific signals decide it.' },
     ],
     cta: 'See your six dimensions scored against a real job.',
@@ -83,7 +83,7 @@ const COPY: Record<Locale, Copy> = {
     bcHome: 'Accueil',
     bcCurrent: 'Méthode',
     eyebrow: 'La Méthode · Comment RejectCheck score ton CV',
-    h1Pre: 'Un CV se juge sur six dimensions —',
+    h1Pre: 'Un CV se juge sur six dimensions,',
     h1Em: 'avant même qu’on le classe « non ».',
     intro:
       'RejectCheck transforme le « refusé, sans explication » en un diagnostic structuré. Chaque CV est scoré sur six dimensions, face à trois filtres qu’il doit passer avant qu’un humain ne décide. Voici les frameworks nommés derrière chaque score RejectCheck.',
@@ -91,13 +91,13 @@ const COPY: Record<Locale, Copy> = {
     dimsEyebrow: 'Le framework',
     dimsH2: 'Les 6 dimensions du rejet RejectCheck',
     dimsLead:
-      'Ton score global est une moyenne pondérée de ces six dimensions. Un CV échoue rarement sur toutes — il échoue nettement sur une ou deux, et c’est ça qui le fait filtrer.',
+      'Ton score global est une moyenne pondérée de ces six dimensions. Un CV échoue rarement sur toutes : il échoue nettement sur une ou deux, et c’est ça qui le fait filtrer.',
     dimensions: [
       { term: 'Clarté', def: 'À quelle vitesse un recruteur comprend ce que tu fais, à quel niveau, et pourquoi tu colles. Intitulés noyés, pavés de texte et périmètre flou coûtent en clarté.' },
       { term: 'Impact', def: 'Des résultats mesurables plutôt que des listes de tâches. « p95 réduit de 40 % » bat « responsable de la performance ». Les chiffres et l’ownership font l’impact.' },
-      { term: 'Compétences techniques', def: 'La stack et les outils que tu montres face à ce que le poste exige — y compris les mots-clés exacts que l’ATS récompense (« Kubernetes », pas « K8s »).' },
-      { term: 'Soft skills', def: 'Les signaux de communication, de collaboration et de leadership qu’un manager lit entre les lignes — langage d’ownership, travail inter-équipes, mentorat.' },
-      { term: 'Cohérence', def: 'Est-ce que ton CV, ton GitHub et ton LinkedIn racontent la même histoire. Compétence revendiquée sans code, intitulés qui ne matchent pas, projets morts — autant de signaux d’alerte.' },
+      { term: 'Compétences techniques', def: 'La stack et les outils que tu montres face à ce que le poste exige, y compris les mots-clés exacts que l’ATS récompense (« Kubernetes », pas « K8s »).' },
+      { term: 'Soft skills', def: 'Les signaux de communication, de collaboration et de leadership qu’un manager lit entre les lignes : langage d’ownership, travail inter-équipes, mentorat.' },
+      { term: 'Cohérence', def: 'Est-ce que ton CV, ton GitHub et ton LinkedIn racontent la même histoire. Compétence revendiquée sans code, intitulés qui ne matchent pas, projets morts : autant de signaux d’alerte.' },
       { term: 'Format ATS', def: 'La lisibilité par la machine : une seule colonne, intitulés standards, ni tableaux ni images. Le meilleur contenu échoue si le parser ne l’extrait pas.' },
     ],
     filtersSetName: 'Le Pipeline à 3 Filtres RejectCheck',
@@ -107,7 +107,7 @@ const COPY: Record<Locale, Copy> = {
       'Passer un filtre ne veut pas dire passer le suivant. RejectCheck audite les trois en une seule passe, pour que tu voies où tu décrocherais vraiment.',
     filters: [
       { n: '01', name: 'L’ATS', body: 'Un filtre automatique de mots-clés et de lecture. La majorité des candidatures à une offre populaire sont éliminées ici, avant toute attention humaine.' },
-      { n: '02', name: 'Le scan RH de 6 secondes', body: 'Un recruteur survole à la recherche de signaux d’alerte — trous, intitulés vagues, incohérences évidentes — en quelques secondes. Survis à ça et tu atteins une vraie évaluation.' },
+      { n: '02', name: 'Le scan RH de 6 secondes', body: 'En quelques secondes, un recruteur survole à la recherche de signaux d’alerte : trous, intitulés vagues, incohérences évidentes. Survis à ça et tu atteins une vraie évaluation.' },
       { n: '03', name: 'La relecture du manager', body: 'La profondeur : signal GitHub, cohérence de séniorité, pertinence des projets, est-ce que l’histoire tient. C’est là que les signaux dev font la différence.' },
     ],
     cta: 'Vois tes six dimensions scorées face à une vraie offre.',

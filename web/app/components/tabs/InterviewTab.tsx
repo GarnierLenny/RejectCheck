@@ -587,7 +587,7 @@ export function InterviewTab({ isPremium, analysisId, email, accessToken, defaul
                         {h.globalScore}<span style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)" }}>/10</span>
                       </span>
                     ) : (
-                      <span style={{ ...MONO, fontSize: 10, color: "var(--rc-hint)" }}>—</span>
+                      <span style={{ ...MONO, fontSize: 10, color: "var(--rc-hint)" }}>-</span>
                     )}
                   </button>
                 );

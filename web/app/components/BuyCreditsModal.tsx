@@ -73,7 +73,7 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
         <div className="px-7 pt-7 pb-6">
           <p className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint mb-3">{t.buyCreditsModal.title}</p>
           <div className="flex items-baseline gap-3 mb-1.5">
-            <span className="font-serif text-[52px] font-medium leading-none text-rc-text">{monthlyRemaining ?? "—"}</span>
+            <span className="font-serif text-[52px] font-medium leading-none text-rc-text">{monthlyRemaining ?? "-"}</span>
             <span className="text-[13px] text-rc-muted leading-tight">{t.buyCreditsModal.monthlyLabel}</span>
           </div>
           <p className="font-mono text-[10px] text-rc-hint">

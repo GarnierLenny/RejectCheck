@@ -116,7 +116,7 @@ const COPY: Record<Locale, Copy> = {
     h1Em: '(and never find out why)',
     h1Post: '.',
     introP1:
-      'I’m a junior software engineer. I got rejected 200+ times before I figured out the application pipeline is a black box — and that you can crack it open.',
+      'I’m a junior software engineer. I got rejected 200+ times before I figured out the application pipeline is a black box, and that you can crack it open.',
     introP2:
       'This is the breakdown: the three filters between “Submit” and an interview, the signals each one weighs, and a framework to iterate on every rejection instead of taking it personally.',
     tldrLabel: 'TL;DR',
@@ -135,14 +135,14 @@ const COPY: Record<Locale, Copy> = {
       },
       {
         strong: 'Each rejection is data.',
-        rest: ' Iterate on it. The fastest hires are not the most talented — they iterate fastest.',
+        rest: ' Iterate on it. The fastest hires are not the most talented: they iterate fastest.',
       },
     ],
     p1Label: 'Part 1',
     p1H2: 'The invisible pipeline',
     p1Body:
-      'A single mid-sized tech job posting receives 200 to 1,000+ applications. Manual review at that volume is impossible — not out of laziness, out of arithmetic. So between “Submit” and “Unfortunately…”, three filters stand in the way.',
-    layer1H3: 'Layer 1 — The ATS',
+      'A single mid-sized tech job posting receives 200 to 1,000+ applications. Manual review at that volume is impossible, not out of laziness but out of arithmetic. So between “Submit” and “Unfortunately…”, three filters stand in the way.',
+    layer1H3: 'Layer 1: The ATS',
     layer1P1:
       'The Applicant Tracking System is software, not a human. It parses your CV into plain text and scores keyword overlap with the job description. It does not read between the lines. It does not look at your projects.',
     layer1P2:
@@ -150,12 +150,12 @@ const COPY: Record<Locale, Copy> = {
     layer1P3Pre: 'Full breakdown: ',
     layer1P3Link: 'How to pass ATS in 2026',
     layer1P3Post: '.',
-    layer2H3: 'Layer 2 — The HR recruiter (6-second scan)',
+    layer2H3: 'Layer 2: The HR recruiter (6-second scan)',
     layer2P1:
-      'If your CV passes the ATS, it lands in front of a human — usually an HR recruiter, not a developer. Someone who may not know the difference between Python and JavaScript, or between mid-level and senior. That sounds unfair, but the math forces it: developers cannot review every CV that survives the ATS.',
+      'If your CV passes the ATS, it lands in front of a human, usually an HR recruiter, not a developer. Someone who may not know the difference between Python and JavaScript, or between mid-level and senior. That sounds unfair, but the math forces it: developers cannot review every CV that survives the ATS.',
     layer2P2Strong: '6 seconds.',
     layer2P2Rest:
-      ' That’s the average time an HR recruiter spends making the keep-or-cut decision. They do not read. They scan. They look at your current title, the companies you have worked at, tenure length, and whether anything visually stands out — for the right or wrong reason.',
+      ' That’s the average time an HR recruiter spends making the keep-or-cut decision. They do not read. They scan. They look at your current title, the companies you have worked at, tenure length, and whether anything visually stands out, for the right or wrong reason.',
     redFlagsLabel: 'The 9 red flags that kill your CV at this layer',
     redFlags: [
       {
@@ -171,7 +171,7 @@ const COPY: Record<Locale, Copy> = {
       {
         n: '03',
         title: '2+ pages with less than 10 years of experience',
-        body: 'Reads as inflated content. The bar for adding length is high — most engineers under 10 years should fit on one page.',
+        body: 'Reads as inflated content. The bar for adding length is high: most engineers under 10 years should fit on one page.',
       },
       {
         n: '04',
@@ -196,7 +196,7 @@ const COPY: Record<Locale, Copy> = {
       {
         n: '08',
         title: 'Too many skills',
-        body: 'Listing 40 technologies does not prove competence — it signals inflation. Pick the 8–12 you actually use.',
+        body: 'Listing 40 technologies does not prove competence: it signals inflation. Pick the 8-12 you actually use.',
       },
       {
         n: '09',
@@ -204,22 +204,22 @@ const COPY: Record<Locale, Copy> = {
         body: 'Code for: I have not actually used this. Recruiters and hiring managers both read this as filler.',
       },
     ],
-    layer3H3: 'Layer 3 — The hiring manager (signal review)',
+    layer3H3: 'Layer 3: The hiring manager (signal review)',
     layer3P1:
       'If you pass HR, your CV finally reaches someone technical. They will work with you, manage you, or be your future colleague. They know what the job requires because they do it themselves. They look at your application completely differently from HR.',
     layer3P2:
       'The first thing a technical hiring manager often does is open your GitHub. Not to read every line. To get a feel. Do you code outside of work? Are your projects real or tutorial clones? Do your repos have READMEs? Is there recent activity, or was the last commit two years ago?',
     layer3P3Pre:
-      'They cross-reference CV ↔ LinkedIn ↔ GitHub — not necessarily to catch lies, but because consistency reduces uncertainty. The single question they keep asking themselves is: ',
+      'They cross-reference CV ↔ LinkedIn ↔ GitHub, not necessarily to catch lies, but because consistency reduces uncertainty. The single question they keep asking themselves is: ',
     layer3P3Em: 'is this candidate experienced enough for the job?',
-    layer3P4Pre: 'In a pool of 10–20 shortlisted candidates, ',
+    layer3P4Pre: 'In a pool of 10-20 shortlisted candidates, ',
     layer3P4q1: 'almost senior',
     layer3P4Mid: ' loses to ',
     layer3P4q2: 'clearly senior',
     layer3P4Post: ' every single time.',
     midCtaLabel: 'Audit all three layers in 60 seconds',
     midCtaBody:
-      'RejectCheck runs your CV against the ATS layer, the HR scan layer (red-flag detection, format audit), and the hiring manager layer (GitHub signal, LinkedIn consistency, seniority audit) — tailored to one specific job.',
+      'RejectCheck runs your CV against the ATS layer, the HR scan layer (red-flag detection, format audit), and the hiring manager layer (GitHub signal, LinkedIn consistency, seniority audit), tailored to one specific job.',
     midCtaBtn: 'Run free diagnosis →',
     p2Label: 'Part 2',
     p2H2: 'The blind spots',
@@ -228,86 +228,86 @@ const COPY: Record<Locale, Copy> = {
     p2P2Pre:
       'Classic example: you spent 6 months building a payment system that handled thousands of transactions a day, dealt with edge cases, integrated external APIs, and shipped to production without a single incident. Your CV says: ',
     p2P2Em: '“Worked on backend payment features.”',
-    p2P3: 'That gap is what kills you — not the skills.',
-    seniorityH3: 'The seniority trap — junior vs senior signals',
+    p2P3: 'That gap is what kills you, not the skills.',
+    seniorityH3: 'The seniority trap: junior vs senior signals',
     seniorityP1:
-      'Most developers do not know what level they actually read at. Their CV is signaling — they just do not see it. The hiring manager picks up on tone within seconds.',
+      'Most developers do not know what level they actually read at. Their CV is signaling, they just do not see it. The hiring manager picks up on tone within seconds.',
     juniorLabel: 'Junior signals',
     juniorSignals: [
-      '— “I worked on…”',
-      '— “I helped build…”',
-      '— “I used React”',
-      '— Only side projects on GitHub',
-      '— No metrics, only task descriptions',
-      '— Passive voice throughout',
+      '- “I worked on…”',
+      '- “I helped build…”',
+      '- “I used React”',
+      '- Only side projects on GitHub',
+      '- No metrics, only task descriptions',
+      '- Passive voice throughout',
     ],
     seniorLabel: 'Senior signals',
     seniorSignals: [
-      '— “I owned and shipped…”',
-      '— “I designed and led…”',
-      '— “I architected the frontend”',
-      '— Live projects with users',
-      '— Impact metrics (latency, scale, $$, users)',
-      '— Active voice, ownership language',
+      '- “I owned and shipped…”',
+      '- “I designed and led…”',
+      '- “I architected the frontend”',
+      '- Live projects with users',
+      '- Impact metrics (latency, scale, $$, users)',
+      '- Active voice, ownership language',
     ],
     seniorityP2:
-      'Same person, same work — different framing. The hiring manager reads seniority off the verbs before they reach the bullet’s content.',
+      'Same person, same work, just different framing. The hiring manager reads seniority off the verbs before they reach the bullet’s content.',
     jobStoryH3: 'Each job has its own story too',
     jobStoryP1:
       'Two companies post the exact same job title with the exact same required skills. One is a Series A startup that needs someone to build fast and break things. The other is a scale-up that needs someone to stabilize a codebase that grew too fast. Same title. Same tech. Completely different ideal candidate.',
     jobStoryP2:
-      'Your CV needs to speak the same language as the job’s story. Not lie — tell. Before applying, spend 10 minutes on these questions: what problem is this company trying to solve by hiring? What do they expect 6 months from now? 1 year from now? Then ask: does my CV speak the same language?',
+      'Your CV needs to speak the same language as the job’s story. Not lie, but tell. Before applying, spend 10 minutes on these questions: what problem is this company trying to solve by hiring? What do they expect 6 months from now? 1 year from now? Then ask: does my CV speak the same language?',
     onlineH3: 'Your online presence is part of the application',
     onlineP1:
-      'Your CV is half the story. GitHub, LinkedIn, anything indexable on Google — all of it is part of your application, whether you optimize it or not. The hiring manager will look. The cross-reference is not optional from their side.',
+      'Your CV is half the story. GitHub, LinkedIn, anything indexable on Google, all of it is part of your application, whether you optimize it or not. The hiring manager will look. The cross-reference is not optional from their side.',
     onlineP2:
-      'Reverse the exercise. Find developers on LinkedIn who already have the job you want. Spend 30 minutes per profile. Read their CV, GitHub, LinkedIn, Google search. Map the timeline. What do they do? What would you change about yours? The ones who got hired are not magic — their pattern is visible.',
+      'Reverse the exercise. Find developers on LinkedIn who already have the job you want. Spend 30 minutes per profile. Read their CV, GitHub, LinkedIn, Google search. Map the timeline. What do they do? What would you change about yours? The ones who got hired are not magic: their pattern is visible.',
     p3Label: 'Part 3',
-    p3H2: 'The plan — iterate, do not blind-shot',
+    p3H2: 'The plan: iterate, do not blind-shot',
     p3P1:
       'The real issue is not skill. It is system. Most developers apply blind. Each application is a one-off. No feedback loop. No data captured. Two hundred applications later, they have learned nothing.',
     p3P2:
-      'The moment you treat rejections as data, the math changes. You are not someone who got rejected 200 times. You are someone who ran 200 experiments. Some taught you the CV was unclear. Some taught you the level was off. Some taught you the GitHub was sending the wrong signal. Each rejection — painful as it is — is information.',
+      'The moment you treat rejections as data, the math changes. You are not someone who got rejected 200 times. You are someone who ran 200 experiments. Some taught you the CV was unclear. Some taught you the level was off. Some taught you the GitHub was sending the wrong signal. Each rejection, painful as it is, is information.',
     planCards: [
       {
         n: '01',
         title: 'Before applying',
         items: [
-          '— Audit CV / GitHub / LinkedIn',
-          '— Read your CV from a stranger’s POV',
-          '— Ask: is the story clear?',
+          '- Audit CV / GitHub / LinkedIn',
+          '- Read your CV from a stranger’s POV',
+          '- Ask: is the story clear?',
         ],
       },
       {
         n: '02',
         title: 'For the job',
         items: [
-          '— Mirror JD’s exact keywords',
-          '— Adapt your story to theirs',
-          '— Confirm seniority alignment',
+          '- Mirror JD’s exact keywords',
+          '- Adapt your story to theirs',
+          '- Confirm seniority alignment',
         ],
       },
       {
         n: '03',
         title: 'After rejection',
         items: [
-          '— Treat it as data, not failure',
-          '— Identify which layer cut you',
-          '— Adjust for the next application',
+          '- Treat it as data, not failure',
+          '- Identify which layer cut you',
+          '- Adjust for the next application',
         ],
       },
     ],
     p3P3:
-      'Doing all of this manually for every job is exhausting — reading the JD, cross-referencing the CV, checking keyword match, auditing GitHub, scanning LinkedIn. It is a lot. That is the reason RejectCheck exists. I built it because I needed it. It worked for me. It is free to try.',
+      'Doing all of this manually for every job is exhausting: reading the JD, cross-referencing the CV, checking keyword match, auditing GitHub, scanning LinkedIn. It is a lot. That is the reason RejectCheck exists. I built it because I needed it. It worked for me. It is free to try.',
     relatedLabel: 'Go deeper',
     relatedLinks: [
       {
         href: '/guides/software-engineer-resume-tips',
-        label: 'Software Engineer Resume Tips — 12 rules ranked by impact',
+        label: 'Software Engineer Resume Tips: 12 rules ranked by impact',
       },
       {
         href: '/software-engineer-cv',
-        label: 'Software Engineer CV — full structural guide',
+        label: 'Software Engineer CV: full structural guide',
       },
       {
         href: '/cv-review',
@@ -316,7 +316,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     authorLabel: 'About the author',
     authorBio:
-      'Lenny Garnier — junior software engineer, founder of RejectCheck. Got rejected 200+ times before building the tool I wished existed.',
+      'Lenny Garnier, junior software engineer, founder of RejectCheck. Got rejected 200+ times before building the tool I wished existed.',
     authorMediumPre: 'A longer narrative version of this guide lives on Medium: ',
     authorMediumLink: 'Why Developers Get Rejected (And Never Find Out Why) ↗',
     faqH2: 'FAQ',
@@ -324,12 +324,12 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Why do developers get rejected even with strong skills?',
         answer:
-          'The skills are usually fine. What fails is the gap between reality and what the CV shows. Three filters — ATS, HR 6-second scan, hiring manager review — each look for different signals. Strong candidates get filtered out by formatting, vague phrasing, junior-tone bullets, or GitHub-CV inconsistencies long before the technical interview.',
+          'The skills are usually fine. What fails is the gap between reality and what the CV shows. Three filters (ATS, HR 6-second scan, hiring manager review) each look for different signals. Strong candidates get filtered out by formatting, vague phrasing, junior-tone bullets, or GitHub-CV inconsistencies long before the technical interview.',
       },
       {
         question: 'How long does an HR recruiter spend on a CV?',
         answer:
-          'Around 6 seconds on average. They scan, not read. They look at current title, company names, tenure length, and visual signals (length, structure, typos). Anything that triggers a red flag in that window — short stays, time gaps, fancy graphics, inconsistencies — kills the application.',
+          'Around 6 seconds on average. They scan, not read. They look at current title, company names, tenure length, and visual signals (length, structure, typos). Anything that triggers a red flag in that window (short stays, time gaps, fancy graphics, inconsistencies) kills the application.',
       },
       {
         question: 'What are the most common red flags on a developer CV?',
@@ -344,11 +344,11 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'How can I improve my application iteratively?',
         answer:
-          'Treat each rejection as data, not failure. Before applying: audit CV/GitHub/LinkedIn against the target role. For the job: mirror the JD’s exact keywords and tone, confirm seniority alignment. After rejection: identify which layer probably filtered you (ATS keyword miss? HR red flag? Manager seniority gap?) and adjust for the next application. The fastest hires are not the most talented — they are the fastest iterators.',
+          'Treat each rejection as data, not failure. Before applying: audit CV/GitHub/LinkedIn against the target role. For the job: mirror the JD’s exact keywords and tone, confirm seniority alignment. After rejection: identify which layer probably filtered you (ATS keyword miss? HR red flag? Manager seniority gap?) and adjust for the next application. The fastest hires are not the most talented: they are the fastest iterators.',
       },
     ],
     ctaH2: 'Stop applying blind. Start iterating.',
-    ctaSub: 'Free first scan. ATS + HR red flags + hiring manager signals — one pass.',
+    ctaSub: 'Free first scan. ATS + HR red flags + hiring manager signals, one pass.',
     ctaBtn: 'Run free diagnosis →',
   },
   fr: {
@@ -363,7 +363,7 @@ const COPY: Record<Locale, Copy> = {
     h1Em: '(et pourquoi tu ne le sauras jamais)',
     h1Post: '.',
     introP1:
-      'Je suis développeur junior. Je me suis fait rejeter plus de 200 fois avant de comprendre que le processus de candidature est une boîte noire — et qu’on peut l’ouvrir.',
+      'Je suis développeur junior. Je me suis fait rejeter plus de 200 fois avant de comprendre que le processus de candidature est une boîte noire, et qu’on peut l’ouvrir.',
     introP2:
       'Voici le décryptage : les trois filtres entre « Postuler » et un entretien, les signaux que chacun analyse, et une méthode pour itérer sur chaque rejet au lieu de le prendre personnellement.',
     tldrLabel: 'EN BREF',
@@ -382,14 +382,14 @@ const COPY: Record<Locale, Copy> = {
       },
       {
         strong: 'Chaque rejet est une donnée.',
-        rest: ' Itère dessus. Les profils embauchés le plus vite ne sont pas les plus talentueux — ce sont ceux qui itèrent le plus vite.',
+        rest: ' Itère dessus. Les profils embauchés le plus vite ne sont pas les plus talentueux : ce sont ceux qui itèrent le plus vite.',
       },
     ],
     p1Label: 'Partie 1',
     p1H2: 'Le processus invisible',
     p1Body:
-      'Une seule offre tech de taille moyenne reçoit de 200 à plus de 1 000 candidatures. Une revue manuelle à ce volume est impossible — pas par paresse, par arithmétique. Alors entre « Postuler » et « Malheureusement… », trois filtres se dressent sur ta route.',
-    layer1H3: 'Couche 1 — L’ATS',
+      'Une seule offre tech de taille moyenne reçoit de 200 à plus de 1 000 candidatures. Une revue manuelle à ce volume est impossible, pas par paresse mais par arithmétique. Alors entre « Postuler » et « Malheureusement… », trois filtres se dressent sur ta route.',
+    layer1H3: 'Couche 1 : L’ATS',
     layer1P1:
       'L’Applicant Tracking System est un logiciel, pas un humain. Il convertit ton CV en texte brut et score le recouvrement de mots-clés avec l’offre d’emploi. Il ne lit pas entre les lignes. Il ne regarde pas tes projets.',
     layer1P2:
@@ -397,12 +397,12 @@ const COPY: Record<Locale, Copy> = {
     layer1P3Pre: 'Le décryptage complet : ',
     layer1P3Link: 'Comment passer l’ATS en 2026',
     layer1P3Post: '.',
-    layer2H3: 'Couche 2 — Le recruteur RH (scan de 6 secondes)',
+    layer2H3: 'Couche 2 : Le recruteur RH (scan de 6 secondes)',
     layer2P1:
-      'Si ton CV passe l’ATS, il atterrit devant un humain — généralement un recruteur RH, pas un développeur. Quelqu’un qui ne fait peut-être pas la différence entre Python et JavaScript, ou entre un profil intermédiaire et un senior. Ça paraît injuste, mais les maths l’imposent : les développeurs ne peuvent pas relire chaque CV qui survit à l’ATS.',
+      'Si ton CV passe l’ATS, il atterrit devant un humain, généralement un recruteur RH, pas un développeur. Quelqu’un qui ne fait peut-être pas la différence entre Python et JavaScript, ou entre un profil intermédiaire et un senior. Ça paraît injuste, mais les maths l’imposent : les développeurs ne peuvent pas relire chaque CV qui survit à l’ATS.',
     layer2P2Strong: '6 secondes.',
     layer2P2Rest:
-      ' C’est le temps moyen qu’un recruteur RH passe à décider de garder ou d’écarter. Il ne lit pas. Il scanne. Il regarde ton intitulé actuel, les entreprises où tu as bossé, la durée de chaque poste, et si quelque chose ressort visuellement — en bien ou en mal.',
+      ' C’est le temps moyen qu’un recruteur RH passe à décider de garder ou d’écarter. Il ne lit pas. Il scanne. Il regarde ton intitulé actuel, les entreprises où tu as bossé, la durée de chaque poste, et si quelque chose ressort visuellement, en bien ou en mal.',
     redFlagsLabel: 'Les 9 signaux d’alerte qui tuent ton CV à ce niveau',
     redFlags: [
       {
@@ -418,7 +418,7 @@ const COPY: Record<Locale, Copy> = {
       {
         n: '03',
         title: '2 pages ou plus avec moins de 10 ans d’expérience',
-        body: 'Ça se lit comme un contenu gonflé. La barre pour ajouter de la longueur est haute — la plupart des ingénieurs avec moins de 10 ans doivent tenir sur une page.',
+        body: 'Ça se lit comme un contenu gonflé. La barre pour ajouter de la longueur est haute : la plupart des ingénieurs avec moins de 10 ans doivent tenir sur une page.',
       },
       {
         n: '04',
@@ -443,7 +443,7 @@ const COPY: Record<Locale, Copy> = {
       {
         n: '08',
         title: 'Trop de compétences',
-        body: 'Lister 40 technologies ne prouve pas la maîtrise — ça signale du gonflage. Garde les 8 à 12 que tu utilises vraiment.',
+        body: 'Lister 40 technologies ne prouve pas la maîtrise : ça signale du gonflage. Garde les 8 à 12 que tu utilises vraiment.',
       },
       {
         n: '09',
@@ -451,13 +451,13 @@ const COPY: Record<Locale, Copy> = {
         body: 'Traduction : je ne l’ai pas vraiment utilisé. Recruteurs et managers lisent ça comme du remplissage.',
       },
     ],
-    layer3H3: 'Couche 3 — Le manager (revue des signaux)',
+    layer3H3: 'Couche 3 : Le manager (revue des signaux)',
     layer3P1:
       'Si tu passes les RH, ton CV atteint enfin quelqu’un de technique. Cette personne va travailler avec toi, t’encadrer, ou être ton futur collègue. Elle sait ce que le poste exige parce qu’elle le fait elle-même. Elle regarde ta candidature d’une manière complètement différente des RH.',
     layer3P2:
       'La première chose qu’un manager technique fait souvent, c’est ouvrir ton GitHub. Pas pour lire chaque ligne. Pour se faire une idée. Est-ce que tu codes en dehors du travail ? Tes projets sont-ils réels ou des clones de tutoriels ? Tes dépôts ont-ils des READMEs ? Y a-t-il de l’activité récente, ou le dernier commit date-t-il de deux ans ?',
     layer3P3Pre:
-      'Il recoupe CV ↔ LinkedIn ↔ GitHub — pas forcément pour traquer des mensonges, mais parce que la cohérence réduit l’incertitude. La seule question qu’il se pose en boucle est : ',
+      'Il recoupe CV ↔ LinkedIn ↔ GitHub, pas forcément pour traquer des mensonges, mais parce que la cohérence réduit l’incertitude. La seule question qu’il se pose en boucle est : ',
     layer3P3Em: 'ce candidat est-il assez expérimenté pour le poste ?',
     layer3P4Pre: 'Dans un vivier de 10 à 20 candidats présélectionnés, « ',
     layer3P4q1: 'presque senior',
@@ -466,7 +466,7 @@ const COPY: Record<Locale, Copy> = {
     layer3P4Post: ' » à chaque fois.',
     midCtaLabel: 'Audite les trois couches en 60 secondes',
     midCtaBody:
-      'RejectCheck passe ton CV au crible de la couche ATS, de la couche RH (détection des signaux d’alerte, audit de mise en forme) et de la couche manager (signal GitHub, cohérence LinkedIn, audit de séniorité) — calé sur une offre précise.',
+      'RejectCheck passe ton CV au crible de la couche ATS, de la couche RH (détection des signaux d’alerte, audit de mise en forme) et de la couche manager (signal GitHub, cohérence LinkedIn, audit de séniorité), calé sur une offre précise.',
     midCtaBtn: 'Lancer le diagnostic gratuit →',
     p2Label: 'Partie 2',
     p2H2: 'Les angles morts',
@@ -475,86 +475,86 @@ const COPY: Record<Locale, Copy> = {
     p2P2Pre:
       'Exemple classique : tu as passé 6 mois à construire un système de paiement qui traitait des milliers de transactions par jour, gérait les cas limites, intégrait des API externes et tournait en production sans le moindre incident. Ton CV dit : ',
     p2P2Em: '« Travaillé sur des fonctionnalités de paiement back-end. »',
-    p2P3: 'C’est cet écart qui te tue — pas les compétences.',
-    seniorityH3: 'Le piège de la séniorité — signaux junior vs senior',
+    p2P3: 'C’est cet écart qui te tue, pas les compétences.',
+    seniorityH3: 'Le piège de la séniorité : signaux junior vs senior',
     seniorityP1:
-      'La plupart des développeurs ne savent pas à quel niveau leur CV se lit vraiment. Leur CV envoie des signaux — ils ne les voient juste pas. Le manager capte le ton en quelques secondes.',
+      'La plupart des développeurs ne savent pas à quel niveau leur CV se lit vraiment. Leur CV envoie des signaux, ils ne les voient juste pas. Le manager capte le ton en quelques secondes.',
     juniorLabel: 'Signaux junior',
     juniorSignals: [
-      '— « J’ai travaillé sur… »',
-      '— « J’ai aidé à construire… »',
-      '— « J’ai utilisé React »',
-      '— Uniquement des projets perso sur GitHub',
-      '— Aucune métrique, que des descriptions de tâches',
-      '— Voix passive du début à la fin',
+      '- « J’ai travaillé sur… »',
+      '- « J’ai aidé à construire… »',
+      '- « J’ai utilisé React »',
+      '- Uniquement des projets perso sur GitHub',
+      '- Aucune métrique, que des descriptions de tâches',
+      '- Voix passive du début à la fin',
     ],
     seniorLabel: 'Signaux senior',
     seniorSignals: [
-      '— « J’ai pris en charge et livré… »',
-      '— « J’ai conçu et piloté… »',
-      '— « J’ai architecturé le front-end »',
-      '— Des projets en ligne avec des utilisateurs',
-      '— Des métriques d’impact (latence, échelle, $$, utilisateurs)',
-      '— Voix active, vocabulaire de l’ownership',
+      '- « J’ai pris en charge et livré… »',
+      '- « J’ai conçu et piloté… »',
+      '- « J’ai architecturé le front-end »',
+      '- Des projets en ligne avec des utilisateurs',
+      '- Des métriques d’impact (latence, échelle, $$, utilisateurs)',
+      '- Voix active, vocabulaire de l’ownership',
     ],
     seniorityP2:
-      'Même personne, même travail — cadrage différent. Le manager lit la séniorité dans les verbes avant même d’arriver au contenu de la ligne.',
+      'Même personne, même travail, juste un cadrage différent. Le manager lit la séniorité dans les verbes avant même d’arriver au contenu de la ligne.',
     jobStoryH3: 'Chaque poste a aussi sa propre histoire',
     jobStoryP1:
       'Deux entreprises publient exactement le même intitulé avec exactement les mêmes compétences requises. L’une est une startup en série A qui cherche quelqu’un pour construire vite et casser des choses. L’autre est une scale-up qui cherche quelqu’un pour stabiliser une base de code qui a grossi trop vite. Même intitulé. Même stack. Candidat idéal complètement différent.',
     jobStoryP2:
-      'Ton CV doit parler la même langue que l’histoire du poste. Pas mentir — raconter. Avant de postuler, passe 10 minutes sur ces questions : quel problème cette entreprise cherche-t-elle à résoudre en recrutant ? Qu’attend-elle de toi dans 6 mois ? Dans 1 an ? Puis demande-toi : est-ce que mon CV parle la même langue ?',
+      'Ton CV doit parler la même langue que l’histoire du poste. Pas mentir, mais raconter. Avant de postuler, passe 10 minutes sur ces questions : quel problème cette entreprise cherche-t-elle à résoudre en recrutant ? Qu’attend-elle de toi dans 6 mois ? Dans 1 an ? Puis demande-toi : est-ce que mon CV parle la même langue ?',
     onlineH3: 'Ta présence en ligne fait partie de la candidature',
     onlineP1:
-      'Ton CV n’est que la moitié de l’histoire. GitHub, LinkedIn, tout ce qui est indexable sur Google — tout fait partie de ta candidature, que tu l’optimises ou non. Le manager ira regarder. Le recoupement n’est pas optionnel de son côté.',
+      'Ton CV n’est que la moitié de l’histoire. GitHub, LinkedIn, tout ce qui est indexable sur Google, tout fait partie de ta candidature, que tu l’optimises ou non. Le manager ira regarder. Le recoupement n’est pas optionnel de son côté.',
     onlineP2:
-      'Inverse l’exercice. Trouve sur LinkedIn des développeurs qui ont déjà le poste que tu veux. Passe 30 minutes par profil. Lis leur CV, leur GitHub, leur LinkedIn, leur recherche Google. Reconstitue la chronologie. Que font-ils ? Que changerais-tu au tien ? Ceux qui ont été embauchés n’ont rien de magique — leur schéma est visible.',
+      'Inverse l’exercice. Trouve sur LinkedIn des développeurs qui ont déjà le poste que tu veux. Passe 30 minutes par profil. Lis leur CV, leur GitHub, leur LinkedIn, leur recherche Google. Reconstitue la chronologie. Que font-ils ? Que changerais-tu au tien ? Ceux qui ont été embauchés n’ont rien de magique : leur schéma est visible.',
     p3Label: 'Partie 3',
-    p3H2: 'Le plan — itère, ne tire pas à l’aveugle',
+    p3H2: 'Le plan : itère, ne tire pas à l’aveugle',
     p3P1:
       'Le vrai problème n’est pas le niveau. C’est le système. La plupart des développeurs postulent à l’aveugle. Chaque candidature est un coup unique. Aucune boucle de feedback. Aucune donnée captée. Deux cents candidatures plus tard, ils n’ont rien appris.',
     p3P2:
-      'À l’instant où tu traites les rejets comme des données, les maths changent. Tu n’es pas quelqu’un qui s’est fait rejeter 200 fois. Tu es quelqu’un qui a mené 200 expériences. Certaines t’ont appris que le CV était flou. D’autres que le niveau ne collait pas. D’autres que le GitHub envoyait le mauvais signal. Chaque rejet — aussi douloureux soit-il — est une information.',
+      'À l’instant où tu traites les rejets comme des données, les maths changent. Tu n’es pas quelqu’un qui s’est fait rejeter 200 fois. Tu es quelqu’un qui a mené 200 expériences. Certaines t’ont appris que le CV était flou. D’autres que le niveau ne collait pas. D’autres que le GitHub envoyait le mauvais signal. Chaque rejet, aussi douloureux soit-il, est une information.',
     planCards: [
       {
         n: '01',
         title: 'Avant de postuler',
         items: [
-          '— Audite ton CV / GitHub / LinkedIn',
-          '— Lis ton CV avec l’œil d’un inconnu',
-          '— Demande-toi : l’histoire est-elle claire ?',
+          '- Audite ton CV / GitHub / LinkedIn',
+          '- Lis ton CV avec l’œil d’un inconnu',
+          '- Demande-toi : l’histoire est-elle claire ?',
         ],
       },
       {
         n: '02',
         title: 'Pour l’offre',
         items: [
-          '— Reprends les mots-clés exacts de l’offre',
-          '— Adapte ton histoire à la leur',
-          '— Confirme l’alignement de séniorité',
+          '- Reprends les mots-clés exacts de l’offre',
+          '- Adapte ton histoire à la leur',
+          '- Confirme l’alignement de séniorité',
         ],
       },
       {
         n: '03',
         title: 'Après le rejet',
         items: [
-          '— Traite-le comme une donnée, pas un échec',
-          '— Identifie quelle couche t’a écarté',
-          '— Ajuste pour la prochaine candidature',
+          '- Traite-le comme une donnée, pas un échec',
+          '- Identifie quelle couche t’a écarté',
+          '- Ajuste pour la prochaine candidature',
         ],
       },
     ],
     p3P3:
-      'Faire tout ça à la main pour chaque poste est épuisant — lire l’offre, recouper le CV, vérifier le matching de mots-clés, auditer GitHub, scanner LinkedIn. Ça fait beaucoup. C’est la raison d’être de RejectCheck. Je l’ai construit parce que j’en avais besoin. Ça a marché pour moi. C’est gratuit à essayer.',
+      'Faire tout ça à la main pour chaque poste est épuisant : lire l’offre, recouper le CV, vérifier le matching de mots-clés, auditer GitHub, scanner LinkedIn. Ça fait beaucoup. C’est la raison d’être de RejectCheck. Je l’ai construit parce que j’en avais besoin. Ça a marché pour moi. C’est gratuit à essayer.',
     relatedLabel: 'Aller plus loin',
     relatedLinks: [
       {
         href: '/guides/software-engineer-resume-tips',
-        label: 'Conseils CV ingénieur logiciel — 12 règles classées par impact',
+        label: 'Conseils CV ingénieur logiciel : 12 règles classées par impact',
       },
       {
         href: '/software-engineer-cv',
-        label: 'CV d’ingénieur logiciel — le guide structurel complet',
+        label: 'CV d’ingénieur logiciel : le guide structurel complet',
       },
       {
         href: '/cv-review',
@@ -563,7 +563,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     authorLabel: 'À propos de l’auteur',
     authorBio:
-      'Lenny Garnier — développeur junior, fondateur de RejectCheck. Rejeté plus de 200 fois avant de construire l’outil que j’aurais voulu avoir.',
+      'Lenny Garnier, développeur junior, fondateur de RejectCheck. Rejeté plus de 200 fois avant de construire l’outil que j’aurais voulu avoir.',
     authorMediumPre: 'Une version narrative plus longue de ce guide est sur Medium : ',
     authorMediumLink: 'Why Developers Get Rejected (And Never Find Out Why) ↗',
     faqH2: 'FAQ',
@@ -571,12 +571,12 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Pourquoi les développeurs sont-ils rejetés même avec de solides compétences ?',
         answer:
-          'Les compétences sont généralement bonnes. Ce qui pèche, c’est l’écart entre la réalité et ce que le CV montre. Trois filtres — l’ATS, le scan RH de 6 secondes, la revue du manager — cherchent chacun des signaux différents. De bons candidats sont éliminés par la mise en forme, des formulations vagues, des lignes au ton junior ou des incohérences GitHub-CV, bien avant l’entretien technique.',
+          'Les compétences sont généralement bonnes. Ce qui pèche, c’est l’écart entre la réalité et ce que le CV montre. Trois filtres (l’ATS, le scan RH de 6 secondes, la revue du manager) cherchent chacun des signaux différents. De bons candidats sont éliminés par la mise en forme, des formulations vagues, des lignes au ton junior ou des incohérences GitHub-CV, bien avant l’entretien technique.',
       },
       {
         question: 'Combien de temps un recruteur RH passe-t-il sur un CV ?',
         answer:
-          'Environ 6 secondes en moyenne. Il scanne, il ne lit pas. Il regarde l’intitulé actuel, les noms d’entreprises, la durée des postes et les signaux visuels (longueur, structure, fautes). Tout ce qui déclenche un signal d’alerte dans cette fenêtre — passages courts, trous, graphismes tape-à-l’œil, incohérences — tue la candidature.',
+          'Environ 6 secondes en moyenne. Il scanne, il ne lit pas. Il regarde l’intitulé actuel, les noms d’entreprises, la durée des postes et les signaux visuels (longueur, structure, fautes). Tout ce qui déclenche un signal d’alerte dans cette fenêtre (passages courts, trous, graphismes tape-à-l’œil, incohérences) tue la candidature.',
       },
       {
         question: 'Quels sont les signaux d’alerte les plus courants sur un CV de développeur ?',
@@ -591,11 +591,11 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Comment améliorer ma candidature de façon itérative ?',
         answer:
-          'Traite chaque rejet comme une donnée, pas comme un échec. Avant de postuler : audite ton CV/GitHub/LinkedIn face au poste visé. Pour l’offre : reprends les mots-clés et le ton exacts de l’offre, confirme l’alignement de séniorité. Après un rejet : identifie quelle couche t’a probablement filtré (mot-clé ATS manquant ? signal d’alerte RH ? écart de séniorité côté manager ?) et ajuste pour la candidature suivante. Les profils embauchés le plus vite ne sont pas les plus talentueux — ce sont ceux qui itèrent le plus vite.',
+          'Traite chaque rejet comme une donnée, pas comme un échec. Avant de postuler : audite ton CV/GitHub/LinkedIn face au poste visé. Pour l’offre : reprends les mots-clés et le ton exacts de l’offre, confirme l’alignement de séniorité. Après un rejet : identifie quelle couche t’a probablement filtré (mot-clé ATS manquant ? signal d’alerte RH ? écart de séniorité côté manager ?) et ajuste pour la candidature suivante. Les profils embauchés le plus vite ne sont pas les plus talentueux : ce sont ceux qui itèrent le plus vite.',
       },
     ],
     ctaH2: 'Arrête de postuler à l’aveugle. Commence à itérer.',
-    ctaSub: 'Premier scan gratuit. ATS + signaux d’alerte RH + signaux manager — en une passe.',
+    ctaSub: 'Premier scan gratuit. ATS + signaux d’alerte RH + signaux manager, en une passe.',
     ctaBtn: 'Lancer le diagnostic gratuit →',
   },
 }

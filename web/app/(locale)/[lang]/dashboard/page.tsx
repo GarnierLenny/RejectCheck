@@ -375,10 +375,10 @@ function DashboardContent() {
     : null;
   const pilotLines: { tone: "warn" | "nudge" | "info"; body: string }[] = [
     topRiskItem && (topRiskItem.result?.score ?? 0) > 60
-      ? { tone: "warn", body: `Tailor your CV for ${topRiskItem.company || topRiskItem.result?.job_details?.company || "your top-risk role"} — biggest gain available.` }
+      ? { tone: "warn", body: `Tailor your CV for ${topRiskItem.company || topRiskItem.result?.job_details?.company || "your top-risk role"}, biggest gain available.` }
       : { tone: "info", body: "Your average risk score is under control. Keep diversifying your applications." },
     staleApplications[0]
-      ? { tone: "nudge", body: `Follow up with ${staleApplications[0].company} — ${Math.floor((now - new Date(staleApplications[0].appliedAt).getTime()) / 86400000)} days with no reply.` }
+      ? { tone: "nudge", body: `Follow up with ${staleApplications[0].company}: ${Math.floor((now - new Date(staleApplications[0].appliedAt).getTime()) / 86400000)} days with no reply.` }
       : { tone: "info", body: "No stale applications. Good momentum." },
     topSkills.length > 0
       ? { tone: "info", body: `${topSkills[topSkills.length - 1]?.subject || "A key skill"} appears thin across your recent analyses.` }
@@ -422,7 +422,7 @@ function DashboardContent() {
                 {[
                   {
                     label: t.account.home.avgScore,
-                    value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—",
+                    value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "-",
                     sub: overviewAvgRisk !== null
                       ? overviewAvgRisk < 40 ? t.dashboardShell.riskLow : overviewAvgRisk < 70 ? t.dashboardShell.riskModerate : t.dashboardShell.riskHigh
                       : t.dashboardShell.noData,
@@ -643,7 +643,7 @@ function DashboardContent() {
                     </div>
                   </>
                 ) : (
-                  <p className="font-mono text-[11px] text-rc-hint">—</p>
+                  <p className="font-mono text-[11px] text-rc-hint">-</p>
                 )}
               </div>
               )}
@@ -757,13 +757,13 @@ function DashboardContent() {
                 {[
                   {
                     label: t.account.home.avgScore,
-                    value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "—",
+                    value: overviewAvgRisk !== null ? `${overviewAvgRisk}%` : "-",
                     sub: overviewAvgRisk !== null && overviewAvgRisk < 40 ? t.dashboardShell.riskLow : undefined,
                     good: overviewAvgRisk !== null && overviewAvgRisk < 40,
                   },
                   {
                     label: "Best run",
-                    value: bestRun ? String(bestRun.result?.score ?? "—") : "—",
+                    value: bestRun ? String(bestRun.result?.score ?? "-") : "-",
                     sub: bestRun
                       ? `${new Date(bestRun.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${bestRun.jobLabel || bestRun.result?.job_details?.title || ""}`
                       : undefined,
@@ -771,7 +771,7 @@ function DashboardContent() {
                   },
                   {
                     label: "Worst run",
-                    value: worstRun ? String(worstRun.result?.score ?? "—") : "—",
+                    value: worstRun ? String(worstRun.result?.score ?? "-") : "-",
                     sub: worstRun
                       ? `${new Date(worstRun.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${worstRun.jobLabel || worstRun.result?.job_details?.title || ""}`
                       : undefined,
@@ -851,7 +851,7 @@ function DashboardContent() {
                 >
                   <div>{analysisTypeFilter === "cv-review" ? t.dashboardShell.analysesTable.colQuality : t.dashboardShell.analysesTable.colScore}</div>
                   <div>{analysisTypeFilter === "cv-review" ? t.dashboardShell.analysesTable.colProfile : t.dashboardShell.analysesTable.colPosition}</div>
-                  <div>{analysisTypeFilter === "cv-review" ? "—" : t.dashboardShell.analysesTable.colCompany}</div>
+                  <div>{analysisTypeFilter === "cv-review" ? "-" : t.dashboardShell.analysesTable.colCompany}</div>
                   <div>{t.dashboardShell.analysesTable.colDate}</div><div>{t.dashboardShell.outcomes.header}</div><div>{t.dashboardShell.analysesTable.colNote}</div><div />
                 </div>
 
@@ -894,7 +894,7 @@ function DashboardContent() {
                           <Link href={localePath(`/analyze?id=${item.id}`)} className="font-semibold text-rc-text no-underline hover:text-rc-red transition-colors truncate pr-2">
                             {label}
                           </Link>
-                          <span className="text-rc-muted truncate pr-2">{company || "—"}</span>
+                          <span className="text-rc-muted truncate pr-2">{company || "-"}</span>
                           <span className="font-mono text-[10px] text-rc-hint">
                             {new Date(item.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric", year: "2-digit" })}
                           </span>

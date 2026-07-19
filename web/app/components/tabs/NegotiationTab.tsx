@@ -133,8 +133,8 @@ export function NegotiationTab({ result, analysisId, isPremium }: Props) {
       : gap > atMarketThreshold
         ? t.negotiationTab.gapAbove
         : t.negotiationTab.gapAtMarket;
-  const jdTitle = result.job_details?.title || "—";
-  const jdLocation = result.job_details?.office_location || "—";
+  const jdTitle = result.job_details?.title || "-";
+  const jdLocation = result.job_details?.office_location || "-";
 
   return (
     <div className="space-y-12">
@@ -160,7 +160,7 @@ export function NegotiationTab({ result, analysisId, isPremium }: Props) {
               {jdTitle} · {jdLocation}
             </p>
             <p className="text-[22px] font-bold text-rc-text">
-              {fmtCurrency(negotiation.market_range.min, glyph)} —{" "}
+              {fmtCurrency(negotiation.market_range.min, glyph)} -{" "}
               {fmtCurrency(negotiation.market_range.max, glyph)}{" "}
               <span className="text-[13px] font-normal text-rc-hint">
                 {periodLabel}
@@ -176,10 +176,10 @@ export function NegotiationTab({ result, analysisId, isPremium }: Props) {
               {t.negotiationTab.yourRange}
             </p>
             <p className="text-[14px] text-rc-muted mb-2">
-              {result.seniority_analysis?.detected || "—"}
+              {result.seniority_analysis?.detected || "-"}
             </p>
             <p className="text-[22px] font-bold text-rc-text">
-              {fmtCurrency(negotiation.candidate_range.min, glyph)} —{" "}
+              {fmtCurrency(negotiation.candidate_range.min, glyph)} -{" "}
               {fmtCurrency(negotiation.candidate_range.max, glyph)}{" "}
               <span className="text-[13px] font-normal text-rc-hint">
                 {periodLabel}
@@ -205,7 +205,7 @@ export function NegotiationTab({ result, analysisId, isPremium }: Props) {
                   {t.negotiationTab.jdDisclosedTitle}
                 </p>
                 <p className="text-[20px] font-bold text-rc-text">
-                  {fmtCurrency(negotiation.jd_disclosed_salary.min, glyph)} —{" "}
+                  {fmtCurrency(negotiation.jd_disclosed_salary.min, glyph)} -{" "}
                   {fmtCurrency(negotiation.jd_disclosed_salary.max, glyph)}{" "}
                   <span className="text-[13px] font-normal text-rc-hint">
                     {t.negotiationTab.perYear}

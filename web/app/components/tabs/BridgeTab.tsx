@@ -965,7 +965,7 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", background: "var(--rc-green-bg)", borderBottom: "1px solid var(--rc-green-border)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                     <FileText size={10} style={{ color: "var(--rc-green)" }} />
-                    <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-green)", fontWeight: 700 }}>CV bullet — paste once shipped</span>
+                    <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-green)", fontWeight: 700 }}>CV bullet: paste once shipped</span>
                   </div>
                   <CopyButton text={project.cv_bullet} />
                 </div>

@@ -69,12 +69,12 @@ export function SalaryRangeChart({
         ? "var(--rc-green)"
         : "var(--rc-amber)";
 
-  const candValueText = `${formatAmount(candidateRange.min, period, glyph)}–${formatAmount(candidateRange.max, period, glyph)}${periodLabel}`;
+  const candValueText = `${formatAmount(candidateRange.min, period, glyph)}-${formatAmount(candidateRange.max, period, glyph)}${periodLabel}`;
   const jdMid = jdDisclosed ? (jdDisclosed.min + jdDisclosed.max) / 2 : null;
   const jdValueText = jdDisclosed
     ? jdDisclosed.min === jdDisclosed.max
       ? `${formatAmount(jdDisclosed.min, period, glyph)}${periodLabel}`
-      : `${formatAmount(jdDisclosed.min, period, glyph)}–${formatAmount(jdDisclosed.max, period, glyph)}${periodLabel}`
+      : `${formatAmount(jdDisclosed.min, period, glyph)}-${formatAmount(jdDisclosed.max, period, glyph)}${periodLabel}`
     : null;
 
   // Recharts requires at least one data series — invisible Line bridges the domain
@@ -106,7 +106,7 @@ export function SalaryRangeChart({
             {marketLabel}
           </span>
           <span className="text-[14px] font-medium text-rc-amber">
-            {formatAmount(marketRange.min, period, glyph)}–
+            {formatAmount(marketRange.min, period, glyph)}-
             {formatAmount(marketRange.max, period, glyph)}
             {periodLabel}
           </span>

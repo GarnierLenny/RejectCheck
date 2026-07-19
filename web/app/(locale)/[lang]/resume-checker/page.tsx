@@ -57,7 +57,7 @@ const COPY: Record<Locale, Copy> = {
   en: {
     title: 'AI Resume Checker for Developers',
     description:
-      'Resume checker optimised for developers — works for any role. Audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags rejected in 6 seconds. Free.',
+      'Resume checker optimised for developers, works for any role. Audits seniority signals, GitHub activity, LinkedIn consistency, and the red flags rejected in 6 seconds. Free.',
     bcHome: 'Home',
     bcCurrent: 'Resume Checker',
     eyebrow: 'Resume Checker · Optimised for devs. Works for any role.',
@@ -75,19 +75,19 @@ const COPY: Record<Locale, Copy> = {
     s1Cards: [
       {
         step: '01',
-        title: 'ATS — the automated filter',
+        title: 'ATS: the automated filter',
         body:
           'Parses your CV to plain text, scores keyword overlap with the JD. Drops anything below the match threshold. Format breaks parsing more than candidates realize.',
       },
       {
         step: '02',
-        title: 'HR recruiter — the 6-second scan',
+        title: 'HR recruiter: the 6-second scan',
         body:
           'A non-technical recruiter scans for red flags: short tenures, time gaps, 2+ pages with under 10 years of experience, fancy graphics, typos, inconsistencies CV ↔ LinkedIn.',
       },
       {
         step: '03',
-        title: 'Hiring manager — the signal review',
+        title: 'Hiring manager: the signal review',
         body:
           'A technical lead opens your GitHub. Are projects real or tutorial clones? Does your tone read junior or senior? Does your CV match the seniority the role requires?',
       },
@@ -98,7 +98,7 @@ const COPY: Record<Locale, Copy> = {
       {
         label: 'ATS resume checker output',
         body:
-          'Match score, missing keywords with point values, format/parsing flags. The same as a standard ATS checker — but it is just step one.',
+          'Match score, missing keywords with point values, format/parsing flags. The same as a standard ATS checker, but it is just step one.',
       },
       {
         label: 'Skill gap radar',
@@ -118,7 +118,7 @@ const COPY: Record<Locale, Copy> = {
       {
         label: 'Red-flag detection',
         body:
-          'Employment gaps, vague titles, passive voice, overlapping dates, inflated skill lists, "Familiar with..." sections — the patterns that trigger auto-rejection.',
+          'Employment gaps, vague titles, passive voice, overlapping dates, inflated skill lists, "Familiar with..." sections: the patterns that trigger auto-rejection.',
       },
       {
         label: 'Prioritized fix list',
@@ -136,7 +136,7 @@ const COPY: Record<Locale, Copy> = {
       { href: '/alternatives', label: 'vs Jobscan / Rezi / Resume Worded →' },
     ],
     faqEyebrow: 'FAQ',
-    faqH2: 'Resume checker — what developers ask',
+    faqH2: 'Resume checker: what developers ask',
     faqItems: [
       {
         question: 'What does the resume checker actually check?',
@@ -146,7 +146,7 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Is this an ATS resume checker or something more?',
         answer:
-          'It includes a full ATS resume checker (keyword scoring, parsing flags, missing skills with point values) — but it does not stop there. Most rejections happen after the ATS, at the HR scan or the hiring manager review. Resume checkers that only score ATS miss 70% of why developers get rejected.',
+          'It includes a full ATS resume checker (keyword scoring, parsing flags, missing skills with point values), but it does not stop there. Most rejections happen after the ATS, at the HR scan or the hiring manager review. Resume checkers that only score ATS miss 70% of why developers get rejected.',
       },
       {
         question: 'How is this different from generic resume checkers?',
@@ -170,13 +170,13 @@ const COPY: Record<Locale, Copy> = {
       },
     ],
     ctaH2: 'Run a full resume check on your CV right now.',
-    ctaSub: 'ATS + HR + hiring manager — one pass, three layers, 60 seconds.',
+    ctaSub: 'ATS + HR + hiring manager: one pass, three layers, 60 seconds.',
     ctaBtn: 'Check my resume free',
   },
   fr: {
     title: 'Checker de CV IA pour Développeurs',
     description:
-      'Checker de CV optimisé pour les développeurs — et adapté à tout métier. Audite tes signaux de séniorité, ton activité GitHub, la cohérence LinkedIn et les signaux d’alerte rejetés en 6 secondes. Gratuit.',
+      'Checker de CV optimisé pour les développeurs, et adapté à tout métier. Audite tes signaux de séniorité, ton activité GitHub, la cohérence LinkedIn et les signaux d’alerte rejetés en 6 secondes. Gratuit.',
     bcHome: 'Accueil',
     bcCurrent: 'Checker de CV',
     eyebrow: 'Checker de CV · Optimisé pour les devs. Marche pour tous les métiers.',
@@ -194,19 +194,19 @@ const COPY: Record<Locale, Copy> = {
     s1Cards: [
       {
         step: '01',
-        title: 'ATS — le filtre automatique',
+        title: 'ATS : le filtre automatique',
         body:
           'Convertit ton CV en texte brut et score le recouvrement de mots-clés avec l’offre. Élimine tout ce qui passe sous le seuil. La mise en forme casse la lecture bien plus que les candidats ne l’imaginent.',
       },
       {
         step: '02',
-        title: 'Recruteur RH — le scan en 6 secondes',
+        title: 'Recruteur RH : le scan en 6 secondes',
         body:
           'Un recruteur non technique scanne à la recherche de signaux d’alerte : postes courts, trous dans le parcours, 2 pages et plus avec moins de 10 ans d’expérience, graphismes tape-à-l’œil, fautes, incohérences CV ↔ LinkedIn.',
       },
       {
         step: '03',
-        title: 'Manager — la lecture des signaux',
+        title: 'Manager : la lecture des signaux',
         body:
           'Un lead technique ouvre ton GitHub. Tes projets sont-ils réels ou des clones de tutos ? Ton ton sonne-t-il junior ou senior ? Ton CV correspond-il à la séniorité exigée par le poste ?',
       },
@@ -217,7 +217,7 @@ const COPY: Record<Locale, Copy> = {
       {
         label: 'Sortie du checker ATS',
         body:
-          'Score de correspondance, mots-clés manquants avec leur poids, alertes de format et de lecture. Comme un checker ATS classique — sauf que ce n’est que l’étape un.',
+          'Score de correspondance, mots-clés manquants avec leur poids, alertes de format et de lecture. Comme un checker ATS classique, sauf que ce n’est que l’étape un.',
       },
       {
         label: 'Radar des lacunes techniques',
@@ -237,7 +237,7 @@ const COPY: Record<Locale, Copy> = {
       {
         label: 'Détection des signaux d’alerte',
         body:
-          'Trous dans le parcours, intitulés vagues, voix passive, dates qui se chevauchent, listes de compétences gonflées, sections « Notions de… » — les schémas qui déclenchent le rejet automatique.',
+          'Trous dans le parcours, intitulés vagues, voix passive, dates qui se chevauchent, listes de compétences gonflées, sections « Notions de… » : les schémas qui déclenchent le rejet automatique.',
       },
       {
         label: 'Liste de corrections priorisée',
@@ -255,7 +255,7 @@ const COPY: Record<Locale, Copy> = {
       { href: '/alternatives', label: 'vs Jobscan / Rezi / Resume Worded →' },
     ],
     faqEyebrow: 'FAQ',
-    faqH2: 'Checker de CV — ce que les devs demandent',
+    faqH2: 'Checker de CV : ce que les devs demandent',
     faqItems: [
       {
         question: 'Que vérifie réellement le checker de CV ?',
@@ -265,7 +265,7 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'C’est un checker ATS ou quelque chose de plus complet ?',
         answer:
-          'Il intègre un checker ATS complet (scoring de mots-clés, alertes de lecture, compétences manquantes avec leur poids) — mais il ne s’arrête pas là. La plupart des rejets arrivent après l’ATS, au scan RH ou à la lecture du manager. Les checkers qui ne notent que l’ATS passent à côté de 70 % des raisons de rejet des développeurs.',
+          'Il intègre un checker ATS complet (scoring de mots-clés, alertes de lecture, compétences manquantes avec leur poids), mais il ne s’arrête pas là. La plupart des rejets arrivent après l’ATS, au scan RH ou à la lecture du manager. Les checkers qui ne notent que l’ATS passent à côté de 70 % des raisons de rejet des développeurs.',
       },
       {
         question: 'En quoi est-ce différent des checkers de CV génériques ?',
@@ -289,7 +289,7 @@ const COPY: Record<Locale, Copy> = {
       },
     ],
     ctaH2: 'Lance une analyse complète de ton CV, maintenant.',
-    ctaSub: 'ATS + RH + manager — une seule passe, trois couches, 60 secondes.',
+    ctaSub: 'ATS + RH + manager : une seule passe, trois couches, 60 secondes.',
     ctaBtn: 'Analyser ton CV gratuitement',
   },
 }

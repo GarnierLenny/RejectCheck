@@ -93,7 +93,7 @@ Requirements:
 - Solid understanding of networking (VPC, TLS, DNS, load balancers)
 - Scripting proficiency in Bash and Python
 
-You'll be the person engineers rely on to make production boring — in the best way.`,
+You'll be the person engineers rely on to make production boring, in the best way.`,
       },
       {
         title: "Data Engineer",
@@ -211,7 +211,7 @@ Responsibilities:
 
 Requirements:
 - 3+ years of product design experience, ideally in a SaaS or tech environment
-- Strong portfolio demonstrating end-to-end product thinking — not just visual polish
+- Strong portfolio demonstrating end-to-end product thinking, not just visual polish
 - Proficiency in Figma (components, auto-layout, prototyping)
 - Experience running usability tests and synthesizing findings into design decisions
 - Comfort with HTML/CSS fundamentals to communicate intent clearly to engineers
@@ -267,7 +267,7 @@ Requirements:
     roles: [
       {
         title: "Engineering Manager",
-        jd: `We're looking for an Engineering Manager to lead a team of 5–8 engineers and drive high-quality, high-velocity delivery across a core product area.
+        jd: `We're looking for an Engineering Manager to lead a team of 5-8 engineers and drive high-quality, high-velocity delivery across a core product area.
 
 Responsibilities:
 - Manage, mentor, and grow a team of engineers through 1:1s, performance reviews, and career development conversations

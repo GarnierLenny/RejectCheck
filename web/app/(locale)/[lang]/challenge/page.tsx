@@ -53,7 +53,7 @@ function BriefCollapse({
           ›
         </span>
         <span className="ch-collapse__title">{title}</span>
-        <span className="ch-collapse__count">{items.length || "—"}</span>
+        <span className="ch-collapse__count">{items.length || "-"}</span>
       </summary>
       <div className="ch-collapse__body">
         {items.length === 0 ? (

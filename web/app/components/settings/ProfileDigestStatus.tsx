@@ -101,7 +101,7 @@ export function ProfileDigestStatus({ profile }: { profile: Profile | null }) {
               <Caption tone="amber">
                 {missing
                   ? "First analysis will sync automatically."
-                  : "Older than 30 days — refresh recommended."}
+                  : "Older than 30 days, refresh recommended."}
               </Caption>
             )}
           </div>

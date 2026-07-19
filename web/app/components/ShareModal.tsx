@@ -186,7 +186,7 @@ export function ShareModal({
           <div className="mx-8 mb-0 mt-4 flex items-center gap-3 px-4 py-3 bg-[#0f0f0f]/10 border border-[#0f0f0f]/20 text-rc-text">
             <Check size={14} className="shrink-0" />
             <p className="font-mono text-[11px]">
-              Image copied — X opens in 2s, paste with <strong>Ctrl+V</strong> (or <strong>⌘V</strong>)
+              Image copied. X opens in 2s, paste with <strong>Ctrl+V</strong> (or <strong>⌘V</strong>)
             </p>
           </div>
         )}
@@ -196,7 +196,7 @@ export function ShareModal({
           <div className="mx-8 mb-0 mt-4 flex items-center gap-3 px-4 py-3 bg-[#0A66C2]/10 border border-[#0A66C2]/30 text-[#0A66C2]">
             <Check size={14} className="shrink-0" />
             <p className="font-mono text-[11px]">
-              Image copied — LinkedIn opens in 2s, paste with <strong>Ctrl+V</strong> (or <strong>⌘V</strong>)
+              Image copied. LinkedIn opens in 2s, paste with <strong>Ctrl+V</strong> (or <strong>⌘V</strong>)
             </p>
           </div>
         )}
@@ -256,7 +256,7 @@ export function ShareModal({
               {liState === "copying" ? "Preparing…" : "Share on LinkedIn"}
             </div>
             <div className="font-mono text-[10px] text-white/60">
-              {liState === "ready" ? "Image copied — paste in post" : clipboardSupported ? "Public post" : "Download & attach manually"}
+              {liState === "ready" ? "Image copied, paste in post" : clipboardSupported ? "Public post" : "Download & attach manually"}
             </div>
           </button>
         </div>

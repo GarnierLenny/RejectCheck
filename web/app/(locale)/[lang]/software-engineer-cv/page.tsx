@@ -78,7 +78,7 @@ const COPY: Record<Locale, Copy> = {
     h1Em: 'lands interviews',
     h1Post: '.',
     heroSub:
-      'Generic resume advice does not work for engineers. Your CV is read by an ATS, a non-technical recruiter, and a technical hiring manager — three different filters, three different signals. This page covers what each one actually looks for.',
+      'Generic resume advice does not work for engineers. Your CV is read by an ATS, a non-technical recruiter, and a technical hiring manager: three different filters, three different signals. This page covers what each one actually looks for.',
     heroCta: 'Check my engineer CV free',
     heroReassure: '60 seconds · Tailored to one specific engineering role',
     s1Eyebrow: 'Why generic CV advice fails for engineers',
@@ -113,7 +113,7 @@ const COPY: Record<Locale, Copy> = {
       {
         n: '02',
         title: 'Skills',
-        body: '8 to 12 technologies you have used in production. Group them logically (Languages, Frameworks, Infra) only if it helps readability. Mirror the JD vocabulary exactly — Kubernetes, not K8s. Drop "Familiar with…" sections entirely.',
+        body: '8 to 12 technologies you have used in production. Group them logically (Languages, Frameworks, Infra) only if it helps readability. Mirror the JD vocabulary exactly: Kubernetes, not K8s. Drop "Familiar with…" sections entirely.',
       },
       {
         n: '03',
@@ -132,7 +132,7 @@ const COPY: Record<Locale, Copy> = {
       },
     ],
     s3Eyebrow: 'Seniority signaling',
-    s3H2: 'Same person, same work — different tone reads different level.',
+    s3H2: 'Same person, same work, different tone reads different level.',
     s3Body:
       'The hiring manager reads seniority off your verbs before they reach the bullet’s content. In a shortlist of 10-20 candidates, “almost senior” loses to “clearly senior” every time. If your CV reads a level below the role, you do not get the interview.',
     juniorLabel: 'Junior signals',
@@ -154,7 +154,7 @@ const COPY: Record<Locale, Copy> = {
       'Tight skill list of 10 technologies, all production-grade',
     ],
     midEyebrow: 'Audit yours against a specific role',
-    midH2: 'Paste a job description, upload your CV — get the diagnosis in 60 seconds.',
+    midH2: 'Paste a job description, upload your CV, get the diagnosis in 60 seconds.',
     midBody:
       'ATS score, missing keywords with point values, seniority audit, GitHub signal, red-flag detection. Free. No signup.',
     midBtn: 'Run free check →',
@@ -169,7 +169,7 @@ const COPY: Record<Locale, Copy> = {
       { href: '/guides/why-developers-get-rejected', label: 'Why devs get rejected →' },
     ],
     faqEyebrow: 'FAQ',
-    faqH2: 'Software engineer CV — what developers ask',
+    faqH2: 'Software engineer CV: what developers ask',
     faqItems: [
       {
         question: 'What is different about a software engineer CV vs a generic resume?',
@@ -179,12 +179,12 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'How long should a software engineer CV be?',
         answer:
-          'One page until you have 10+ years of relevant experience. Longer reads as inflated. The hiring manager skims — every line should signal. If a bullet does not show ownership, impact, or a relevant technology, cut it.',
+          'One page until you have 10+ years of relevant experience. Longer reads as inflated. The hiring manager skims: every line should signal. If a bullet does not show ownership, impact, or a relevant technology, cut it.',
       },
       {
         question: 'Should I include a GitHub link on my CV?',
         answer:
-          'Yes — and only if your GitHub backs your CV claims. The hiring manager will open it. Tutorial clones, abandoned repos with no README, and zero recent activity hurt you. A link to a clean GitHub with 2-3 real projects beats no link.',
+          'Yes, and only if your GitHub backs your CV claims. The hiring manager will open it. Tutorial clones, abandoned repos with no README, and zero recent activity hurt you. A link to a clean GitHub with 2-3 real projects beats no link.',
       },
       {
         question: 'How do I phrase bullet points to read senior?',
@@ -194,16 +194,16 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'How many skills should I list?',
         answer:
-          '8 to 12 you have actually used in production. Listing 40 technologies signals inflation, not range. "Familiar with…" sections are a red flag — drop them. The skills you list should match the JD vocabulary exactly (Kubernetes, not K8s).',
+          '8 to 12 you have actually used in production. Listing 40 technologies signals inflation, not range. "Familiar with…" sections are a red flag: drop them. The skills you list should match the JD vocabulary exactly (Kubernetes, not K8s).',
       },
       {
         question: 'Do I need a Projects section?',
         answer:
-          'For juniors and career switchers — yes, it is often the strongest section on the CV. For seniors with 5+ years of professional experience, projects matter less than impact in past roles. Either way, every project listed should be live, have a README, and show the stack from the JD.',
+          'For juniors and career switchers, yes, it is often the strongest section on the CV. For seniors with 5+ years of professional experience, projects matter less than impact in past roles. Either way, every project listed should be live, have a README, and show the stack from the JD.',
       },
     ],
     ctaH2: 'Run a check on your engineer CV against the role you actually want.',
-    ctaSub: 'ATS + HR + hiring manager — one pass. Free. No signup.',
+    ctaSub: 'ATS + HR + hiring manager: one pass. Free. No signup.',
     ctaBtn: 'Check my engineer CV free',
   },
   fr: {
@@ -217,7 +217,7 @@ const COPY: Record<Locale, Copy> = {
     h1Em: 'entretiens',
     h1Post: '.',
     heroSub:
-      'Les conseils CV génériques ne marchent pas pour les développeurs. Ton CV est lu par un ATS, un recruteur non technique et un manager technique — trois filtres différents, trois signaux différents. Cette page détaille ce que chacun cherche vraiment.',
+      'Les conseils CV génériques ne marchent pas pour les développeurs. Ton CV est lu par un ATS, un recruteur non technique et un manager technique : trois filtres différents, trois signaux différents. Cette page détaille ce que chacun cherche vraiment.',
     heroCta: 'Tester mon CV dev gratuitement',
     heroReassure: '60 secondes · Calé sur un poste d’ingénieur précis',
     s1Eyebrow: 'Pourquoi les conseils CV génériques échouent pour les devs',
@@ -252,7 +252,7 @@ const COPY: Record<Locale, Copy> = {
       {
         n: '02',
         title: 'Compétences',
-        body: '8 à 12 technologies que tu as utilisées en production. Regroupe-les logiquement (Langages, Frameworks, Infra) seulement si ça aide à la lecture. Reprends le vocabulaire de l’offre à l’identique — Kubernetes, pas K8s. Supprime totalement les rubriques « Notions de… ».',
+        body: '8 à 12 technologies que tu as utilisées en production. Regroupe-les logiquement (Langages, Frameworks, Infra) seulement si ça aide à la lecture. Reprends le vocabulaire de l’offre à l’identique : Kubernetes, pas K8s. Supprime totalement les rubriques « Notions de… ».',
       },
       {
         n: '03',
@@ -271,7 +271,7 @@ const COPY: Record<Locale, Copy> = {
       },
     ],
     s3Eyebrow: 'Signaler sa séniorité',
-    s3H2: 'Même personne, même travail — un ton différent fait lire un niveau différent.',
+    s3H2: 'Même personne, même travail, un ton différent fait lire un niveau différent.',
     s3Body:
       'Le manager déduit ta séniorité de tes verbes avant même d’atteindre le contenu de la puce. Dans une short-list de 10 à 20 candidats, « presque senior » perd à chaque fois face à « clairement senior ». Si ton CV se lit un niveau en dessous du poste, tu n’as pas l’entretien.',
     juniorLabel: 'Signaux junior',
@@ -293,7 +293,7 @@ const COPY: Record<Locale, Copy> = {
       'Une liste resserrée de 10 technologies, toutes éprouvées en production',
     ],
     midEyebrow: 'Audite le tien face à un poste précis',
-    midH2: 'Colle une offre d’emploi, dépose ton CV — le diagnostic en 60 secondes.',
+    midH2: 'Colle une offre d’emploi, dépose ton CV, le diagnostic en 60 secondes.',
     midBody:
       'Score ATS, mots-clés manquants avec leur poids, audit de séniorité, signal GitHub, détection des signaux d’alerte. Gratuit. Sans inscription.',
     midBtn: 'Lancer le test gratuit →',
@@ -308,7 +308,7 @@ const COPY: Record<Locale, Copy> = {
       { href: '/guides/why-developers-get-rejected', label: 'Pourquoi les devs sont rejetés →' },
     ],
     faqEyebrow: 'FAQ',
-    faqH2: 'CV d’ingénieur logiciel — ce que les devs demandent',
+    faqH2: 'CV d’ingénieur logiciel : ce que les devs demandent',
     faqItems: [
       {
         question: 'Qu’est-ce qui distingue un CV d’ingénieur logiciel d’un CV générique ?',
@@ -318,12 +318,12 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Quelle longueur pour un CV d’ingénieur logiciel ?',
         answer:
-          'Une page tant que tu n’as pas 10 ans et plus d’expérience pertinente. Plus long, ça fait gonflé. Le manager survole — chaque ligne doit envoyer un signal. Si une puce ne montre pas de prise en charge, d’impact ou d’une technologie pertinente, coupe-la.',
+          'Une page tant que tu n’as pas 10 ans et plus d’expérience pertinente. Plus long, ça fait gonflé. Le manager survole : chaque ligne doit envoyer un signal. Si une puce ne montre pas de prise en charge, d’impact ou d’une technologie pertinente, coupe-la.',
       },
       {
         question: 'Dois-je mettre un lien GitHub sur mon CV ?',
         answer:
-          'Oui — et seulement si ton GitHub appuie ce que tu affirmes sur ton CV. Le manager va l’ouvrir. Les clones de tutos, les dépôts abandonnés sans README et l’absence d’activité récente te desservent. Un lien vers un GitHub propre avec 2-3 vrais projets vaut mieux que pas de lien.',
+          'Oui, et seulement si ton GitHub appuie ce que tu affirmes sur ton CV. Le manager va l’ouvrir. Les clones de tutos, les dépôts abandonnés sans README et l’absence d’activité récente te desservent. Un lien vers un GitHub propre avec 2-3 vrais projets vaut mieux que pas de lien.',
       },
       {
         question: 'Comment formuler mes puces pour qu’elles fassent senior ?',
@@ -333,16 +333,16 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Combien de compétences faut-il lister ?',
         answer:
-          '8 à 12 que tu as réellement utilisées en production. Lister 40 technologies signale du gonflage, pas de l’étendue. Les rubriques « Notions de… » sont un signal d’alerte — supprime-les. Les compétences que tu listes doivent reprendre le vocabulaire de l’offre à l’identique (Kubernetes, pas K8s).',
+          '8 à 12 que tu as réellement utilisées en production. Lister 40 technologies signale du gonflage, pas de l’étendue. Les rubriques « Notions de… » sont un signal d’alerte : supprime-les. Les compétences que tu listes doivent reprendre le vocabulaire de l’offre à l’identique (Kubernetes, pas K8s).',
       },
       {
         question: 'Ai-je besoin d’une section Projets ?',
         answer:
-          'Pour les juniors et les reconvertis — oui, c’est souvent la section la plus forte du CV. Pour les seniors avec 5 ans et plus d’expérience professionnelle, les projets comptent moins que l’impact dans les postes passés. Dans tous les cas, chaque projet listé doit être en ligne, avoir un README et montrer la stack de l’offre.',
+          'Pour les juniors et les reconvertis, oui, c’est souvent la section la plus forte du CV. Pour les seniors avec 5 ans et plus d’expérience professionnelle, les projets comptent moins que l’impact dans les postes passés. Dans tous les cas, chaque projet listé doit être en ligne, avoir un README et montrer la stack de l’offre.',
       },
     ],
     ctaH2: 'Teste ton CV de développeur face au poste que tu veux vraiment.',
-    ctaSub: 'ATS + RH + manager — en une seule passe. Gratuit. Sans inscription.',
+    ctaSub: 'ATS + RH + manager : en une seule passe. Gratuit. Sans inscription.',
     ctaBtn: 'Tester mon CV dev gratuitement',
   },
 }
@@ -558,7 +558,7 @@ export default async function SoftwareEngineerCvPage({
                 </p>
                 <ul className="space-y-2 text-[14px] text-rc-muted leading-[1.7]">
                   {c.juniorItems.map((item) => (
-                    <li key={item}>— {item}</li>
+                    <li key={item}>- {item}</li>
                   ))}
                 </ul>
               </div>
@@ -568,7 +568,7 @@ export default async function SoftwareEngineerCvPage({
                 </p>
                 <ul className="space-y-2 text-[14px] text-rc-muted leading-[1.7]">
                   {c.seniorItems.map((item) => (
-                    <li key={item}>— {item}</li>
+                    <li key={item}>- {item}</li>
                   ))}
                 </ul>
               </div>

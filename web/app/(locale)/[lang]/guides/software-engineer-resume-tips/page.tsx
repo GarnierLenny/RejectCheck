@@ -62,12 +62,12 @@ const COPY: Record<Locale, Copy> = {
     bcGuides: 'Guides',
     bcCurrent: 'Software Engineer Resume Tips',
     eyebrow: 'Guide · 11 min read',
-    h1Pre: 'Software engineer resume tips —',
+    h1Pre: 'Software engineer resume tips:',
     h1Em: '12 rules',
     h1Post: 'that actually move the needle.',
     intro:
-      'Generic resume advice does not work for engineers. Three different filters read your CV: ATS, HR, hiring manager — each looks for different signals. These 12 rules are calibrated for what each filter actually weighs, ranked by impact.',
-    tldrLabel: 'TL;DR — the 4 highest-leverage rules',
+      'Generic resume advice does not work for engineers. Three different filters read your CV: ATS, HR, hiring manager, and each looks for different signals. These 12 rules are calibrated for what each filter actually weighs, ranked by impact.',
+    tldrLabel: 'TL;DR: the 4 highest-leverage rules',
     tldrItems: [
       { label: 'Format', body: 'single-column PDF, no boxes, no images. Boring beats clever.' },
       { label: 'Words', body: 'mirror the JD’s exact keywords (Kubernetes, not K8s).' },
@@ -78,29 +78,29 @@ const COPY: Record<Locale, Copy> = {
     afterLabel: 'After',
     midCtaLabel: 'Apply rules 1-6 in 60 seconds',
     midCtaBody:
-      'Run your CV through the analyzer against the actual job. You get the missing keywords with point values, format flags, tone audit, and prioritized fixes — free.',
+      'Run your CV through the analyzer against the actual job. You get the missing keywords with point values, format flags, tone audit, and prioritized fixes, free.',
     midCtaBtn: 'Run free check →',
     relatedLabel: 'Related',
     relatedLinks: [
-      { href: '/software-engineer-cv', label: 'Software Engineer CV — full structural guide' },
+      { href: '/software-engineer-cv', label: 'Software Engineer CV: full structural guide' },
       { href: '/cv-review', label: 'Get a deep CV review (free, role-anchored)' },
       { href: '/guides/how-to-pass-ats', label: 'How to pass ATS in 2026' },
       { href: '/guides/why-developers-get-rejected', label: 'Why developers get rejected (and never find out why)' },
     ],
     authorLabel: 'About the author',
     authorBody:
-      'Lenny Garnier — junior software engineer, founder of RejectCheck. These rules come from 200+ rejections during my own job search and the patterns I extracted while building the tool.',
+      'Lenny Garnier, junior software engineer, founder of RejectCheck. These rules come from 200+ rejections during my own job search and the patterns I extracted while building the tool.',
     faqH2: 'FAQ',
     faqItems: [
       {
         question: 'Are these tips for juniors or seniors?',
         answer:
-          'Both. Format and ATS rules apply equally. Tone and seniority signaling differ — juniors should focus on tip 9 (Projects section) and tip 3 (active voice). Seniors should focus on tip 4 (impact metrics) and tip 11 (seniority signals matching the role).',
+          'Both. Format and ATS rules apply equally. Tone and seniority signaling differ: juniors should focus on tip 9 (Projects section) and tip 3 (active voice). Seniors should focus on tip 4 (impact metrics) and tip 11 (seniority signals matching the role).',
       },
       {
         question: 'How long should a software engineer resume be?',
         answer:
-          'One page until you have 10+ years of relevant experience. The hiring manager will not read more. Every line should justify its space — if a bullet does not signal ownership, impact, or relevant tech, cut it.',
+          'One page until you have 10+ years of relevant experience. The hiring manager will not read more. Every line should justify its space: if a bullet does not signal ownership, impact, or relevant tech, cut it.',
       },
       {
         question: 'Should I use a creative resume template?',
@@ -137,7 +137,7 @@ const COPY: Record<Locale, Copy> = {
         n: '02',
         title: 'Mirror the job description’s exact keywords',
         body:
-          'The ATS does not understand synonyms reliably. If the JD says "Kubernetes", write "Kubernetes" — not "K8s", not "container orchestration". This is alignment, not stuffing. The recruiter who reads next will not penalize you for matching the role’s language.',
+          'The ATS does not understand synonyms reliably. If the JD says "Kubernetes", write "Kubernetes", not "K8s", not "container orchestration". This is alignment, not stuffing. The recruiter who reads next will not penalize you for matching the role’s language.',
       },
       {
         n: '03',
@@ -154,7 +154,7 @@ const COPY: Record<Locale, Copy> = {
         n: '04',
         title: 'Quantify impact in every bullet',
         body:
-          'Numbers anchor the bullet to reality. Without them, every bullet reads as a vague claim. Latency, scale, throughput, dollars saved, users served, deploy frequency — pick whichever is honest and concrete.',
+          'Numbers anchor the bullet to reality. Without them, every bullet reads as a vague claim. Latency, scale, throughput, dollars saved, users served, deploy frequency: pick whichever is honest and concrete.',
         example: {
           before: 'Improved system performance significantly.',
           after:
@@ -163,9 +163,9 @@ const COPY: Record<Locale, Copy> = {
       },
       {
         n: '05',
-        title: 'Put your GitHub link in the header — and clean it up first',
+        title: 'Put your GitHub link in the header, and clean it up first',
         body:
-          'The hiring manager will open your GitHub. A few empty repos, no READMEs, no recent activity — all of that hurts you more than not linking GitHub at all. Pin 3-4 strong repos, write a real README for each, make sure the langs match what your CV claims.',
+          'The hiring manager will open your GitHub. A few empty repos, no READMEs, no recent activity: all of that hurts you more than not linking GitHub at all. Pin 3-4 strong repos, write a real README for each, make sure the langs match what your CV claims.',
       },
       {
         n: '06',
@@ -177,7 +177,7 @@ const COPY: Record<Locale, Copy> = {
         n: '07',
         title: 'One page until 10+ years of experience',
         body:
-          'Two pages with under 10 years of experience reads as inflated. The hiring manager skims — every line should signal. Cut everything that does not show ownership, impact, or relevant technology.',
+          'Two pages with under 10 years of experience reads as inflated. The hiring manager skims, so every line should signal. Cut everything that does not show ownership, impact, or relevant technology.',
       },
       {
         n: '08',
@@ -201,7 +201,7 @@ const COPY: Record<Locale, Copy> = {
         n: '11',
         title: 'Match seniority signals to the role level',
         body:
-          'A senior CV that reads junior loses to a clearly-senior peer. "I owned and shipped" vs "I helped build" reads two levels apart. Audit every bullet for the verb. If you led the work, say so. If you supported it, do not over-claim — but do not undersell either.',
+          'A senior CV that reads junior loses to a clearly-senior peer. "I owned and shipped" vs "I helped build" reads two levels apart. Audit every bullet for the verb. If you led the work, say so. If you supported it, do not over-claim, but do not undersell either.',
       },
       {
         n: '12',
@@ -219,12 +219,12 @@ const COPY: Record<Locale, Copy> = {
     bcGuides: 'Guides',
     bcCurrent: 'Conseils CV pour ingénieurs logiciels',
     eyebrow: 'Guide · 11 min de lecture',
-    h1Pre: 'Conseils CV pour développeurs —',
+    h1Pre: 'Conseils CV pour développeurs :',
     h1Em: '12 règles',
     h1Post: 'qui font vraiment la différence.',
     intro:
-      'Les conseils CV génériques ne marchent pas pour les ingénieurs. Trois filtres différents lisent ton CV : ATS, RH, manager — chacun cherche des signaux différents. Ces 12 règles sont calibrées sur ce que chaque filtre pèse réellement, classées par impact.',
-    tldrLabel: 'TL;DR — les 4 règles à plus fort levier',
+      'Les conseils CV génériques ne marchent pas pour les ingénieurs. Trois filtres différents lisent ton CV : ATS, RH, manager, et chacun cherche des signaux différents. Ces 12 règles sont calibrées sur ce que chaque filtre pèse réellement, classées par impact.',
+    tldrLabel: 'TL;DR : les 4 règles à plus fort levier',
     tldrItems: [
       { label: 'Format', body: 'PDF une seule colonne, sans encadrés, sans images. Le sobre bat le créatif.' },
       { label: 'Mots', body: 'reprends les mots-clés exacts de l’offre (Kubernetes, pas K8s).' },
@@ -235,29 +235,29 @@ const COPY: Record<Locale, Copy> = {
     afterLabel: 'Après',
     midCtaLabel: 'Applique les règles 1 à 6 en 60 secondes',
     midCtaBody:
-      'Passe ton CV dans l’analyseur face à l’offre réelle. Tu obtiens les mots-clés manquants avec leur poids, les alertes de format, l’audit du ton et les corrections priorisées — gratuitement.',
+      'Passe ton CV dans l’analyseur face à l’offre réelle. Tu obtiens les mots-clés manquants avec leur poids, les alertes de format, l’audit du ton et les corrections priorisées, gratuitement.',
     midCtaBtn: 'Tester gratuitement →',
     relatedLabel: 'À lire aussi',
     relatedLinks: [
-      { href: '/software-engineer-cv', label: 'CV d’ingénieur logiciel — le guide structurel complet' },
+      { href: '/software-engineer-cv', label: 'CV d’ingénieur logiciel : le guide structurel complet' },
       { href: '/cv-review', label: 'Obtiens une review de CV poussée (gratuite, calée sur ton métier)' },
       { href: '/guides/how-to-pass-ats', label: 'Comment passer l’ATS en 2026' },
       { href: '/guides/why-developers-get-rejected', label: 'Pourquoi les développeurs sont rejetés (sans jamais savoir pourquoi)' },
     ],
     authorLabel: 'À propos de l’auteur',
     authorBody:
-      'Lenny Garnier — ingénieur logiciel junior, fondateur de RejectCheck. Ces règles viennent de plus de 200 refus pendant ma propre recherche d’emploi et des patterns que j’ai extraits en construisant l’outil.',
+      'Lenny Garnier, ingénieur logiciel junior, fondateur de RejectCheck. Ces règles viennent de plus de 200 refus pendant ma propre recherche d’emploi et des patterns que j’ai extraits en construisant l’outil.',
     faqH2: 'FAQ',
     faqItems: [
       {
         question: 'Ces conseils sont pour les juniors ou les seniors ?',
         answer:
-          'Les deux. Les règles de format et d’ATS s’appliquent pareil. Le ton et les signaux de séniorité diffèrent — les juniors doivent se concentrer sur le conseil 9 (section Projets) et le conseil 3 (voix active). Les seniors doivent viser le conseil 4 (métriques d’impact) et le conseil 11 (signaux de séniorité alignés sur le poste).',
+          'Les deux. Les règles de format et d’ATS s’appliquent pareil. Le ton et les signaux de séniorité diffèrent : les juniors doivent se concentrer sur le conseil 9 (section Projets) et le conseil 3 (voix active). Les seniors doivent viser le conseil 4 (métriques d’impact) et le conseil 11 (signaux de séniorité alignés sur le poste).',
       },
       {
         question: 'Quelle longueur pour un CV d’ingénieur logiciel ?',
         answer:
-          'Une page tant que tu n’as pas plus de 10 ans d’expérience pertinente. Le manager n’en lira pas plus. Chaque ligne doit justifier sa place — si une puce ne signale ni ownership, ni impact, ni techno pertinente, coupe-la.',
+          'Une page tant que tu n’as pas plus de 10 ans d’expérience pertinente. Le manager n’en lira pas plus. Chaque ligne doit justifier sa place : si une puce ne signale ni ownership, ni impact, ni techno pertinente, coupe-la.',
       },
       {
         question: 'Faut-il utiliser un template de CV créatif ?',
@@ -294,7 +294,7 @@ const COPY: Record<Locale, Copy> = {
         n: '02',
         title: 'Reprends les mots-clés exacts de l’offre d’emploi',
         body:
-          'L’ATS ne comprend pas les synonymes de façon fiable. Si l’offre dit « Kubernetes », écris « Kubernetes » — pas « K8s », pas « orchestration de conteneurs ». C’est de l’alignement, pas du bourrage. Le recruteur qui lit ensuite ne te pénalisera pas d’avoir repris le vocabulaire du poste.',
+          'L’ATS ne comprend pas les synonymes de façon fiable. Si l’offre dit « Kubernetes », écris « Kubernetes », pas « K8s », pas « orchestration de conteneurs ». C’est de l’alignement, pas du bourrage. Le recruteur qui lit ensuite ne te pénalisera pas d’avoir repris le vocabulaire du poste.',
       },
       {
         n: '03',
@@ -311,7 +311,7 @@ const COPY: Record<Locale, Copy> = {
         n: '04',
         title: 'Quantifie l’impact dans chaque puce',
         body:
-          'Les chiffres ancrent la puce dans le réel. Sans eux, chaque puce passe pour une affirmation vague. Latence, échelle, débit, euros économisés, utilisateurs servis, fréquence de déploiement — prends celui qui est honnête et concret.',
+          'Les chiffres ancrent la puce dans le réel. Sans eux, chaque puce passe pour une affirmation vague. Latence, échelle, débit, euros économisés, utilisateurs servis, fréquence de déploiement : prends celui qui est honnête et concret.',
         example: {
           before: 'Amélioré significativement les performances du système.',
           after:
@@ -320,9 +320,9 @@ const COPY: Record<Locale, Copy> = {
       },
       {
         n: '05',
-        title: 'Mets ton lien GitHub dans l’en-tête — et nettoie-le d’abord',
+        title: 'Mets ton lien GitHub dans l’en-tête, et nettoie-le d’abord',
         body:
-          'Le manager va ouvrir ton GitHub. Quelques repos vides, aucun README, aucune activité récente — tout ça te dessert plus que de ne pas mettre GitHub du tout. Épingle 3 à 4 repos solides, écris un vrai README pour chacun, et assure-toi que les langages correspondent à ce que ton CV affirme.',
+          'Le manager va ouvrir ton GitHub. Quelques repos vides, aucun README, aucune activité récente : tout ça te dessert plus que de ne pas mettre GitHub du tout. Épingle 3 à 4 repos solides, écris un vrai README pour chacun, et assure-toi que les langages correspondent à ce que ton CV affirme.',
       },
       {
         n: '06',
@@ -334,7 +334,7 @@ const COPY: Record<Locale, Copy> = {
         n: '07',
         title: 'Une page jusqu’à plus de 10 ans d’expérience',
         body:
-          'Deux pages avec moins de 10 ans d’expérience, ça se lit comme gonflé. Le manager survole — chaque ligne doit signaler quelque chose. Coupe tout ce qui ne montre ni ownership, ni impact, ni techno pertinente.',
+          'Deux pages avec moins de 10 ans d’expérience, ça se lit comme gonflé. Le manager survole, donc chaque ligne doit signaler quelque chose. Coupe tout ce qui ne montre ni ownership, ni impact, ni techno pertinente.',
       },
       {
         n: '08',
@@ -358,7 +358,7 @@ const COPY: Record<Locale, Copy> = {
         n: '11',
         title: 'Aligne tes signaux de séniorité sur le niveau du poste',
         body:
-          'Un CV senior qui se lit junior perd face à un pair clairement senior. « J’ai pris en charge et livré » contre « J’ai aidé à construire », ça se lit à deux niveaux d’écart. Audite chaque puce pour le verbe. Si tu as mené le travail, dis-le. Si tu l’as soutenu, ne surenchéris pas — mais ne te sous-vends pas non plus.',
+          'Un CV senior qui se lit junior perd face à un pair clairement senior. « J’ai pris en charge et livré » contre « J’ai aidé à construire », ça se lit à deux niveaux d’écart. Audite chaque puce pour le verbe. Si tu as mené le travail, dis-le. Si tu l’as soutenu, ne surenchéris pas, mais ne te sous-vends pas non plus.',
       },
       {
         n: '12',
@@ -476,7 +476,7 @@ export default async function SoftwareEngineerResumeTipsPage({
             <ul className="space-y-2 text-[14px] text-rc-muted leading-[1.7]">
               {c.tldrItems.map((item) => (
                 <li key={item.label}>
-                  <strong className="text-rc-text">{item.label}</strong> — {item.body}
+                  <strong className="text-rc-text">{item.label}</strong>: {item.body}
                 </li>
               ))}
             </ul>

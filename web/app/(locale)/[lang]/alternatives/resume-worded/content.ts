@@ -174,7 +174,7 @@ export const contentEn: AlternativesContent = {
   whyReasons: [
     {
       title: 'Pro pricing is not public',
-      text: "Resume Worded does not publish the price of its Pro tier on the marketing site. You have to create an account to see the cost. For a buyer comparing tools, this is a deliberate friction that most competitors avoid - RejectCheck (€19.99/month), Rezi ($29/month or $149 lifetime), Kickresume (€8–24/month), and Jobscan all publish their prices on the marketing page. Opacity is often a signal that the price will feel high when revealed.",
+      text: "Resume Worded does not publish the price of its Pro tier on the marketing site. You have to create an account to see the cost. For a buyer comparing tools, this is a deliberate friction that most competitors avoid - RejectCheck (€19.99/month), Rezi ($29/month or $149 lifetime), Kickresume (€8-24/month), and Jobscan all publish their prices on the marketing page. Opacity is often a signal that the price will feel high when revealed.",
     },
     {
       title: 'No AI interview practice',
@@ -265,7 +265,7 @@ export const contentEn: AlternativesContent = {
     {
       question: 'How much does Resume Worded Pro actually cost?',
       answer:
-        "Resume Worded does not publish Pro pricing on its marketing site as of April 2026. You have to create an account to see the cost. This is a deliberate choice - most competitors publish prices transparently. If pricing transparency matters to you when evaluating tools, RejectCheck (€19.99/month), Jobscan (monthly tier on jobscan.co), Rezi ($29/month or $149 lifetime), and Kickresume (€8–24/month) all list their prices publicly.",
+        "Resume Worded does not publish Pro pricing on its marketing site as of April 2026. You have to create an account to see the cost. This is a deliberate choice - most competitors publish prices transparently. If pricing transparency matters to you when evaluating tools, RejectCheck (€19.99/month), Jobscan (monthly tier on jobscan.co), Rezi ($29/month or $149 lifetime), and Kickresume (€8-24/month) all list their prices publicly.",
     },
     {
       question: 'Why switch from Resume Worded to an alternative?',
@@ -478,7 +478,7 @@ export const contentFr: AlternativesContent = {
   whyReasons: [
     {
       title: "Le prix Pro n'est pas public",
-      text: "Resume Worded ne publie pas le prix de son tier Pro sur le site marketing. Il faut créer un compte pour voir le coût. Pour un acheteur qui compare des outils, c'est une friction délibérée que la plupart des concurrents évitent - RejectCheck (19,99 €/mois), Rezi (29 $/mois ou 149 $ à vie), Kickresume (8–24 €/mois), et Jobscan publient tous leurs prix sur la page marketing. L'opacité est souvent un signal que le prix va sembler élevé une fois révélé.",
+      text: "Resume Worded ne publie pas le prix de son tier Pro sur le site marketing. Il faut créer un compte pour voir le coût. Pour un acheteur qui compare des outils, c'est une friction délibérée que la plupart des concurrents évitent - RejectCheck (19,99 €/mois), Rezi (29 $/mois ou 149 $ à vie), Kickresume (8-24 €/mois), et Jobscan publient tous leurs prix sur la page marketing. L'opacité est souvent un signal que le prix va sembler élevé une fois révélé.",
     },
     {
       title: "Pas d'entretien simulé IA",
@@ -569,7 +569,7 @@ export const contentFr: AlternativesContent = {
     {
       question: 'Combien coûte vraiment Resume Worded Pro ?',
       answer:
-        "Resume Worded ne publie pas le prix Pro sur son site marketing en avril 2026. Il faut créer un compte pour voir le coût. C'est un choix délibéré - la plupart des concurrents publient leurs prix transparents. Si la transparence tarifaire compte pour toi quand tu évalues des outils, RejectCheck (19,99 €/mois), Jobscan (tier mensuel sur jobscan.co), Rezi (29 $/mois ou 149 $ à vie), et Kickresume (8–24 €/mois) listent tous leurs prix publiquement.",
+        "Resume Worded ne publie pas le prix Pro sur son site marketing en avril 2026. Il faut créer un compte pour voir le coût. C'est un choix délibéré - la plupart des concurrents publient leurs prix transparents. Si la transparence tarifaire compte pour toi quand tu évalues des outils, RejectCheck (19,99 €/mois), Jobscan (tier mensuel sur jobscan.co), Rezi (29 $/mois ou 149 $ à vie), et Kickresume (8-24 €/mois) listent tous leurs prix publiquement.",
     },
     {
       question: 'Pourquoi quitter Resume Worded pour une alternative ?',

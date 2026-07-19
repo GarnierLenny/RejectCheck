@@ -74,7 +74,7 @@ export function ConsistencyTab({
             </div>
             <p className="text-[14.5px] text-rc-muted leading-relaxed">
               Recruiters cross-check candidates across sources in seconds. Yours
-              tell the same story — that&apos;s a real signal of credibility.
+              tell the same story, that&apos;s a real signal of credibility.
             </p>
           </div>
         </div>
@@ -146,7 +146,7 @@ export function ConsistencyTab({
 
       <div>
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-rc-hint mb-3">
-          Divergences — detail
+          Divergences: detail
         </div>
         <div className="border border-rc-border rounded-lg overflow-hidden bg-rc-surface">
           {sorted.map((inc, i) => (

@@ -73,7 +73,7 @@ export function ScoreCard({ challenge, result }: Props) {
   }));
 
   const chartData = result.stats.scoreDistribution.map((count, i) => ({
-    bucket: `${i * 10}${i === 9 ? "–100" : `–${i * 10 + 9}`}`,
+    bucket: `${i * 10}${i === 9 ? "-100" : `-${i * 10 + 9}`}`,
     count,
     highlight: Math.floor(result.score / 10) === (i === 9 && result.score === 100 ? 10 : i),
   }));

@@ -42,12 +42,12 @@ const COPY: Record<Locale, Copy> = {
     h1Em: 'not just the keywords',
     h1Post: '.',
     heroSub:
-      'Practical, no-fluff guides on the things that actually get developers rejected — and exactly how to fix them.',
+      'Practical, no-fluff guides on the things that actually get developers rejected, and exactly how to fix them.',
     guides: [
       {
         slug: 'how-to-pass-ats',
         label: 'ATS · 12 min',
-        title: 'How to Pass ATS in 2026 — A Developer’s Guide',
+        title: 'How to Pass ATS in 2026: A Developer’s Guide',
         description:
           'How ATS works, the format traps that break parsing, and the keyword + structure rules that get your CV through to a human.',
       },
@@ -56,7 +56,7 @@ const COPY: Record<Locale, Copy> = {
         label: 'Rejection · 10 min',
         title: 'Why Developers Get Rejected (2026)',
         description:
-          'The three filters between Submit and the interview — ATS, the 6-second HR scan, and the hiring manager review — plus 9 red flags and how to iterate.',
+          'The three filters between Submit and the interview (ATS, the 6-second HR scan, and the hiring manager review), plus 9 red flags and how to iterate.',
       },
       {
         slug: 'software-engineer-resume-tips',
@@ -78,12 +78,12 @@ const COPY: Record<Locale, Copy> = {
     h1Em: 'pas seulement les mots-clés',
     h1Post: '.',
     heroSub:
-      'Des guides concrets et sans blabla sur ce qui fait vraiment rejeter les développeurs — et exactement comment y remédier.',
+      'Des guides concrets et sans blabla sur ce qui fait vraiment rejeter les développeurs, et exactement comment y remédier.',
     guides: [
       {
         slug: 'how-to-pass-ats',
         label: 'ATS · 12 min',
-        title: 'Comment passer l’ATS en 2026 — le guide du développeur',
+        title: 'Comment passer l’ATS en 2026 : le guide du développeur',
         description:
           'Comment fonctionne l’ATS, les pièges de mise en forme qui cassent la lecture automatique, et les règles de mots-clés et de structure qui font arriver ton CV jusqu’à un humain.',
       },
@@ -92,7 +92,7 @@ const COPY: Record<Locale, Copy> = {
         label: 'Rejet · 10 min',
         title: 'Pourquoi les développeurs sont rejetés (2026)',
         description:
-          'Les trois filtres entre « Envoyer » et l’entretien — l’ATS, le scan RH de 6 secondes et la relecture du manager — plus 9 signaux d’alerte et comment itérer.',
+          'Les trois filtres entre « Envoyer » et l’entretien (l’ATS, le scan RH de 6 secondes et la relecture du manager), plus 9 signaux d’alerte et comment itérer.',
       },
       {
         slug: 'software-engineer-resume-tips',

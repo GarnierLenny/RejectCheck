@@ -67,7 +67,7 @@ export default function LoadingDebugPage() {
       <div className="fixed top-4 left-4 z-50 bg-black/80 text-white p-4 rounded-xl font-mono text-[10px] space-y-2 border border-white/10 max-w-[260px]">
         <p className="text-rc-green font-bold">DEBUG: LOADING SCREEN (v2)</p>
         <p>
-          Step: <span className="text-rc-red">{errored ? "error" : step ?? "—"}</span>
+          Step: <span className="text-rc-red">{errored ? "error" : step ?? "-"}</span>
         </p>
         <div className="flex flex-wrap gap-2">
           <Toggle on={hasGithub} label="GitHub" onClick={() => { setHasGithub((v) => !v); setRun((r) => r + 1); }} />

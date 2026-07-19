@@ -78,64 +78,64 @@ const COPY: Record<Locale, Copy> = {
     eyebrow: 'Deep CV Review · Optimised for devs. Works for any role.',
     h1Pre: 'Not a CV score.',
     h1Em: 'A real CV review',
-    h1Post: '— the one a hiring manager would write.',
+    h1Post: 'as a hiring manager would write it.',
     heroSub:
-      'A score tells you something is broken. A review tells you what to change, line by line. Tone, seniority phrasing, narrative coherence, GitHub coherence — read like a debrief, not a checklist.',
+      'A score tells you something is broken. A review tells you what to change, line by line. Tone, seniority phrasing, narrative coherence, GitHub coherence: it reads like a debrief, not a checklist.',
     heroCta: 'Get my CV reviewed free',
     heroReassure: 'Anchored to a specific role · Plain-English critique',
     diffEyebrow: 'The difference',
     diffH2: 'An ATS score and a CV review answer different questions.',
     diffBody:
-      'Both are useful. They are not interchangeable. If you have already passed an ATS check and still keep getting silence, the gap is at the next layer — narrative and signaling — and a score will not surface it.',
+      'Both are useful. They are not interchangeable. If you have already passed an ATS check and still keep getting silence, the gap is at the next layer, narrative and signaling, and a score will not surface it.',
     scoreLabel: 'ATS / Resume score',
     scoreH3: 'Did the machine pass me?',
     scoreItems: [
-      '— Match percentage vs JD keywords',
-      '— Format and parsing flags',
-      '— Missing keywords with point values',
-      '— Output: a number + a fix list',
+      'Match percentage vs JD keywords',
+      'Format and parsing flags',
+      'Missing keywords with point values',
+      'Output: a number + a fix list',
     ],
     scoreFootPre: 'Right tool when you want a quick pass/fail before submitting. ',
     scoreFootLink: 'Use the resume checker →',
     reviewLabel: 'Deep CV review',
     reviewH3: 'Why is this not landing interviews?',
     reviewItems: [
-      '— Tone and seniority signaling per bullet',
-      '— Narrative coherence across sections',
-      '— GitHub vs CV vs LinkedIn cross-check',
-      '— Output: a written debrief + before/after rewrites',
+      'Tone and seniority signaling per bullet',
+      'Narrative coherence across sections',
+      'GitHub vs CV vs LinkedIn cross-check',
+      'Output: a written debrief + before/after rewrites',
     ],
     reviewFoot: 'Right tool when the score is fine but you still get silence.',
     lensEyebrow: 'What the review actually looks at',
     lensH2: 'Five lenses. Each one is what a different reader weighs.',
     lenses: [
       {
-        label: 'Tone — does this read at the right level?',
+        label: 'Tone: does this read at the right level?',
         body:
           'Active vs passive voice, ownership claims, level of abstraction. "Helped build" reads two levels below "owned and shipped". The review surfaces every bullet where the verb undersells the work.',
       },
       {
-        label: 'Narrative — does the story hold together?',
+        label: 'Narrative: does the story hold together?',
         body:
           'Job changes, promotions, tenure, gaps. Does the trajectory make sense? Are there silent reversals (senior title, then junior title) that need addressing? A coherent story reduces uncertainty for the reader.',
       },
       {
-        label: 'Signal — does GitHub back the CV?',
+        label: 'Signal: does GitHub back the CV?',
         body:
           'If your CV claims production-level Kubernetes, your GitHub should not show only React tutorials. The review cross-references commit history, language distribution, and project relevance against your stated stack.',
       },
       {
-        label: 'Positioning — are you the right candidate for this role?',
+        label: 'Positioning: are you the right candidate for this role?',
         body:
           'Anchored to the job description you provide. Where you are clearly aligned, where you over-pitch, where you under-pitch. Specific feedback per role, not a generic CV grade.',
       },
       {
-        label: 'Specificity — are bullets concrete?',
+        label: 'Specificity: are bullets concrete?',
         body:
           'Generic bullets ("worked with cross-functional teams", "improved system performance") read as filler. The review flags vague claims and rewrites the worst offenders with concrete numbers and verbs.',
       },
       {
-        label: 'Consistency — CV ↔ LinkedIn ↔ GitHub',
+        label: 'Consistency: CV ↔ LinkedIn ↔ GitHub',
         body:
           'Title differences, overlapping dates, claimed years of experience versus graduation year, recommendations that contradict the CV. Each inconsistency reduces trust by a measurable amount.',
       },
@@ -157,23 +157,23 @@ const COPY: Record<Locale, Copy> = {
         n: '02',
         title: 'Before / after rewrites for high-impact bullets',
         body:
-          'For the 3-5 weakest bullets, you get a concrete suggested rewrite — same content, stronger phrasing. Side-by-side so you can see what changed and why.',
+          'For the 3-5 weakest bullets, you get a concrete suggested rewrite: same content, stronger phrasing. Side-by-side so you can see what changed and why.',
       },
       {
         n: '03',
         title: 'Priority-ordered fix list',
         body:
-          'Every finding ranked by impact on this specific role. Apply the top 3 first. This is not a 40-item generic checklist — it is the few changes that actually move the application.',
+          'Every finding ranked by impact on this specific role. Apply the top 3 first. This is not a 40-item generic checklist: it is the few changes that actually move the application.',
       },
       {
         n: '04',
         title: 'Cross-application coherence call-out',
         body:
-          'If your GitHub or LinkedIn weakens or contradicts the CV story, you get a clear, named flag — with the exact item that triggers it. Most candidates never see these because they only review the CV in isolation.',
+          'If your GitHub or LinkedIn weakens or contradicts the CV story, you get a clear, named flag, with the exact item that triggers it. Most candidates never see these because they only review the CV in isolation.',
       },
     ],
     faqEyebrow: 'FAQ',
-    faqH2: 'Deep CV review — what developers ask',
+    faqH2: 'Deep CV review: what developers ask',
     faqItems: [
       {
         question: 'What is a CV review and how is it different from a CV check?',
@@ -183,12 +183,12 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Is the review written in plain English or just structured scores?',
         answer:
-          'Plain English. Each finding is phrased the way a senior hiring manager would write it in a one-on-one debrief: what stood out, what raised doubt, what to change first. Where useful, you get before/after rewrites of specific bullets — not just labels like "weak verb".',
+          'Plain English. Each finding is phrased the way a senior hiring manager would write it in a one-on-one debrief: what stood out, what raised doubt, what to change first. Where useful, you get before/after rewrites of specific bullets, not just labels like "weak verb".',
       },
       {
         question: 'Does the review look at GitHub and LinkedIn?',
         answer:
-          'Yes. The review treats your CV, GitHub, and LinkedIn as one application. Inconsistencies between them — title differences, claimed skills with no commit history, projects on the CV that no longer exist on GitHub — are flagged with the same weight a recruiter or hiring manager would give them.',
+          'Yes. The review treats your CV, GitHub, and LinkedIn as one application. Inconsistencies between them (title differences, claimed skills with no commit history, projects on the CV that no longer exist on GitHub) are flagged with the same weight a recruiter or hiring manager would give them.',
       },
       {
         question: 'How is the review tailored to a specific role?',
@@ -203,13 +203,13 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'Will the review rewrite my CV or just critique it?',
         answer:
-          'The free deep review returns the critique with prioritized fixes and example rewrites for the highest-impact bullets. A full surgical rewrite (with all fixes applied and a clean PDF export) is a premium feature — but the diagnosis itself is free, and you can apply the fixes manually.',
+          'The free deep review returns the critique with prioritized fixes and example rewrites for the highest-impact bullets. A full surgical rewrite (with all fixes applied and a clean PDF export) is a premium feature, but the diagnosis itself is free, and you can apply the fixes manually.',
       },
     ],
     ctaH2: 'Stop guessing why your CV is not landing. Get the critique.',
     ctaSub: 'Anchored to one role. Plain-English. Before/after rewrites included.',
     ctaBtn: 'Get my CV reviewed free',
-    footerCopy: '© RejectCheck — Optimised for developers',
+    footerCopy: '© RejectCheck · Optimised for developers',
     footerSeCv: 'SE CV Guide',
     footerResumeChecker: 'Resume Checker',
     footerAtsChecker: 'ATS Checker',
@@ -225,64 +225,64 @@ const COPY: Record<Locale, Copy> = {
     eyebrow: 'Revue de CV approfondie · Optimisée pour les devs. Marche pour tous les métiers.',
     h1Pre: 'Pas un score.',
     h1Em: 'Une vraie revue de CV',
-    h1Post: '— celle qu’un manager écrirait.',
+    h1Post: 'comme un manager l’écrirait.',
     heroSub:
-      'Un score te dit que quelque chose cloche. Une revue te dit quoi changer, ligne par ligne. Ton, formulation de la séniorité, cohérence du récit, cohérence GitHub — ça se lit comme un débrief, pas comme une checklist.',
+      'Un score te dit que quelque chose cloche. Une revue te dit quoi changer, ligne par ligne. Ton, formulation de la séniorité, cohérence du récit, cohérence GitHub : ça se lit comme un débrief, pas comme une checklist.',
     heroCta: 'Faire relire mon CV gratuitement',
     heroReassure: 'Calée sur une offre précise · Critique en français clair',
     diffEyebrow: 'La différence',
     diffH2: 'Un score ATS et une revue de CV répondent à deux questions différentes.',
     diffBody:
-      'Les deux sont utiles. Ils ne sont pas interchangeables. Si tu as déjà passé un test ATS et que tu n’as toujours que du silence, l’écart se situe à la couche suivante — le récit et les signaux — et un score ne le fera jamais ressortir.',
+      'Les deux sont utiles. Ils ne sont pas interchangeables. Si tu as déjà passé un test ATS et que tu n’as toujours que du silence, l’écart se situe à la couche suivante, le récit et les signaux, et un score ne le fera jamais ressortir.',
     scoreLabel: 'Score ATS / CV',
     scoreH3: 'Est-ce que la machine m’a laissé passer ?',
     scoreItems: [
-      '— Pourcentage de correspondance avec les mots-clés de l’offre',
-      '— Alertes de format et de lecture automatique',
-      '— Mots-clés manquants avec leur poids',
-      '— Résultat : un chiffre + une liste de corrections',
+      'Pourcentage de correspondance avec les mots-clés de l’offre',
+      'Alertes de format et de lecture automatique',
+      'Mots-clés manquants avec leur poids',
+      'Résultat : un chiffre + une liste de corrections',
     ],
     scoreFootPre: 'L’outil quand tu veux un oui/non rapide avant d’envoyer. ',
     scoreFootLink: 'Utiliser le checker de CV →',
     reviewLabel: 'Revue de CV approfondie',
     reviewH3: 'Pourquoi ça ne décroche pas d’entretiens ?',
     reviewItems: [
-      '— Ton et signaux de séniorité, ligne par ligne',
-      '— Cohérence du récit d’une section à l’autre',
-      '— Recoupement GitHub vs CV vs LinkedIn',
-      '— Résultat : un débrief écrit + des réécritures avant/après',
+      'Ton et signaux de séniorité, ligne par ligne',
+      'Cohérence du récit d’une section à l’autre',
+      'Recoupement GitHub vs CV vs LinkedIn',
+      'Résultat : un débrief écrit + des réécritures avant/après',
     ],
     reviewFoot: 'L’outil quand le score est bon mais que tu n’as toujours que du silence.',
     lensEyebrow: 'Ce que la revue regarde vraiment',
     lensH2: 'Cinq angles. Chacun correspond à ce qu’un lecteur différent évalue.',
     lenses: [
       {
-        label: 'Ton — est-ce que ça se lit au bon niveau ?',
+        label: 'Ton : est-ce que ça se lit au bon niveau ?',
         body:
           'Voix active ou passive, prise de responsabilité, niveau d’abstraction. « A aidé à construire » se lit deux niveaux en dessous de « a pris en charge et livré ». La revue fait ressortir chaque ligne où le verbe sous-vend le travail.',
       },
       {
-        label: 'Récit — est-ce que l’histoire tient debout ?',
+        label: 'Récit : est-ce que l’histoire tient debout ?',
         body:
           'Changements de poste, promotions, ancienneté, trous. La trajectoire a-t-elle du sens ? Y a-t-il des reculs silencieux (titre senior, puis titre junior) qu’il faut adresser ? Un récit cohérent réduit l’incertitude pour le lecteur.',
       },
       {
-        label: 'Signal — est-ce que GitHub appuie le CV ?',
+        label: 'Signal : est-ce que GitHub appuie le CV ?',
         body:
           'Si ton CV annonce du Kubernetes en production, ton GitHub ne devrait pas montrer que des tutos React. La revue recoupe l’historique des commits, la répartition des langages et la pertinence des projets avec la stack que tu affiches.',
       },
       {
-        label: 'Positionnement — es-tu le bon candidat pour cette offre ?',
+        label: 'Positionnement : es-tu le bon candidat pour cette offre ?',
         body:
           'Calée sur l’offre d’emploi que tu fournis. Où tu es clairement aligné, où tu te survends, où tu te sous-vends. Un retour précis pour cette offre, pas une note de CV générique.',
       },
       {
-        label: 'Précision — tes lignes sont-elles concrètes ?',
+        label: 'Précision : tes lignes sont-elles concrètes ?',
         body:
           'Les lignes génériques (« travail avec des équipes pluridisciplinaires », « amélioration des performances du système ») se lisent comme du remplissage. La revue signale les formulations vagues et réécrit les pires avec des chiffres et des verbes concrets.',
       },
       {
-        label: 'Cohérence — CV ↔ LinkedIn ↔ GitHub',
+        label: 'Cohérence : CV ↔ LinkedIn ↔ GitHub',
         body:
           'Différences d’intitulés, dates qui se chevauchent, années d’expérience affichées face à l’année de diplôme, recommandations qui contredisent le CV. Chaque incohérence fait baisser la confiance d’un cran mesurable.',
       },
@@ -304,23 +304,23 @@ const COPY: Record<Locale, Copy> = {
         n: '02',
         title: 'Réécritures avant / après des lignes à fort impact',
         body:
-          'Pour les 3 à 5 lignes les plus faibles, tu reçois une réécriture concrète — même contenu, formulation plus forte. Côte à côte, pour voir ce qui change et pourquoi.',
+          'Pour les 3 à 5 lignes les plus faibles, tu reçois une réécriture concrète : même contenu, formulation plus forte. Côte à côte, pour voir ce qui change et pourquoi.',
       },
       {
         n: '03',
         title: 'Liste de corrections classée par priorité',
         body:
-          'Chaque point classé par impact sur cette offre précise. Applique les 3 premiers d’abord. Ce n’est pas une checklist générique de 40 lignes — ce sont les quelques changements qui font vraiment bouger la candidature.',
+          'Chaque point classé par impact sur cette offre précise. Applique les 3 premiers d’abord. Ce n’est pas une checklist générique de 40 lignes : ce sont les quelques changements qui font vraiment bouger la candidature.',
       },
       {
         n: '04',
         title: 'Alerte de cohérence entre tes supports',
         body:
-          'Si ton GitHub ou ton LinkedIn affaiblit ou contredit le récit du CV, tu reçois une alerte claire et nommée — avec l’élément exact qui la déclenche. La plupart des candidats ne les voient jamais parce qu’ils relisent leur CV en isolation.',
+          'Si ton GitHub ou ton LinkedIn affaiblit ou contredit le récit du CV, tu reçois une alerte claire et nommée, avec l’élément exact qui la déclenche. La plupart des candidats ne les voient jamais parce qu’ils relisent leur CV en isolation.',
       },
     ],
     faqEyebrow: 'FAQ',
-    faqH2: 'Revue de CV approfondie — ce que les devs demandent',
+    faqH2: 'Revue de CV approfondie : ce que les devs demandent',
     faqItems: [
       {
         question: 'C’est quoi une revue de CV et en quoi elle diffère d’un test de CV ?',
@@ -330,12 +330,12 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'La revue est-elle en français clair ou juste des scores structurés ?',
         answer:
-          'En français clair. Chaque point est formulé comme un manager senior l’écrirait dans un débrief en tête-à-tête : ce qui ressort, ce qui sème le doute, ce qu’il faut changer en premier. Quand c’est utile, tu reçois des réécritures avant/après de lignes précises — pas juste des étiquettes du genre « verbe faible ».',
+          'En français clair. Chaque point est formulé comme un manager senior l’écrirait dans un débrief en tête-à-tête : ce qui ressort, ce qui sème le doute, ce qu’il faut changer en premier. Quand c’est utile, tu reçois des réécritures avant/après de lignes précises, pas juste des étiquettes du genre « verbe faible ».',
       },
       {
         question: 'La revue regarde-t-elle GitHub et LinkedIn ?',
         answer:
-          'Oui. La revue traite ton CV, ton GitHub et ton LinkedIn comme une seule candidature. Les incohérences entre eux — différences d’intitulés, compétences revendiquées sans historique de commits, projets sur le CV qui n’existent plus sur GitHub — sont signalées avec le même poids qu’un recruteur ou un manager leur donnerait.',
+          'Oui. La revue traite ton CV, ton GitHub et ton LinkedIn comme une seule candidature. Les incohérences entre eux (différences d’intitulés, compétences revendiquées sans historique de commits, projets sur le CV qui n’existent plus sur GitHub) sont signalées avec le même poids qu’un recruteur ou un manager leur donnerait.',
       },
       {
         question: 'Comment la revue est-elle calée sur une offre précise ?',
@@ -350,13 +350,13 @@ const COPY: Record<Locale, Copy> = {
       {
         question: 'La revue va-t-elle réécrire mon CV ou juste le critiquer ?',
         answer:
-          'La revue approfondie gratuite te renvoie la critique avec des corrections priorisées et des exemples de réécriture pour les lignes à plus fort impact. La réécriture complète au scalpel (avec toutes les corrections appliquées et un export PDF propre) est une fonctionnalité premium — mais le diagnostic lui-même est gratuit, et tu peux appliquer les corrections à la main.',
+          'La revue approfondie gratuite te renvoie la critique avec des corrections priorisées et des exemples de réécriture pour les lignes à plus fort impact. La réécriture complète au scalpel (avec toutes les corrections appliquées et un export PDF propre) est une fonctionnalité premium, mais le diagnostic lui-même est gratuit, et tu peux appliquer les corrections à la main.',
       },
     ],
     ctaH2: 'Arrête de deviner pourquoi ton CV ne décroche rien. Reçois la critique.',
     ctaSub: 'Calée sur une offre. En français clair. Réécritures avant/après incluses.',
     ctaBtn: 'Faire relire mon CV gratuitement',
-    footerCopy: '© RejectCheck — Optimisé pour les développeurs',
+    footerCopy: '© RejectCheck · Optimisé pour les développeurs',
     footerSeCv: 'Guide CV ingénieur logiciel',
     footerResumeChecker: 'Checker de CV',
     footerAtsChecker: 'Checker ATS',

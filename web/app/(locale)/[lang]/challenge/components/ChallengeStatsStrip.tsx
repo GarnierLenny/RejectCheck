@@ -39,7 +39,7 @@ export function ChallengeStatsStrip({ streak, completions }: Props) {
       )}
       <div className="ch-stat">
         <span className="ch-stat__label">{ui.devsToday}</span>
-        <span className="ch-stat__value">{completions ?? "—"}</span>
+        <span className="ch-stat__value">{completions ?? "-"}</span>
         {completions !== undefined && completions === 0 && (
           <span className="ch-stat__sub">{ui.noCompletionsYet}</span>
         )}
@@ -56,7 +56,7 @@ export function ChallengeStatsStrip({ streak, completions }: Props) {
                 </span>
               </>
             ) : (
-              "—"
+              "-"
             )}
           </span>
           {xp && xp.totalUsers > 0 && xp.rank > 0 && (
@@ -73,7 +73,7 @@ export function ChallengeStatsStrip({ streak, completions }: Props) {
         <div className="ch-stat">
           <span className="ch-stat__label">{ui.xpTotalLabel}</span>
           <span className="ch-stat__value">
-            {xp ? xp.totalXp.toLocaleString() : "—"}
+            {xp ? xp.totalXp.toLocaleString() : "-"}
           </span>
           {xp && <span className="ch-stat__sub">{xpToNextLabel}</span>}
         </div>

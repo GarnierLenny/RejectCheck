@@ -376,7 +376,7 @@ function PricingContent() {
           <span>Cancel anytime</span>
           <span className="w-1 h-1 rounded-full bg-rc-border" />
           <span>
-            Hired? <strong className="text-rc-muted font-semibold">We&apos;ll refund your last month</strong> — once, within 30 days, on proof of hire.
+            Hired? <strong className="text-rc-muted font-semibold">We&apos;ll refund your last month</strong>, once, within 30 days, on proof of hire.
           </span>
         </div>
 

@@ -110,7 +110,7 @@ export function AuthHero() {
           <div className="rc-auth-signals">
             {signals.map((s) => (
               <div key={s.delay} className={`rc-auth-signal rc-auth-anim ${s.delay}`}>
-                <span className="dash">—</span>
+                <span className="dash">-</span>
                 <span>{s.txt}</span>
               </div>
             ))}

@@ -87,9 +87,9 @@ function CreditsContent() {
                 {/* Big number */}
                 <div className="flex items-baseline gap-2">
                   <span className={`font-serif text-[80px] font-medium leading-none tracking-tight ${isLow ? "text-rc-red" : "text-rc-text"}`}>
-                    {monthlyRemaining ?? "—"}
+                    {monthlyRemaining ?? "-"}
                   </span>
-                  <span className="font-serif text-[36px] font-normal leading-none text-rc-hint">/ {quota?.monthlyCap ?? "—"}</span>
+                  <span className="font-serif text-[36px] font-normal leading-none text-rc-hint">/ {quota?.monthlyCap ?? "-"}</span>
                 </div>
 
                 {/* Reset info */}

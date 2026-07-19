@@ -26,7 +26,7 @@ const components: Components = {
   ol: ({ children }) => <ol style={{ marginBottom: 4, paddingLeft: 16 }}>{children}</ol>,
   li: ({ children }) => (
     <li style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12, color: "var(--rc-muted)", lineHeight: 1.65, marginBottom: 2, ...SANS }}>
-      <span style={{ color: "var(--rc-red)", marginTop: 1, flexShrink: 0 }}>–</span>
+      <span style={{ color: "var(--rc-red)", marginTop: 1, flexShrink: 0 }}>-</span>
       <span>{children}</span>
     </li>
   ),

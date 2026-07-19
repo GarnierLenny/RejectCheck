@@ -802,7 +802,7 @@ function AnalyzeContent() {
     const base = `${window.location.origin}${localePath(`/share/${token}`)}`;
     setShareToken(token);
     setShareUrl(`${base}?utm_source=rejectcheck&utm_medium=share_card&utm_campaign=audit`);
-    toast.success(t.toasts?.shareLinkReady ?? "Public link ready — copy it below.");
+    toast.success(t.toasts?.shareLinkReady ?? "Public link ready, copy it below.");
   }
 
   async function shareAnalysis() {
@@ -1143,7 +1143,7 @@ function AnalyzeContent() {
                       onChange={(e) => setAuditMode(e.target.checked)}
                       className="accent-rc-red"
                     />
-                    Audit mode — lean teaser + public link (no quota, no portfolio)
+                    Audit mode: lean teaser + public link (no quota, no portfolio)
                   </label>
                 )}
                 <UploadForm

@@ -45,7 +45,7 @@ export const organizationSchema: JsonLdSchema = {
   url: SITE_URL,
   logo: `${SITE_URL}/RejectCheck_white.png`,
   description:
-    'RejectCheck is an AI CV checker that shows you why your application gets rejected — ATS simulation, GitHub/LinkedIn signal audit, skill-gap radar and red-flag detection against a specific job, in under 60 seconds. First analysis free, no signup. Optimised for developers, works for any role.',
+    'RejectCheck is an AI CV checker that shows you why your application gets rejected: ATS simulation, GitHub/LinkedIn signal audit, skill-gap radar and red-flag detection against a specific job, in under 60 seconds. First analysis free, no signup. Optimised for developers, works for any role.',
   email: 'support@rejectcheck.com',
   sameAs: [
     'https://www.producthunt.com/products/rejectcheck',
@@ -84,8 +84,8 @@ export const websiteSchema: JsonLdSchema = {
 export function softwareApplicationSchema(locale: 'en' | 'fr'): JsonLdSchema {
   const description =
     locale === 'fr'
-      ? "RejectCheck est un outil IA qui montre pourquoi une candidature est rejetée — simulation ATS, audit des signaux GitHub/LinkedIn, radar des lacunes et détection de signaux d'alerte face à une offre précise, en moins de 60 secondes. Première analyse gratuite, sans inscription. Optimisé pour les développeurs, fonctionne pour tous les métiers."
-      : 'RejectCheck is an AI CV checker that shows you why your application gets rejected — ATS simulation, GitHub/LinkedIn signal audit, skill-gap radar and red-flag detection against a specific job, in under 60 seconds. First analysis free, no signup. Optimised for developers, works for any role.'
+      ? "RejectCheck est un outil IA qui montre pourquoi une candidature est rejetée : simulation ATS, audit des signaux GitHub/LinkedIn, radar des lacunes et détection de signaux d'alerte face à une offre précise, en moins de 60 secondes. Première analyse gratuite, sans inscription. Optimisé pour les développeurs, fonctionne pour tous les métiers."
+      : 'RejectCheck is an AI CV checker that shows you why your application gets rejected: ATS simulation, GitHub/LinkedIn signal audit, skill-gap radar and red-flag detection against a specific job, in under 60 seconds. First analysis free, no signup. Optimised for developers, works for any role.'
 
   return {
     '@context': 'https://schema.org',

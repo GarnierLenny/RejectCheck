@@ -24,7 +24,7 @@ export function ChallengeAnalysisCard({ analysis }: Props) {
     const language = analysis.cta?.language ?? "TypeScript";
     const message =
       analysis.cta?.message ??
-      `Do daily ${language} challenges for a month — concrete proof of code-review fluency goes further than any line on a CV.`;
+      `Do daily ${language} challenges for a month: concrete proof of code-review fluency goes further than any line on a CV.`;
     return (
       <div className="bg-gradient-to-br from-rc-red/10 to-rc-amber/5 border border-rc-red/30 rounded-xl p-6 mb-6">
         <div className="flex items-start gap-4">

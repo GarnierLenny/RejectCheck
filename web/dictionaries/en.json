@@ -549,7 +549,7 @@
       "hint": "The more complete, the more precise the diagnosis.",
       "warnings": {
         "tooShort": "Job description seems too short for a reliable analysis",
-        "tooLong": "Job description is too long — text past the 8 000 character limit will be ignored",
+        "tooLong": "Job description is too long: text past the 8 000 character limit will be ignored",
         "invalidContent": "This doesn't look like a job description",
         "promptInjection": "Invalid content detected",
         "invertedFields": "This looks like a CV, not a job description"
@@ -571,8 +571,8 @@
       "hint": "case studies · process · craft",
       "placeholder": "your-domain.com",
       "precision": "+precision",
-      "pingOk": "URL reachable — the site responds correctly.",
-      "pingError": "URL unreachable — check the address."
+      "pingOk": "URL reachable: the site responds correctly.",
+      "pingError": "URL unreachable: check the address."
     },
     "pills": {
       "recommended": "Recommended",
@@ -669,7 +669,7 @@
         "jobPlaceholder": "Paste the posting: title, must-haves, nice-to-haves, salary if shown...",
         "pasteUrl": "Paste a URL instead",
         "clear": "Clear",
-        "jobHint": "Add it to compare your CV against this role — or paste a post with no CV to just vet the offer for scams & red flags."
+        "jobHint": "Add it to compare your CV against this role, or paste a post with no CV to just vet the offer for scams & red flags."
       },
       "ghost": {
         "addCv": "Add your CV",
@@ -725,7 +725,7 @@
   "loadingScreen": {
     "eyebrow": "Diagnostic",
     "title": "Analysis in progress",
-    "subtitle": "Claude is reading your application the way a recruiter would. Keep this page open — it's almost ready.",
+    "subtitle": "Claude is reading your application the way a recruiter would. Keep this page open, it's almost ready.",
     "slowSubtitle": "This is taking a little longer than usual… almost there.",
     "readyTitle": "Diagnostic ready",
     "readySubtitle": "Loading your result…",
@@ -766,7 +766,7 @@
     "footer": "Guest data auto-deleted within 7 days",
     "error": {
       "title": "This is taking longer than expected…",
-      "subtitle": "The analysis didn't respond in time. No credit was used — you can try again.",
+      "subtitle": "The analysis didn't respond in time. No credit was used, you can try again.",
       "eta": "Timeout",
       "retry": "Restart analysis"
     }
@@ -777,7 +777,7 @@
     "bands": { "low": "Low", "mid": "Moderate", "high": "High" },
     "lede": {
       "low": "Few reasons to be passed over.",
-      "mid": "Workable — a few gaps to close first.",
+      "mid": "Workable: a few gaps to close first.",
       "high": "As it stands, this would likely be rejected."
     },
     "contextVsJob": "vs this job",
@@ -936,7 +936,7 @@
     "subtitle": "Your market positioning + tools to negotiate this offer",
     "marketSection": "Market positioning",
     "marketRange": "Market range for this role",
-    "marketDisclaimer": "Estimated general market — not specific to this employer",
+    "marketDisclaimer": "Estimated general market, not specific to this employer",
     "yourRange": "Your estimated range",
     "jdDisclosedTitle": "Salary disclosed in this job posting",
     "jdDisclosedNote": "Extracted directly from the job description text",
@@ -968,7 +968,7 @@
     "errorRetry": "Could not generate. Try again.",
     "premiumBadge": "HIRED Feature",
     "premiumTitle": "Negotiation playbook",
-    "premiumDesc": "Counter-offer email, leverage points, talking points — built from your analysis.",
+    "premiumDesc": "Counter-offer email, leverage points, talking points, all built from your analysis.",
     "unlockButton": "Upgrade to HIRED - 39.99€/month",
     "salaryImpactBadge": "+{glyph}{min}-{max}k/year"
   },
@@ -1348,7 +1348,7 @@
   "resetPassword": {
     "eyebrow": "New password",
     "title": "Set a new password.",
-    "desc": "Choose a strong password — you'll use it to sign in from now on.",
+    "desc": "Choose a strong password: you'll use it to sign in from now on.",
     "newPassword": "New password",
     "confirmPassword": "Confirm password",
     "submit": "Update password",
@@ -1364,7 +1364,7 @@
     "wordmark": "RejectCheck",
     "editorialPre": "See why you get ",
     "editorialAccent": "ghosted",
-    "editorialPost": " — before you apply.",
+    "editorialPost": ", before you apply.",
     "cardLabel": "Rejection risk",
     "tagExample": "example",
     "verdict": "73",
@@ -1383,8 +1383,8 @@
     "eyebrow": "§ Last step",
     "titlePre": "Stop guessing why you get",
     "titleAccent": "ghosted.",
-    "subtitle": "An honest read on your CV — for free. See your rejection risk and the exact reasons in about 30 seconds.",
-    "cta": "Analyze my CV — free",
+    "subtitle": "An honest read on your CV, for free. See your rejection risk and the exact reasons in about 30 seconds.",
+    "cta": "Analyze my CV, free",
     "reassurance": "No credit card · 3 free analyses / month · optimised for devs"
   },
   "dashboardShell": {
@@ -1458,10 +1458,10 @@
   },
   "toasts": {
     "goodProfileTitle": "You've got a great profile for this role!",
-    "goodProfileDesc": "Share your results — it only takes 2 seconds.",
+    "goodProfileDesc": "Share your results, it only takes 2 seconds.",
     "share": "Share",
     "shareLinkFailed": "Couldn't generate the share link.",
-    "shareLinkReady": "Public link ready — copy it below.",
+    "shareLinkReady": "Public link ready: copy it below.",
     "paymentFailed": "Couldn't start the payment. Please try again.",
     "rewriteUnlocked": "Rewrite unlocked for this CV ✅",
     "rewriteSignupPrompt": "Create a free account (30s, no card) to unlock the rewrite.",
@@ -1625,7 +1625,7 @@
       "roleOtherPlaceholder": "e.g. Solutions Architect, Technical Writer…",
       "experienceLabel": "Experience level",
       "experienceHint": "Junior CVs and Senior CVs get rejected for completely different reasons.",
-      "techStackLabel": "Tech stack (1–3)",
+      "techStackLabel": "Tech stack (1-3)",
       "techStackHint": "Only shown for software / data roles.",
       "languagesLabel": "Languages you speak",
       "languagesHint": "Conversational or better. Used to detect language mismatches with the target market.",
@@ -1645,8 +1645,8 @@
       "nameHint": "Your name as it appears on your public profile and in mentions.",
       "usernameLabel": "Username",
       "usernamePlaceholder": "your-handle",
-      "usernameHint": "3–30 chars · letters, digits, _ or - only · case-insensitive",
-      "usernameInvalid": "3–30 chars · letters, digits, _ or - only",
+      "usernameHint": "3-30 chars · letters, digits, _ or - only · case-insensitive",
+      "usernameInvalid": "3-30 chars · letters, digits, _ or - only",
       "usernameTaken": "Username already taken",
       "usernameRateLimited": "You can change your username again on {date}",
       "claimButton": "Claim",
@@ -1933,7 +1933,7 @@
       "minRead": "{minutes} min read",
       "resetsIn": "Resets in {time}",
       "briefSection": "The brief",
-      "briefHelper": "Walk through your review like a PR comment — what's wrong, why it matters, what you'd ship.",
+      "briefHelper": "Walk through your review like a PR comment: what's wrong, why it matters, what you'd ship.",
       "currentStreakLabel": "Current streak",
       "personalBest": "Personal best · {n} days",
       "devsToday": "Devs solved today",
@@ -1982,9 +1982,9 @@
       "fileMetaReadOnly": "read-only",
       "fileMetaLines": "{count} lines",
       "whatToLookForLabel": "What to look for",
-      "whatToLookForEmpty": "No specific watchpoints — read the snippet end-to-end and trust your nose.",
+      "whatToLookForEmpty": "No specific watchpoints: read the snippet end-to-end and trust your nose.",
       "hintsLabel": "Hints",
-      "hintsEmpty": "No hints for this one — you're on your own.",
+      "hintsEmpty": "No hints for this one: you're on your own.",
       "hintItemLabel": "Hint {n}",
       "hintReveal": "Reveal"
     }
@@ -2128,7 +2128,7 @@
       "tiers": [
         {
           "name": "Team",
-          "range": "10–50 seats",
+          "range": "10-50 seats",
           "billing": "Monthly billing",
           "features": [
             "Best for career coaches and small consulting firms",
@@ -2140,7 +2140,7 @@
         },
         {
           "name": "Bootcamp / University",
-          "range": "100–1,000 seats",
+          "range": "100-1,000 seats",
           "billing": "Annual or monthly",
           "features": [
             "Best for coding bootcamps and university career centers",
@@ -2443,7 +2443,7 @@
   "cvReviewTab": {
     "cvAudit": "CV Audit",
     "qualityScores": "Quality Scores",
-    "qualitySubtitle": "Six dimensions scored from 0–100. Overall is a weighted average.",
+    "qualitySubtitle": "Six dimensions scored from 0-100. Overall is a weighted average.",
     "overall": "Overall",
     "clarity": "Clarity",
     "impact": "Impact",
@@ -2467,7 +2467,7 @@
     "fix": "Fix",
     "toneAnalysis": "Writing Tone",
     "toneSubtitle": "Passive writing weakens the recruiter's perception of your impact. Rewrite these with action verbs.",
-    "passiveExamples": "Passive phrases found in your CV — rewrite each with a strong action verb",
+    "passiveExamples": "Passive phrases found in your CV: rewrite each with a strong action verb",
     "seniorityGap": "Seniority Signal",
     "claimed": "Claimed",
     "projected": "Projected",
@@ -2476,11 +2476,11 @@
   "analysisLayout": {
     "parsedCv": {
       "summary": "▸ See what an ATS reads from your PDF",
-      "hint": "This is the plain text an ATS extracts from your file. If it looks garbled or out of order, the recruiter's software sees the same — fix your PDF's structure (avoid tables, columns, headers/footers, and images for text)."
+      "hint": "This is the plain text an ATS extracts from your file. If it looks garbled or out of order, the recruiter's software sees the same, so fix your PDF's structure (avoid tables, columns, headers/footers, and images for text)."
     },
     "heroHeadline": {
       "below": "You're below the line for this one.",
-      "competitive": "Competitive — with a few gaps to close.",
+      "competitive": "Competitive, with a few gaps to close.",
       "strong": "Strong match. Polish and apply."
     },
     "blindSpots": {
@@ -2509,7 +2509,7 @@
       "auditSub": "issues across the document. Each opens with the fix and the time it takes.",
       "severity": "Severity",
       "inYourFavour": "In your favour",
-      "redFlagsSub": "patterns a reviewer spots in the first 8 seconds — before reading a single bullet.",
+      "redFlagsSub": "patterns a reviewer spots in the first 8 seconds, before reading a single bullet.",
       "requirementsSub": "Every required skill from the job description, checked against what your CV actually demonstrates."
     },
     "deepPending": "Writing your fixes, bullet rewrites and bridge project…",
@@ -2607,8 +2607,8 @@
       "clean": "No issues found. Your letter reads as specific and intentional, keep it."
     },
     "match": {
-      "sectionNum": "01 — Skill coverage",
-      "title": "Where you cover the role — and where you don't",
+      "sectionNum": "01 · Skill coverage",
+      "title": "Where you cover the role, and where you don't",
       "subtitle": "The filled shape is you; the dashed outline is the role's target. The ranked list shows what to close first.",
       "chartLabel": "Skill coverage · you vs the role",
       "legendYou": "You",
@@ -2619,7 +2619,7 @@
       "senioritySignals": "● Seniority signals"
     },
     "ats": {
-      "sectionNum": "02 — ATS filter",
+      "sectionNum": "02 · ATS filter",
       "passLikely": "ATS pass likely",
       "rejectionLikely": "ATS rejection likely",
       "cutoffTooltip": "Scores below the cutoff are automatically filtered out by the ATS before a human ever sees your CV.",
@@ -2632,7 +2632,7 @@
       "stillBelow": "still {n} below",
       "simulatorTitle": "Simulator",
       "simulatorSubtitle": "Add these, watch the score climb",
-      "simulatorDesc": "Each is a keyword the JD weights and your CV is missing. Tick to preview the lift — it's reversible.",
+      "simulatorDesc": "Each is a keyword the JD weights and your CV is missing. Tick to preview the lift, it's reversible.",
       "required": "Required",
       "preferred": "Preferred",
       "insertionAmend": "Amend this line",
@@ -2640,7 +2640,7 @@
       "copy": "Copy"
     },
     "cv": {
-      "positioningNum": "01 — Positioning",
+      "positioningNum": "01 · Positioning",
       "positioningTitle": "How your CV reads at a glance",
       "seniorityLabel": "a · Seniority signal",
       "roleExpects": "Role expects",
@@ -2649,15 +2649,15 @@
       "toneVoice": "voice",
       "strong": "strong",
       "weak": "weak",
-      "auditNum": "02 — Forensic audit",
+      "auditNum": "02 · Forensic audit",
       "auditHealthLabel": "CV health"
     },
     "flags": {
-      "redFlagsNum": "03 — Recruiter intuition",
+      "redFlagsNum": "03 · Recruiter intuition",
       "redFlagsTitle": "What a human pauses on",
       "redFlag": "Red flag",
       "recruiterSees": "Recruiter sees",
-      "requirementsNum": "04 — Requirements",
+      "requirementsNum": "04 · Requirements",
       "requirementsTitle": "JD skills, matched to your CV",
       "matched": "matched",
       "matchExact": "exact",
@@ -2669,14 +2669,14 @@
       "label": "The fix",
       "was": "was",
       "now": "now",
-      "startHereIn": "— in"
+      "startHereIn": "in"
     },
     "rewritePaywall": {
       "title": "CV rewrite & cover letter",
       "desc": "Paste-ready rewrites based on exactly what this scan found. Passive bullets made active, ATS keywords injected, seniority signals added.",
       "cta": "Unlock Shortlisted →",
       "note": "Cancel anytime · no commitment",
-      "unlockCta": "Unlock the rewrite — €2.99",
+      "unlockCta": "Unlock the rewrite · €2.99",
       "unlockNote": "One-time · this CV only · no subscription · up to 5 rewrites",
       "unlockOr": "or, for unlimited:"
     },
@@ -2697,25 +2697,25 @@
       "eyebrow": "The rewrite",
       "title": "Your CV,",
       "titleItalic": "rewritten.",
-      "subtitle": "Surgical edits grounded in exactly what this scan flagged — your achievements, sharpened. Nothing invented.",
+      "subtitle": "Surgical edits grounded in exactly what this scan flagged: your achievements, sharpened. Nothing invented.",
       "statPassiveLabel": "Passive bullets",
-      "statPassiveDesc": "Rewritten as active, quantified wins — \"responsible for\" becomes shipped, owned, cut.",
+      "statPassiveDesc": "Rewritten as active, quantified wins: \"responsible for\" becomes shipped, owned, cut.",
       "statAtsLabel": "ATS keywords",
       "statAtsDesc": "Woven naturally into your real experience. Zero keyword stuffing.",
       "statSeniorityLabel": "Seniority signals",
       "statSeniorityDesc": "Scope, ownership and impact added where the scan saw gaps.",
       "statAuditLabel": "Audit fixes",
-      "statAuditDesc": "Structure and clarity corrected — only on the sections flagged.",
+      "statAuditDesc": "Structure and clarity corrected, only on the sections flagged.",
       "previewEyebrow": "A preview of the surgery",
       "previewTitle": "The exact edits, before and after",
-      "previewSubtitle": "Pulled straight from this analysis — these are your lines, reframed.",
+      "previewSubtitle": "Pulled straight from this analysis: these are your lines, reframed.",
       "tagPassive": "Passive → active",
       "tagQuantified": "Quantified impact",
       "was": "was",
       "now": "now",
-      "startHereIn": "— in",
+      "startHereIn": "in",
       "keywordsEyebrow": "Keywords woven in",
-      "keywordsNote": "— placed where the parser expects them, in your own words",
+      "keywordsNote": ", placed where the parser expects them, in your own words",
       "readyLabel": "Your rewritten CV is ready",
       "regenerate": "Regenerate",
       "download": "Download PDF",
@@ -2730,7 +2730,7 @@
       "eyebrow": "The cover letter",
       "title": "Addresses the JD,",
       "titleItalic": "point by point.",
-      "subtitle": "Generated from your analysis — it leans on the requirements you already meet and frames the gaps honestly.",
+      "subtitle": "Generated from your analysis: it leans on the requirements you already meet and frames the gaps honestly.",
       "requirementsTitle": "Requirements it leads with",
       "angleLabel": "Angle",
       "angleJd": "Match the job description",
@@ -2742,7 +2742,7 @@
       "langFr": "Français",
       "generate": "Generate the letter",
       "generating": "Generating…",
-      "error": "Something went wrong — try again.",
+      "error": "Something went wrong, try again.",
       "copy": "Copy",
       "copied": "Copied",
       "exportPdf": "Export PDF",

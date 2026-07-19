@@ -163,7 +163,7 @@ export function RiskMeter({
   }
 
   return (
-    <section aria-label={`${eyebrow}: ${v}${unit} — ${verdictText}`}>
+    <section aria-label={`${eyebrow}: ${v}${unit}, ${verdictText}`}>
       <div className="mb-4 flex items-center gap-2">
         <span className={`h-[6px] w-[6px] rounded-full ${SOLID[colorBand]}`} aria-hidden />
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">

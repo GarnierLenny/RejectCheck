@@ -141,7 +141,7 @@ export function CvRewritePdf({ cvText }: { cvText: string }) {
           if (block.type === "h3") return <Text key={i} style={styles.h3}>{block.text}</Text>;
           if (block.type === "bullet") return (
             <View key={i} style={styles.bulletRow}>
-              <Text style={styles.bulletDash}>–</Text>
+              <Text style={styles.bulletDash}>-</Text>
               <RichText segments={block.segments} style={styles.bulletText} />
             </View>
           );
