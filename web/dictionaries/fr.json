@@ -371,7 +371,8 @@
       "dropLabel": "Déposez votre CV ici",
       "dropItalic": "ou collez un lien d'offre.",
       "dropHint": "PDF ou DOCX jusqu'à 5 Mo · sans inscription pour la première analyse",
-      "dropCta": "Obtenir mon diagnostic →",
+      "dropCta": "Mon diagnostic instantané →",
+      "redditCtaLabel": "Audit complet offert sur",
       "founderSeatsLabel": "places founder restantes"
     },
     "s02": {

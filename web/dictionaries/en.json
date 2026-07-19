@@ -371,7 +371,8 @@
       "dropLabel": "Drop your CV here",
       "dropItalic": "or paste a job link.",
       "dropHint": "PDF or DOCX up to 5MB · no signup required for the first run",
-      "dropCta": "Get my diagnosis →",
+      "dropCta": "Get my instant diagnosis →",
+      "redditCtaLabel": "Free full audit on",
       "founderSeatsLabel": "founder seats left"
     },
     "s02": {

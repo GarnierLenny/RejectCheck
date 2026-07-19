@@ -925,20 +925,50 @@ export default function Home() {
                 <span>{t.landing.s01.subtitleLine3}</span>
                 <span>{t.landing.s01.subtitleLine4}<span style={EMPH}>{t.landing.s01.subtitleEmphasis}</span>.</span>
               </p>
-              <Link
-                href={localePath("/analyze")}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 15,
-                  padding: "13px 26px", borderRadius: 6,
-                  background: "linear-gradient(180deg, #C0392B, #A93226)",
-                  color: "#fff", textDecoration: "none",
-                  boxShadow: "0 10px 28px rgba(192,57,43,0.28)",
-                  marginBottom: 34,
-                }}
-              >
-                {t.landing.s01.dropCta}
-              </Link>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 34 }}>
+                <Link
+                  href={localePath("/analyze")}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 15,
+                    padding: "13px 26px", borderRadius: 6,
+                    background: "linear-gradient(180deg, #C0392B, #A93226)",
+                    color: "#fff", textDecoration: "none",
+                    boxShadow: "0 10px 28px rgba(192,57,43,0.28)",
+                    whiteSpace: "nowrap", flexShrink: 0,
+                  }}
+                >
+                  {t.landing.s01.dropCta}
+                </Link>
+                <a
+                  href="https://www.reddit.com/r/rejectcheck/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    flexWrap: "wrap", rowGap: 2,
+                    fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14,
+                    padding: "13px 20px", borderRadius: 6,
+                    border: "1px solid var(--rc-border)", background: "var(--rc-surface)",
+                    color: "var(--rc-text)", textDecoration: "none",
+                    transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#FF4500";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                    e.currentTarget.style.boxShadow = "0 6px 18px rgba(255,69,0,0.12)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--rc-border)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <span>{t.landing.s01.redditCtaLabel}</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: "#FF4500", letterSpacing: "-0.01em" }}>r/rejectcheck</span>
+                  <span aria-hidden style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)" }}>↗</span>
+                </a>
+              </div>
               {/* Founder scarcity encart — shown only while the deal is live and
                   has seats left; links to the pricing page for the full offer.
                   Wrapped in a block so it drops below the inline-flex CTA. */}
