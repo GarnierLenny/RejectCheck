@@ -72,7 +72,7 @@ export function RadarChart({
   return (
     <div className="flex flex-col md:flex-row gap-10 items-start">
       {/* SVG */}
-      <div className={fluid ? "flex-[4] min-w-0 p-6" : "shrink-0 mx-auto md:mx-0"}>
+      <div className={fluid ? "flex-[5] min-w-0 p-2" : "shrink-0 mx-auto md:mx-0"}>
         {hasExpected && legend && (
           <div className="flex gap-5 mb-4">
             <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export function RadarChart({
       </div>
 
       {/* Evidence list */}
-      {showEvidence && <div className={fluid ? "flex-[6] min-w-0 space-y-3 pt-1" : "flex-1 min-w-0 space-y-3 pt-1"}>
+      {showEvidence && <div className={fluid ? "flex-[5] min-w-0 space-y-3 pt-1" : "flex-1 min-w-0 space-y-3 pt-1"}>
         {evidenceHeader && (
           <div className="mb-4">
             <h4 className="font-mono text-[11px] uppercase tracking-wider text-rc-text font-bold flex items-center gap-1.5 mb-0.5">
