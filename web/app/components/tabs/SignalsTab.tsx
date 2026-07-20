@@ -208,7 +208,7 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin, onHighlig
       </div>
 
       {/* Two-column source cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <SourceCard
           icon={<Github size={14} />}
           label="GitHub"

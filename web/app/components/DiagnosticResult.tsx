@@ -92,14 +92,14 @@ export function DiagnosticResult({
     <div className="h-screen flex flex-col overflow-hidden bg-rc-bg text-rc-text">
 
       {/* ── Topbar ── */}
-      <nav className="flex-shrink-0 z-60 flex items-center justify-between px-8 h-[54px] bg-rc-bg/85 backdrop-blur-sm border-b border-rc-border">
+      <nav className="rc-report-topbar flex-shrink-0 z-60 flex items-center justify-between px-8 h-[54px] bg-rc-bg/85 backdrop-blur-sm border-b border-rc-border">
         <div className="flex items-center gap-5">
           <Link href={localePath("/")} className="flex items-center gap-2.5 no-underline">
             <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={24} height={24} />
-            <span className="font-sans font-semibold text-[14px] text-rc-text">RejectCheck</span>
+            <span className="rc-topbar-wordmark font-sans font-semibold text-[14px] text-rc-text">RejectCheck</span>
           </Link>
           {(role || company) && (
-            <div className="flex items-center gap-2 pl-4 border-l border-rc-border">
+            <div className="rc-topbar-ctx flex items-center gap-2 pl-4 border-l border-rc-border">
               <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-rc-hint">{t.analysisLayout.diagnosis}</span>
               <span className="text-rc-border select-none">·</span>
               <span className="font-sans text-[13px] font-semibold text-rc-text max-w-[280px] truncate">
@@ -109,7 +109,7 @@ export function DiagnosticResult({
           )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className="rc-topbar-actions" style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button style={btn()} onClick={onExportMd}>{t.analysisLayout.exportMd}</button>
           <button style={{ ...btn(), opacity: isExportingPdf ? 0.4 : 1, cursor: isExportingPdf ? "not-allowed" : "pointer" }} onClick={onExportPdf} disabled={isExportingPdf}>
             {isExportingPdf ? t.analysisLayout.exportingPdf : t.analysisLayout.exportPdf}

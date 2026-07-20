@@ -295,7 +295,7 @@ function Compare({ leftLabel, left, rightLabel, right, rightColor }: {
 
 function StrengthPill({ children }: { children: React.ReactNode }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", padding: "5px 10px", borderRadius: R_SM, color: "var(--rc-green)", background: "var(--rc-green-bg)", border: "1px solid var(--rc-green-border)" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, maxWidth: "100%", fontFamily: "var(--font-mono)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", padding: "5px 10px", borderRadius: R_SM, color: "var(--rc-green)", background: "var(--rc-green-bg)", border: "1px solid var(--rc-green-border)" }}>
       <span style={{ width: 6, height: 6, borderRadius: 9999, background: "var(--rc-green)", flexShrink: 0 }} />{children}
     </span>
   );
@@ -1091,7 +1091,7 @@ export function AnalysisLayout({
           </aside>
 
           {/* ── Scrolled report ── */}
-          <main ref={reportRef} style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
+          <main ref={reportRef} className="rc-report-main" style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
 
             {/* The single pass is still streaming the actionable sections. */}
             {deepStatus === "pending" && (
