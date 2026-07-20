@@ -645,8 +645,11 @@ function AnalyzeContent() {
             latestResult = merged;
             return merged;
           });
-          // Flip to the report as soon as the score lands — the rest of the
-          // sections fill their skeletons progressively.
+          // Mark the loading animation done as soon as the score lands, so the
+          // report appears the instant the final shaped payload arrives (no
+          // extra animation wait). The report itself stays gated behind
+          // `resultPending` until that full payload replaces this partial —
+          // rendering it now would dereference an undefined result.audit.
           if (payload.key === "overall") setVisualLoadingDone(true);
         } else if (payload.step === "analysis_done") {
           // Anonymous run: stash the claimToken so it attaches to the account
@@ -1015,11 +1018,21 @@ function AnalyzeContent() {
     !profile?.roleType || TECH_ROLES.includes(profile.roleType);
   const hasGithubVal =
     isTechRole &&
-    (githubUsername.trim().length > 0 || result?.audit.github.score !== null);
-  const hasLinkedinVal = liFile !== null || result?.audit.linkedin.score !== null;
+    (githubUsername.trim().length > 0 || result?.audit?.github?.score != null);
+  const hasLinkedinVal = liFile !== null || result?.audit?.linkedin?.score != null;
   const hasMLVal = mlFile !== null || mlText.trim().length > 0 || (result as any)?.motivationLetter !== undefined;
 
   const isCvReview = !!result?.cv_quality;
+
+  // During progressive SSE streaming the score lands first (mergeSection's
+  // "overall" case) and tags the partial object with __scorePending, long
+  // before the audit + later sections stream in. The vs-JD report tree assumes
+  // a COMPLETE result (result.audit.cv, audit.github/linkedin, hidden_red_flags,
+  // …), so a pending result must stay behind the LoadingScreen. Once the final
+  // shaped payload (analysis_done/done) replaces the partial it drops the flag.
+  // Without this gate the report mounts on a partial result and dereferences an
+  // undefined result.audit → "Cannot read properties of undefined (reading 'cv')".
+  const resultPending = !!(result as { __scorePending?: boolean } | null)?.__scorePending;
 
   const consistencyTab = result?.cross_profile_inconsistencies && result.cross_profile_inconsistencies.length > 0
     ? [{
@@ -1034,7 +1047,7 @@ function AnalyzeContent() {
       }]
     : [];
 
-  const vsJobTabs = result ? ([
+  const vsJobTabs = (result && !resultPending) ? ([
     { id: "overview",     label: t.tabs.skillGap },
     { id: "ats",          label: t.tabs.atsFilter,   badge: result.ats_simulation?.would_pass ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />, badgeClass: result.ats_simulation?.would_pass ? "text-rc-green" : "text-rc-red" },
     { id: "cv-analysis",  label: t.tabs.cvAnalysis,  badge: String(result.audit.cv.issues.length), badgeClass: "text-rc-amber" },
@@ -1052,7 +1065,7 @@ function AnalyzeContent() {
   const tabs = vsJobTabs;
 
   const isFormView = !paywallState && !result && !loading;
-  const showDiagnostic = !!(result && visualLoadingDone && !isCvReview);
+  const showDiagnostic = !!(result && visualLoadingDone && !isCvReview && !resultPending);
   const showCvAudit = !!(result && visualLoadingDone && isCvReview);
 
   return (
@@ -1111,8 +1124,8 @@ function AnalyzeContent() {
         <div className={`mx-auto transition-[max-width,width] duration-500 ${result && visualLoadingDone ? "max-w-[1600px] w-[92%] pt-9 pb-[80px] px-5 md:px-[32px]" : "w-full flex-1 flex flex-col"}`}>
           {paywallState ? (
             <PaywallScreen mode={paywallState.mode} monthlyCap={paywallState.monthlyCap} />
-          ) : (!result || !visualLoadingDone) ? (
-            (loading || (result && !visualLoadingDone)) ? (
+          ) : (!result || !visualLoadingDone || (!isCvReview && resultPending)) ? (
+            (loading || (result && !visualLoadingDone) || (!isCvReview && resultPending)) ? (
               <LoadingScreen
                 currentStep={!loading && result ? "done" : currentStep}
                 streamText={streamText}
