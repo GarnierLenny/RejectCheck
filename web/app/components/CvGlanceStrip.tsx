@@ -24,7 +24,7 @@ const COPY = {
   en: {
     strongBar: "80 = Strong.",
     away: (n: number) =>
-      `You are ${n} point${n === 1 ? "" : "s"} away; the two biggest gains are waiting in § 01.`,
+      `You are ${n} point${n === 1 ? "" : "s"} away; the two biggest gains are waiting in section 01.`,
     congrats: (overall: number) =>
       `You cleared the bar at ${overall}; what remains below is polish, not rescue.`,
     critical: invariant("critical"),
@@ -36,7 +36,7 @@ const COPY = {
   fr: {
     strongBar: "80 = Fort.",
     away: (n: number) =>
-      `Il te manque ${n} point${n === 1 ? "" : "s"} ; les deux plus gros gains t'attendent en § 01.`,
+      `Il te manque ${n} point${n === 1 ? "" : "s"} ; les deux plus gros gains t'attendent dans la section 01.`,
     congrats: (overall: number) =>
       `Barre franchie à ${overall} ; ce qui reste plus bas est du polish, pas du sauvetage.`,
     critical: (n: number) => (n === 1 ? "critique" : "critiques"),

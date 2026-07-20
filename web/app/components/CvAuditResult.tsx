@@ -53,7 +53,7 @@ function qualityLabel(n: number): string {
 // Per-source cards speak the SAME weak/decent/strong language as the hero
 // RiskMeter (weak <40 · decent 40-79 · strong ≥80), so the big score above and
 // the source cards below never read as two contradicting verdicts. Kept separate
-// from qualityColor/qualityLabel, which §02's per-dimension bars anchor at 70.
+// from qualityColor/qualityLabel, which 02's per-dimension bars anchor at 70.
 function sourceVerdictLabel(score: number): string {
   if (score >= 80) return "Strong · good signal";
   if (score >= 40) return "Decent · room to grow";
@@ -137,7 +137,7 @@ function SecNumLine() {
   return <span style={{ width: 28, height: 1, background: "var(--rc-text)", display: "inline-block", flexShrink: 0 }} />;
 }
 
-/** Evidence list for §03 seniority: the concrete signals behind a verdict. */
+/** Evidence list for 03 seniority: the concrete signals behind a verdict. */
 function SenioritySignalList({ accent, kicker, items }: { accent: string; kicker: string; items: string[] }) {
   return (
     <div style={{ border: "1px solid var(--rc-border)", borderRadius: 6, padding: "14px 16px", background: "var(--rc-surface)" }}>
@@ -298,7 +298,7 @@ export function CvAuditResult({
     return (order[a.severity] ?? 2) - (order[b.severity] ?? 2);
   });
 
-  // §01 one move
+  // 01 one move
   const topIssue = mergedIssues.find((i) => i.severity === "critical") ?? mergedIssues[0];
 
   // ── New-report derived data (radar, deep-dive, timeline consistency, glance) ──
@@ -354,7 +354,7 @@ export function CvAuditResult({
     return { cv: map };
   }, [result.bullet_reviews, result.highlight_terms]);
 
-  // §02 quality
+  // 02 quality
   const q = result.cv_quality;
   const qualityDims = q ? [
     { key: "clarity",     label: "Clarity",      score: q.clarity,     desc: result.cv_quality_notes?.clarity     ?? "How easy it is to read your CV in 6 seconds." },
@@ -396,16 +396,16 @@ export function CvAuditResult({
         .join(", ")
     : "";
 
-  // §03 seniority
+  // 03 seniority
   const detectedIdx = seniorityIndex(result.seniority_analysis.detected);
   const expectedIdx = seniorityIndex(result.seniority_analysis.expected);
   const hasGap = detectedIdx !== expectedIdx;
 
-  // §04 cross-source
+  // 04 cross-source
   const inconsistencies = result.cross_profile_inconsistencies ?? [];
 
 
-  // §07 roadmap
+  // 07 roadmap
   type RoadItem = { id: string; title: string; detail?: string; time: string; pts: string; now: boolean };
   const roadmap: RoadItem[] = [];
   mergedIssues.slice(0, 4).forEach((issue, i) => {
@@ -488,19 +488,19 @@ export function CvAuditResult({
 
   const TOPBAR_H = 54;
 
-  // §02 quality badge
+  // 02 quality badge
   const qualityBadgeContent = weakDimsCount === 0 ? "ok" : `${weakDimsCount} weak`;
   const qualityBadgeVariant: "ok" | "warn" | "crit" = weakDimsCount === 0 ? "ok" : weakDimsCount >= 3 ? "crit" : "warn";
 
-  // §03 seniority badge
+  // 03 seniority badge
   const senioritBadgeContent = hasGap ? `±${Math.abs(detectedIdx - expectedIdx)}` : "aligned";
   const seniorityBadgeVariant: "ok" | "warn" = hasGap ? "warn" : "ok";
 
-  // §04 cross-source badge
+  // 04 cross-source badge
   const crossCritical = inconsistencies.some((i) => i.severity === "critical");
   const crossBadgeVariant: "crit" | "warn" | "ok" = inconsistencies.length === 0 ? "ok" : crossCritical ? "crit" : "warn";
 
-  // §05 all findings badge
+  // 05 all findings badge
   const allFindingsCritical = mergedIssues.some((i) => i.severity === "critical");
   const allFindingsBadgeVariant: "crit" | "warn" = allFindingsCritical ? "crit" : "warn";
 
@@ -747,10 +747,10 @@ export function CvAuditResult({
             )}
           </div>
 
-          {/* ── §01 The one move ── */}
+          {/* ── 01 The one move ── */}
           <section data-ca-sec="s1" id="s1" style={{ paddingBottom: 64, paddingTop: 0 }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 01 · Where to start</div>
+              <div style={SEC_NUM}><SecNumLine />01 · Where to start</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 Your urgent <span style={DISPLAY_ITALIC}>fix</span>, and your <span style={DISPLAY_ITALIC}>lever</span>.
               </h2>
@@ -792,7 +792,7 @@ export function CvAuditResult({
 
             {/* The lever: the highest-leverage quality dimension to reach Strong,
                 derived from the weakest weighted sub-score. Display-only. It sits
-                under the fix so §01 reads as two complementary moves, not two
+                under the fix so 01 reads as two complementary moves, not two
                 competing "one things". */}
             {q && (
               <>
@@ -806,7 +806,7 @@ export function CvAuditResult({
             )}
           </section>
 
-          {/* ── §02 Recruiter radar (renders its own section, null without axes) ── */}
+          {/* ── 02 Recruiter radar (renders its own section, null without axes) ── */}
           {result.skill_radar && (result.skill_radar.axes?.length ?? 0) > 0 && (
             <CvRecruiterRadar
               radar={result.skill_radar}
@@ -816,15 +816,15 @@ export function CvAuditResult({
             />
           )}
 
-          {/* ── §03 Experience deep-dive (renders its own section, null when empty) ── */}
+          {/* ── 03 Experience deep-dive (renders its own section, null when empty) ── */}
           <CvExperienceDeepDive experiences={experiences} tallies={bulletTallies} onlyCv={sourceCount === 1} />
 
-          {/* ── §06 Quality breakdown ── */}
+          {/* ── 06 Quality breakdown ── */}
 
           {q && (
             <section data-ca-sec="s6" id="s6" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />§ 06 · Quality breakdown</div>
+                <div style={SEC_NUM}><SecNumLine />06 · Quality breakdown</div>
                 <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                   Six dimensions of how your CV <span style={DISPLAY_ITALIC}>reads</span>.
                 </h2>
@@ -875,7 +875,7 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §06.2 Deterministic structural checks — display-only, shown to
+          {/* ── 06.2 Deterministic structural checks — display-only, shown to
               everyone (owner + public share). It never triggers a rewrite, so
               it's safe on a shared link; the interactive re-scan below stays
               owner-only. ── */}
@@ -885,7 +885,7 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §06.3 Benchmark vs typical resumes in the role (display-only,
+          {/* ── 06.3 Benchmark vs typical resumes in the role (display-only,
               everyone). The panel renders its own section, and returns null when
               the role can't be resolved to a calibrated family (confidence gate),
               falling back to the deterministic scorecard above with no empty gap. ── */}
@@ -899,11 +899,11 @@ export function CvAuditResult({
             />
           )}
 
-          {/* ── §04 Timeline & consistency ── */}
+          {/* ── 04 Timeline & consistency ── */}
           {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && (
             <section data-ca-sec="s4" id="s4" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />§ 04 · Timeline &amp; consistency</div>
+                <div style={SEC_NUM}><SecNumLine />04 · Timeline &amp; consistency</div>
                 <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                   {result.timeline_entries?.length
                     ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across your profiles.</span></>
@@ -974,10 +974,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §05 Seniority gap ── */}
+          {/* ── 05 Seniority gap ── */}
           <section data-ca-sec="s5" id="s5" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 05 · Seniority gap</div>
+              <div style={SEC_NUM}><SecNumLine />05 · Seniority gap</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 {hasGap
                   ? <>Your writing <span style={DISPLAY_ITALIC}>reads below</span> your titles.</>
@@ -1089,10 +1089,10 @@ export function CvAuditResult({
             })()}
           </section>
 
-          {/* ── §07 All findings ── */}
+          {/* ── 07 All findings ── */}
           <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 07 · Findings · merged by severity</div>
+              <div style={SEC_NUM}><SecNumLine />07 · Findings · merged by severity</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 All signals, <span style={DISPLAY_ITALIC}>ranked</span>.
               </h2>
@@ -1149,10 +1149,10 @@ export function CvAuditResult({
             )}
           </section>
 
-          {/* ── §08 Roadmap ── */}
+          {/* ── 08 Roadmap ── */}
           <section data-ca-sec="s8" id="s8" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />§ 08 · Roadmap</div>
+              <div style={SEC_NUM}><SecNumLine />08 · Roadmap</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 In <span style={DISPLAY_ITALIC}>a few hours</span>, your profile reads one band up.
               </h2>
@@ -1189,7 +1189,7 @@ export function CvAuditResult({
             ))}
           </section>
 
-          {/* ── §09 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
+          {/* ── 09 Re-audit loop (owned analyses only, not shared/anonymous) ── */}
           {q && !readOnly && _analysisId && accessToken && (
             <section data-ca-sec="s9" id="s9" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
               <CvAuditRescanPanel
@@ -1204,10 +1204,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §10 CV rewrite (shortlisted) ── */}
+          {/* ── 10 CV rewrite (shortlisted) ── */}
           {hasShortlisted && (
             <section data-ca-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 10 · CV rewrite</div>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />10 · CV rewrite</div>
               <ImproveTab
                 reconstructedCv={reconstructedCv}
                 isLoading={isRewriting}
@@ -1218,10 +1218,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §11 Cover letter (shortlisted) ── */}
+          {/* ── 11 Cover letter (shortlisted) ── */}
           {hasShortlisted && (
             <section data-ca-sec="s11" id="s11" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 11 · Cover letter</div>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />11 · Cover letter</div>
               <CoverLetterTab
                 analysisId={_analysisId}
                 isPremium={true}
@@ -1232,10 +1232,10 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §12 AI mock interview (hired) ── */}
+          {/* ── 12 AI mock interview (hired) ── */}
           {AI_INTERVIEW_ENABLED && hasHired && (
             <section data-ca-sec="s12" id="s12" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />§ 12 · AI mock interview</div>
+              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />12 · AI mock interview</div>
               <InterviewTab
                 isPremium={true}
                 analysisId={_analysisId}
@@ -1246,14 +1246,14 @@ export function CvAuditResult({
             </section>
           )}
 
-          {/* ── §10-12 Paywall (free / partial) ── */}
+          {/* ── 10-12 Paywall (free / partial) ── */}
           {userPlan !== "hired" && (!hasShortlisted || AI_INTERVIEW_ENABLED) && (() => {
             type ProFeature = { num: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>; name: string; desc: string };
             const shortlistedFeatures: ProFeature[] = [
-              { num: "§ 10", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
-              { num: "§ 11", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on, ready to tailor for any role." },
+              { num: "10", Icon: PenLine, name: "CV rewrite",   desc: "Paste-ready bullets. Metrics added, passive voice killed, seniority signals injected." },
+              { num: "11", Icon: Mail,    name: "Cover letter", desc: "Generated from your audit. Addresses your strengths head-on, ready to tailor for any role." },
             ];
-            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "§ 12", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots, scored debrief at the end." } : null;
+            const hiredFeature: ProFeature | null = AI_INTERVIEW_ENABLED ? { num: "12", Icon: Mic, name: "AI mock interview", desc: "Voice, in your browser. 10 minutes. Harder on your weak spots, scored debrief at the end." } : null;
             const isExpanded = hasShortlisted ? true : proTier === "hired";
 
             const featureCard = (f: ProFeature, borderRight = false, borderTop = false) => (
@@ -1279,7 +1279,7 @@ export function CvAuditResult({
 
                 <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
                   <div>
-                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "§ 12 · Hired feature" : AI_INTERVIEW_ENABLED ? "§ 10-12 · Pro features" : "§ 10-11 · Pro features"}</div>
+                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "12 · Hired feature" : AI_INTERVIEW_ENABLED ? "10-12 · Pro features" : "10-11 · Pro features"}</div>
                     <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(26px,2.8vw,36px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.05 }}>
                       Your audit is done. <span style={DISPLAY_ITALIC}>Now fix it.</span>
                     </h2>

@@ -58,7 +58,7 @@ const POV_SUB: React.CSSProperties = {
 
 const COPY = {
   en: {
-    kicker: "§ 02 · Recruiter radar",
+    kicker: "02 · Recruiter radar",
     h2pre: "How your skills read ",
     h2em: "from the other side of the desk",
     h2post: ".",
@@ -79,7 +79,7 @@ const COPY = {
     claimedRow: (n: number) => `Claimed across ${n} roles, never evidenced.`,
   },
   fr: {
-    kicker: "§ 02 · Radar recruteur",
+    kicker: "02 · Radar recruteur",
     h2pre: "Comment tes compétences se lisent ",
     h2em: "de l'autre côté du bureau",
     h2post: ".",
@@ -157,7 +157,7 @@ type Props = {
 };
 
 /**
- * §02 Recruiter radar: how the profile reads from the screener's side. Radar
+ * 02 Recruiter radar: how the profile reads from the screener's side. Radar
  * chart (evidence vs expected-at-seniority overlay) + two derived POV cards.
  * Pure display; renders its own section like CvBenchmarkPanel does.
  */
@@ -220,7 +220,7 @@ export function CvRecruiterRadar({ radar, seniorityDetected, experiences, redFla
       />
 
       {/* POV cards: derived deterministically from experience_analysis and
-          hidden_red_flags, so §02 can never contradict §03. */}
+          hidden_red_flags, so 02 can never contradict 03. */}
       {(showStrong || showWeak) && (
         <div
           className="rc-mstack"

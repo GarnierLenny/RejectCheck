@@ -48,7 +48,7 @@ const COPY = {
 /**
  * Chips row for a list of skills: proven = filled green tint, claimed = dashed
  * hint. `note` renders a small explanatory line under the chips. Pure display,
- * shared by the recruiter radar (§02) and the experience deep-dive (§03).
+ * shared by the recruiter radar (02) and the experience deep-dive (03).
  */
 export function SkillChips({
   skills,

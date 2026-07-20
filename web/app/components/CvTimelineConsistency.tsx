@@ -223,7 +223,7 @@ function rowCopy(row: ConsistencyRow, L: Lang): { title: string; detail: string 
 type Props = { rows: ConsistencyRow[] };
 
 /**
- * §04 consistency checklist: one row per deterministic timeline check, with the
+ * 04 consistency checklist: one row per deterministic timeline check, with the
  * pass/warn/fail icon and localized copy interpolated from the check's data.
  * Rows with status "na" are skipped entirely. Pure display.
  */

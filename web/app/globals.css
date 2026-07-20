@@ -2423,7 +2423,7 @@ body {
 }
 @media (max-width: 640px) {
   .rc-report-main { padding: 24px 16px 72px !important; }
-  /* Uniform, tighter section rhythm. §01 keeps its flush top — it follows the
+  /* Uniform, tighter section rhythm. 01 keeps its flush top — it follows the
      hero divider, so an added top gap would double the space. */
   .rc-report-main section[data-ca-sec] { padding-top: 44px !important; padding-bottom: 44px !important; }
   .rc-report-main section[data-ca-sec="s1"] { padding-top: 0 !important; }
@@ -2527,7 +2527,6 @@ body {
   text-transform: uppercase;
   color: var(--rc-bg);
 }
-.rc-auth-name .sec { color: rgba(247,245,242,.45); margin-right: 7px; }
 
 .rc-auth-hero {
   position: relative;
@@ -3097,7 +3096,7 @@ body {
   .rc-cta__btn { width: 100%; justify-content: center; }
 }
 
-/* ── Landing FAQ accordion (§ 07) ───────────────────────────────────────
+/* ── Landing FAQ accordion (07) ───────────────────────────────────────
    Native <details> so every answer ships in the DOM (valid FAQPage rich
    result + accessible, no JS). */
 .rc-faq__item {

@@ -1,31 +1,38 @@
 /**
- * Product rule: RejectCheck AI output must never contain long dashes,
- * em "—", en "–", or horizontal bar "―". They read as
- * machine-written; the house style uses a comma or a colon instead. This module
- * is the deterministic guarantee: the model prompts also ask for no dashes, but
- * only this post-processing makes it certain, so it runs over every
- * model-generated string before it leaves the backend (analysis, CV review,
- * rewrite, cover letter, negotiation, digest, interview, challenge coach).
+ * Product rule: RejectCheck AI output must never contain two banned
+ * typographic marks:
+ *   1. Long dashes, em "—", en "–", or horizontal bar "―". They read as
+ *      machine-written; the house style uses a comma or a colon instead.
+ *   2. The section sign "§". It reads like a legal/technical artifact and is
+ *      banned everywhere in the product.
+ * This module is the deterministic guarantee: the model prompts also ask for
+ * neither, but only this post-processing makes it certain, so it runs over
+ * every model-generated string before it leaves the backend (analysis, CV
+ * review, rewrite, cover letter, negotiation, digest, interview, challenge
+ * coach).
  *
- * It only ever rewrites the three long-dash code points, which appear
- * exclusively inside generated prose. Ids, enums and URLs use the ASCII
- * hyphen "-" and are left untouched, so it is safe to run over whole
- * structured payloads via {@link deepStripLongDashes}.
+ * It only ever rewrites those code points, which appear exclusively inside
+ * generated prose. Ids, enums and URLs use the ASCII hyphen "-" and are left
+ * untouched, so it is safe to run over whole structured payloads via
+ * {@link deepStripLongDashes}.
  */
 const LONG_DASH = /[–—―]/;
 
 export function stripLongDashes(text: string): string {
-  if (!LONG_DASH.test(text)) return text;
-  return (
-    text
+  let out = text;
+  // Section sign: drop it plus one trailing space so "§ 01" becomes "01".
+  if (out.includes('§')) out = out.replace(/§[ \t]?/g, '');
+  if (LONG_DASH.test(out)) {
+    out = out
       // Numeric range ("55,000–75,000", "400 – 650") stays a range:
       // collapse to an ASCII hyphen so it never becomes "55,000, 75,000".
       .replace(/(\d)[ \t]*[–—―][ \t]*(\d)/g, '$1-$2')
       // Otherwise the dash is sentence punctuation: replace with a comma and a
       // single space. [ \t] (not \s) so we never swallow a newline and merge
       // two lines / list items.
-      .replace(/[ \t]*[–—―]+[ \t]*/g, ', ')
-  );
+      .replace(/[ \t]*[–—―]+[ \t]*/g, ', ');
+  }
+  return out;
 }
 
 /**

@@ -61,7 +61,7 @@ function PricingContent() {
       cta: t.pricing.plans.shortlisted.cta,
       checkoutPlan: 'shortlisted' as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
-      // Recommended tier — kept consistent with the landing page (§06), which
+      // Recommended tier — kept consistent with the landing page (06), which
       // highlights Shortlisted as the entry paid plan.
       popular: true,
       guarantee: null as string | null,

@@ -10,7 +10,7 @@ type Props = {
 
 const COPY = {
   en: {
-    kicker: "§ 06.2 · Structural checks",
+    kicker: "06.2 · Structural checks",
     title: "The deterministic scorecard.",
     intro:
       "These checks are computed in code from your CV, not judged by the model, so they are reproducible: fix the text and the same input always gives the same result.",
@@ -19,7 +19,7 @@ const COPY = {
     fail: "fail",
   },
   fr: {
-    kicker: "§ 06.2 · Checks structurels",
+    kicker: "06.2 · Checks structurels",
     title: "La scorecard déterministe.",
     intro:
       "Ces checks sont calculés en code depuis ton CV, pas jugés par le modèle, donc reproductibles : corrige le texte et le même input donne toujours le même résultat.",

@@ -900,7 +900,7 @@ export default function Home() {
       <JsonLd id="ld-faq" data={faqPageSchema(t.faq.items)} />
       <Navbar />
 
-      {/* ═══ § 01 HERO ═══════════════════════════════════════════════════ */}
+      {/* ═══ 01 HERO ═══════════════════════════════════════════════════ */}
       <section style={{ padding: "96px 0 72px", position: "relative", overflow: "hidden", isolation: "isolate" }}>
         <BlueprintBackdrop variant="light" />
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px", position: "relative", zIndex: 1 }}>
@@ -1120,7 +1120,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 02 SIX DIMENSIONS ═════════════════════════════════════════ */}
+      {/* ═══ 02 SIX DIMENSIONS ═════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
           {/* Section head */}
@@ -1152,7 +1152,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 03 THE REPORT ═════════════════════════════════════════════ */}
+      {/* ═══ 03 THE REPORT ═════════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px", background: "var(--rc-surface)", position: "relative", overflow: "hidden" }}>
         {/* Grain accent */}
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.5, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(192,57,43,0.06), transparent 50%)" }} />
@@ -1252,7 +1252,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 04 COMPARISON ═════════════════════════════════════════════ */}
+      {/* ═══ 04 COMPARISON ═════════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
           {/* Section head */}
@@ -1302,7 +1302,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 05 WALL OF LOVE ═══════════════════════════════════════════ */}
+      {/* ═══ 05 WALL OF LOVE ═══════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
           {/* Section head */}
@@ -1372,7 +1372,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 06 PRICING ════════════════════════════════════════════════ */}
+      {/* ═══ 06 PRICING ════════════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px", background: "var(--rc-surface)" }}>
         <div style={WRAP}>
           {/* Section head */}
@@ -1485,7 +1485,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 07 FAQ ════════════════════════════════════════════════════ */}
+      {/* ═══ 07 FAQ ════════════════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px", background: "var(--rc-surface)" }}>
         <div style={WRAP}>
           {/* Section head */}
@@ -1520,7 +1520,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ § 08 CLOSING MANIFESTO ══════════════════════════════════════ */}
+      {/* ═══ 08 CLOSING MANIFESTO ══════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "140px 0 120px" }}>
         <div style={{ ...WRAP, maxWidth: 1440, padding: "0 48px" }}>
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32 }}>

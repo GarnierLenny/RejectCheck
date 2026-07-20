@@ -55,7 +55,7 @@ const COL_KICK: React.CSSProperties = {
 
 // Severity palette: critical/major/minor reuse the report's 3-level style;
 // medium = amber outline on surface, info = the metric-blue used by the left
-// pane highlights. Local to §03 by design (global sevClass stays 3-level).
+// pane highlights. Local to 03 by design (global sevClass stays 3-level).
 const SEV_STYLE: Record<ExperienceFindingSeverity, { color: string; bg: string; border: string }> = {
   critical: { color: "var(--rc-red)", bg: "var(--rc-red-bg)", border: "var(--rc-red-border)" },
   major: { color: "var(--rc-amber)", bg: "var(--rc-amber-bg)", border: "var(--rc-amber-border)" },
@@ -76,7 +76,7 @@ const SEV_ORDER: Record<ExperienceFindingSeverity, number> = {
 
 const COPY = {
   en: {
-    kicker: "§ 03 · Experience deep-dive",
+    kicker: "03 · Experience deep-dive",
     h2pre: "Each role, graded ",
     h2em: "like a recruiter would",
     h2post: ".",
@@ -102,7 +102,7 @@ const COPY = {
     tallyFatal: (n: number) => `${n} fatal`,
   },
   fr: {
-    kicker: "§ 03 · Analyse par expérience",
+    kicker: "03 · Analyse par expérience",
     h2pre: "Chaque rôle, noté ",
     h2em: "comme un recruteur le ferait",
     h2post: ".",
@@ -238,7 +238,7 @@ type Props = {
 };
 
 /**
- * §03 Experience deep-dive: one card per role with recruiter ratings, proven vs
+ * 03 Experience deep-dive: one card per role with recruiter ratings, proven vs
  * claimed skills, 5-level findings and the examiner's margin note. Pure display.
  */
 export function CvExperienceDeepDive({ experiences, tallies, onlyCv = false }: Props) {

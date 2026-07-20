@@ -116,7 +116,7 @@ export function RiskMeter({
         <div className="mb-4 flex items-center gap-2">
           <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-rc-hint" aria-hidden />
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
-            § {sectionNo} · {eyebrow}
+            {sectionNo} · {eyebrow}
           </span>
           {ctx && (
             <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
@@ -167,7 +167,7 @@ export function RiskMeter({
       <div className="mb-4 flex items-center gap-2">
         <span className={`h-[6px] w-[6px] rounded-full ${SOLID[colorBand]}`} aria-hidden />
         <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
-          § {sectionNo} · {eyebrow}
+          {sectionNo} · {eyebrow}
         </span>
         {ctx && (
           <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>

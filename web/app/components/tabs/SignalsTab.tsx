@@ -199,7 +199,7 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin, onHighlig
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
 
-      {/* §06 headline */}
+      {/* 06 headline */}
       <div>
         <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 10, letterSpacing: "0.16em" }}>{t.signalsTabNew.eyebrow}</Eyebrow>
         <div style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--rc-text)", lineHeight: 1.18 }}>

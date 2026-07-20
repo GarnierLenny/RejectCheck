@@ -54,7 +54,7 @@ type Props = {
 
 const COPY = {
   en: {
-    kicker: "§ 09 · Re-audit loop",
+    kicker: "09 · Re-audit loop",
     title: "Fix your CV, watch the score move.",
     intro:
       "Accept or tweak the suggested rewrites for your weak bullets. We rebuild your CV from your edits, no pasting. Re-audit and your six quality scores are re-judged so you see exactly what moved. Uses one analysis credit.",
@@ -80,7 +80,7 @@ const COPY = {
     error: "Re-audit failed. Try again.",
   },
   fr: {
-    kicker: "§ 09 · Boucle de re-audit",
+    kicker: "09 · Boucle de re-audit",
     title: "Corrige ton CV, regarde le score bouger.",
     intro:
       "Accepte ou ajuste les réécritures suggérées pour tes bullets faibles. On reconstruit ton CV à partir de tes modifications, sans copier-coller. Relance l'audit : tes six scores de qualité sont re-jugés et tu vois exactement ce qui a bougé. Consomme un crédit d'analyse.",

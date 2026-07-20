@@ -9,6 +9,17 @@ on:
       - main
 
 jobs:
+  house-style:
+    name: House style (banned characters)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Fails if the banned section-sign character reappears in tracked source.
+      - run: node scripts/check-no-section-sign.mjs
+
   lint-typecheck:
     name: Lint + Typecheck (${{ matrix.app }})
     runs-on: ubuntu-latest

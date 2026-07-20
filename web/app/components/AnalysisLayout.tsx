@@ -576,7 +576,7 @@ const ACTION_RE = /^(led|built|designed|developed|created|implemented|launched|d
 const METRIC_RE = /\d+%?|[€$][\d,.]+|[\d,]+\s*(users|customers|ms|req|requests|engineers|teams?)/i;
 const phraseGood = (p: string) => METRIC_RE.test(p) || ACTION_RE.test(p.trim());
 
-// ── §04 Cover-letter audit (P1) ───────────────────────────────────────────────
+// ── 04 Cover-letter audit (P1) ───────────────────────────────────────────────
 
 function CoverLetterBody({ cl }: { cl: NonNullable<AnalysisResult["audit"]["cover_letter"]> }) {
   const { t } = useLanguage();
@@ -1014,7 +1014,7 @@ export function AnalysisLayout({
   const signalsBadge = (result.audit.github?.issues.length ?? 0) + (result.audit.linkedin?.issues.length ?? 0);
   const timelineBadge = result.cross_profile_inconsistencies?.filter((i) => i.severity === "critical").length ?? 0;
   // P1: cover-letter audit is present only when a letter was provided (score
-  // is null otherwise). The §04 section + its nav entry appear only then, so
+  // is null otherwise). The 04 section + its nav entry appear only then, so
   // the section numbers stay contiguous when there is no letter.
   const coverLetter = result.audit.cover_letter;
   const hasCoverLetter = !!coverLetter && (coverLetter.score !== null || coverLetter.issues.length > 0);
@@ -1039,7 +1039,7 @@ export function AnalysisLayout({
       renderRight={({ focusDoc }) => {
         const secHead = (n: string, title: string) => (
           <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 18, height: 1, background: "var(--rc-red)" }} />§ {n} · {title}
+            <span style={{ width: 18, height: 1, background: "var(--rc-red)" }} />{n} · {title}
           </div>
         );
         // Section order drives BOTH the nav numbers and the in-section headers,
@@ -1102,7 +1102,7 @@ export function AnalysisLayout({
               </div>
             )}
 
-            {/* §01 — Competitiveness (displayed as 100 − rejection risk) */}
+            {/* 01 — Competitiveness (displayed as 100 − rejection risk) */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
               <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
               {result.technical_analysis?.reasoning && (
@@ -1179,21 +1179,21 @@ export function AnalysisLayout({
               </div>
             </section>
 
-            {/* §02 — Match */}
+            {/* 02 — Match */}
             <section id="sec-match" style={SEC}>
               {secHead(secNo.match, t.analysisLayout.tabs.match)}
               {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} result={result} cvText={reconstructedCv ?? cvTextFormatted} />}
               <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
             </section>
 
-            {/* §03 — CV */}
+            {/* 03 — CV */}
             <section id="sec-cv" style={SEC}>
               {secHead(secNo.cv, t.analysisLayout.tabs.cv)}
               <ParsedCvDisclosure text={cvTextFormatted} />
               <CVBody result={result} onIssueClick={() => focusDoc("cv", true)} />
             </section>
 
-            {/* §04 — Cover letter (only when a letter was provided) */}
+            {/* 04 — Cover letter (only when a letter was provided) */}
             {hasCoverLetter && coverLetter && (
               <section id="sec-cover" style={SEC}>
                 {secHead(secNo.cover, t.analysisLayout.tabs.cover)}
@@ -1216,7 +1216,7 @@ export function AnalysisLayout({
               />
             </section>
 
-            {/* §05 — Timeline */}
+            {/* 05 — Timeline */}
             <section id="sec-timeline" style={SEC}>
               {secHead(secNo.timeline, t.analysisLayout.tabs.timeline)}
               <ConsistencyTab
@@ -1225,7 +1225,7 @@ export function AnalysisLayout({
               />
             </section>
 
-            {/* §06 — Roadmap (derived from the deep fixes → skeleton while pending,
+            {/* 06 — Roadmap (derived from the deep fixes → skeleton while pending,
                 else the empty "no issues" state misleads during generation) */}
             <section id="sec-roadmap" style={SEC}>
               {secHead(secNo.roadmap, t.analysisLayout.tabs.roadmap)}
@@ -1236,7 +1236,7 @@ export function AnalysisLayout({
               )}
             </section>
 
-            {/* §07 — Bridge project */}
+            {/* 07 — Bridge project */}
             <section id="sec-bridge" style={SEC}>
               {secHead(secNo.bridge, t.analysisLayout.tabs.bridge)}
               {result.project_recommendation ? (
@@ -1259,7 +1259,7 @@ export function AnalysisLayout({
               )}
             </section>
 
-            {/* §08 — Negotiation */}
+            {/* 08 — Negotiation */}
             <section id="sec-negotiate" style={SEC}>
               {secHead(secNo.negotiate, t.analysisLayout.tabs.negotiate)}
               {hasHired ? (
@@ -1271,7 +1271,7 @@ export function AnalysisLayout({
               )}
             </section>
 
-            {/* §09 — Rewrite */}
+            {/* 09 — Rewrite */}
             <section id="sec-rewrite" style={SEC}>
               {secHead(secNo.rewrite, t.analysisLayout.tabs.rewrite)}
               {(hasShortlisted || premiumUnlocked) ? (

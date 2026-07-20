@@ -53,7 +53,6 @@ export function AuthHero() {
           <path d="M7 12.4l3.1 3.1L17 8.5" stroke="#C93A39" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="rc-auth-name">
-          <span className="sec">§</span>
           {h.wordmark}
         </span>
       </div>

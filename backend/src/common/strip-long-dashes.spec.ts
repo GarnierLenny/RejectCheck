@@ -39,6 +39,15 @@ describe('stripLongDashes', () => {
     expect(stripLongDashes('line one —\nline two')).toBe('line one, \nline two');
   });
 
+  it('strips the section sign and its trailing space', () => {
+    expect(stripLongDashes('§ 01 · Where to start')).toBe('01 · Where to start');
+    expect(stripLongDashes('see §09 for details')).toBe('see 09 for details');
+  });
+
+  it('strips the section sign even when there is no long dash', () => {
+    expect(stripLongDashes('§ Last step')).toBe('Last step');
+  });
+
   it('returns identical string when there is nothing to strip', () => {
     const s = 'no long dashes here';
     expect(stripLongDashes(s)).toBe(s);

@@ -12,7 +12,7 @@ type Props = {
 
 const COPY = {
   en: {
-    kicker: "§ 06.3 · Benchmark",
+    kicker: "06.3 · Benchmark",
     title: "You vs typical resumes in your field.",
     basis: (n: number, fam: string) =>
       `Based on ${n} ${fam} resumes (typical resumes, not outcome-labeled). "Strong" = the top quartile.`,
@@ -27,7 +27,7 @@ const COPY = {
     nextLabel: "Your one lever",
   },
   fr: {
-    kicker: "§ 06.3 · Benchmark",
+    kicker: "06.3 · Benchmark",
     title: "Toi vs les CV typiques de ton domaine.",
     basis: (n: number, fam: string) =>
       `Basé sur ${n} CV ${fam} (CV typiques, pas labellisés par résultat). "Fort" = le quartile supérieur.`,

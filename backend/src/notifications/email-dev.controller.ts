@@ -149,7 +149,7 @@ function indexHtml(enabled: boolean, secret: string): string {
   const options = TYPES.map((t) => `<option value="${t}">${t}</option>`).join('');
 
   return shell(`
-    <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#C93A39;margin-bottom:10px;">§ RejectCheck · Email dev</div>
+    <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#C93A39;margin-bottom:10px;">RejectCheck · Email dev</div>
     <h1 style="font-size:24px;font-weight:600;margin:0 0 24px;">Preview & test emails</h1>
     ${banner}
     <table style="width:100%;border-collapse:collapse;margin-bottom:36px;">${rows}</table>
@@ -165,7 +165,7 @@ function indexHtml(enabled: boolean, secret: string): string {
 
 function resultHtml(r: { ok: boolean; msg: string }, secret = ''): string {
   return shell(`
-    <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#C93A39;margin-bottom:18px;">§ RejectCheck · Email dev</div>
+    <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#C93A39;margin-bottom:18px;">RejectCheck · Email dev</div>
     <div style="padding:16px 18px;border-radius:12px;border:1px solid ${r.ok ? '#22a350' : '#C93A39'};background:${r.ok ? 'rgba(34,163,80,.12)' : 'rgba(201,58,57,.12)'};font-size:13px;line-height:1.6;">${r.msg}</div>
     <a href="/api/email/dev?secret=${encodeURIComponent(secret)}" style="display:inline-block;margin-top:24px;color:#f7b0af;font-size:12px;">← Back</a>`);
 }

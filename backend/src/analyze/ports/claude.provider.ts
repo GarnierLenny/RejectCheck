@@ -41,7 +41,7 @@ export type AnalyzeApplicationInput = {
 export type AnalyzeApplicationSingleInput = AnalyzeApplicationInput & {
   /**
    * When false, Claude skips generating project_recommendation. Defaults to
-   * true. Set to false for free-tier users who cannot see §09 Bridge Project.
+   * true. Set to false for free-tier users who cannot see the Bridge Project.
    */
   generateBridgeProject?: boolean;
   /**
