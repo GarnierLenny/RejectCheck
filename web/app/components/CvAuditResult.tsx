@@ -574,12 +574,12 @@ export function CvAuditResult({
         }}>
           <div style={{ ...EYEBROW, marginBottom: 14, paddingLeft: 8 }}>How you read</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {tocItem("s1", "01", "Where to start", sevCounts.critical > 0 ? tocBadge(`${sevCounts.critical} crit`, "crit") : null)}
-            {(result.skill_radar?.axes?.length ?? 0) > 0 && tocItem("s2", "02", "Recruiter radar", tocBadge("New", "lock"))}
-            {experiences.length > 0 && tocItem("s3", "03", "Experience deep-dive", tocBadge("New", "lock"))}
+            {(result.skill_radar?.axes?.length ?? 0) > 0 && tocItem("s2", "01", "Recruiter radar", tocBadge("New", "lock"))}
+            {tocItem("s1", "02", "Where to start", sevCounts.critical > 0 ? tocBadge(`${sevCounts.critical} crit`, "crit") : null)}
+            {tocItem("s5", "03", "Seniority gap", null)}
+            {experiences.length > 0 && tocItem("s3", "04", "Experience deep-dive", tocBadge("New", "lock"))}
             {(inconsistencies.length > 0 || timelineEntries.length > 0) &&
-              tocItem("s4", "04", "Timeline", timelineFlags != null && timelineFlags > 0 ? tocBadge(`${timelineFlags} flag${timelineFlags !== 1 ? "s" : ""}`, "warn") : null)}
-            {tocItem("s5", "05", "Seniority gap", null)}
+              tocItem("s4", "05", "Timeline", timelineFlags != null && timelineFlags > 0 ? tocBadge(`${timelineFlags} flag${timelineFlags !== 1 ? "s" : ""}`, "warn") : null)}
 
             <div style={{ margin: "12px 8px 6px", height: 1, background: "var(--rc-border)" }} />
             <div style={{ ...EYEBROW, fontSize: 9, padding: "6px 12px 4px" }}>Why this score</div>
@@ -747,10 +747,20 @@ export function CvAuditResult({
             )}
           </div>
 
-          {/* ── 01 The one move ── */}
+          {/* ── 01 Recruiter radar (renders its own section, null without axes) ── */}
+          {result.skill_radar && (result.skill_radar.axes?.length ?? 0) > 0 && (
+            <CvRecruiterRadar
+              radar={result.skill_radar}
+              seniorityDetected={result.seniority_analysis?.detected ?? null}
+              experiences={experiences}
+              redFlags={result.hidden_red_flags}
+            />
+          )}
+
+          {/* ── 02 The one move ── */}
           <section data-ca-sec="s1" id="s1" style={{ paddingBottom: 64, paddingTop: 0 }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />01 · Where to start</div>
+              <div style={SEC_NUM}><SecNumLine />02 · Where to start</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 Your urgent <span style={DISPLAY_ITALIC}>fix</span>, and your <span style={DISPLAY_ITALIC}>lever</span>.
               </h2>
@@ -806,178 +816,10 @@ export function CvAuditResult({
             )}
           </section>
 
-          {/* ── 02 Recruiter radar (renders its own section, null without axes) ── */}
-          {result.skill_radar && (result.skill_radar.axes?.length ?? 0) > 0 && (
-            <CvRecruiterRadar
-              radar={result.skill_radar}
-              seniorityDetected={result.seniority_analysis?.detected ?? null}
-              experiences={experiences}
-              redFlags={result.hidden_red_flags}
-            />
-          )}
-
-          {/* ── 03 Experience deep-dive (renders its own section, null when empty) ── */}
-          <CvExperienceDeepDive experiences={experiences} tallies={bulletTallies} onlyCv={sourceCount === 1} />
-
-          {/* ── 06 Quality breakdown ── */}
-
-          {q && (
-            <section data-ca-sec="s6" id="s6" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />06 · Quality breakdown</div>
-                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                  Six dimensions of how your CV <span style={DISPLAY_ITALIC}>reads</span>.
-                </h2>
-              </div>
-
-              <div ref={qualityRef} style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
-                <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid var(--rc-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>Overall · {q.overall}/100</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ display: "inline-block", width: 2, height: 12, background: "rgba(0,0,0,0.2)" }} />
-                    <span style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)", letterSpacing: "0.08em" }}>70 = threshold</span>
-                  </div>
-                </div>
-                <div style={{ padding: "10px 28px 28px" }}>
-                  {qualityDims.map((dim, idx) => {
-                    const col = qualityColor(dim.score);
-                    return (
-                      <div key={dim.key} style={{ padding: "16px 0", display: "grid", gridTemplateColumns: "140px 1fr 80px", gap: 18, alignItems: "center", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)" }}>
-                        <div>
-                          <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)" }}>{dim.label}</div>
-                          <div style={{ ...MONO, fontSize: 10, color: "var(--rc-hint)", marginTop: 3, letterSpacing: "0.04em" }}>{dim.desc}</div>
-                        </div>
-                        <div style={{ position: "relative", height: 12, background: "var(--rc-surface-hero)", borderRadius: 99 }}>
-                          <div style={{
-                            position: "absolute", left: 0, top: 0, height: "100%",
-                            background: col,
-                            borderRadius: 99,
-                            width: qualityGo ? `${dim.score}%` : "0%",
-                            transition: `width 1.2s cubic-bezier(0.25,0.46,0.45,0.94) ${idx * 0.08}s`,
-                          }} />
-                          {/* 70% threshold line */}
-                          <div style={{
-                            position: "absolute", top: -4, bottom: -4, width: 1.5,
-                            background: "rgba(0,0,0,0.18)",
-                            left: "70%",
-                            transform: "translateX(-0.75px)",
-                          }} />
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <span style={{ ...MONO, fontSize: 16, fontWeight: 700, color: col, letterSpacing: "-0.02em" }}>{dim.score}</span>
-                          <span style={{ display: "block", ...MONO, fontSize: 9, color: "var(--rc-hint)", letterSpacing: "0.06em", marginTop: 2 }}>{qualityLabel(dim.score)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* ── 06.2 Deterministic structural checks — display-only, shown to
-              everyone (owner + public share). It never triggers a rewrite, so
-              it's safe on a shared link; the interactive re-scan below stays
-              owner-only. ── */}
-          {reconstructedCv && reconstructedCv.trim().length > 0 && (
-            <section data-ca-sec="s6c" id="s6c" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <CvChecksScorecard cvText={reconstructedCv} />
-            </section>
-          )}
-
-          {/* ── 06.3 Benchmark vs typical resumes in the role (display-only,
-              everyone). The panel renders its own section, and returns null when
-              the role can't be resolved to a calibrated family (confidence gate),
-              falling back to the deterministic scorecard above with no empty gap. ── */}
-          {reconstructedCv && reconstructedCv.trim().length > 0 && (
-            <CvBenchmarkPanel
-              cvText={reconstructedCv}
-              roleHints={[
-                ...(result.projected_profile?.target_roles ?? []),
-                ...(result.projected_profile?.domains ?? []),
-              ]}
-            />
-          )}
-
-          {/* ── 04 Timeline & consistency ── */}
-          {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && (
-            <section data-ca-sec="s4" id="s4" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />04 · Timeline &amp; consistency</div>
-                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                  {result.timeline_entries?.length
-                    ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across your profiles.</span></>
-                    : inconsistencies.length === 1
-                      ? <>One <span style={DISPLAY_ITALIC}>inconsistency</span> across your profiles.</>
-                      : <>{inconsistencies.length} <span style={DISPLAY_ITALIC}>inconsistencies</span> across your profiles.</>
-                  }
-                </h2>
-              </div>
-
-              {result.timeline_entries && result.timeline_entries.length > 0 && (() => {
-                const markers = inconsistencies
-                  .map((inc) => {
-                    if (!inc.anchor_date) return null;
-                    const m = inc.anchor_date.match(/^(\d{4})-(\d{1,2})$/);
-                    if (!m) return null;
-                    const d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, 15);
-                    return { date: d, severity: inc.severity, description: inc.description, field: inc.field, sources: inc.sources };
-                  })
-                  .filter((x): x is NonNullable<typeof x> => x !== null);
-                return <SourceTimeline entries={result.timeline_entries} markers={markers} gaps={decorations.gaps} highlightOverlaps size="roomy" />;
-              })()}
-
-              {timelineEntries.length > 0 && (
-                <div style={{ marginTop: 24 }}>
-                  <CvTimelineConsistency rows={consistencyRows} />
-                </div>
-              )}
-
-              {inconsistencies.length > 0 && (
-                <div style={{ marginTop: result.timeline_entries?.length ? 48 : 0 }}>
-                  {result.timeline_entries?.length ? (
-                    <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(18px,2vw,24px)", letterSpacing: "-0.02em", margin: "0 0 20px", lineHeight: 1.1 }}>
-                      {inconsistencies.length} inconsistenc{inconsistencies.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across profiles.</span>
-                    </h3>
-                  ) : null}
-                  {inconsistencies.map((inc, idx) => {
-                    const sev = sevClass(inc.severity);
-                    const impactStr = inc.severity === "critical" ? "−12" : inc.severity === "major" ? "−6" : "−3";
-                    return (
-                      <div key={idx} style={{ padding: "20px 0", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)", display: "grid", gridTemplateColumns: "80px 1fr 48px", gap: 16, alignItems: "start" }}>
-                        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 7px", borderRadius: 4, color: sev.color, background: sev.bg, border: `1px solid ${sev.border}`, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4, alignSelf: "start", justifySelf: "center" }}>
-                          <span style={{ width: 4, height: 4, borderRadius: 99, background: "currentColor", display: "inline-block" }} />{inc.severity}
-                        </span>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                            <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)" }}>
-                              {inc.field.replace(/_/g, " ")}
-                            </span>
-                            {inc.sources.map((src) => (
-                              <span key={src} style={{ ...MONO, fontSize: 9, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--rc-border)", color: "var(--rc-hint)", background: "var(--rc-surface)" }}>{src}</span>
-                            ))}
-                          </div>
-                          <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)", marginBottom: 4 }}><Md>{inc.description}</Md></div>
-                          {inc.recruiter_perception && (
-                            <p style={{ ...SANS, fontSize: 13, fontStyle: "italic", lineHeight: 1.55, color: "var(--rc-muted)", margin: 0 }}>&ldquo;<Md>{inc.recruiter_perception}</Md>&rdquo;</p>
-                          )}
-                        </div>
-                        <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.06em", color: "var(--rc-hint)", textTransform: "uppercase", textAlign: "right", whiteSpace: "nowrap" as const }}>
-                          Impact
-                          <strong style={{ display: "block", ...MONO, fontWeight: 700, fontSize: 16, color: "var(--rc-red)", marginTop: 2 }}>{impactStr}</strong>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* ── 05 Seniority gap ── */}
+          {/* ── 03 Seniority gap ── */}
           <section data-ca-sec="s5" id="s5" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
             <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />05 · Seniority gap</div>
+              <div style={SEC_NUM}><SecNumLine />03 · Seniority gap</div>
               <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
                 {hasGap
                   ? <>Your writing <span style={DISPLAY_ITALIC}>reads below</span> your titles.</>
@@ -1088,6 +930,164 @@ export function CvAuditResult({
               );
             })()}
           </section>
+
+          {/* ── 04 Experience deep-dive (renders its own section, null when empty) ── */}
+          <CvExperienceDeepDive experiences={experiences} tallies={bulletTallies} onlyCv={sourceCount === 1} />
+
+          {/* ── 05 Timeline & consistency ── */}
+          {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && (
+            <section data-ca-sec="s4" id="s4" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <div style={{ marginBottom: 32 }}>
+                <div style={SEC_NUM}><SecNumLine />05 · Timeline &amp; consistency</div>
+                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
+                  {result.timeline_entries?.length
+                    ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across your profiles.</span></>
+                    : inconsistencies.length === 1
+                      ? <>One <span style={DISPLAY_ITALIC}>inconsistency</span> across your profiles.</>
+                      : <>{inconsistencies.length} <span style={DISPLAY_ITALIC}>inconsistencies</span> across your profiles.</>
+                  }
+                </h2>
+              </div>
+
+              {result.timeline_entries && result.timeline_entries.length > 0 && (() => {
+                const markers = inconsistencies
+                  .map((inc) => {
+                    if (!inc.anchor_date) return null;
+                    const m = inc.anchor_date.match(/^(\d{4})-(\d{1,2})$/);
+                    if (!m) return null;
+                    const d = new Date(parseInt(m[1]), parseInt(m[2]) - 1, 15);
+                    return { date: d, severity: inc.severity, description: inc.description, field: inc.field, sources: inc.sources };
+                  })
+                  .filter((x): x is NonNullable<typeof x> => x !== null);
+                return <SourceTimeline entries={result.timeline_entries} markers={markers} gaps={decorations.gaps} highlightOverlaps size="roomy" />;
+              })()}
+
+              {timelineEntries.length > 0 && (
+                <div style={{ marginTop: 24 }}>
+                  <CvTimelineConsistency rows={consistencyRows} />
+                </div>
+              )}
+
+              {inconsistencies.length > 0 && (
+                <div style={{ marginTop: result.timeline_entries?.length ? 48 : 0 }}>
+                  {result.timeline_entries?.length ? (
+                    <h3 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(18px,2vw,24px)", letterSpacing: "-0.02em", margin: "0 0 20px", lineHeight: 1.1 }}>
+                      {inconsistencies.length} inconsistenc{inconsistencies.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across profiles.</span>
+                    </h3>
+                  ) : null}
+                  {inconsistencies.map((inc, idx) => {
+                    const sev = sevClass(inc.severity);
+                    const impactStr = inc.severity === "critical" ? "−12" : inc.severity === "major" ? "−6" : "−3";
+                    return (
+                      <div key={idx} style={{ padding: "20px 0", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)", display: "grid", gridTemplateColumns: "80px 1fr 48px", gap: 16, alignItems: "start" }}>
+                        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 7px", borderRadius: 4, color: sev.color, background: sev.bg, border: `1px solid ${sev.border}`, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4, alignSelf: "start", justifySelf: "center" }}>
+                          <span style={{ width: 4, height: 4, borderRadius: 99, background: "currentColor", display: "inline-block" }} />{inc.severity}
+                        </span>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rc-hint)" }}>
+                              {inc.field.replace(/_/g, " ")}
+                            </span>
+                            {inc.sources.map((src) => (
+                              <span key={src} style={{ ...MONO, fontSize: 9, padding: "1px 6px", borderRadius: 4, border: "1px solid var(--rc-border)", color: "var(--rc-hint)", background: "var(--rc-surface)" }}>{src}</span>
+                            ))}
+                          </div>
+                          <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)", marginBottom: 4 }}><Md>{inc.description}</Md></div>
+                          {inc.recruiter_perception && (
+                            <p style={{ ...SANS, fontSize: 13, fontStyle: "italic", lineHeight: 1.55, color: "var(--rc-muted)", margin: 0 }}>&ldquo;<Md>{inc.recruiter_perception}</Md>&rdquo;</p>
+                          )}
+                        </div>
+                        <div style={{ ...MONO, fontSize: 10, letterSpacing: "0.06em", color: "var(--rc-hint)", textTransform: "uppercase", textAlign: "right", whiteSpace: "nowrap" as const }}>
+                          Impact
+                          <strong style={{ display: "block", ...MONO, fontWeight: 700, fontSize: 16, color: "var(--rc-red)", marginTop: 2 }}>{impactStr}</strong>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* ── 06 Quality breakdown ── */}
+
+          {q && (
+            <section data-ca-sec="s6" id="s6" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <div style={{ marginBottom: 32 }}>
+                <div style={SEC_NUM}><SecNumLine />06 · Quality breakdown</div>
+                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
+                  Six dimensions of how your CV <span style={DISPLAY_ITALIC}>reads</span>.
+                </h2>
+              </div>
+
+              <div ref={qualityRef} style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
+                <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid var(--rc-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ ...MONO, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>Overall · {q.overall}/100</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ display: "inline-block", width: 2, height: 12, background: "rgba(0,0,0,0.2)" }} />
+                    <span style={{ ...MONO, fontSize: 9, color: "var(--rc-hint)", letterSpacing: "0.08em" }}>70 = threshold</span>
+                  </div>
+                </div>
+                <div style={{ padding: "10px 28px 28px" }}>
+                  {qualityDims.map((dim, idx) => {
+                    const col = qualityColor(dim.score);
+                    return (
+                      <div key={dim.key} style={{ padding: "16px 0", display: "grid", gridTemplateColumns: "140px 1fr 80px", gap: 18, alignItems: "center", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)" }}>
+                        <div>
+                          <div style={{ ...SANS, fontSize: 14, fontWeight: 600, color: "var(--rc-text)" }}>{dim.label}</div>
+                          <div style={{ ...MONO, fontSize: 10, color: "var(--rc-hint)", marginTop: 3, letterSpacing: "0.04em" }}>{dim.desc}</div>
+                        </div>
+                        <div style={{ position: "relative", height: 12, background: "var(--rc-surface-hero)", borderRadius: 99 }}>
+                          <div style={{
+                            position: "absolute", left: 0, top: 0, height: "100%",
+                            background: col,
+                            borderRadius: 99,
+                            width: qualityGo ? `${dim.score}%` : "0%",
+                            transition: `width 1.2s cubic-bezier(0.25,0.46,0.45,0.94) ${idx * 0.08}s`,
+                          }} />
+                          {/* 70% threshold line */}
+                          <div style={{
+                            position: "absolute", top: -4, bottom: -4, width: 1.5,
+                            background: "rgba(0,0,0,0.18)",
+                            left: "70%",
+                            transform: "translateX(-0.75px)",
+                          }} />
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <span style={{ ...MONO, fontSize: 16, fontWeight: 700, color: col, letterSpacing: "-0.02em" }}>{dim.score}</span>
+                          <span style={{ display: "block", ...MONO, fontSize: 9, color: "var(--rc-hint)", letterSpacing: "0.06em", marginTop: 2 }}>{qualityLabel(dim.score)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* ── 06.2 Deterministic structural checks — display-only, shown to
+              everyone (owner + public share). It never triggers a rewrite, so
+              it's safe on a shared link; the interactive re-scan below stays
+              owner-only. ── */}
+          {reconstructedCv && reconstructedCv.trim().length > 0 && (
+            <section data-ca-sec="s6c" id="s6c" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+              <CvChecksScorecard cvText={reconstructedCv} />
+            </section>
+          )}
+
+          {/* ── 06.3 Benchmark vs typical resumes in the role (display-only,
+              everyone). The panel renders its own section, and returns null when
+              the role can't be resolved to a calibrated family (confidence gate),
+              falling back to the deterministic scorecard above with no empty gap. ── */}
+          {reconstructedCv && reconstructedCv.trim().length > 0 && (
+            <CvBenchmarkPanel
+              cvText={reconstructedCv}
+              roleHints={[
+                ...(result.projected_profile?.target_roles ?? []),
+                ...(result.projected_profile?.domains ?? []),
+              ]}
+            />
+          )}
 
           {/* ── 07 All findings ── */}
           <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>

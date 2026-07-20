@@ -58,7 +58,7 @@ const POV_SUB: React.CSSProperties = {
 
 const COPY = {
   en: {
-    kicker: "02 · Recruiter radar",
+    kicker: "01 · Recruiter radar",
     h2pre: "How your skills read ",
     h2em: "from the other side of the desk",
     h2post: ".",
@@ -79,7 +79,7 @@ const COPY = {
     claimedRow: (n: number) => `Claimed across ${n} roles, never evidenced.`,
   },
   fr: {
-    kicker: "02 · Radar recruteur",
+    kicker: "01 · Radar recruteur",
     h2pre: "Comment tes compétences se lisent ",
     h2em: "de l'autre côté du bureau",
     h2post: ".",

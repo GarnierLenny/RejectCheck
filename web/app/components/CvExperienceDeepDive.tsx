@@ -76,7 +76,7 @@ const SEV_ORDER: Record<ExperienceFindingSeverity, number> = {
 
 const COPY = {
   en: {
-    kicker: "03 · Experience deep-dive",
+    kicker: "04 · Experience deep-dive",
     h2pre: "Each role, graded ",
     h2em: "like a recruiter would",
     h2post: ".",
@@ -102,7 +102,7 @@ const COPY = {
     tallyFatal: (n: number) => `${n} fatal`,
   },
   fr: {
-    kicker: "03 · Analyse par expérience",
+    kicker: "04 · Analyse par expérience",
     h2pre: "Chaque rôle, noté ",
     h2em: "comme un recruteur le ferait",
     h2post: ".",
