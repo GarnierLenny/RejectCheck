@@ -2411,6 +2411,38 @@ body {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
+   CV-audit report — phone density pass.
+   The report <main> and its topbar keep generous inline gutters (64px / 32px)
+   for desktop reading. On phones those squeeze the content into a narrow column
+   and clip the topbar actions. Tighten progressively with the same marker-class
+   + !important pattern as .rc-shell-doc / .rc-toc above (inline styles win on
+   desktop; these fire only on small screens). ~16px gutters on phones.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .rc-report-main { padding-left: 32px !important; padding-right: 32px !important; }
+}
+@media (max-width: 640px) {
+  .rc-report-main { padding: 24px 16px 72px !important; }
+  /* Uniform, tighter section rhythm. §01 keeps its flush top — it follows the
+     hero divider, so an added top gap would double the space. */
+  .rc-report-main section[data-ca-sec] { padding-top: 44px !important; padding-bottom: 44px !important; }
+  .rc-report-main section[data-ca-sec="s1"] { padding-top: 0 !important; }
+  /* Hero framing blocks breathe less on a phone. */
+  .rc-hero-block { padding-bottom: 24px !important; margin-bottom: 28px !important; }
+  /* Topbar: tighter gutter, drop the redundant "CV Audit · name" chip (the body
+     meta strip already carries it), and shrink the action buttons so the
+     .md / Share / New row never clips. */
+  .rc-report-topbar { padding-left: 16px !important; padding-right: 16px !important; }
+  .rc-topbar-ctx { display: none !important; }
+  .rc-topbar-actions button { padding-left: 9px !important; padding-right: 9px !important; }
+}
+/* Narrow phones: drop the wordmark (the R! mark still links home) so the
+   .md / Share / New actions have room to breathe. */
+@media (max-width: 480px) {
+  .rc-topbar-wordmark { display: none !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
    Auth split-screen (login / reset-password) — "Verdict Hero" + blueprint.
    Left = dark verdict panel on engineering-drafting-paper grid (sample product
    verdict, tagged "exemple"); right = the auth form. All classes are namespaced

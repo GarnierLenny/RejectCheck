@@ -508,7 +508,7 @@ export function CvAuditResult({
     <div style={{ height: "100dvh", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--rc-bg)", color: "var(--rc-text)", fontFamily: "var(--font-sans)" }}>
 
       {/* ── Topbar ── */}
-      <nav style={{
+      <nav className="rc-report-topbar" style={{
         flexShrink: 0, zIndex: 60,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px", height: TOPBAR_H,
@@ -519,9 +519,9 @@ export function CvAuditResult({
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
             <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck" width={24} height={24} />
-            <span style={{ ...SANS, fontWeight: 600, fontSize: 14, color: "var(--rc-text)" }}>RejectCheck</span>
+            <span className="rc-topbar-wordmark" style={{ ...SANS, fontWeight: 600, fontSize: 14, color: "var(--rc-text)" }}>RejectCheck</span>
           </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 18, borderLeft: "1px solid var(--rc-border)" }}>
+          <div className="rc-topbar-ctx" style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: 18, borderLeft: "1px solid var(--rc-border)" }}>
             {readOnly && sharedByAvatar && (
               <Image src={sharedByAvatar} alt={sharedByName ?? ""} width={22} height={22} style={{ borderRadius: 999, objectFit: "cover" }} />
             )}
@@ -531,7 +531,7 @@ export function CvAuditResult({
             </span>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="rc-topbar-actions" style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {readOnly ? (
             <Link href={ctaHref} style={{ ...MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", padding: "8px 16px", background: "var(--rc-red)", color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
               Analyze yours →
@@ -602,14 +602,14 @@ export function CvAuditResult({
         </aside>
 
         {/* ── Main content ── */}
-        <main ref={mainRef} style={{ padding: "48px 64px 120px", overflowY: "auto", height: "100%", scrollbarWidth: "none" }}>
+        <main ref={mainRef} className="rc-report-main" style={{ padding: "48px 64px 120px", overflowY: "auto", height: "100%", scrollbarWidth: "none" }}>
 
           {/* ── CV-strength hero (unified RiskMeter, strength polarity) ──
                No job is attached, so "rejection risk" is meaningless here: we
                show the CV quality directly (higher = better) instead of the
                inverted 100 − quality that used to read as a risk score. ── */}
           {q && (
-            <div style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
+            <div className="rc-hero-block" style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
               <RiskMeter value={q.overall} mode="cv" metric="strength" />
               <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "18px 0 0", maxWidth: 640 }}>
                 Your overall CV strength, built from the six quality dimensions below (clarity, impact, hard and soft skills, consistency, ATS format) on a strict recruiter curve. The per-source cards under it read each channel on its own.
@@ -630,7 +630,7 @@ export function CvAuditResult({
           )}
 
           {/* ── Hero ── */}
-          <div style={{ paddingBottom: 48, borderBottom: "1px solid var(--rc-text)", marginBottom: 56 }}>
+          <div className="rc-hero-block" style={{ paddingBottom: 48, borderBottom: "1px solid var(--rc-text)", marginBottom: 56 }}>
 
             {/* Meta strip */}
             <div style={{
