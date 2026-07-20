@@ -8,6 +8,7 @@ import { buildCvReviewTool, SUBMIT_CV_REVIEW_TOOL } from './cv-review.schema';
  */
 describe('SUBMIT_CV_REVIEW_TOOL: shape', () => {
   const FULL_KEYS = [
+    'carousel_insights',
     'cv_quality',
     'cv_quality_notes',
     'projected_profile',
@@ -26,10 +27,11 @@ describe('SUBMIT_CV_REVIEW_TOOL: shape', () => {
     'hidden_red_flags',
   ];
 
-  it('full tool has exactly 16 ordered keys, experience_analysis between bullet_reviews and audit_cv', () => {
+  it('full tool has exactly 17 ordered keys, with the carousel brief generated first', () => {
     const keys = Object.keys(SUBMIT_CV_REVIEW_TOOL.input_schema.properties);
     expect(keys).toEqual(FULL_KEYS);
-    expect(keys).toHaveLength(16);
+    expect(keys).toHaveLength(17);
+    expect(keys[0]).toBe('carousel_insights');
   });
 
   it('every property is required on the full tool', () => {
@@ -68,6 +70,19 @@ describe('SUBMIT_CV_REVIEW_TOOL: shape', () => {
     expect(desc).toContain('one entry per CV role');
     expect(desc).not.toContain('Empty array if only CV is present');
   });
+
+  it('carousel brief uses a six-slide script and a 0-10 scorecard', () => {
+    const carousel = SUBMIT_CV_REVIEW_TOOL.input_schema.properties
+      .carousel_insights as {
+      properties: {
+        scorecard: { minItems: number; maxItems: number; items: { properties: { score: { minimum: number; maximum: number } } } };
+        slides: { minItems: number; maxItems: number };
+      };
+    };
+    expect(carousel.properties.scorecard).toMatchObject({ minItems: 6, maxItems: 8 });
+    expect(carousel.properties.scorecard.items.properties.score).toMatchObject({ minimum: 0, maximum: 10 });
+    expect(carousel.properties.slides).toMatchObject({ minItems: 6, maxItems: 6 });
+  });
 });
 
 describe('buildCvReviewTool: lean drops both token-heavy blocks', () => {
@@ -81,8 +96,9 @@ describe('buildCvReviewTool: lean drops both token-heavy blocks', () => {
       expect(lean.properties).not.toHaveProperty(k);
       expect(lean.required).not.toContain(k);
     }
-    // Still a full review otherwise: 14 keys, same relative order.
-    expect(Object.keys(lean.properties)).toHaveLength(14);
+    // Still a full review otherwise: 15 keys, including the carousel brief.
+    expect(Object.keys(lean.properties)).toHaveLength(15);
+    expect(lean.properties).toHaveProperty('carousel_insights');
     expect(lean.properties).toHaveProperty('audit_cv');
     expect(lean.required).toContain('timeline_entries');
   });

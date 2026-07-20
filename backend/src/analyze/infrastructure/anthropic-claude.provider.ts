@@ -400,6 +400,7 @@ ${CV_REVIEW_EXPERIENCE_RULES}`;
 
       const raw: CvReviewResponse = {
         score,
+        carousel_insights: i.carousel_insights,
         cv_quality: cvQuality,
         cv_quality_notes: i.cv_quality_notes,
         skill_radar: i.skill_radar,
@@ -631,6 +632,7 @@ Formatting rules:
         score: i.overall.score,
         verdict: i.overall.verdict,
         confidence: i.overall.confidence,
+        carousel_insights: i.carousel_insights,
         breakdown: {
           keyword_match: i.keyword_match,
           tech_stack_fit: i.tech_stack_fit,

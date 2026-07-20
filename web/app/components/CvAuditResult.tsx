@@ -22,6 +22,7 @@ import { CvGlanceStrip } from "./CvGlanceStrip";
 import { CvRecruiterRadar } from "./CvRecruiterRadar";
 import { CvExperienceDeepDive } from "./CvExperienceDeepDive";
 import { CvTimelineConsistency } from "./CvTimelineConsistency";
+import { CarouselBrief } from "./CarouselBrief";
 import { computeTimelineDecorations, computeTimelineConsistency } from "../lib/timeline-consistency";
 import { attributeBulletsToRoles } from "../lib/experience-bullets";
 import { computeCvChecks, checksSummary } from "../lib/cv-checks";
@@ -745,6 +746,7 @@ export function CvAuditResult({
                 <Md>{result.projected_profile.narrative}</Md>
               </p>
             )}
+            <CarouselBrief insights={result.carousel_insights} readOnly={readOnly} />
           </div>
 
           {/* ── 01 Recruiter radar (renders its own section, null without axes) ── */}

@@ -42,6 +42,7 @@ describe('buildAnalysisTool — lean (owner audit mode)', () => {
     for (const k of [
       'job_details',
       'overall',
+      'carousel_insights',
       'ats_simulation',
       'audit_jd_match',
       'seniority_analysis',

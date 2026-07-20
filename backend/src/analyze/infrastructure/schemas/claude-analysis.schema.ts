@@ -119,6 +119,120 @@ const ISSUE_HOT_SCHEMA = {
   required: ['severity', 'category', 'what', 'why'],
 };
 
+/**
+ * Share-ready narrative layer for both analysis modes. It is intentionally
+ * small and first in generation order: the owner can turn one audit into a
+ * six-slide TikTok/Instagram carousel without flattening the full report.
+ */
+export const CAROUSEL_INSIGHTS_PROPERTY = {
+  type: 'object' as const,
+  description:
+    'A six-slide, screenshot-ready recruiter brief. This is not generic social copy: every claim must be anchored in the supplied CV or job description. Make the hook and aha moment specific enough to create an immediate insight, never clickbait.',
+  properties: {
+    hook: {
+      type: 'string' as const,
+      description:
+        'Slide 1 hook. One sharp, stand-alone sentence, 14 words or fewer. State the surprising recruiter insight, not a vague tease.',
+    },
+    aha_moment: {
+      type: 'object' as const,
+      description:
+        'The central recruiter insight that makes the candidate understand why the CV is read as it is.',
+      properties: {
+        headline: {
+          type: 'string' as const,
+          description: 'The insight in 14 words or fewer.',
+        },
+        evidence: {
+          type: 'string' as const,
+          description: 'Concrete CV or JD evidence behind the insight, 28 words or fewer.',
+        },
+        recruiter_consequence: {
+          type: 'string' as const,
+          description: 'What a recruiter is likely to infer or do as a result, 24 words or fewer.',
+        },
+      },
+      required: ['headline', 'evidence', 'recruiter_consequence'],
+    },
+    scorecard: {
+      type: 'array' as const,
+      minItems: 6,
+      maxItems: 8,
+      description:
+        'Rate every relevant decision factor on a 0-10 scale, with one short evidence line each. Use 6 to 8 distinct factors only. Scores must match the detailed analysis, not be a separate generous grade.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          label: {
+            type: 'string' as const,
+            description: 'Factor label, 3 words or fewer.',
+          },
+          score: {
+            type: 'number' as const,
+            minimum: 0,
+            maximum: 10,
+            description: '0-10 score, one decimal place at most.',
+          },
+          evidence: {
+            type: 'string' as const,
+            description: 'Specific supporting evidence, 18 words or fewer.',
+          },
+        },
+        required: ['label', 'score', 'evidence'],
+      },
+    },
+    priority_fixes: {
+      type: 'array' as const,
+      minItems: 3,
+      maxItems: 3,
+      description:
+        'Exactly three improvements, ordered by leverage. Each must fix an evidence-backed weakness, not offer generic advice.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          priority: { type: 'integer' as const, minimum: 1, maximum: 3 },
+          change: {
+            type: 'string' as const,
+            description: 'The specific change, 20 words or fewer.',
+          },
+          why_it_matters: {
+            type: 'string' as const,
+            description: 'Recruiter consequence or payoff, 24 words or fewer.',
+          },
+        },
+        required: ['priority', 'change', 'why_it_matters'],
+      },
+    },
+    slides: {
+      type: 'array' as const,
+      minItems: 6,
+      maxItems: 6,
+      description:
+        'Exactly six concise carousel slides in this order: hook, scorecard, aha, evidence, fixes, cta. Each stands alone on a phone screen. Final CTA invites the viewer to run their own CV analysis at rejectcheck.com.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          number: { type: 'integer' as const, minimum: 1, maximum: 6 },
+          purpose: {
+            type: 'string' as const,
+            enum: ['hook', 'scorecard', 'aha', 'evidence', 'fixes', 'cta'],
+          },
+          headline: {
+            type: 'string' as const,
+            description: 'Slide headline, 12 words or fewer.',
+          },
+          body: {
+            type: 'string' as const,
+            description: 'Slide body, 36 words or fewer. CTA slide must name rejectcheck.com.',
+          },
+        },
+        required: ['number', 'purpose', 'headline', 'body'],
+      },
+    },
+  },
+  required: ['hook', 'aha_moment', 'scorecard', 'priority_fixes', 'slides'],
+};
+
 const TECHNICAL_ANALYSIS_SCHEMA = {
   type: 'object' as const,
   description:
@@ -1027,6 +1141,7 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
   const properties: Record<string, unknown> = {
     job_details: JOB_DETAILS_PROPERTY,
     overall: OVERALL_PROPERTY,
+    carousel_insights: CAROUSEL_INSIGHTS_PROPERTY,
     keyword_match: {
       type: 'number' as const,
       description:
@@ -1097,6 +1212,7 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
       required: [
         'job_details',
         'overall',
+        'carousel_insights',
         'keyword_match',
         'experience_level',
         'tech_stack_fit',

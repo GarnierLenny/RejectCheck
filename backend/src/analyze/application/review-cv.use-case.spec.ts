@@ -174,7 +174,7 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
 });
 
 /**
- * Owner audit mode: lean generation, portfolio off, and quota bypassed
+ * Owner audit mode: full generation, portfolio off, and quota bypassed
  * (no reserveQuotaIntent lookups, no ledger consume). Only honored when the
  * JWT email is in OWNER_EMAILS.
  */
@@ -221,13 +221,13 @@ describe('ReviewCvUseCase — owner audit mode', () => {
     auditMode: true,
   };
 
-  it('runs lean, portfolio-off, quota-free for an owner', async () => {
+  it('runs full, portfolio-off, quota-free for an owner', async () => {
     const { uc, reviewCv, analyses, creditLedger, portfolioScraper } =
       makeUseCase('owner@example.com');
     const out = await uc.execute(auditCmd);
 
     expect(out.auditMode).toBe(true);
-    expect(reviewCv.mock.calls[0][0].lean).toBe(true);
+    expect(reviewCv.mock.calls[0][0].lean).toBe(false);
     expect(portfolioScraper.fetch).not.toHaveBeenCalled();
     // Quota bypass: no reserve lookups, no ledger consume.
     expect(analyses.creditsSince).not.toHaveBeenCalled();

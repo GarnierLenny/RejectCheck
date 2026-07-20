@@ -56,6 +56,43 @@ export const IssueSchema = IssueHotSchema.extend({
   fix: FixSchema,
 });
 
+/**
+ * A compact, evidence-led brief that can be lifted straight into a social
+ * carousel. Scores deliberately use a 0-10 scale so the public-facing
+ * diagnostic is easy to scan, while the detailed report keeps its 0-100
+ * precision internally.
+ */
+export const CarouselInsightsSchema = z.object({
+  hook: z.string(),
+  aha_moment: z.object({
+    headline: z.string(),
+    evidence: z.string(),
+    recruiter_consequence: z.string(),
+  }),
+  scorecard: z.array(
+    z.object({
+      label: z.string(),
+      score: z.number().min(0).max(10),
+      evidence: z.string(),
+    }),
+  ).min(6).max(8),
+  priority_fixes: z.array(
+    z.object({
+      priority: z.number().int().min(1).max(3),
+      change: z.string(),
+      why_it_matters: z.string(),
+    }),
+  ).length(3),
+  slides: z.array(
+    z.object({
+      number: z.number().int().min(1).max(6),
+      purpose: z.enum(['hook', 'scorecard', 'aha', 'evidence', 'fixes', 'cta']),
+      headline: z.string(),
+      body: z.string(),
+    }),
+  ).length(6),
+});
+
 // Claude sometimes returns a string instead of an array — coerce gracefully
 const strOrArr = z
   .union([z.array(z.string()), z.string()])
@@ -298,6 +335,9 @@ export const HotAnalyzeResponseSchema = z.object({
     score: z.number().min(0).max(100),
     reason: z.string(),
   }),
+  // New analyses always generate this at the start of the response. Optional
+  // here so analyses stored before the carousel brief rollout still replay.
+  carousel_insights: CarouselInsightsSchema.optional(),
   breakdown: z.object({
     keyword_match: z.number().min(0).max(100),
     tech_stack_fit: z.number().min(0).max(100),
@@ -412,6 +452,8 @@ export const AnalyzeResponseSchema = z.object({
     score: z.number().min(0).max(100),
     reason: z.string(),
   }),
+  // Optional for reports stored before the carousel brief rollout.
+  carousel_insights: CarouselInsightsSchema.optional(),
   breakdown: z.object({
     keyword_match: z.number().min(0).max(100),
     tech_stack_fit: z.number().min(0).max(100),
@@ -592,6 +634,7 @@ export function mergeHotAndDeep(
     score: hot.score,
     verdict: hot.verdict,
     confidence: hot.confidence,
+    carousel_insights: hot.carousel_insights,
     breakdown: hot.breakdown,
     ats_simulation: {
       ...hot.ats_simulation,

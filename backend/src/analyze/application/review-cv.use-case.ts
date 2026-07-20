@@ -91,7 +91,7 @@ export type ReviewCvCommand = {
 export type ReviewCvResult = {
   result: CvReviewResponse;
   analysisId: number | null;
-  /** True when the owner audit mode was actually applied (lean + auto-share). */
+  /** True when the owner audit mode was actually applied (full + auto-share). */
   auditMode: boolean;
 };
 
@@ -145,8 +145,10 @@ export class ReviewCvUseCase {
     Sentry.setTag('tier', subscriptionState.tier);
     Sentry.setTag('plan', subscriptionState.plan);
 
-    // Owner "audit mode" — honored only for OWNER_EMAILS (see analyze-cv).
-    // Lean diagnostic, portfolio + digest off, quota bypassed.
+    // Owner "audit mode" is honored only for OWNER_EMAILS. It keeps portfolio
+    // and digest off for stranger-CV privacy, bypasses quota, and now runs the
+    // complete audit: carousel creation needs bullet and per-role evidence, not
+    // a cheap teaser that hides the real insight.
     const isOwnerAudit =
       (cmd.auditMode ?? false) &&
       isOwnerEmail(cmd.email, this.config.get<string>('OWNER_EMAILS'));
@@ -275,7 +277,7 @@ export class ReviewCvUseCase {
       portfolioMarkdown,
       portfolioUrl,
       digest,
-      lean: isOwnerAudit,
+      lean: false,
       locale: cmd.locale,
       // Only frame the audit with the signed-in user's declared role when they
       // opted into "my CV"; auditing a stranger falls back to role inference

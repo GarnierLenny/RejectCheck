@@ -3,7 +3,11 @@ import {
   CrossProfileInconsistencySchema,
   TimelineEntrySchema,
 } from './profile-digest.dto';
-import { BulletReviewsSchema, IssueHotSchema } from './analyze-response.dto';
+import {
+  BulletReviewsSchema,
+  CarouselInsightsSchema,
+  IssueHotSchema,
+} from './analyze-response.dto';
 
 // CV-review audit issues now carry an inline `fix` (tool requires it; DTO keeps
 // it optional so pre-densification rows without a fix still replay).
@@ -128,6 +132,8 @@ export const CvQualityNotesSchema = z.object({
 
 export const CvReviewResponseSchema = z.object({
   score: z.number().min(0).max(100),
+  // Optional so CV reviews stored before the carousel brief rollout replay.
+  carousel_insights: CarouselInsightsSchema.optional(),
   cv_quality: CvQualitySchema,
   cv_quality_notes: CvQualityNotesSchema.optional(),
   skill_radar: SkillRadarSchema.optional(),

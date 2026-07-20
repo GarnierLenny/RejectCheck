@@ -383,12 +383,40 @@ export type CvReviewAts = {
   issues: CvReviewAtsIssue[];
 };
 
+/** A concise, evidence-led brief for a six-slide social carousel. */
+export type CarouselInsights = {
+  hook: string;
+  aha_moment: {
+    headline: string;
+    evidence: string;
+    recruiter_consequence: string;
+  };
+  scorecard: Array<{
+    label: string;
+    score: number;
+    evidence: string;
+  }>;
+  priority_fixes: Array<{
+    priority: number;
+    change: string;
+    why_it_matters: string;
+  }>;
+  slides: Array<{
+    number: number;
+    purpose: 'hook' | 'scorecard' | 'aha' | 'evidence' | 'fixes' | 'cta';
+    headline: string;
+    body: string;
+  }>;
+};
+
 export type AnalysisResult = {
   score: number;
   /** Absent on CV-review analyses (no job description to match against). */
   verdict?: 'Low' | 'Medium' | 'High';
   /** Absent on CV-review analyses. */
   confidence?: { score: number; reason: string };
+  /** Present on new reports, absent on analyses created before carousel briefs. */
+  carousel_insights?: CarouselInsights;
   /** Absent on CV-review analyses. */
   breakdown?: {
     keyword_match: number;
@@ -505,4 +533,3 @@ export const getSeverityStyles = (severity: string) => {
     default:         return "text-rc-muted bg-rc-muted/5 border-rc-border";
   }
 };
-

@@ -8,6 +8,11 @@
  */
 export const SHARED_ANALYSIS_RULES = `### CROSS-ROLE ANALYSIS RULES (apply on top of everything above)
 
+CAROUSEL BRIEF:
+- Populate carousel_insights as a recruiter-grade, six-slide brief that a creator can publish without rewriting. It must create an honest "aha" moment from evidence, never manufacture drama or use vague bait.
+- Scorecard is 0-10 only. For CV-vs-JD analysis, score all relevant factors: required-skill coverage, tool depth, level match, impact proof, ATS match, career narrative, plus any supplied profile or letter signal. Omit only factors with no evidence source. Every score needs its own concrete evidence line and must agree with the detailed 0-100 diagnostics.
+- Slides must be exactly: hook, scorecard, aha, evidence, fixes, cta. The CTA names rejectcheck.com and invites viewers to analyse their own CV. Never identify the candidate or expose contact details.
+
 AUDIT SCORE BANDS (audit_cv.score, audit_github.score, audit_linkedin.score):
 - 80-100 exceptional; 60-79 good with minor gaps; 40-59 average (passive voice, vague bullets, thin quantification); 20-39 weak; 0-19 major problems.
 - The score MUST be consistent with the issues you list: 3 or more critical issues cannot coexist with a score above 55. Recalibrate the score to fit the issues, never the reverse.
@@ -62,6 +67,11 @@ JD MATCH COVERAGE:
  * system prompt so the audit inherits the same guardrails as the analysis.
  */
 export const CV_REVIEW_SHARED_RULES = `### CROSS-ROLE AUDIT RULES (cold recruiter read, no job description — apply on top of everything above)
+
+CAROUSEL BRIEF:
+- Populate carousel_insights as a recruiter-grade, six-slide brief that a creator can publish without rewriting. It must create an honest "aha" moment from evidence, never manufacture drama or use vague bait.
+- Scorecard is 0-10 only. For a cold CV audit, score all relevant factors: first-glance clarity, proof of impact, skills proof, seniority signal, ATS readability, career narrative, plus profile consistency when another source is supplied. Every score needs its own concrete evidence line and must agree with the detailed 0-100 diagnostics.
+- Slides must be exactly: hook, scorecard, aha, evidence, fixes, cta. The CTA names rejectcheck.com and invites viewers to analyse their own CV. Never identify the candidate or expose contact details.
 
 EVIDENCE ANCHORING:
 - Anchor every issue, red flag, gap and quality note in a specific piece of the CV: quote or paraphrase the exact bullet, section or phrase you are reacting to. No advice that could apply to any CV. If you cannot point to concrete evidence, omit the claim rather than pad.

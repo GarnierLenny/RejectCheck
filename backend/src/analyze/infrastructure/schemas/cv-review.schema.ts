@@ -10,7 +10,10 @@ import {
   CROSS_PROFILE_INCONSISTENCY,
   TIMELINE_ENTRY,
 } from './claude-profile-digest.schema';
-import { BULLET_REVIEWS_PROPERTY } from './claude-analysis.schema';
+import {
+  BULLET_REVIEWS_PROPERTY,
+  CAROUSEL_INSIGHTS_PROPERTY,
+} from './claude-analysis.schema';
 
 // Mirrors the private SOURCE_ENUM of claude-profile-digest.schema.ts (not
 // exported there). Keep in sync if a new source type is ever added.
@@ -252,6 +255,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
   input_schema: {
     type: 'object' as const,
     properties: {
+      carousel_insights: CAROUSEL_INSIGHTS_PROPERTY,
       cv_quality: {
         type: 'object' as const,
         description: 'CV quality scores across 6 dimensions (0-100 each). overall = weighted average of the 6 sub-scores.',
@@ -612,6 +616,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
       },
     },
     required: [
+      'carousel_insights',
       'cv_quality',
       'cv_quality_notes',
       'skill_radar',

@@ -117,7 +117,7 @@ export type AnalyzeCvCommand = {
 export type AnalyzeCvResult = {
   result: AnalyzeResponse;
   analysisId: number | null;
-  /** True when the owner audit mode was actually applied (lean + auto-share). */
+  /** True when the owner audit mode was actually applied (full + auto-share). */
   auditMode: boolean;
   /**
    * Deterministic keyword-match baseline (no LLM) — the verifiable coverage
@@ -211,9 +211,9 @@ export class AnalyzeCvUseCase {
     Sentry.setTag('plan', subscriptionState.plan);
 
     // Owner "audit mode": the request flag is only honored when the JWT email
-    // is in OWNER_EMAILS. It runs a lean diagnostic-only pass and bypasses the
-    // quota (teaser audits for strangers, shared read-only). A non-owner who
-    // forces auditMode=true just gets a normal, quota-counted analysis.
+    // is in OWNER_EMAILS. It runs the full evidence-led audit and bypasses the
+    // quota, so public social reports contain real substance. A non-owner who
+    // forces auditMode=true gets a normal, quota-counted analysis.
     const isOwnerAudit =
       (cmd.auditMode ?? false) &&
       isOwnerEmail(cmd.email, this.config.get<string>('OWNER_EMAILS'));
@@ -445,7 +445,7 @@ export class AnalyzeCvUseCase {
     let result = await this.claude.analyzeApplication({
       ...claudeInput,
       generateBridgeProject,
-      lean: isOwnerAudit,
+      lean: false,
       onDelta: (delta) => sectionParser.push(delta),
     });
     timings.claude_ms = Date.now() - claudeStart;

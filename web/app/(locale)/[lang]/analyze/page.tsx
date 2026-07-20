@@ -129,10 +129,10 @@ function AnalyzeContent() {
   });
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
 
-  // Owner "audit mode": lean teaser audit for strangers (Reddit) that
-  // auto-mints a public share link. `isOwner` (from a PUBLIC env list) only
-  // gates the UI toggle — the backend re-checks OWNER_EMAILS from the JWT, so a
-  // non-owner flipping this gets a normal analysis. Defaults on from ?audit=1.
+  // Owner "audit mode": complete shareable audit for strangers that auto-mints
+  // a public link. `isOwner` (from a PUBLIC env list) only gates the UI toggle
+  // — the backend re-checks OWNER_EMAILS from the JWT, so a non-owner flipping
+  // this gets a normal analysis. Defaults on from ?audit=1.
   const ownerEmails = (process.env.NEXT_PUBLIC_OWNER_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())
@@ -1156,7 +1156,7 @@ function AnalyzeContent() {
                       onChange={(e) => setAuditMode(e.target.checked)}
                       className="accent-rc-red"
                     />
-                    Audit mode: lean teaser + public link (no quota, no portfolio)
+                    Audit mode: full carousel brief + public link (no quota, no portfolio)
                   </label>
                 )}
                 <UploadForm

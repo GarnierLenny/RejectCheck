@@ -21,6 +21,7 @@ import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { useLanguage } from "../../context/language";
 import { useProfile } from "../../lib/queries";
+import { CarouselBrief } from "./CarouselBrief";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1105,6 +1106,7 @@ export function AnalysisLayout({
             {/* 01 — Competitiveness (displayed as 100 − rejection risk) */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
               <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              <CarouselBrief insights={result.carousel_insights} readOnly={readOnly} />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>
                   <MD>{result.technical_analysis.reasoning}</MD>

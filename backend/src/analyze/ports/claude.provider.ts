@@ -45,8 +45,8 @@ export type AnalyzeApplicationSingleInput = AnalyzeApplicationInput & {
    */
   generateBridgeProject?: boolean;
   /**
-   * Owner "audit mode": generate the diagnostic only (no fixes / bullet
-   * reviews / ATS keywords / highlight terms / project). ~3x cheaper/faster.
+   * Diagnostic-only generation, retained for internal callers that need a
+   * cheaper response. Owner audit mode deliberately uses the full analysis.
    */
   lean?: boolean;
 };
@@ -87,7 +87,7 @@ export type ReviewCvInput = {
   locale?: string;
   userRoleType?: string | null;
   digest?: ProfileDigest | null;
-  /** Owner "audit mode": drop bullet_reviews to save tokens on teasers. */
+  /** Diagnostic-only generation: omit token-heavy blocks when requested. */
   lean?: boolean;
   onDelta?: (chunk: string) => void;
 };
