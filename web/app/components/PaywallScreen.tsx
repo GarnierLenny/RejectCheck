@@ -13,7 +13,7 @@ import {
   Coins,
 } from "lucide-react";
 import { useLanguage } from "../../context/language";
-import { useCreateSprintPassCheckout } from "../../lib/mutations";
+import { useCreateSprintPassCheckout, useCreateCheckout } from "../../lib/mutations";
 import posthog from "posthog-js";
 import { BuyCreditsModal } from "./BuyCreditsModal";
 
@@ -43,6 +43,7 @@ export function PaywallScreen({
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
   const { t, localePath, locale } = useLanguage();
   const sprintPass = useCreateSprintPassCheckout();
+  const founderCheckout = useCreateCheckout();
 
   const isGuest = mode === "guest_limit";
   const g = t.paywall.guest;
@@ -129,6 +130,36 @@ export function PaywallScreen({
                 </>
               ) : isGuest ? (
                 <>
+                  <button
+                    type="button"
+                    disabled={founderCheckout.isPending}
+                    onClick={() => {
+                      posthog.capture("checkout_started", {
+                        plan: "founder",
+                        source: "paywall_guest_limit",
+                      });
+                      founderCheckout.mutate(
+                        { plan: "founder" },
+                        {
+                          // No account yet: Stripe collects the email at checkout
+                          // and the completed webhook keys access by that email.
+                          // On sold-out / not-configured (null url) fall back to
+                          // the plans page instead of a dead click.
+                          onSuccess: (data) => {
+                            window.location.href =
+                              data.url ?? localePath("/pricing");
+                          },
+                          onError: () => {
+                            window.location.href = localePath("/pricing");
+                          },
+                        },
+                      );
+                    }}
+                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white text-[14px] rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 font-bold disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {founderCheckout.isPending ? t.common.processing : g.buyCta}{" "}
+                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </button>
                   <Link
                     href={localePath("/login")}
                     onClick={() =>
@@ -136,16 +167,9 @@ export function PaywallScreen({
                         source: "paywall_guest_limit",
                       })
                     }
-                    className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white text-[14px] rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 no-underline font-bold"
+                    className="inline-flex items-center justify-center px-8 py-4 border border-rc-border text-rc-muted hover:text-rc-text hover:bg-rc-bg transition-all duration-300 rounded-xl no-underline font-bold text-[14px]"
                   >
-                    {g.cta}{" "}
-                    <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
-                  <Link
-                    href={localePath("/pricing")}
-                    className="inline-flex items-center justify-center px-8 py-4 border border-rc-border text-rc-muted hover:text-rc-text hover:bg-rc-bg transition-all duration-300 font-mono text-[11px] tracking-widest uppercase rounded-xl no-underline font-bold"
-                  >
-                    {g.secondary}
+                    {g.cta}
                   </Link>
                 </>
               ) : (
@@ -185,6 +209,15 @@ export function PaywallScreen({
                 </>
               )}
             </div>
+
+            {isGuest && (
+              <Link
+                href={localePath("/pricing")}
+                className="inline-block text-[12px] text-rc-hint underline hover:text-rc-text transition-colors mb-2"
+              >
+                {g.secondary}
+              </Link>
+            )}
 
             {mode === "free_cap" && (
               <div className="flex flex-col items-center gap-1.5 mb-2">

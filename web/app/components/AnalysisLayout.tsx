@@ -312,6 +312,49 @@ function CountPill({ n, sev }: { n: number; sev: string }) {
   );
 }
 
+type TechnicalAnalysis = NonNullable<AnalysisResult["technical_analysis"]>;
+
+/**
+ * The radar is a first-read orienting signal, not a follow-up action. Keep it
+ * adjacent to the overall score; detailed evidence remains in Match below.
+ */
+function SkillRadarCard({ analysis }: { analysis: TechnicalAnalysis }) {
+  const { t } = useLanguage();
+  return (
+    <Sheet style={{ overflow: "hidden", marginTop: 24 }}>
+      <div style={{ padding: "14px 24px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
+        <Eyebrow>{t.analysisLayout.match.chartLabel}</Eyebrow>
+      </div>
+      <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--rc-border)" }}>
+        <RadarChart
+          axes={analysis.skills.map((s) => ({ label: s.name, score: s.current, expected: s.expected, evidence: s.evidence }))}
+          scale={10}
+          fluid
+          legend={{ current: t.analysisLayout.match.legendYou, expected: t.analysisLayout.match.legendTarget }}
+        />
+      </div>
+      <div style={{ padding: "18px 28px" }}>
+        <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.match.priorityTitle}</Eyebrow>
+        <ol className="rc-col2-m" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {(analysis.skill_priority ?? []).map((name, i) => {
+            const skill = analysis.skills.find((s) => s.name === name);
+            const gap = skill ? skill.expected - skill.current : 0;
+            const meetsTarget = gap <= 0;
+            const rankColors = ["var(--rc-red)", "var(--rc-amber)", "var(--rc-muted)", "var(--rc-hint)", "var(--rc-hint)", "var(--rc-hint)"];
+            return (
+              <li key={name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 11px", borderRadius: R_SM, background: "var(--rc-bg)", border: "1px solid var(--rc-border)", minWidth: 0 }}>
+                <Mono style={{ fontSize: 11, fontWeight: 700, width: 16, textAlign: "center", color: rankColors[i] ?? "var(--rc-hint)", flexShrink: 0 }}>{i + 1}</Mono>
+                <Mono style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--rc-text)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</Mono>
+                <Mono style={{ fontSize: 10, color: meetsTarget ? "var(--rc-green)" : "var(--rc-hint)", flexShrink: 0 }}>{meetsTarget ? "✓" : `-${gap}`}</Mono>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+    </Sheet>
+  );
+}
+
 // ── Match tab body ─────────────────────────────────────────────────────────────
 
 function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
@@ -339,42 +382,6 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
           <TechnicalAnalysisSkeleton />
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            {/* Radar + priority */}
-            <Sheet style={{ overflow: "hidden" }}>
-              <div style={{ padding: "14px 24px", borderBottom: "1px solid var(--rc-border)", background: "var(--rc-surface-hero)" }}>
-                <Eyebrow>{t.analysisLayout.match.chartLabel}</Eyebrow>
-              </div>
-              {/* Radar full-width (fluid) */}
-              <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--rc-border)" }}>
-                <RadarChart
-                  axes={ta.skills.map((s) => ({ label: s.name, score: s.current, expected: s.expected, evidence: s.evidence }))}
-                  scale={10}
-                  fluid
-                  legend={{ current: t.analysisLayout.match.legendYou, expected: t.analysisLayout.match.legendTarget }}
-                />
-              </div>
-              {/* Priority list below */}
-              <div style={{ padding: "18px 28px" }}>
-                <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12 }}>{t.analysisLayout.match.priorityTitle}</Eyebrow>
-                <ol className="rc-col2-m" style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {(ta.skill_priority ?? []).map((name, i) => {
-                    const sk = ta.skills.find((s) => s.name === name);
-                    const gap = sk ? sk.expected - sk.current : 0;
-                    const ok = gap <= 0;
-                    const rankColors = ["var(--rc-red)", "var(--rc-amber)", "var(--rc-muted)", "var(--rc-hint)", "var(--rc-hint)", "var(--rc-hint)"];
-                    const rank = rankColors[i] ?? "var(--rc-hint)";
-                    return (
-                      <li key={name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 11px", borderRadius: R_SM, background: "var(--rc-bg)", border: "1px solid var(--rc-border)", minWidth: 0 }}>
-                        <Mono style={{ fontSize: 11, fontWeight: 700, width: 16, textAlign: "center", color: rank, flexShrink: 0 }}>{i + 1}</Mono>
-                        <Mono style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--rc-text)", flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</Mono>
-                        <Mono style={{ fontSize: 10, color: ok ? "var(--rc-green)" : "var(--rc-hint)", flexShrink: 0 }}>{ok ? "✓" : `-${gap}`}</Mono>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            </Sheet>
-
             {/* Strategic recommendation */}
             <Sheet style={{ padding: "20px 26px" }}>
               <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12, letterSpacing: "0.18em" }}>{t.analysisLayout.match.recommendationTitle}</Eyebrow>
@@ -1106,6 +1113,9 @@ export function AnalysisLayout({
             {/* 01 — Competitiveness (displayed as 100 − rejection risk) */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
               <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              {result.technical_analysis && deepStatus === "ready" && (
+                <SkillRadarCard analysis={result.technical_analysis} />
+              )}
               <CarouselBrief insights={result.carousel_insights} readOnly={readOnly} />
               {result.technical_analysis?.reasoning && (
                 <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, lineHeight: 1.55, color: "var(--rc-muted)", marginTop: 24 }}>

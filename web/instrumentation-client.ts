@@ -33,13 +33,24 @@ whenIdle(() => {
     });
   }
 
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-    api_host: "/ingest",
-    ui_host: "https://us.posthog.com",
-    defaults: "2026-01-30",
-    capture_exceptions: true,
-    debug: process.env.NODE_ENV === "development",
-  });
+  // NEXT_PUBLIC_* values are inlined at BUILD time, so a token added to the
+  // deploy env only starts capturing after a fresh production build/redeploy.
+  // Guard the init: posthog.init(undefined) silently accepts a bogus token and
+  // drops every event, which is exactly how a project goes "dark" with no error.
+  const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+  if (posthogToken) {
+    posthog.init(posthogToken, {
+      api_host: "/ingest",
+      ui_host: "https://us.posthog.com",
+      defaults: "2026-01-30",
+      capture_exceptions: true,
+      debug: process.env.NODE_ENV === "development",
+    });
+  } else if (process.env.NODE_ENV !== "production") {
+    console.warn(
+      "[posthog] NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN missing — analytics disabled locally.",
+    );
+  }
 });
 
 // Must stay a synchronous export — Next calls it on router transitions. It's a

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "../../../../context/auth";
@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import posthog from "posthog-js";
 
 function PricingContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { t, localePath } = useLanguage();
@@ -110,17 +109,15 @@ function PricingContent() {
   }, [searchParams]);
 
   async function handlePaidPlan(plan: 'shortlisted' | 'hired' | 'founder') {
-    if (!user) {
-      router.push(localePath('/login?redirect=/pricing'));
-      return;
-    }
-
+    // Anonymous checkout is supported: the backend route is OptionalSupabaseGuard
+    // and Stripe collects the email at checkout, so we don't gate on login here.
+    // (A signed-in user's email is passed through to prefill the Stripe form.)
     if (activePlan === plan) return;
 
     posthog.capture("checkout_started", { plan });
     setLoadingPlan(plan);
     try {
-      const data = await createCheckout.mutateAsync({ plan, email: user.email });
+      const data = await createCheckout.mutateAsync({ plan, email: user?.email });
       if (data.url) {
         window.location.href = data.url;
       } else if (data.soldOut) {

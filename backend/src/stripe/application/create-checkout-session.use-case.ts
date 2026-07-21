@@ -47,9 +47,9 @@ export class CreateCheckoutSessionUseCase {
       if (taken >= FOUNDER_SEAT_CAP) return { url: null, soldOut: true };
       priceId = founderPriceId;
     } else if (cmd.plan === 'shortlisted') {
-      priceId = this.config.get<string>('STRIPE_SHORTLISTED_PRICE_ID')!;
+      priceId = this.requirePriceId('STRIPE_SHORTLISTED_PRICE_ID');
     } else {
-      priceId = this.config.get<string>('STRIPE_HIRED_PRICE_ID')!;
+      priceId = this.requirePriceId('STRIPE_HIRED_PRICE_ID');
     }
 
     // A founder subscriber IS a hired subscriber (cheaper price, same access).
@@ -76,5 +76,25 @@ export class CreateCheckoutSessionUseCase {
     });
 
     return { url: session.url };
+  }
+
+  /**
+   * Read a required Stripe price id or fail loudly. Without this, an unset or
+   * mistyped env var passes `undefined` straight to Stripe, which throws an
+   * opaque StripeInvalidRequestError and surfaces to the user as a generic
+   * "checkout failed" toast: the exact silent-500 that yields 0 payments with
+   * no clear cause. A throw here means the deploy env is misconfigured, and the
+   * message names the offending variable in the logs.
+   */
+  private requirePriceId(envKey: string): string {
+    const priceId = this.config.get<string>(envKey);
+    if (!priceId || !priceId.startsWith('price_')) {
+      throw new Error(
+        `Stripe checkout misconfigured: ${envKey} is ${
+          priceId ? `"${priceId}" (not a price_ id)` : 'unset'
+        }. Set it to the live Stripe price id in the deploy env.`,
+      );
+    }
+    return priceId;
   }
 }
