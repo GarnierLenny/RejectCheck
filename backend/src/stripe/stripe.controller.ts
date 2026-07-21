@@ -129,18 +129,21 @@ export class StripeController {
   }
 
   /**
-   * Protected — one-time Sprint pass Checkout (mode=payment): grants hired-tier
-   * access for a bounded window. Email comes from the JWT (never the body) so
-   * the webhook can trust `customer_details.email`. Already-premium users don't
-   * need it, so we no-op with url:null (the frontend hides the CTA for them too).
+   * Works anonymously (guest paywall) and signed-in (free_cap paywall): a
+   * one-time Sprint pass Checkout (mode=payment) granting hired-tier access for
+   * a bounded window. When a JWT is present we trust that email; otherwise
+   * Stripe collects it at checkout and the webhook grants access by the verified
+   * `customer_details.email`. Already-premium signed-in users don't need it, so
+   * we no-op with url:null; anonymous callers can't be premium, so that check
+   * only runs when we actually have an identity.
    */
-  @UseGuards(SupabaseGuard)
+  @UseGuards(OptionalSupabaseGuard)
   @Post('sprint-pass/checkout')
   async createSprintPassCheckoutSession(
-    @AuthEmail() email: string,
+    @OptionalAuthEmail() email: string | undefined,
     @Body() body: { locale?: string },
   ) {
-    if (await this.checkSubscription.isPremium(email)) {
+    if (email && (await this.checkSubscription.isPremium(email))) {
       return { url: null };
     }
     return this.createSprintPassCheckout.execute({

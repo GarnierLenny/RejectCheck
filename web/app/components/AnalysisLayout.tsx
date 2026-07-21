@@ -21,6 +21,8 @@ import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { useLanguage } from "../../context/language";
 import { useProfile } from "../../lib/queries";
+import { useCreateSprintPassCheckout } from "../../lib/mutations";
+import posthog from "posthog-js";
 import { CarouselBrief } from "./CarouselBrief";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -902,7 +904,8 @@ export function AnalysisLayout({
   cvTextFormatted = null,
   readOnly = false,
 }: AnalysisLayoutProps) {
-  const { t } = useLanguage();
+  const { t, localePath, locale } = useLanguage();
+  const sprintPass = useCreateSprintPassCheckout();
   const [activeSection, setActiveSection] = useState("risk");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
   const reportRef = useRef<HTMLElement>(null);
@@ -1189,6 +1192,51 @@ export function AnalysisLayout({
                   {t.analysisLayout.blindSpots.outro}
                 </p>
               </div>
+
+              {/* Peak-value upsell: the reader has just seen the score, the gap
+                  radar and the #1 fix, and the line above admits the score can't
+                  model the outcome — the exact handoff to an outcome-backed offer.
+                  Non-premium only (anon or free), never on the shared read-only
+                  view, never when this analysis was already one-time unlocked.
+                  Uses the same anon-capable Sprint pass checkout as the paywall. */}
+              {!isPremium && !premiumUnlocked && !readOnly && (
+                <div style={{ marginTop: 20, padding: "18px 18px", borderRadius: R_SM, border: "1px solid color-mix(in srgb, var(--rc-red) 30%, transparent)", background: "color-mix(in srgb, var(--rc-red) 5%, transparent)" }}>
+                  <Eyebrow style={{ display: "block", marginBottom: 8, color: "var(--rc-red)" }}>{t.analysisLayout.sprintUpsell.eyebrow}</Eyebrow>
+                  <p style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 700, color: "var(--rc-text)", margin: "0 0 6px", lineHeight: 1.3 }}>
+                    {t.analysisLayout.sprintUpsell.title}
+                  </p>
+                  <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "0 0 14px" }}>
+                    {t.analysisLayout.sprintUpsell.desc}
+                  </p>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+                    <button
+                      type="button"
+                      disabled={sprintPass.isPending}
+                      onClick={() => {
+                        posthog.capture("sprint_checkout_started", { source: "report_peak_value" });
+                        sprintPass.mutate(
+                          { locale },
+                          {
+                            // The hook redirects on a truthy url; here we only
+                            // handle the not-configured (null url) / error path.
+                            onSuccess: (data) => { if (!data.url) window.location.href = localePath("/pricing"); },
+                            onError: () => { window.location.href = localePath("/pricing"); },
+                          },
+                        );
+                      }}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", borderRadius: R_SM, background: "var(--rc-red)", color: "#fff", fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 700, border: "none", cursor: sprintPass.isPending ? "default" : "pointer", opacity: sprintPass.isPending ? 0.6 : 1 }}
+                    >
+                      {sprintPass.isPending ? t.common.processing : t.analysisLayout.sprintUpsell.cta}
+                    </button>
+                    <Mono style={{ fontSize: 12, color: "var(--rc-hint)" }}>{t.paywall.sprintSafety}</Mono>
+                  </div>
+                  <div style={{ marginTop: 10 }}>
+                    <a href={localePath("/pricing")} style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--rc-hint)", textDecoration: "underline" }}>
+                      {t.analysisLayout.sprintUpsell.secondary}
+                    </a>
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* 02 — Match */}

@@ -13,7 +13,7 @@ import {
   Coins,
 } from "lucide-react";
 import { useLanguage } from "../../context/language";
-import { useCreateSprintPassCheckout, useCreateCheckout } from "../../lib/mutations";
+import { useCreateSprintPassCheckout } from "../../lib/mutations";
 import posthog from "posthog-js";
 import { BuyCreditsModal } from "./BuyCreditsModal";
 
@@ -43,7 +43,6 @@ export function PaywallScreen({
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState(false);
   const { t, localePath, locale } = useLanguage();
   const sprintPass = useCreateSprintPassCheckout();
-  const founderCheckout = useCreateCheckout();
 
   const isGuest = mode === "guest_limit";
   const g = t.paywall.guest;
@@ -132,19 +131,18 @@ export function PaywallScreen({
                 <>
                   <button
                     type="button"
-                    disabled={founderCheckout.isPending}
+                    disabled={sprintPass.isPending}
                     onClick={() => {
-                      posthog.capture("checkout_started", {
-                        plan: "founder",
+                      posthog.capture("sprint_checkout_started", {
                         source: "paywall_guest_limit",
                       });
-                      founderCheckout.mutate(
-                        { plan: "founder" },
+                      sprintPass.mutate(
+                        { locale },
                         {
-                          // No account yet: Stripe collects the email at checkout
-                          // and the completed webhook keys access by that email.
-                          // On sold-out / not-configured (null url) fall back to
-                          // the plans page instead of a dead click.
+                          // Anonymous Sprint pass: no account yet, so Stripe
+                          // collects the email at checkout and the webhook grants
+                          // access by that verified email. Not configured (null
+                          // url) → plans page instead of a dead click.
                           onSuccess: (data) => {
                             window.location.href =
                               data.url ?? localePath("/pricing");
@@ -157,7 +155,7 @@ export function PaywallScreen({
                     }}
                     className="group relative inline-flex items-center justify-center px-8 py-4 bg-rc-red text-white text-[14px] rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-rc-red/25 font-bold disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {founderCheckout.isPending ? t.common.processing : g.buyCta}{" "}
+                    {sprintPass.isPending ? t.common.processing : g.buyCta}{" "}
                     <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </button>
                   <Link
@@ -211,12 +209,15 @@ export function PaywallScreen({
             </div>
 
             {isGuest && (
-              <Link
-                href={localePath("/pricing")}
-                className="inline-block text-[12px] text-rc-hint underline hover:text-rc-text transition-colors mb-2"
-              >
-                {g.secondary}
-              </Link>
+              <div className="flex flex-col items-center gap-1.5 mb-2">
+                <p className="text-[12px] text-rc-hint">{t.paywall.sprintSafety}</p>
+                <Link
+                  href={localePath("/pricing")}
+                  className="text-[12px] text-rc-hint underline hover:text-rc-text transition-colors"
+                >
+                  {g.secondary}
+                </Link>
+              </div>
             )}
 
             {mode === "free_cap" && (

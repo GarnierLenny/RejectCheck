@@ -357,7 +357,9 @@ export function useCreateSprintPassCheckout() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...authHeaders(token!),
+            // Optional auth: signed-in (free_cap) sends the JWT; anonymous
+            // (guest paywall) sends none and Stripe collects the email.
+            ...(token ? authHeaders(token) : {}),
           },
           body: JSON.stringify({ locale }),
         },

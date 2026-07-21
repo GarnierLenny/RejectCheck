@@ -4,8 +4,12 @@ import { STRIPE_CLIENT } from '../ports/tokens';
 import type { StripeClient } from '../ports/stripe-client';
 
 export type CreateSprintPassCheckoutSessionCommand = {
-  /** Authenticated user email — required, taken from the JWT, not the body. */
-  email: string;
+  /**
+   * Buyer email. Present (from the JWT) for a signed-in user; undefined for an
+   * anonymous buyer, in which case Stripe collects it at checkout and the
+   * webhook grants access by the verified `customer_details.email`.
+   */
+  email?: string;
   /** Locale for the return URLs ('en' | 'fr'). */
   locale?: string;
 };
@@ -51,7 +55,7 @@ export class CreateSprintPassCheckoutSessionUseCase {
 
     const meta = {
       type: 'sprint_pass',
-      email: cmd.email,
+      email: cmd.email ?? '',
     };
 
     const session = await this.stripe.checkout.sessions.create({
@@ -60,7 +64,9 @@ export class CreateSprintPassCheckoutSessionUseCase {
       allow_promotion_codes: true,
       success_url: `${frontendUrl}/${locale}/dashboard?sprint_success=true`,
       cancel_url: `${frontendUrl}/${locale}/pricing?error=true`,
-      customer_email: cmd.email,
+      // Anonymous buyer: omit customer_email so Stripe collects (and verifies)
+      // it at checkout; the webhook grants access by customer_details.email.
+      ...(cmd.email ? { customer_email: cmd.email } : {}),
       metadata: meta,
       payment_intent_data: { metadata: meta },
     });
