@@ -5,10 +5,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Sparkles,
-  Zap,
-  Bookmark,
-  LayoutDashboard,
-  Gift,
   Trophy,
   Coins,
 } from "lucide-react";
@@ -62,13 +58,6 @@ export function PaywallScreen({
       : mode === "free_cap"
         ? t.paywall.freeCapSubtitle
         : g.subtitle;
-
-  const guestFeatures = [
-    { icon: <Zap className="w-4 h-4 text-rc-red" />, text: g.features[0] },
-    { icon: <Bookmark className="w-4 h-4 text-rc-red" />, text: g.features[1] },
-    { icon: <LayoutDashboard className="w-4 h-4 text-rc-red" />, text: g.features[2] },
-    { icon: <Gift className="w-4 h-4 text-rc-red" />, text: g.features[3] },
-  ];
 
   return (
     <>
@@ -208,18 +197,6 @@ export function PaywallScreen({
               )}
             </div>
 
-            {isGuest && (
-              <div className="flex flex-col items-center gap-1.5 mb-2">
-                <p className="text-[12px] text-rc-hint">{t.paywall.sprintSafety}</p>
-                <Link
-                  href={localePath("/pricing")}
-                  className="text-[12px] text-rc-hint underline hover:text-rc-text transition-colors"
-                >
-                  {g.secondary}
-                </Link>
-              </div>
-            )}
-
             {mode === "free_cap" && (
               <div className="flex flex-col items-center gap-1.5 mb-2">
                 <p className="text-[12px] text-rc-hint">{t.paywall.sprintSafety}</p>
@@ -239,23 +216,6 @@ export function PaywallScreen({
             )}
             {mode === "subscriber_cap" && (
               <p className="text-[12px] text-rc-hint mb-2">{t.paywall.safetyOneTime}</p>
-            )}
-
-            {isGuest && (
-              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-rc-hint mb-12 font-bold">
-                {g.noCard}
-              </p>
-            )}
-
-            {isGuest && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                {guestFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-rc-bg/40 border border-rc-border/50">
-                    {feature.icon}
-                    <span className="text-[13px] font-bold text-rc-muted leading-none">{feature.text}</span>
-                  </div>
-                ))}
-              </div>
             )}
 
             {(mode === "free_cap" || mode === "subscriber_cap") && (

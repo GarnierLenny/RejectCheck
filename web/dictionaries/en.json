@@ -833,8 +833,8 @@
     "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached.",
     "guest": {
       "badge": "Free limit reached",
-      "title": "Keep going with a",
-      "titleHighlight": "free account.",
+      "title": "Looks like you're serious about",
+      "titleHighlight": "landing a job.",
       "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month. Every report saved to your dashboard with score history.",
       "buyCta": "Unlock full access, 29€",
       "cta": "Create a free account",
@@ -2504,8 +2504,9 @@
     },
     "sprintUpsell": {
       "eyebrow": "Unlock the full playbook",
-      "title": "You can see the gaps. Now close them.",
-      "desc": "The rewrite, the bridge project and the negotiation script are ready for this exact CV and role. Get full Hired access for one job search: 45 days, one payment.",
+      "scoreLead": "You scored",
+      "scoreTail": "against this job.",
+      "desc": "See exactly what to change to lift it: the rewrite, the bridge project and the negotiation script, built for this exact CV and role. Full Hired access for one search: 45 days, one payment.",
       "cta": "Get the Sprint pass, 29€",
       "secondary": "or see monthly plans"
     },

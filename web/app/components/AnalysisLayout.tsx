@@ -1203,7 +1203,9 @@ export function AnalysisLayout({
                 <div style={{ marginTop: 20, padding: "18px 18px", borderRadius: R_SM, border: "1px solid color-mix(in srgb, var(--rc-red) 30%, transparent)", background: "color-mix(in srgb, var(--rc-red) 5%, transparent)" }}>
                   <Eyebrow style={{ display: "block", marginBottom: 8, color: "var(--rc-red)" }}>{t.analysisLayout.sprintUpsell.eyebrow}</Eyebrow>
                   <p style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 700, color: "var(--rc-text)", margin: "0 0 6px", lineHeight: 1.3 }}>
-                    {t.analysisLayout.sprintUpsell.title}
+                    {t.analysisLayout.sprintUpsell.scoreLead}{" "}
+                    <span style={{ color: "var(--rc-red)" }}>{100 - result.score}/100</span>{" "}
+                    {t.analysisLayout.sprintUpsell.scoreTail}
                   </p>
                   <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "0 0 14px" }}>
                     {t.analysisLayout.sprintUpsell.desc}

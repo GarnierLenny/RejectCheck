@@ -833,8 +833,8 @@
     "creditsExpiryNote": "Les crédits sont permanents et utilisés une fois votre quota mensuel atteint.",
     "guest": {
       "badge": "Limite gratuite atteinte",
-      "title": "Continue avec un",
-      "titleHighlight": "compte gratuit.",
+      "title": "Tu prends ta recherche au",
+      "titleHighlight": "sérieux.",
       "subtitle": "Tu as utilisé tes analyses anonymes gratuites. Un compte gratuit débloque 3 analyses complètes chaque mois. Chaque rapport sauvegardé dans ton dashboard avec l'historique de score.",
       "buyCta": "Débloquer l'accès complet, 29€",
       "cta": "Créer un compte gratuit",
@@ -2504,8 +2504,9 @@
     },
     "sprintUpsell": {
       "eyebrow": "Débloque le plan complet",
-      "title": "Tu vois les écarts. Maintenant comble-les.",
-      "desc": "La réécriture, le projet passerelle et le script de négociation sont prêts pour ce CV et ce poste précis. Accès Hired complet pour une recherche : 45 jours, un seul paiement.",
+      "scoreLead": "Tu as obtenu",
+      "scoreTail": "face à ce poste.",
+      "desc": "Vois précisément quoi changer pour le faire monter : la réécriture, le projet passerelle et le script de négociation, faits pour ce CV et ce poste. Accès Hired complet pour une recherche : 45 jours, un seul paiement.",
       "cta": "Prendre le Sprint pass, 29€",
       "secondary": "ou voir les plans mensuels"
     },
