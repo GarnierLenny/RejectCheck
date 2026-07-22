@@ -74,7 +74,7 @@
       "platformSubtitle": "One read of your CV against the exact job: the gaps a recruiter would catch in six seconds, scored before you hit send.",
       "founderLabel": "Co-Founder",
       "cancelAnytime": "Cancel anytime",
-      "hiredRefund": "Hired? We refund your last month. No form. Just tell us."
+      "hiredRefund": "Got the job? We refund your current month. No form. Just tell us."
     },
     "mockContent": {
       "radar": {
@@ -340,7 +340,7 @@
         },
         {
           "label": "Hired plan refund is genuine",
-          "claim": "If you subscribe to Hired (€39.99/month) and get hired during an active billing month, we refund that month on receipt of an accepted offer letter. This is a contractual guarantee clause, not marketing language.",
+          "claim": "If you subscribe to Hired (€39.99/month) and land a job during an active billing month, we refund that month on receipt of an accepted offer letter. This is a contractual guarantee clause, not marketing language.",
           "source": "Refund policy documented in the pricing FAQ",
           "sourceLinks": [
             {
@@ -364,7 +364,7 @@
       "subtitleEmphasis": "impossible to ignore",
       "stat1Value": "~1 min",
       "stat1Label": "to first diagnosis",
-      "stat2Value": "2 free",
+      "stat2Value": "3 free",
       "stat2Label": "per month",
       "stat3Value": "No signup",
       "stat3Label": "to start",
@@ -397,39 +397,39 @@
       "items": [
         {
           "n": "01",
-          "title": "ATS",
-          "it": "keyword filter",
-          "desc": "We simulate the 4 most-used Applicant Tracking Systems and tell you exactly which required terms are missing, including singular/plural and synonym variants."
+          "title": "Cross-source",
+          "it": "contradictions",
+          "desc": "We reconcile your CV, LinkedIn, GitHub and cover letter against one job. Every conflict is named, traced back to the sources it came from, and weighed in your score."
         },
         {
           "n": "02",
-          "title": "Seniority",
-          "it": "match",
-          "desc": "\"5+ years\" vs \"8 years\" reads very differently. We map your titles, scope, and tenure against the band the JD expects."
+          "title": "GitHub &",
+          "it": "portfolio depth",
+          "desc": "We open your public work: repos, activity, language mix, project depth, or the case studies in your portfolio. Then we weigh it against what the job actually asks."
         },
         {
           "n": "03",
-          "title": "Quantified",
-          "it": "outcomes",
-          "desc": "Bullets without numbers blur. We flag every bullet missing a metric and suggest where to add one, truthfully."
+          "title": "Career",
+          "it": "chronology",
+          "desc": "We rebuild one timeline from every source you give us. Dates that disagree between two profiles, overlapping roles and months you never explained all surface here."
         },
         {
           "n": "04",
-          "title": "Red",
-          "it": "flags",
-          "desc": "Unexplained gaps, vague titles, inconsistencies. The things a recruiter spots in two seconds. We surface them before they do."
+          "title": "Seniority",
+          "it": "band",
+          "desc": "\"5+ years\" and \"8 years\" read very differently. We map your titles, scope and tenure against the band the job describes, and flag titles that stay vague."
         },
         {
           "n": "05",
-          "title": "GitHub /",
-          "it": "portfolio signal",
-          "desc": "For technical roles, your GitHub matters more than your bullets. We read public activity, language mix, and project depth, then weigh them against the JD."
+          "title": "Quantified",
+          "it": "outcomes",
+          "desc": "A bullet without a number is an assertion, not evidence. We flag each one, show where a true number belongs, and mark the lines that read like a template."
         },
         {
           "n": "06",
-          "title": "Tone &",
-          "it": "style",
-          "desc": "Buzzword density, voice consistency, length-to-impact ratio. We tell you where it sounds like a template, and where it sounds like you."
+          "title": "ATS",
+          "it": "reality check",
+          "desc": "Most ATS don't auto-reject on a keyword score. We check your file parses cleanly and carries the terms the job weights. It decides what a recruiter sees, not whether they say yes."
         }
       ]
     },
@@ -446,7 +446,12 @@
       "verdict": "High risk · rejection likely",
       "priorityFixLabel": "Priority fix",
       "contentsLabel": "In this briefing",
-      "contents": ["Keyword gaps", "Seniority signals", "Bullet rewrites", "Hidden red flags"]
+      "contents": [
+        "Keyword gaps",
+        "Seniority signals",
+        "Bullet rewrites",
+        "Hidden red flags"
+      ]
     },
     "s04": {
       "smallLabel": "Honestly",
@@ -788,8 +793,16 @@
   },
   "riskMeter": {
     "eyebrow": "Rejection risk",
-    "verdict": { "low": "Low risk", "mid": "Moderate risk", "high": "High risk" },
-    "bands": { "low": "Low", "mid": "Moderate", "high": "High" },
+    "verdict": {
+      "low": "Low risk",
+      "mid": "Moderate risk",
+      "high": "High risk"
+    },
+    "bands": {
+      "low": "Low",
+      "mid": "Moderate",
+      "high": "High"
+    },
     "lede": {
       "low": "Few reasons to be passed over.",
       "mid": "Workable: a few gaps to close first.",
@@ -800,8 +813,16 @@
     "computing": "Computing score…",
     "strength": {
       "eyebrow": "CV strength",
-      "verdict": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
-      "bands": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "verdict": {
+        "weak": "Weak",
+        "decent": "Decent",
+        "strong": "Strong"
+      },
+      "bands": {
+        "weak": "Weak",
+        "decent": "Decent",
+        "strong": "Strong"
+      },
       "lede": {
         "weak": "Big gaps to close before this competes.",
         "decent": "Solid base, a few fixes will sharpen it.",
@@ -811,8 +832,16 @@
     },
     "competitiveness": {
       "eyebrow": "Competitiveness",
-      "verdict": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
-      "bands": { "weak": "Weak", "decent": "Decent", "strong": "Strong" },
+      "verdict": {
+        "weak": "Weak",
+        "decent": "Decent",
+        "strong": "Strong"
+      },
+      "bands": {
+        "weak": "Weak",
+        "decent": "Decent",
+        "strong": "Strong"
+      },
       "lede": {
         "weak": "As it stands, this would likely be passed over.",
         "decent": "Workable, a few gaps to close first.",
@@ -843,14 +872,18 @@
     "sprintCta": "Get the Sprint pass, 29€",
     "seeMonthlyPlans": "See monthly plans",
     "orBuyCredits": "or buy one-off credits",
-    "sprintSafety": "One-time payment, refunded if you get hired",
+    "sprintSafety": "One-time payment, refunded if you land the job",
     "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached.",
     "guest": {
       "badge": "Almost there",
       "title": "Continue your",
       "titleHighlight": "analysis.",
       "subtitle": "Create a free account to keep this report.",
-      "savedItems": ["Continue this analysis", "Save every future report", "3 free analyses every month"],
+      "savedItems": [
+        "Continue this analysis",
+        "Save every future report",
+        "3 free analyses every month"
+      ],
       "noCardNote": "No credit card required",
       "buyCta": "Unlock full access, 29€",
       "cta": "Continue for free",
@@ -875,8 +908,8 @@
     "credit": "credit",
     "credits": "credits",
     "popular": "Popular",
-    "upgradeTitle": "Switch to Shortlisted or Hired",
-    "upgradeSub": "15 or 30 full analyses / month · extras on demand",
+    "upgradeTitle": "Switch to Hired",
+    "upgradeSub": "30 full analyses / month · extras on demand",
     "upgradeCta": "See plans →",
     "paymentNote": "One-time payment · Stripe",
     "close": "Close"
@@ -1234,15 +1267,12 @@
         "period": "/forever",
         "description": "Perfect for a first reality check.",
         "features": [
-          "3 full analyses to start",
-          "ATS simulation",
-          "Seniority gap audit",
-          "CV tone analysis",
+          "3 analyses / month, diagnosis only",
+          "Cross-source check: CV, LinkedIn, GitHub",
           "Score breakdown",
           "Hidden red flags",
-          "Actionable fixes",
-          "GitHub & LinkedIn audit",
-          "Project recommendations",
+          "Seniority gap audit",
+          "ATS parsing check",
           "Export PDF / Markdown"
         ],
         "cta": "Start for free"
@@ -1268,27 +1298,26 @@
         "period": "/month",
         "description": "The full arsenal for your most important search.",
         "features": [
-          "Land the offer, then negotiate it up",
-          "Everything in SHORTLISTED",
-          "30 full analyses / month",
-          "Buy extra analyses anytime, never expires",
-          "Cover Letter Generator",
-          "Negotiation Playbook (counter-offer email + leverage points)",
-          "Salary positioning chart with per-action impact estimates",
-          "Coming soon: career roadmaps, recruiter messages, Chrome extension"
+          "Everything in Free, unredacted",
+          "30 analyses / month",
+          "Every fix, not just the diagnosis",
+          "Cover letter generator",
+          "Negotiation playbook: counter-offer email + leverage points",
+          "Salary positioning against the market band",
+          "Buy extra analyses anytime, they never expire"
         ],
         "cta": "Get Hired",
-        "guarantee": "Hired? We refund your current month."
+        "guarantee": "Got the job? We refund your current month."
       }
     },
     "founder": {
       "badge": "Founding member",
       "title": "Get Hired, locked in for life",
       "priceNote": "/mo · locked for life",
-      "subtitle": "Everything in Hired, at half the price. Reserved for the first 100 members.",
-      "seatsLeft": "{remaining} of 100 seats left",
+      "subtitle": "Everything in Hired, at half the price. Reserved for the first {cap} members.",
+      "seatsLeft": "{remaining} seats left",
       "regularPrice": "Regular price:",
-      "soldOut": "All 100 founder seats are taken.",
+      "soldOut": "All founder seats are taken.",
       "cta": "Become a founder"
     },
     "errors": {
@@ -1303,27 +1332,27 @@
       "items": [
         {
           "question": "Can I cancel my RejectCheck subscription anytime?",
-          "answer": "Yes. You can cancel your Shortlisted (€19.99/month) or Hired (€39.99/month) subscription at any time from the account settings page. You keep full access until the end of the already-billed period - no prorated charges."
+          "answer": "Yes. You can cancel your Hired (€39.99/month) subscription at any time from your account. You keep access until the end of the period already paid for."
         },
         {
           "question": "Is there a free trial or free tier?",
           "answer": "Yes. The Free plan is free forever and includes 1 deep CV analysis for guests (no signup) or 3 analyses for registered users, with ATS simulation, tone audit, seniority audit, and red-flag detection. No credit card required."
         },
         {
-          "question": "Does the Hired plan actually refund me if I get hired?",
-          "answer": "Yes. If you get hired during your active Hired billing month, email support@rejectcheck.com with proof of offer (an accepted offer letter or signed contract) and we refund your current month. It is a genuine guarantee, not marketing language."
+          "question": "Does the Hired plan really refund me if I land a job?",
+          "answer": "Yes. If you land a job during your active Hired billing month, email support@rejectcheck.com with proof of offer (an accepted offer letter or signed contract) and we refund your current month. It is a genuine guarantee, not marketing language."
         },
         {
           "question": "What payment methods does RejectCheck accept?",
           "answer": "Payments are processed by Stripe and accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) plus European SEPA direct debit and Apple Pay / Google Pay where supported by Stripe in your region."
         },
         {
-          "question": "Can I switch between Shortlisted and Hired plans?",
-          "answer": "Yes. You can upgrade from Shortlisted to Hired or downgrade at any time from the account page. Upgrades are prorated immediately; downgrades take effect at the end of the current billing period."
+          "question": "Can I change or cancel my plan later?",
+          "answer": "Yes. You can move up to Hired or go back to Free at any time from your account. Changes take effect at the end of the current billing period, and nothing is lost from your past analyses."
         },
         {
           "question": "How does RejectCheck compare to Jobscan, Rezi, and other alternatives?",
-          "answer": "At €19.99/month, Shortlisted sits comfortably within the range of tools like Rezi ($29/month), Jobscan, and Enhancv, without being the most expensive. What sets RejectCheck apart isn't the price tag: it's the depth. You get a multi-pass Claude pipeline (Sonnet + Haiku) with a full GitHub/LinkedIn cross-check, the kind of analysis the others don't run at any tier. Pay for the analysis, not the brand."
+          "answer": "Hired is €39.99/month, and founding members lock it at €19.99 for life. That puts the entry price alongside tools like Rezi ($29/month), Jobscan, and Enhancv. What sets RejectCheck apart isn't the price tag: it's the depth. You get a multi-pass Claude pipeline (Sonnet + Haiku) with a full GitHub/LinkedIn cross-check, the kind of analysis the others don't run at any tier. Pay for the analysis, not the brand."
         }
       ]
     }
@@ -1395,7 +1424,11 @@
     "signal2": "Unexplained 8-month gap",
     "signal3": "Stack matches 55% of the JD",
     "footnoteLeft": "Analysis in 30s",
-    "footnoteRight": ["CV", "JD", "LinkedIn"]
+    "footnoteRight": [
+      "CV",
+      "JD",
+      "LinkedIn"
+    ]
   },
   "ctaBand": {
     "eyebrow": "Last step",
@@ -1505,9 +1538,6 @@
     "creditPlural": "credits",
     "buy": "Buy →",
     "oneTime": "One-time payment · Stripe · no subscription",
-    "shortlistedPlan": "Shortlisted plan",
-    "shortlistedCredits": "1,500 credits/month",
-    "shortlistedDesc": "1,500 credits/month + on-demand credits, pro dashboard, CV rewrite, saved CVs. Cancel anytime.",
     "perMonth": "/ month",
     "goPro": "Go Pro →",
     "history": "History",
@@ -1519,7 +1549,10 @@
       "500": "= 5× JD analysis · 10× CV audit",
       "1000": "= 10× JD analysis · 20× CV audit · -11%",
       "2000": "= 20× JD analysis · 40× CV audit · -22%"
-    }
+    },
+    "proPlan": "Hired plan",
+    "proCredits": "3,000 credits/month",
+    "proDesc": "3,000 credits/month + on-demand credits, pro dashboard, CV rewrite, saved CVs. Cancel anytime."
   },
   "account": {
     "title": "Account",
@@ -2700,7 +2733,7 @@
     "rewritePaywall": {
       "title": "CV rewrite & cover letter",
       "desc": "Paste-ready rewrites based on exactly what this scan found. Passive bullets made active, ATS keywords injected, seniority signals added.",
-      "cta": "Unlock Shortlisted →",
+      "cta": "Unlock Hired →",
       "note": "Cancel anytime · no commitment",
       "unlockCta": "Unlock the rewrite · €2.99",
       "unlockNote": "One-time · this CV only · no subscription · up to 5 rewrites",

@@ -38,16 +38,19 @@ describe('GetFounderAvailabilityUseCase', () => {
   });
 
   it('reports remaining seats against the cap', async () => {
-    const { stripe } = makeStripe(30);
+    // Derived from the cap, not a literal: a hardcoded count silently turns
+    // this "partially filled" case into a sold-out one the day the cap drops.
+    const taken = Math.floor(FOUNDER_SEAT_CAP / 2);
+    const { stripe } = makeStripe(taken);
     const uc = new GetFounderAvailabilityUseCase(stripe, makeConfig());
 
     const res = await uc.execute();
 
     expect(res).toEqual({
       enabled: true,
-      taken: 30,
+      taken,
       cap: FOUNDER_SEAT_CAP,
-      remaining: FOUNDER_SEAT_CAP - 30,
+      remaining: FOUNDER_SEAT_CAP - taken,
       soldOut: false,
     });
   });

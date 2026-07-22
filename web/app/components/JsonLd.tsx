@@ -180,8 +180,8 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
       name: 'RejectCheck SHORTLISTED',
       description:
         locale === 'fr'
-          ? 'Abonnement mensuel : analyses illimitées, historique, réécriture de CV.'
-          : 'Monthly subscription: unlimited analyses, history, CV rewrite.',
+          ? 'Abonnement mensuel : 15 analyses par mois, historique, réécriture de CV.'
+          : 'Monthly subscription: 15 analyses per month, history, CV rewrite.',
       brand: { '@type': 'Brand', name: 'RejectCheck' },
       offers: {
         '@type': 'Offer',
@@ -197,8 +197,8 @@ export function productOffersSchema(locale: 'en' | 'fr'): JsonLdSchema[] {
       name: 'RejectCheck HIRED',
       description:
         locale === 'fr'
-          ? 'Abonnement mensuel premium : tout Shortlisted + lettre de motivation, message recruteur, salary reality check, roadmaps. Garantie : remboursement si décroché.'
-          : 'Premium monthly subscription: everything in Shortlisted + cover letter generator, recruiter message generator, salary reality check, roadmaps. Refund guarantee if you get hired.',
+          ? 'Abonnement mensuel premium : 30 analyses par mois, toutes les corrections, lettre de motivation, playbook de négociation, positionnement salarial. Garantie : remboursement si décroché.'
+          : 'Premium monthly subscription: 30 analyses per month, every fix, cover letter generator, negotiation playbook, salary positioning. Refund guarantee if you get hired.',
       brand: { '@type': 'Brand', name: 'RejectCheck' },
       offers: {
         '@type': 'Offer',

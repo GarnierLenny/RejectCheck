@@ -9,7 +9,7 @@ import { AuthNavLink } from "../../../components/AuthNavLink";
 import { useSubscription, useFounderAvailability } from "../../../../lib/queries";
 import { useCreateCheckout } from "../../../../lib/mutations";
 import { useLanguage } from "../../../../context/language";
-import { Check, ShieldCheck, Zap, Star, Trophy, ArrowRight } from "lucide-react";
+import { Check, ShieldCheck, Star } from "lucide-react";
 import { toast } from "sonner";
 import posthog from "posthog-js";
 
@@ -38,7 +38,6 @@ function PricingContent() {
       regularPrice: null as string | null,
       period: t.pricing.plans.free.period,
       description: t.pricing.plans.free.description,
-      icon: <Zap className="w-5 h-5 text-rc-hint" />,
       features: t.pricing.plans.free.features as string[],
       cta: t.pricing.plans.free.cta,
       checkoutPlan: null as 'shortlisted' | 'hired' | 'founder' | null,
@@ -55,13 +54,12 @@ function PricingContent() {
       regularPrice: null as string | null,
       period: t.pricing.plans.shortlisted.period,
       description: t.pricing.plans.shortlisted.description,
-      icon: <Star className="w-5 h-5 text-rc-red" />,
       features: t.pricing.plans.shortlisted.features as string[],
       cta: t.pricing.plans.shortlisted.cta,
       checkoutPlan: 'shortlisted' as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
-      // Recommended tier — kept consistent with the landing page (06), which
-      // highlights Shortlisted as the entry paid plan.
+      // Never rendered: filtered out of visiblePlans below. Kept so the shape
+      // stays available if the plan is ever put back on sale.
       popular: true,
       guarantee: null as string | null,
       founderBadge: null as string | null,
@@ -72,27 +70,34 @@ function PricingContent() {
       name: t.pricing.plans.hired.name,
       price: founderActive ? '19.99€' : '39.99€',
       regularPrice: founderActive ? '39.99€' : null,
-      period: t.pricing.plans.hired.period,
-      description: t.pricing.plans.hired.description,
-      icon: <Trophy className="w-5 h-5 text-amber-500" />,
+      // Carries what the founder banner used to say, now that it is gone: the
+      // price is locked for life, and the seats are capped.
+      period: founderActive ? t.pricing.founder.priceNote : t.pricing.plans.hired.period,
+      description: founderActive
+        ? t.pricing.founder.subtitle.replace('{cap}', String(founder!.cap))
+        : t.pricing.plans.hired.description,
       features: t.pricing.plans.hired.features as string[],
       cta: founderActive ? t.pricing.founder.cta : t.pricing.plans.hired.cta,
       checkoutPlan: (founderActive ? 'founder' : 'hired') as 'shortlisted' | 'hired' | 'founder' | null,
       href: null,
-      popular: false,
+      // Carries the highlighted treatment now that Shortlisted is gone: it is
+      // the only paid plan, so it is the recommended one. Without this the CTA
+      // falls into the neutral branch and renders black instead of red.
+      popular: true,
       guarantee: t.pricing.plans.hired.guarantee,
       founderBadge: founderActive ? t.pricing.founder.badge : null,
       seatsLeft: founderActive
-        ? t.pricing.founder.seatsLeft.replace('{remaining}', String(founder!.remaining))
+        ? t.pricing.founder.seatsLeft
+            .replace('{remaining}', String(founder!.remaining))
+            .replace('{cap}', String(founder!.cap))
         : null,
     },
   ];
 
-  // While the founder deal is live, Hired costs the same 19.99€ as Shortlisted
-  // but gives strictly more — so Shortlisted is dominated. Hide it until the
-  // founder seats run out (Hired reverts to 39.99€ and Shortlisted makes sense
-  // again).
-  const visiblePlans = plans.filter((plan) => !(founderActive && plan.id === 'shortlisted'));
+  // Shortlisted is no longer sold. The plan, its Stripe price and its
+  // entitlement stay wired so existing subscribers keep working, but it is
+  // never offered again, here or on the landing. Both surfaces must agree.
+  const visiblePlans = plans.filter((plan) => plan.id !== 'shortlisted');
   const gridCols =
     visiblePlans.length === 2 ? 'lg:grid-cols-2 max-w-[760px] mx-auto' : 'lg:grid-cols-3';
 
@@ -119,7 +124,9 @@ function PricingContent() {
     try {
       const data = await createCheckout.mutateAsync({ plan, email: user?.email });
       if (data.url) {
-        window.location.href = data.url;
+        // assign() rather than setting .href: same navigation, but it is a
+        // method call, which the react-hooks immutability rule accepts.
+        window.location.assign(data.url);
       } else if (data.soldOut) {
         // Founder deal ran out between page load and click.
         toast.error(t.pricing.founder.soldOut);
@@ -157,169 +164,91 @@ function PricingContent() {
         </div>
       </nav>
 
-      <div className="max-w-[1200px] mx-auto px-5 md:px-[40px] pt-32 pb-24">
-        {/* Header */}
-        <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/5 border border-rc-red/10 animate-fade-in">
-            <span className="w-1.5 h-1.5 rounded-full bg-rc-red animate-pulse" />
-            <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-medium">{t.pricing.badge}</span>
-          </div>
-          <h1 className="text-[40px] md:text-[64px] font-bold leading-[1.1] tracking-tight text-rc-text">
+      {/* Exactly one viewport tall, content centred inside it: this page has one
+          job and cannot ask for a scroll to do it, and the FAQ section's top
+          border below then lands precisely on the fold. */}
+      <div className="max-w-[1200px] mx-auto px-5 md:px-[40px] pt-[73px] pb-6 min-h-screen flex flex-col justify-center">
+        {/* Header. The block is centred in the viewport, so a larger bottom
+            margin lifts the title and pushes the cards down at the same time. */}
+        <div className="text-center mb-16">
+          <h1 className="text-[30px] md:text-[40px] font-bold leading-[1.15] tracking-tight text-rc-text">
             {t.pricing.title} <span className="text-rc-red">{t.pricing.titleHighlight}</span>
           </h1>
-          <p className="text-rc-muted text-lg md:text-xl max-w-[600px] mx-auto font-medium">
-            {t.pricing.subtitle} <br className="hidden md:block" /> {t.pricing.subtitleLine2}
-          </p>
         </div>
 
-        {/* ═══ Founder deal ═══ Discounted Hired for the first 100 members.
-            Shown only when the deal is configured (STRIPE_FOUNDER_PRICE_ID set)
-            and the visitor isn't already on a paid plan. */}
-        {founder?.enabled && !activePlan && (
-          <div className="mb-8 relative overflow-hidden rounded-[24px] border border-rc-red/20 bg-gradient-to-br from-rc-red/[0.07] via-rc-red/[0.03] to-transparent p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-              <div className="space-y-2.5">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rc-red/10 border border-rc-red/20">
-                  <Star className="w-3.5 h-3.5 text-rc-red" fill="currentColor" />
-                  <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-rc-red font-bold">
-                    {t.pricing.founder.badge}
-                  </span>
-                </div>
-                <h2 className="text-[24px] md:text-[30px] font-black tracking-tight text-rc-text leading-tight">
-                  {t.pricing.founder.title}
-                </h2>
-                {/* Founder price: the real Hired price (39.99€) struck through
-                    next to the locked-in 19.99€. Prices mirror the cards below. */}
-                <div className="flex items-baseline gap-2.5">
-                  <span className="text-[20px] font-bold text-rc-hint line-through decoration-rc-red/50 decoration-2">
-                    39.99€
-                  </span>
-                  <span className="text-[34px] md:text-[40px] font-black tracking-tight text-rc-text leading-none">
-                    19.99€
-                  </span>
-                  <span className="font-mono text-[12px] tracking-wide text-rc-muted">
-                    {t.pricing.founder.priceNote}
-                  </span>
-                </div>
-                <p className="text-sm text-rc-muted font-medium max-w-[520px] leading-relaxed">
-                  {t.pricing.founder.subtitle}
-                </p>
-              </div>
-
-              <div className="flex flex-col items-stretch gap-3 shrink-0 md:w-[240px]">
-                {!founder.soldOut && (
-                  <div className="space-y-2">
-                    <span className="block font-mono text-[11px] tracking-widest uppercase text-rc-red text-center md:text-right">
-                      {t.pricing.founder.seatsLeft.replace('{remaining}', String(founder.remaining))}
-                    </span>
-                    <div className="h-1.5 w-full rounded-full bg-rc-border/60 overflow-hidden">
-                      <div
-                        className="h-full bg-rc-red rounded-full transition-all"
-                        style={{ width: `${Math.min(100, (founder.taken / founder.cap) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-                <button
-                  onClick={() => handlePaidPlan('founder')}
-                  disabled={founder.soldOut || loadingPlan !== null}
-                  className="relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl font-mono text-[11px] tracking-widest uppercase transition-all duration-300 font-bold cursor-pointer bg-rc-red text-white shadow-lg shadow-rc-red/25 hover:shadow-rc-red/40 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  {founder.soldOut ? t.pricing.founder.soldOut
-                    : loadingPlan === 'founder'
-                      ? t.common.processing
-                      : t.pricing.founder.cta}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* The founder deal used to be repeated here as a banner above the
+            grid. It duplicated the Hired card one for one (badge, both prices,
+            seat count, CTA), so it now lives only on that card, where the
+            price sits next to the alternative it is compared against. */}
 
         {/* Pricing Grid */}
-        <div className={`grid grid-cols-1 ${gridCols} gap-8 relative items-stretch`}>
+        {/* items-start: tops line up, and the shorter Free card simply ends
+            earlier instead of being stretched to match the paid one. */}
+        <div className={`grid grid-cols-1 ${gridCols} gap-8 relative items-start`}>
           {visiblePlans.map((plan) => (
             <div
               key={plan.id}
-              className={`group relative flex flex-col p-8 rounded-[24px] transition-all duration-500 hover:-translate-y-1 border ${
+              className={`group relative flex flex-col p-6 md:p-7 rounded-[24px] transition-all duration-500 hover:-translate-y-1 border ${
                 plan.popular
-                  ? 'bg-white border-rc-red/20 shadow-[0_20px_50px_rgba(201,58,57,0.12)] scale-[1.02] z-10'
+                  ? 'bg-white border-rc-red/20 shadow-[0_20px_50px_rgba(201,58,57,0.12)] scale-[1.02] origin-top z-10'
                   : 'bg-rc-surface/50 border-rc-border hover:bg-white hover:shadow-xl hover:border-rc-red/10'
               }`}
             >
-              {plan.popular && (
+              {/* Both badges are pinned to the same spot, so the founder one
+                  wins when the deal is live. */}
+              {plan.popular && !plan.founderBadge && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-full shadow-lg shadow-rc-red/20 z-20">
                   {t.pricing.recommended}
                 </div>
               )}
 
+              {/* Badge and seat count sit together on the card's top edge: the
+                  scarcity belongs with the label that creates it, not buried
+                  under the price. */}
               {plan.founderBadge && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 px-4 py-1.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-full shadow-lg shadow-rc-red/20 z-20 whitespace-nowrap">
-                  <Star className="w-3 h-3" fill="currentColor" />
-                  {plan.founderBadge}
-                </div>
-              )}
-
-              <div className="mb-8 flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`p-2 rounded-xl ${plan.popular ? 'bg-rc-red/10' : 'bg-rc-bg'}`}>
-                      {plan.icon}
-                    </div>
-                    <span className={`font-mono text-[11px] tracking-[0.2em] uppercase font-bold ${plan.id === 'free' ? 'text-rc-hint' : 'text-rc-red'}`}>
-                      {plan.name}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[48px] font-black tracking-tight text-rc-text">
-                      {plan.price}
-                    </span>
-                    <span className="text-rc-hint font-mono text-sm">{plan.period}</span>
-                  </div>
-                  {plan.regularPrice && (
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium text-rc-hint">
-                      <span>{t.pricing.founder.regularPrice}</span>
-                      <span className="line-through decoration-rc-red/50 decoration-2">
-                        {plan.regularPrice}
-                      </span>
-                    </div>
-                  )}
-                  {plan.seatsLeft && (
-                    <p className="mt-2 font-mono text-[11px] tracking-widest uppercase text-rc-red">
-                      {plan.seatsLeft}
-                    </p>
-                  )}
-                  <p className="mt-3 text-sm text-rc-muted leading-relaxed font-medium">
-                    {plan.description}
-                  </p>
-                </div>
-              </div>
-
-              {plan.guarantee && (
-                <div className="mb-6 p-4 rounded-2xl bg-rc-red/5 border border-rc-red/10 flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-rc-red shrink-0" />
-                  <span className="text-[13px] font-bold text-rc-red leading-tight">
-                    {plan.guarantee}
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-rc-red text-white font-mono text-[10px] tracking-widest uppercase rounded-full shadow-lg shadow-rc-red/20 whitespace-nowrap">
+                    <Star className="w-3 h-3" fill="currentColor" />
+                    {plan.founderBadge}
+                    {plan.seatsLeft && (
+                      <>
+                        <span aria-hidden className="opacity-50">·</span>
+                        {plan.seatsLeft}
+                      </>
+                    )}
                   </span>
                 </div>
               )}
 
-              <div className="space-y-4 mb-10 flex-1">
-                <div className="h-px w-full bg-gradient-to-r from-transparent via-rc-border to-transparent mb-6" />
-                <ul className="space-y-4">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 group/item">
-                      <div className={`mt-0.5 rounded-full p-0.5 transition-colors ${plan.popular ? 'bg-rc-red/10 text-rc-red' : 'bg-rc-border/50 text-rc-hint'}`}>
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                      </div>
-                      <span className="text-[14px] text-rc-muted leading-tight group-hover/item:text-rc-text transition-colors">
-                        {feature}
+              <div className="mb-4">
+                <div className="mb-2">
+                  <span className={`font-mono text-[11px] tracking-[0.2em] uppercase font-bold ${plan.id === 'free' ? 'text-rc-hint' : 'text-rc-red'}`}>
+                    {plan.name}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-[46px] font-black tracking-tight text-rc-text leading-none">
+                    {plan.price}
+                  </span>
+                  <span className="text-rc-hint font-mono text-sm">{plan.period}</span>
+                  {plan.regularPrice && (
+                    <span className="text-[13px] font-medium text-rc-hint">
+                      {t.pricing.founder.regularPrice}{' '}
+                      <span className="line-through decoration-rc-red/50 decoration-2">
+                        {plan.regularPrice}
                       </span>
-                    </li>
-                  ))}
-                </ul>
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2.5 text-[15px] text-rc-muted leading-snug font-medium">
+                  {plan.description}
+                </p>
               </div>
 
-              <div className="mt-auto">
+              {/* CTA sits above the feature list, not below it: the decision
+                  comes first and the justification second, so the button is
+                  reachable without scrolling past ten bullets. */}
+              <div className="mb-4">
                 {plan.href ? (
                   <Link
                     href={plan.href}
@@ -360,26 +289,42 @@ function PricingContent() {
                   </button>
                 )}
                 {plan.checkoutPlan && activePlan !== plan.id && (
-                  <p className="mt-3 text-center text-[11px] text-rc-hint">
+                  <p className="mt-2 text-center text-[11px] text-rc-hint">
                     {t.pricing.safetyNote}
                   </p>
                 )}
               </div>
+
+              {plan.guarantee && (
+                <div className="mb-3 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-rc-red shrink-0" />
+                  <span className="text-[12px] font-semibold text-rc-red leading-tight">
+                    {plan.guarantee}
+                  </span>
+                </div>
+              )}
+
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-rc-border to-transparent mb-3" />
+              <ul className="space-y-2">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2.5 group/item">
+                    <div className={`mt-[3px] rounded-full p-0.5 shrink-0 transition-colors ${plan.popular ? 'bg-rc-red/10 text-rc-red' : 'bg-rc-border/50 text-rc-hint'}`}>
+                      <Check className="w-3 h-3" strokeWidth={3} />
+                    </div>
+                    <span className="text-[14px] text-rc-muted leading-snug group-hover/item:text-rc-text transition-colors">
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
 
-        <div className="mt-10 flex items-center justify-center gap-4 flex-wrap text-[12px] text-rc-hint font-sans">
-          <span>Cancel anytime</span>
-          <span className="w-1 h-1 rounded-full bg-rc-border" />
-          <span>
-            Hired? <strong className="text-rc-muted font-semibold">We&apos;ll refund your last month</strong>, once, within 30 days, on proof of hire.
-          </span>
-        </div>
+        {/* The refund line that sat here repeated the card's guarantee, was
+            hardcoded in English so it never translated, and contradicted it on
+            which month is refunded. The full terms live in the FAQ below. */}
 
-        <div className="mt-24 text-center">
-          <p className="text-rc-hint text-sm font-mono tracking-widest uppercase">{t.pricing.footer.support}</p>
-        </div>
       </div>
 
       {/* ═══ FAQ ═══════════════════════════════════════════════════════════ */}

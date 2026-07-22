@@ -170,18 +170,18 @@ function CreditsContent() {
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl p-6 flex items-center justify-between gap-6">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-serif text-[22px] font-normal text-rc-text">{t.credits.shortlistedPlan}</span>
+                    <span className="font-serif text-[22px] font-normal text-rc-text">{t.credits.proPlan}</span>
                     <span className="font-mono text-[9px] tracking-[0.1em] uppercase border border-rc-green/40 text-rc-green px-2 py-0.5 rounded">
-                      {t.credits.shortlistedCredits}
+                      {t.credits.proCredits}
                     </span>
                   </div>
                   <p className="text-[13px] text-rc-hint leading-relaxed">
-                    {t.credits.shortlistedDesc}
+                    {t.credits.proDesc}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-3 flex-shrink-0">
                   <div className="text-right">
-                    <span className="font-serif text-[36px] font-medium leading-none text-rc-text">19,99 €</span>
+                    <span className="font-serif text-[36px] font-medium leading-none text-rc-text">39,99 €</span>
                     <p className="font-mono text-[11px] text-rc-hint mt-0.5">{t.credits.perMonth}</p>
                   </div>
                   <Link

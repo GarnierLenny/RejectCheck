@@ -114,26 +114,27 @@ export function SharedAnalysisView({
           </Link>
         </nav>
 
-        <div className="flex-1 min-h-0">
-          <AnalysisLayout
-            readOnly
-            result={result}
-            analysisId={null}
-            cvBlobUrl={cvFileUrl}
-            liBlobUrl={liFileUrl}
-            mlBlobUrl={mlFileUrl}
-            /* Parsed text drives the highlighted CV view (default) in the left
-               doc panel — exactly what the owner sees. */
-            reconstructedCv={cvTextFormatted}
-            cvTextFormatted={cvTextFormatted}
-            liText={linkedinTextFormatted}
-            coverLetterText={coverLetter}
-            deepStatus="ready"
-            isPremium={false}
-            userPlan="free"
-            onReset={noop}
-          />
-        </div>
+        {/* No wrapper here: AnalysisShell's root is itself the `flex-1` child that
+            bounds the report's height (like the owner view). A block wrapper in
+            between kills that flex-1 and the report loses its inner scroll. */}
+        <AnalysisLayout
+          readOnly
+          result={result}
+          analysisId={null}
+          cvBlobUrl={cvFileUrl}
+          liBlobUrl={liFileUrl}
+          mlBlobUrl={mlFileUrl}
+          /* Parsed text drives the highlighted CV view (default) in the left
+             doc panel — exactly what the owner sees. */
+          reconstructedCv={cvTextFormatted}
+          cvTextFormatted={cvTextFormatted}
+          liText={linkedinTextFormatted}
+          coverLetterText={coverLetter}
+          deepStatus="ready"
+          isPremium={false}
+          userPlan="free"
+          onReset={noop}
+        />
       </div>
     );
   }

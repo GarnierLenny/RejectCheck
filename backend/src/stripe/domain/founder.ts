@@ -10,7 +10,7 @@ import type { StripeClient } from '../ports/stripe-client';
  * Hired subscribers. The ONLY thing that distinguishes a founder is the Stripe
  * price they're subscribed to — which is also how we count occupied seats.
  */
-export const FOUNDER_SEAT_CAP = 100;
+export const FOUNDER_SEAT_CAP = 25;
 
 /** Subscription statuses that still occupy a founder seat. `past_due` counts:
  *  the subscription still exists on the founder price (payment is retrying, not

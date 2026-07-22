@@ -50,7 +50,9 @@ describe('CreateCheckoutSessionUseCase', () => {
   });
 
   it('checks out founder on the discounted price but persists plan=hired', async () => {
-    const { stripe, create } = makeStripe(10);
+    // Derived from the cap so this stays a "seats still free" case whatever
+    // the cap is set to.
+    const { stripe, create } = makeStripe(Math.floor(FOUNDER_SEAT_CAP / 2));
     const uc = new CreateCheckoutSessionUseCase(stripe, makeConfig());
 
     const res = await uc.execute({ plan: 'founder', customerEmail: 'a@b.c' });

@@ -74,7 +74,7 @@
       "platformSubtitle": "Une seule lecture de votre CV face à l'offre exacte : les failles qu'un recruteur repère en six secondes, scorées avant que vous n'envoyiez.",
       "founderLabel": "Co-Fondateur",
       "cancelAnytime": "Résiliation possible à tout moment",
-      "hiredRefund": "Embauché ? On rembourse ton dernier mois. Sans formulaire. Dis-le nous."
+      "hiredRefund": "Embauché ? On rembourse ton mois en cours. Sans formulaire. Dis-le nous."
     },
     "mockContent": {
       "radar": {
@@ -364,7 +364,7 @@
       "subtitleEmphasis": "impossible à ignorer",
       "stat1Value": "~1 min",
       "stat1Label": "avant le diagnostic",
-      "stat2Value": "2 gratuites",
+      "stat2Value": "3 gratuites",
       "stat2Label": "par mois",
       "stat3Value": "Sans compte",
       "stat3Label": "pour commencer",
@@ -397,39 +397,39 @@
       "items": [
         {
           "n": "01",
-          "title": "Filtre",
-          "it": "ATS",
-          "desc": "On simule les 4 ATS les plus utilisés et on vous dit exactement quels termes requis manquent, variantes singulier/pluriel et synonymes inclus."
+          "title": "Contradictions",
+          "it": "entre sources",
+          "desc": "On recoupe votre CV, LinkedIn, GitHub et lettre de motivation face à une même offre. Chaque conflit est nommé, rattaché aux sources d'où il vient, et pesé dans votre score."
         },
         {
           "n": "02",
-          "title": "Correspondance",
-          "it": "de séniorité",
-          "desc": "\"5+ ans\" vs \"8 ans\" ne se lit pas pareil. On mappe vos titres, périmètre et ancienneté contre la tranche que l'offre attend."
+          "title": "GitHub &",
+          "it": "portfolio",
+          "desc": "On ouvre vos travaux publics : dépôts, activité, mix de langages, profondeur des projets, ou les études de cas de votre portfolio. Puis on les pèse face à ce que l'offre demande."
         },
         {
           "n": "03",
-          "title": "Résultats",
-          "it": "quantifiés",
-          "desc": "Les bullets sans chiffres se fondent. On signale chaque bullet sans métrique et suggère où en ajouter une, honnêtement."
+          "title": "Chronologie",
+          "it": "de carrière",
+          "desc": "On reconstruit une seule frise à partir de toutes vos sources. Dates qui divergent entre deux profils, postes qui se chevauchent et mois jamais expliqués ressortent ici."
         },
         {
           "n": "04",
-          "title": "Signaux",
-          "it": "d'alerte",
-          "desc": "Gaps inexpliqués, titres vagues, incohérences. Ce qu'un recruteur repère en deux secondes. On le remonte avant lui."
+          "title": "Niveau de",
+          "it": "séniorité",
+          "desc": "\"5+ ans\" et \"8 ans\" ne se lisent pas pareil. On confronte vos titres, votre périmètre et votre ancienneté à la tranche que l'offre décrit, et on signale les titres flous."
         },
         {
           "n": "05",
-          "title": "Signal GitHub /",
-          "it": "portfolio",
-          "desc": "Pour les postes techniques, votre GitHub compte plus que vos bullets. On lit l'activité publique, le mix de langages, la profondeur des projets, puis on les pèse contre l'offre."
+          "title": "Résultats",
+          "it": "quantifiés",
+          "desc": "Une ligne sans chiffre est une affirmation, pas une preuve. On repère chacune, on montre où un vrai chiffre a sa place, et on marque celles qui sonnent comme un template."
         },
         {
           "n": "06",
-          "title": "Ton &",
-          "it": "style",
-          "desc": "Densité de buzzwords, cohérence de voix, ratio longueur/impact. On vous dit où ça sonne comme un template, et où ça sonne comme vous."
+          "title": "ATS,",
+          "it": "sans le mythe",
+          "desc": "La plupart des ATS ne rejettent pas automatiquement sur un score de mots-clés. On vérifie que votre fichier se parse bien et porte les termes que l'offre pondère. Il décide de ce qu'un recruteur voit, pas s'il dit oui."
         }
       ]
     },
@@ -446,7 +446,12 @@
       "verdict": "Risque élevé · rejet probable",
       "priorityFixLabel": "Correctif prioritaire",
       "contentsLabel": "Dans ce briefing",
-      "contents": ["Manques de mots-clés", "Signaux de séniorité", "Réécriture des bullets", "Red flags cachés"]
+      "contents": [
+        "Manques de mots-clés",
+        "Signaux de séniorité",
+        "Réécriture des bullets",
+        "Red flags cachés"
+      ]
     },
     "s04": {
       "smallLabel": "Honnêtement",
@@ -788,8 +793,16 @@
   },
   "riskMeter": {
     "eyebrow": "Risque de rejet",
-    "verdict": { "low": "Risque faible", "mid": "Risque modéré", "high": "Risque élevé" },
-    "bands": { "low": "Faible", "mid": "Modéré", "high": "Élevé" },
+    "verdict": {
+      "low": "Risque faible",
+      "mid": "Risque modéré",
+      "high": "Risque élevé"
+    },
+    "bands": {
+      "low": "Faible",
+      "mid": "Modéré",
+      "high": "Élevé"
+    },
     "lede": {
       "low": "Peu de raisons d'être écarté.",
       "mid": "Améliorable : quelques écarts à combler.",
@@ -800,8 +813,16 @@
     "computing": "Calcul du score…",
     "strength": {
       "eyebrow": "Solidité du CV",
-      "verdict": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
-      "bands": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
+      "verdict": {
+        "weak": "Faible",
+        "decent": "Correct",
+        "strong": "Solide"
+      },
+      "bands": {
+        "weak": "Faible",
+        "decent": "Correct",
+        "strong": "Solide"
+      },
       "lede": {
         "weak": "Des écarts importants à combler avant que ce CV soit compétitif.",
         "decent": "Bonne base : quelques correctifs l'affûteront.",
@@ -811,8 +832,16 @@
     },
     "competitiveness": {
       "eyebrow": "Compétitivité",
-      "verdict": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
-      "bands": { "weak": "Faible", "decent": "Correct", "strong": "Solide" },
+      "verdict": {
+        "weak": "Faible",
+        "decent": "Correct",
+        "strong": "Solide"
+      },
+      "bands": {
+        "weak": "Faible",
+        "decent": "Correct",
+        "strong": "Solide"
+      },
       "lede": {
         "weak": "En l'état, ce dossier serait probablement écarté.",
         "decent": "Améliorable : quelques écarts à combler.",
@@ -850,7 +879,11 @@
       "title": "Continue ton",
       "titleHighlight": "analyse.",
       "subtitle": "Crée un compte gratuit pour garder ce rapport.",
-      "savedItems": ["Continue cette analyse", "Sauvegarde chaque futur rapport", "3 analyses gratuites par mois"],
+      "savedItems": [
+        "Continue cette analyse",
+        "Sauvegarde chaque futur rapport",
+        "3 analyses gratuites par mois"
+      ],
       "noCardNote": "Sans carte bancaire",
       "buyCta": "Débloquer l'accès complet, 29€",
       "cta": "Continuer gratuitement",
@@ -875,8 +908,8 @@
     "credit": "crédit",
     "credits": "crédits",
     "popular": "Populaire",
-    "upgradeTitle": "Passer au plan Shortlisted ou Hired",
-    "upgradeSub": "15 ou 30 analyses complètes / mois · extras à la demande",
+    "upgradeTitle": "Passer au plan Hired",
+    "upgradeSub": "30 analyses complètes / mois · extras à la demande",
     "upgradeCta": "Voir les plans →",
     "paymentNote": "Paiement unique · Stripe",
     "close": "Fermer"
@@ -1234,15 +1267,12 @@
         "period": "/à vie",
         "description": "Parfait pour un premier bilan de réalité.",
         "features": [
-          "3 analyses complètes pour démarrer",
-          "Simulation ATS",
-          "Audit d'écart de séniorité",
-          "Analyse du ton du CV",
+          "3 analyses / mois, diagnostic seul",
+          "Recoupement CV, LinkedIn, GitHub",
           "Détail du score",
           "Signaux d'alerte cachés",
-          "Corrections actionnables",
-          "Audit GitHub & LinkedIn",
-          "Recommandations de projets",
+          "Audit d'écart de séniorité",
+          "Vérification du parsing ATS",
           "Export PDF / Markdown"
         ],
         "cta": "Commencer gratuitement"
@@ -1268,14 +1298,13 @@
         "period": "/mois",
         "description": "L'arsenal complet pour ta recherche la plus importante.",
         "features": [
-          "Décroche l'offre, puis négocie-la à la hausse",
-          "Tout dans PRÉSÉLECTIONNÉ",
-          "30 analyses complètes / mois",
-          "Analyses supplémentaires à tout moment, sans expiration",
+          "Tout le plan Gratuit, en version complète",
+          "30 analyses / mois",
+          "Toutes les corrections, pas seulement le diagnostic",
           "Générateur de lettre de motivation",
-          "Playbook de négociation (email contre-proposition + leviers)",
-          "Positionnement salarial avec estimation d'impact par action",
-          "Bientôt : roadmaps carrière, messages recruteur, extension Chrome"
+          "Playbook de négociation : email de contre-proposition + leviers",
+          "Positionnement salarial face à la fourchette du marché",
+          "Analyses supplémentaires à tout moment, sans expiration"
         ],
         "cta": "Être recruté",
         "guarantee": "Recruté ? Nous remboursons votre mois en cours."
@@ -1285,10 +1314,10 @@
       "badge": "Membre fondateur",
       "title": "Hired, verrouillé à vie",
       "priceNote": "/mois · bloqué à vie",
-      "subtitle": "Tout Hired, à moitié prix. Réservé aux 100 premiers membres.",
-      "seatsLeft": "{remaining} places sur 100 restantes",
+      "subtitle": "Tout Hired, à moitié prix. Réservé aux {cap} premiers membres.",
+      "seatsLeft": "{remaining} places restantes",
       "regularPrice": "Prix normal :",
-      "soldOut": "Les 100 places founder sont prises.",
+      "soldOut": "Toutes les places founder sont prises.",
       "cta": "Devenir founder"
     },
     "errors": {
@@ -1303,7 +1332,7 @@
       "items": [
         {
           "question": "Puis-je annuler mon abonnement RejectCheck à tout moment ?",
-          "answer": "Oui. Tu peux annuler ton abonnement Shortlisted (19,99 €/mois) ou Hired (39,99 €/mois) à tout moment depuis la page paramètres du compte. Tu gardes l'accès complet jusqu'à la fin du mois déjà facturé - aucun prorata."
+          "answer": "Oui. Tu peux annuler ton abonnement Hired (39,99 €/mois) à tout moment depuis ton compte. Tu gardes l'accès jusqu'à la fin de la période déjà payée."
         },
         {
           "question": "Y a-t-il un essai gratuit ou un tier gratuit ?",
@@ -1318,12 +1347,12 @@
           "answer": "Les paiements passent par Stripe et acceptent toutes les cartes de crédit/débit majeures (Visa, Mastercard, American Express) + les prélèvements SEPA européens et Apple Pay / Google Pay selon les régions supportées par Stripe."
         },
         {
-          "question": "Puis-je changer entre les plans Shortlisted et Hired ?",
-          "answer": "Oui. Tu peux upgrader de Shortlisted vers Hired ou downgrader à tout moment depuis la page compte. Les upgrades sont facturés au prorata immédiatement ; les downgrades prennent effet à la fin du mois courant."
+          "question": "Puis-je changer ou annuler mon plan plus tard ?",
+          "answer": "Oui. Tu peux passer à Hired ou revenir au plan Gratuit à tout moment depuis ton compte. Le changement prend effet à la fin de la période en cours, et rien n'est perdu de tes analyses passées."
         },
         {
           "question": "Comment RejectCheck se compare à Jobscan, Rezi, et les autres ?",
-          "answer": "À 19,99 €/mois, Shortlisted se situe dans la même gamme que des outils comme Rezi (29 $/mois), Jobscan ou Enhancv, sans en être le plus cher. Ce qui distingue RejectCheck, ce n'est pas le prix : c'est la profondeur. Vous obtenez un pipeline Claude multi-passe (Sonnet + Haiku) avec un croisement GitHub/LinkedIn complet, le type d'analyse que les autres ne font à aucun palier. Vous payez l'analyse, pas la marque."
+          "answer": "Hired est à 39,99 €/mois, et les membres fondateurs le verrouillent à 19,99 € à vie. Le prix d'entrée se situe donc au niveau d'outils comme Rezi (29 $/mois), Jobscan ou Enhancv. Ce qui distingue RejectCheck, ce n'est pas le prix : c'est la profondeur. Vous obtenez un pipeline Claude multi-passe (Sonnet + Haiku) avec un croisement GitHub/LinkedIn complet, le type d'analyse que les autres ne font à aucun palier. Vous payez l'analyse, pas la marque."
         }
       ]
     }
@@ -1395,7 +1424,11 @@
     "signal2": "Trou de 8 mois non expliqué",
     "signal3": "Stack matche à 55 % du JD",
     "footnoteLeft": "Analyse en 30 s",
-    "footnoteRight": ["CV", "JD", "LinkedIn"]
+    "footnoteRight": [
+      "CV",
+      "JD",
+      "LinkedIn"
+    ]
   },
   "ctaBand": {
     "eyebrow": "Dernière étape",
@@ -1505,9 +1538,6 @@
     "creditPlural": "crédits",
     "buy": "Acheter →",
     "oneTime": "Paiement unique · Stripe · pas d'abonnement",
-    "shortlistedPlan": "Plan Shortlisted",
-    "shortlistedCredits": "1 500 crédits/mois",
-    "shortlistedDesc": "1 500 crédits/mois + crédits à la demande, dashboard pro, réécriture CV, CV sauvegardés. Annulation à tout moment.",
     "perMonth": "/ mois",
     "goPro": "Passer Pro →",
     "history": "Historique",
@@ -1519,7 +1549,10 @@
       "500": "= 5× analyse JD · 10× audit CV",
       "1000": "= 10× analyse JD · 20× audit CV · -11%",
       "2000": "= 20× analyse JD · 40× audit CV · -22%"
-    }
+    },
+    "proPlan": "Plan Hired",
+    "proCredits": "3 000 crédits/mois",
+    "proDesc": "3 000 crédits/mois + crédits à la demande, dashboard pro, réécriture de CV, CV sauvegardés. Annulable à tout moment."
   },
   "account": {
     "title": "Compte",
@@ -2700,7 +2733,7 @@
     "rewritePaywall": {
       "title": "Réécriture CV & lettre de motivation",
       "desc": "Des réécritures prêtes à coller basées exactement sur ce que ce scan a trouvé. Bullets passifs rendus actifs, mots-clés ATS injectés, signaux de séniorité ajoutés.",
-      "cta": "Débloquer Shortlisted →",
+      "cta": "Débloquer Hired →",
       "note": "Résiliable à tout moment · sans engagement",
       "unlockCta": "Débloquer la réécriture · 2,99 €",
       "unlockNote": "Paiement unique · ce CV uniquement · sans abonnement · jusqu'à 5 réécritures",

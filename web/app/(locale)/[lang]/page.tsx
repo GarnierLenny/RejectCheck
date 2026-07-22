@@ -800,6 +800,9 @@ function HeroAnalysisScreen() {
 export default function Home() {
   const { t, locale, localePath } = useLanguage();
   const { data: founder } = useFounderAvailability();
+  /* Same rule as /pricing: the founder deal is Hired at 19.99, which is what
+     Shortlisted used to cost, so the two cannot be sold side by side. */
+  const founderActive = Boolean(founder?.enabled && !founder.soldOut);
 
   /* hero upload widget */
   const router = useRouter();
@@ -1394,8 +1397,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Pricing grid */}
-          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", borderTop: "1px solid var(--rc-text)" }}>
+          {/* Pricing grid. Mirrors /pricing: Shortlisted is no longer sold, and
+              the founder deal is Hired at a discount rather than a separate
+              plan, so it rides on the Hired card instead of a third column. */}
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", borderTop: "1px solid var(--rc-text)" }}>
             {/* Free */}
             <div style={{ padding: "36px 28px 32px", borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column" }}>
               <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 14 }}>{t.pricing.plans.free.name}</div>
@@ -1426,46 +1431,25 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Shortlisted (Pro) */}
-            <div style={{ padding: "36px 28px 32px", borderRight: "1px solid var(--rc-border)", display: "flex", flexDirection: "column", background: "rgba(192,57,43,0.04)" }}>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 14 }}>{t.pricing.plans.shortlisted.name} {t.landing.s06.recommendedSuffix}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>€19.99</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)" }}>{t.pricing.plans.shortlisted.period}</span>
+            {/* Hired. While founder seats remain this is the same plan at the
+                founder price, so the deal lives on this card rather than in a
+                second one that would repeat its bullets. */}
+            <div style={{ padding: "36px 28px 32px", display: "flex", flexDirection: "column", background: founderActive ? "rgba(192,57,43,0.04)" : undefined }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: founderActive ? "var(--rc-red)" : "var(--rc-hint)", fontWeight: founderActive ? 700 : undefined, marginBottom: 14 }}>
+                {founderActive ? `${t.pricing.founder.badge} ${t.landing.s06.recommendedSuffix}` : t.pricing.plans.hired.name}
               </div>
-              <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.5, marginBottom: 28 }}>{t.pricing.plans.shortlisted.description}</div>
-              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
-                {t.pricing.plans.shortlisted.features.slice(0, 6).map((f) => (
-                  <li key={f} style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-text)", display: "flex", gap: 8 }}>
-                    <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--rc-text)", flexShrink: 0 }}>+</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={localePath("/pricing")}
-                style={{
-                  fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14,
-                  padding: "11px 18px", borderRadius: 6,
-                  background: "linear-gradient(180deg, #C0392B, #A93226)",
-                  border: "1px solid var(--rc-red)", color: "#fff",
-                  boxShadow: "0 8px 24px rgba(192,57,43,0.26)",
-                  textAlign: "center", whiteSpace: "nowrap", display: "block",
-                  textDecoration: "none",
-                }}
-              >
-                {t.pricing.plans.shortlisted.cta}
-              </Link>
-            </div>
-
-            {/* Hired */}
-            <div style={{ padding: "36px 28px 32px", display: "flex", flexDirection: "column" }}>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-hint)", marginBottom: 14 }}>{t.pricing.plans.hired.name}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>€39.99</span>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)" }}>{t.landing.s06.hiredPeriod}</span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 8 }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 48, letterSpacing: "-0.03em", lineHeight: 1 }}>{founderActive ? "€19.99" : "€39.99"}</span>
+                {founderActive && (
+                  <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: 19, color: "var(--rc-red)", textDecoration: "line-through", textDecorationThickness: 2 }}>€39.99</span>
+                )}
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-hint)" }}>{founderActive ? t.pricing.founder.priceNote : t.landing.s06.hiredPeriod}</span>
               </div>
-              <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.5, marginBottom: 28 }}>{t.pricing.plans.hired.description}</div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-muted)", lineHeight: 1.5, marginBottom: 28 }}>
+                {founderActive
+                  ? t.pricing.founder.subtitle.replace("{cap}", String(founder?.cap ?? 0))
+                  : t.pricing.plans.hired.description}
+              </div>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 9, flex: 1 }}>
                 {t.pricing.plans.hired.features.slice(0, 5).map((f) => (
                   <li key={f} style={{ fontFamily: "var(--font-sans)", fontSize: 13, lineHeight: 1.5, color: "var(--rc-text)", display: "flex", gap: 8 }}>
@@ -1474,17 +1458,50 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
+              {founderActive && (
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 8 }}>
+                    {t.pricing.founder.seatsLeft
+                      .replace("{remaining}", String(founder?.remaining ?? 0))
+                      .replace("{cap}", String(founder?.cap ?? 0))}
+                  </div>
+                  {/* One dot per seat rather than a bar: at this cap you can
+                      count them, so a seat going out is a discrete event. Solid
+                      red = still free, faded = taken. The label beside it
+                      carries the same count for screen readers. */}
+                  <div aria-hidden style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                    {Array.from({ length: founder?.cap ?? 0 }, (_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 999,
+                          background: i < (founder?.taken ?? 0) ? "var(--rc-red-border)" : "var(--rc-red)",
+                          transition: "background-color 300ms ease-out",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               <Link
                 href={localePath("/pricing")}
                 style={{
                   fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14,
                   padding: "11px 18px", borderRadius: 6,
-                  border: "1px solid var(--rc-text)", background: "transparent", color: "var(--rc-text)",
+                  ...(founderActive
+                    ? {
+                        background: "linear-gradient(180deg, #C0392B, #A93226)",
+                        border: "1px solid var(--rc-red)", color: "#fff",
+                        boxShadow: "0 8px 24px rgba(192,57,43,0.26)",
+                      }
+                    : { border: "1px solid var(--rc-text)", background: "transparent", color: "var(--rc-text)" }),
                   textAlign: "center", whiteSpace: "nowrap", display: "block",
                   textDecoration: "none",
                 }}
               >
-                {t.pricing.plans.hired.cta}
+                {founderActive ? t.pricing.founder.cta : t.pricing.plans.hired.cta}
               </Link>
             </div>
           </div>
