@@ -10,6 +10,7 @@ import { Navbar } from "../../components/Navbar";
 import { FadeInSection } from "../../components/FadeInSection";
 import { BlueprintBackdrop } from "../../components/BlueprintBackdrop";
 import { GithubIcon, LinkedinIcon } from "../../components/SocialIcons";
+import { CrossExamination } from "../../components/landing/CrossExamination/CrossExamination";
 import { useLanguage } from "../../../context/language";
 import { useFounderAvailability } from "../../../lib/queries";
 import {
@@ -895,7 +896,9 @@ export default function Home() {
   ] as const;
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={{ background: "var(--rc-bg)", color: "var(--rc-text)" }}>
+    /* overflow-x-clip, not -hidden: hidden creates a scroll container and
+       breaks the position:sticky pin inside CrossExamination */
+    <div className="min-h-screen overflow-x-clip" style={{ background: "var(--rc-bg)", color: "var(--rc-text)" }}>
       <JsonLd id="ld-software-app" data={softwareApplicationSchema(locale)} />
       <JsonLd id="ld-faq" data={faqPageSchema(t.faq.items)} />
       <Navbar />
@@ -1119,6 +1122,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ═══ 01.5 CROSS-EXAMINATION ════════════════════════════════════ */}
+      <CrossExamination />
 
       {/* ═══ 02 SIX DIMENSIONS ═════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>

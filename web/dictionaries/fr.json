@@ -375,6 +375,20 @@
       "redditCtaLabel": "Audit complet offert sur",
       "founderSeatsLabel": "places founder restantes"
     },
+    "crossExam": {
+      "ariaLabel": "Comment RejectCheck confronte votre CV, LinkedIn, GitHub, portfolio et lettre de motivation pour révéler les contradictions",
+      "h2Part1": "On ne lit pas seulement votre CV.\nOn",
+      "h2Italic": "confronte",
+      "h2Part2": "tout.",
+      "sub1": "Les recruteurs vérifient votre LinkedIn. Ils ouvrent votre GitHub. Ils comparent.",
+      "sub2": "Une contradiction entre vos sources et vous êtes éliminé. Avant même l'entretien.",
+      "step1Num": "Étape 1",
+      "step1Text": "On lit tout",
+      "step2Num": "Étape 2",
+      "step2Text": "On confronte",
+      "step3Num": "Étape 3",
+      "step3Text": "Vous corrigez avant eux"
+    },
     "s02": {
       "smallLabel": "La méthode",
       "h2Part1": "Six dimensions qu'un recruteur scanne en",
@@ -832,12 +846,14 @@
     "sprintSafety": "Paiement unique, remboursé si tu es embauché",
     "creditsExpiryNote": "Les crédits sont permanents et utilisés une fois votre quota mensuel atteint.",
     "guest": {
-      "badge": "Limite gratuite atteinte",
-      "title": "Tu prends ta recherche au",
-      "titleHighlight": "sérieux.",
-      "subtitle": "Tu as utilisé tes analyses anonymes gratuites. Un compte gratuit débloque 3 analyses complètes chaque mois. Chaque rapport sauvegardé dans ton dashboard avec l'historique de score.",
+      "badge": "Tu y es presque",
+      "title": "Continue ton",
+      "titleHighlight": "analyse.",
+      "subtitle": "Crée un compte gratuit pour garder ce rapport.",
+      "savedItems": ["Continue cette analyse", "Sauvegarde chaque futur rapport", "3 analyses gratuites par mois"],
+      "noCardNote": "Sans carte bancaire",
       "buyCta": "Débloquer l'accès complet, 29€",
-      "cta": "Créer un compte gratuit",
+      "cta": "Continuer gratuitement",
       "secondary": "Voir les offres",
       "noCard": "Gratuit à vie · Sans carte bancaire · 30 secondes",
       "features": [

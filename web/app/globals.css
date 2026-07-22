@@ -20,6 +20,9 @@
   --rc-amber: #e07b00;
   --rc-amber-bg: rgba(224,123,0,0.07);
   --rc-amber-border: rgba(224,123,0,0.28);
+  --rc-blue: #2a6db5;
+  --rc-blue-bg: rgba(42,109,181,0.08);
+  --rc-blue-border: rgba(42,109,181,0.25);
   /* Single-typeface system: mono/serif/display all alias to Inter. Emphasis
      comes from weight + color, not a second or third typeface. */
   --font-serif: var(--font-sans);
@@ -43,6 +46,9 @@
   --color-rc-green-border: var(--rc-green-border);
   --color-rc-amber: var(--rc-amber);
   --color-rc-amber-border: var(--rc-amber-border);
+  --color-rc-blue: var(--rc-blue);
+  --color-rc-blue-bg: var(--rc-blue-bg);
+  --color-rc-blue-border: var(--rc-blue-border);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-sans);

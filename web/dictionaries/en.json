@@ -375,6 +375,20 @@
       "redditCtaLabel": "Free full audit on",
       "founderSeatsLabel": "founder seats left"
     },
+    "crossExam": {
+      "ariaLabel": "How RejectCheck cross-examines your CV, LinkedIn, GitHub, portfolio and cover letter to surface contradictions",
+      "h2Part1": "We don't just read your CV.\nWe",
+      "h2Italic": "cross-examine",
+      "h2Part2": "everything.",
+      "sub1": "Recruiters check your LinkedIn. They open your GitHub. They compare.",
+      "sub2": "One contradiction between your sources and you're out. Before the interview.",
+      "step1Num": "Step 1",
+      "step1Text": "We read everything",
+      "step2Num": "Step 2",
+      "step2Text": "We cross-examine",
+      "step3Num": "Step 3",
+      "step3Text": "You fix them first"
+    },
     "s02": {
       "smallLabel": "The method",
       "h2Part1": "Six dimensions a recruiter scans in",
@@ -832,12 +846,14 @@
     "sprintSafety": "One-time payment, refunded if you get hired",
     "creditsExpiryNote": "Credits are permanent and used after your monthly cap is reached.",
     "guest": {
-      "badge": "Free limit reached",
-      "title": "Looks like you're serious about",
-      "titleHighlight": "landing a job.",
-      "subtitle": "You've used your free anonymous scans. A free account unlocks 3 full analyses every month. Every report saved to your dashboard with score history.",
+      "badge": "Almost there",
+      "title": "Continue your",
+      "titleHighlight": "analysis.",
+      "subtitle": "Create a free account to keep this report.",
+      "savedItems": ["Continue this analysis", "Save every future report", "3 free analyses every month"],
+      "noCardNote": "No credit card required",
       "buyCta": "Unlock full access, 29€",
-      "cta": "Create a free account",
+      "cta": "Continue for free",
       "secondary": "See plans",
       "noCard": "Free forever · No credit card · 30 seconds",
       "features": [

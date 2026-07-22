@@ -49,7 +49,7 @@ async function bootstrap() {
 
   const corsOriginEnv =
     configService.get<string>('CORS_ORIGIN') ||
-    'https://rejectcheck.com,https://www.rejectcheck.com,http://localhost:3000';
+    'https://rejectcheck.com,https://www.rejectcheck.com,http://localhost:3001';
   const corsOrigins = corsOriginEnv
     .split(',')
     .map((o) => o.trim())
