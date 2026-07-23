@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -210,12 +210,12 @@ function DashboardContent() {
   // staleTime: Infinity. So poll the subscription until it reports active
   // (bounded), then invalidate every plan-shaped cache — invalidation forces a
   // refetch regardless of staleTime.
-  const upgradeHandled = useRef(false);
   useEffect(() => {
-    if (searchParams.get("success") !== "true" || upgradeHandled.current) return;
-    upgradeHandled.current = true;
+    if (searchParams.get("success") !== "true") return;
     setShowSuccessModal(true);
 
+    // Local (not a persistent ref) so StrictMode's mount/cleanup/remount in dev
+    // restarts the poll instead of the first cleanup cancelling the only run.
     let cancelled = false;
     let tries = 0;
     const MAX_TRIES = 10;

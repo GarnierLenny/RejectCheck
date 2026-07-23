@@ -193,7 +193,7 @@ export function CvRecruiterRadar({ radar, seniorityDetected, experiences, redFla
   });
 
   return (
-    <section data-ca-sec="s2" id="s2" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
+    <section data-ca-sec="s2" id="s2" style={{ padding: "40px 0", borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
       <div style={{ marginBottom: 32 }}>
         <div style={SEC_NUM}>
           <span style={{ width: 28, height: 1, background: "var(--rc-text)", display: "inline-block", flexShrink: 0 }} />

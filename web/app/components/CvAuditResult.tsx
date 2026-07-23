@@ -357,6 +357,7 @@ export function CvAuditResult({
 
   // 02 quality
   const q = result.cv_quality;
+  const hasRadar = (result.skill_radar?.axes?.length ?? 0) > 0;
   const qualityDims = q ? [
     { key: "clarity",     label: "Clarity",      score: q.clarity,     desc: result.cv_quality_notes?.clarity     ?? "How easy it is to read your CV in 6 seconds." },
     { key: "impact",      label: "Impact",        score: q.impact,      desc: result.cv_quality_notes?.impact      ?? "Whether your bullets show outcomes, not just tasks." },
@@ -610,7 +611,9 @@ export function CvAuditResult({
                show the CV quality directly (higher = better) instead of the
                inverted 100 − quality that used to read as a risk score. ── */}
           {q && (
-            <div className="rc-hero-block" style={{ paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
+            <div className="rc-hero-block" style={hasRadar
+              ? { paddingBottom: 0, marginBottom: 0 }
+              : { paddingBottom: 40, borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
               <RiskMeter value={q.overall} mode="cv" metric="strength" />
               <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "18px 0 0", maxWidth: 640 }}>
                 Your overall CV strength, built from the six quality dimensions below (clarity, impact, hard and soft skills, consistency, ATS format) on a strict recruiter curve. The per-source cards under it read each channel on its own.
@@ -628,6 +631,17 @@ export function CvAuditResult({
               )}
               <CvGlanceStrip mergedCounts={sevCounts} checksPassed={checksPassed} timelineFlags={timelineFlags} overall={q.overall} />
             </div>
+          )}
+
+          {/* ── 01 Recruiter radar — right after the main score, same order as
+               the vs-JD report (renders its own section, null without axes) ── */}
+          {result.skill_radar && (result.skill_radar.axes?.length ?? 0) > 0 && (
+            <CvRecruiterRadar
+              radar={result.skill_radar}
+              seniorityDetected={result.seniority_analysis?.detected ?? null}
+              experiences={experiences}
+              redFlags={result.hidden_red_flags}
+            />
           )}
 
           {/* ── Hero ── */}
@@ -748,16 +762,6 @@ export function CvAuditResult({
             )}
             <CarouselBrief insights={result.carousel_insights} readOnly={readOnly} />
           </div>
-
-          {/* ── 01 Recruiter radar (renders its own section, null without axes) ── */}
-          {result.skill_radar && (result.skill_radar.axes?.length ?? 0) > 0 && (
-            <CvRecruiterRadar
-              radar={result.skill_radar}
-              seniorityDetected={result.seniority_analysis?.detected ?? null}
-              experiences={experiences}
-              redFlags={result.hidden_red_flags}
-            />
-          )}
 
           {/* ── 02 The one move ── */}
           <section data-ca-sec="s1" id="s1" style={{ paddingBottom: 64, paddingTop: 0 }}>
