@@ -150,13 +150,6 @@ export interface AnalysisRepository {
     negotiation: NegotiationAnalysis,
   ): Promise<void>;
 
-  /** Persists the deep-pass result on the analysis row. */
-  attachDeepAnalysis(
-    id: number,
-    email: string,
-    deep: DeepAnalyzeResponse,
-  ): Promise<void>;
-
   /**
    * Persists (or backfills) the deterministic keyword-match baseline on an
    * analysis owned by `email`. No-op if the row doesn't belong to the email.

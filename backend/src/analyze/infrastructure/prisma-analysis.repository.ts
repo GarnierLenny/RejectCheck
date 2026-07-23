@@ -422,26 +422,6 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     }
   }
 
-  async attachDeepAnalysis(
-    id: number,
-    email: string,
-    deep: DeepAnalyzeResponse,
-  ): Promise<void> {
-    const res = await this.prisma.analysis.updateMany({
-      where: { id, email },
-      data: {
-        deepAnalysis: deep as unknown as Prisma.InputJsonValue,
-      },
-    });
-    // See attachNegotiation: a 0-row update silently drops the (expensive)
-    // deep-pass result. Surface it loudly instead of losing the spend quietly.
-    if (res.count === 0) {
-      this.logger.error(
-        `attachDeepAnalysis matched 0 rows (id=${id}) — deep result discarded, spend wasted`,
-      );
-    }
-  }
-
   async attachKeywordMatch(
     id: number,
     email: string,
