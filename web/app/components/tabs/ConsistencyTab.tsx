@@ -38,8 +38,8 @@ function SourceIcon({
 }
 
 /**
- * Tab that visualises cross-profile inconsistencies detected by the user's
- * ProfileDigest.
+ * Tab that visualises cross-profile inconsistencies detected inline by the
+ * main analysis call (cross-examination).
  *
  * Layout (top to bottom):
  *  1. SectionHeader with severity counters

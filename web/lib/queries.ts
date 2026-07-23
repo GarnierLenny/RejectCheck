@@ -56,12 +56,6 @@ export type Profile = {
   needsSponsorship: boolean | null;
   onboardedAt: string | null;
   onboardingSkipped: boolean;
-  /**
-   * ISO timestamp of the last ProfileDigest generation. Null if the user
-   * has never had a digest generated. Drives the "Profile last synced…"
-   * status indicator in settings.
-   */
-  digestUpdatedAt: string | null;
 };
 
 export type PublicProfile = {

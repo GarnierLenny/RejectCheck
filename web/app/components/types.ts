@@ -465,16 +465,17 @@ export type AnalysisResult = {
   challenge_analysis?: ChallengeAnalysis | null;
   negotiation_analysis?: NegotiationAnalysis | null;
   /**
-   * Pre-computed cross-profile inconsistencies surfaced from the user's
-   * ProfileDigest. Drives the "Consistency check" banner / section. Empty
-   * or undefined for anonymous users.
+   * Cross-profile inconsistencies detected inline by the main analysis call
+   * (cross-examination — the moat). Drives the "Consistency check" banner /
+   * section. Empty or undefined when there's nothing to cross-check (e.g. a
+   * single source).
    */
   cross_profile_inconsistencies?: CrossProfileInconsistency[];
   /**
-   * Per-source job chronology from the ProfileDigest. Powers the timeline
-   * visualization in the Consistency tab — one entry per source-occurrence
-   * of each job, so the same role on CV and LinkedIn becomes two entries
-   * with their own dates (which the UI renders as parallel bars).
+   * Per-source job chronology emitted inline by the main analysis call. Powers
+   * the timeline visualization in the Consistency tab — one entry per
+   * source-occurrence of each job, so the same role on CV and LinkedIn becomes
+   * two entries with their own dates (which the UI renders as parallel bars).
    */
   timeline_entries?: TimelineEntry[];
   highlight_terms?: {

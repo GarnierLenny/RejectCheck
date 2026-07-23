@@ -530,30 +530,6 @@ export function useGenerateCoverLetter() {
   });
 }
 
-export function useRefreshProfileDigest() {
-  const { session } = useAuth();
-  const token = session?.access_token;
-
-  return useMutation({
-    mutationFn: (body: {
-      cvText?: string;
-      linkedinText?: string;
-      locale?: string;
-    }) =>
-      apiFetch<{ digest: unknown; hashes: unknown }>(
-        '/api/analyze/profile/refresh-digest',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...authHeaders(token!),
-          },
-          body: JSON.stringify(body),
-        },
-      ),
-  });
-}
-
 export function useGenerateStarterRepo() {
   const { session } = useAuth();
   const token = session?.access_token;
