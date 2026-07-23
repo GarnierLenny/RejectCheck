@@ -99,10 +99,11 @@ export function RiskMeter({
         : mode === "vsjob"
           ? rm.contextVsJob
           : undefined);
-  // Track zones left→right. Risk: good→bad (green|amber|red). Else: bad→good.
-  const zones = higherBetter
-    ? ["bg-rc-red", "bg-rc-amber", "bg-rc-green"]
-    : ["bg-rc-green", "bg-rc-amber", "bg-rc-red"];
+  // Continuous gradient across the meter (replaces the old 3 hard-edged zones).
+  // Direction follows polarity: risk reads good→bad, strength/competitiveness bad→good.
+  const trackGradient = higherBetter
+    ? "linear-gradient(90deg, var(--rc-red) 0%, var(--rc-amber) 50%, var(--rc-green) 100%)"
+    : "linear-gradient(90deg, var(--rc-green) 0%, var(--rc-amber) 50%, var(--rc-red) 100%)";
   // Band labels under the track, left→right.
   const bandLabels = higherBetter
     ? [hb.bands.weak, hb.bands.decent, hb.bands.strong]
@@ -141,13 +142,12 @@ export function RiskMeter({
           </div>
         </div>
 
-        {/* Neutral 3-zone track, no needle — the score isn't final yet. */}
+        {/* Neutral gradient track, no needle — the score isn't final yet. */}
         <div className="mt-7">
-          <div className="relative flex h-[13px] overflow-hidden rounded-full opacity-40 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
-            <div className={`h-full ${zones[0]}`} style={{ flex: 33 }} />
-            <div className={`h-full ${zones[1]}`} style={{ flex: 34 }} />
-            <div className={`h-full ${zones[2]}`} style={{ flex: 33 }} />
-          </div>
+          <div
+            className="relative h-[13px] overflow-hidden rounded-full opacity-40 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]"
+            style={{ background: trackGradient }}
+          />
           <div className="mt-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.09em] text-rc-hint">
             <span>0</span>
             <div className="flex flex-1 justify-around">
@@ -199,12 +199,12 @@ export function RiskMeter({
         </div>
       </div>
 
-      {/* Linear meter — 3 zones + needle + value bubble */}
+      {/* Linear meter — gradient track + needle + value bubble */}
       <div className="mt-7">
-        <div className="relative flex h-[13px] overflow-hidden rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]">
-          <div className={`h-full ${zones[0]}`} style={{ flex: 33 }} />
-          <div className={`h-full ${zones[1]}`} style={{ flex: 34 }} />
-          <div className={`h-full ${zones[2]}`} style={{ flex: 33 }} />
+        <div
+          className="relative h-[13px] overflow-hidden rounded-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)]"
+          style={{ background: trackGradient }}
+        >
           <motion.div
             className="absolute -top-[8px] -bottom-[8px] w-[3px] -translate-x-1/2 rounded bg-rc-text"
             initial={reduce ? false : { left: "0%" }}

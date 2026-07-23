@@ -268,24 +268,19 @@ function PricingContent() {
                   <button
                     onClick={() => plan.checkoutPlan && handlePaidPlan(plan.checkoutPlan)}
                     disabled={loadingPlan !== null || activePlan === plan.id}
-                    className={`relative overflow-hidden flex items-center justify-center w-full py-4 rounded-xl text-[14px] font-semibold transition-all duration-300 group/btn cursor-pointer ${
+                    className={`flex items-center justify-center w-full py-4 rounded-xl text-[14px] font-semibold transition-colors duration-200 cursor-pointer ${
                       activePlan === plan.id
                         ? 'bg-rc-bg text-rc-hint border border-rc-border cursor-default'
                         : plan.popular
-                          ? 'bg-rc-red text-white shadow-lg shadow-rc-red/25 hover:shadow-rc-red/40 hover:scale-[1.02] active:scale-[0.98]'
-                          : 'bg-rc-text text-white hover:bg-rc-red hover:shadow-lg active:scale-[0.98]'
+                          ? 'bg-rc-red text-white shadow-lg shadow-rc-red/25 hover:bg-[var(--rc-red-hover)]'
+                          : 'bg-rc-text text-white hover:bg-rc-red'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <span className="relative z-10">
-                      {activePlan === plan.id
-                        ? t.pricing.currentPlan
-                        : loadingPlan === plan.checkoutPlan
-                          ? t.common.processing
-                          : plan.cta}
-                    </span>
-                    {activePlan !== plan.id && (
-                      <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
-                    )}
+                    {activePlan === plan.id
+                      ? t.pricing.currentPlan
+                      : loadingPlan === plan.checkoutPlan
+                        ? t.common.processing
+                        : plan.cta}
                   </button>
                 )}
                 {plan.checkoutPlan && activePlan !== plan.id && (
