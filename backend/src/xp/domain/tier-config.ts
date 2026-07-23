@@ -39,22 +39,112 @@ export type LevelDef = {
 };
 
 export const LEVELS: readonly LevelDef[] = [
-  { level: 1,  tier: 'apprentice', tierLabel: 'Apprentice I',   xpRequired: 0,     rewards: [] },
-  { level: 2,  tier: 'apprentice', tierLabel: 'Apprentice II',  xpRequired: 100,   rewards: [] },
-  { level: 3,  tier: 'apprentice', tierLabel: 'Apprentice III', xpRequired: 250,   rewards: ['badge_apprentice'] },
-  { level: 4,  tier: 'junior',     tierLabel: 'Junior I',       xpRequired: 500,   rewards: ['badge_junior'] },
-  { level: 5,  tier: 'junior',     tierLabel: 'Junior II',      xpRequired: 900,   rewards: [] },
-  { level: 6,  tier: 'junior',     tierLabel: 'Junior III',     xpRequired: 1500,  rewards: ['discount_10_shortlisted'] },
-  { level: 7,  tier: 'mid',        tierLabel: 'Mid I',          xpRequired: 2400,  rewards: ['badge_mid'] },
-  { level: 8,  tier: 'mid',        tierLabel: 'Mid II',         xpRequired: 3600,  rewards: [] },
-  { level: 9,  tier: 'mid',        tierLabel: 'Mid III',        xpRequired: 5200,  rewards: ['discount_25_shortlisted', 'leaderboard_spotlight'] },
-  { level: 10, tier: 'senior',     tierLabel: 'Senior I',       xpRequired: 7400,  rewards: ['badge_senior', 'animated_tier_ring'] },
-  { level: 11, tier: 'senior',     tierLabel: 'Senior II',      xpRequired: 10200, rewards: [] },
-  { level: 12, tier: 'senior',     tierLabel: 'Senior III',     xpRequired: 13800, rewards: ['discount_40_shortlisted', 'free_month_hired'] },
-  { level: 13, tier: 'staff',      tierLabel: 'Staff I',        xpRequired: 18400, rewards: ['badge_staff'] },
-  { level: 14, tier: 'staff',      tierLabel: 'Staff II',       xpRequired: 24200, rewards: ['discount_50_hired'] },
-  { level: 15, tier: 'staff',      tierLabel: 'Staff III',      xpRequired: 31600, rewards: [] },
-  { level: 16, tier: 'principal',  tierLabel: 'Principal',      xpRequired: 41000, rewards: ['badge_principal', 'free_6mo_hired'] },
+  {
+    level: 1,
+    tier: 'apprentice',
+    tierLabel: 'Apprentice I',
+    xpRequired: 0,
+    rewards: [],
+  },
+  {
+    level: 2,
+    tier: 'apprentice',
+    tierLabel: 'Apprentice II',
+    xpRequired: 100,
+    rewards: [],
+  },
+  {
+    level: 3,
+    tier: 'apprentice',
+    tierLabel: 'Apprentice III',
+    xpRequired: 250,
+    rewards: ['badge_apprentice'],
+  },
+  {
+    level: 4,
+    tier: 'junior',
+    tierLabel: 'Junior I',
+    xpRequired: 500,
+    rewards: ['badge_junior'],
+  },
+  {
+    level: 5,
+    tier: 'junior',
+    tierLabel: 'Junior II',
+    xpRequired: 900,
+    rewards: [],
+  },
+  {
+    level: 6,
+    tier: 'junior',
+    tierLabel: 'Junior III',
+    xpRequired: 1500,
+    rewards: ['discount_10_shortlisted'],
+  },
+  {
+    level: 7,
+    tier: 'mid',
+    tierLabel: 'Mid I',
+    xpRequired: 2400,
+    rewards: ['badge_mid'],
+  },
+  { level: 8, tier: 'mid', tierLabel: 'Mid II', xpRequired: 3600, rewards: [] },
+  {
+    level: 9,
+    tier: 'mid',
+    tierLabel: 'Mid III',
+    xpRequired: 5200,
+    rewards: ['discount_25_shortlisted', 'leaderboard_spotlight'],
+  },
+  {
+    level: 10,
+    tier: 'senior',
+    tierLabel: 'Senior I',
+    xpRequired: 7400,
+    rewards: ['badge_senior', 'animated_tier_ring'],
+  },
+  {
+    level: 11,
+    tier: 'senior',
+    tierLabel: 'Senior II',
+    xpRequired: 10200,
+    rewards: [],
+  },
+  {
+    level: 12,
+    tier: 'senior',
+    tierLabel: 'Senior III',
+    xpRequired: 13800,
+    rewards: ['discount_40_shortlisted', 'free_month_hired'],
+  },
+  {
+    level: 13,
+    tier: 'staff',
+    tierLabel: 'Staff I',
+    xpRequired: 18400,
+    rewards: ['badge_staff'],
+  },
+  {
+    level: 14,
+    tier: 'staff',
+    tierLabel: 'Staff II',
+    xpRequired: 24200,
+    rewards: ['discount_50_hired'],
+  },
+  {
+    level: 15,
+    tier: 'staff',
+    tierLabel: 'Staff III',
+    xpRequired: 31600,
+    rewards: [],
+  },
+  {
+    level: 16,
+    tier: 'principal',
+    tierLabel: 'Principal',
+    xpRequired: 41000,
+    rewards: ['badge_principal', 'free_6mo_hired'],
+  },
 ] as const;
 
 export type RewardDef =
@@ -116,7 +206,8 @@ export const REWARDS: Record<RewardKey, RewardDef> = {
     key: 'animated_tier_ring',
     type: 'cosmetic',
     label: 'Animated tier ring',
-    description: 'Subtle red glow ring around your avatar everywhere on the site.',
+    description:
+      'Subtle red glow ring around your avatar everywhere on the site.',
   },
   leaderboard_spotlight: {
     key: 'leaderboard_spotlight',
@@ -200,8 +291,8 @@ export function levelFromXp(totalXp: number): LevelDef {
 export type LevelProgress = {
   current: LevelDef;
   next: LevelDef | null;
-  xpInLevel: number;        // XP earned past the current level threshold
-  xpForNextLevel: number;   // XP between current and next level (denominator for progress bar)
+  xpInLevel: number; // XP earned past the current level threshold
+  xpForNextLevel: number; // XP between current and next level (denominator for progress bar)
   percentToNextLevel: number; // 0-100; 100 if max tier
 };
 

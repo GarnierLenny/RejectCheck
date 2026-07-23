@@ -6,11 +6,9 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
-import { createHash } from 'crypto';
 import {
   ANALYSIS_REPOSITORY,
   CLAUDE_PROVIDER,
-  DIGEST_REPOSITORY,
   GITHUB_PROVIDER,
   PDF_PARSER,
   PORTFOLIO_SCRAPER,
@@ -20,14 +18,11 @@ import {
 import type { PortfolioScraper } from '../ports/portfolio.scraper';
 import type { AnalysisRepository } from '../ports/analysis.repository';
 import type { ClaudeProvider } from '../ports/claude.provider';
-import type { DigestRepository } from '../ports/digest.repository';
 import type { GithubProvider } from '../ports/github.provider';
 import type { PdfParser } from '../ports/pdf.parser';
 import type { ProfileRepository } from '../ports/profile.repository';
-import { GenerateProfileDigestUseCase } from './generate-profile-digest.use-case';
 import type { SubscriptionGate } from '../../common/ports/subscription.gate';
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
-import type { DigestSourceHashes, ProfileDigest } from '../dto/profile-digest.dto';
 import { SectionStreamParser } from '../infrastructure/section-stream.parser';
 import {
   shapeCvReviewForPlan,
@@ -41,7 +36,11 @@ import { QuotaExceededException } from '../../common/exceptions';
 import { CREDIT_LEDGER_REPOSITORY } from '../../credits/ports/tokens';
 import type { CreditLedgerRepository } from '../../credits/ports/credit-ledger.repository';
 import type { Plan, QuotaDecision } from '../domain/quota.policy';
-import { CREDIT_COSTS, decideQuota, startOfMonthUTC } from '../domain/quota.policy';
+import {
+  CREDIT_COSTS,
+  decideQuota,
+  startOfMonthUTC,
+} from '../domain/quota.policy';
 
 function toQuotaPlan(legacyPlan: 'rejected' | 'shortlisted' | 'hired'): Plan {
   return legacyPlan === 'rejected' ? 'free' : legacyPlan;
@@ -121,13 +120,10 @@ export class ReviewCvUseCase {
     @Inject(SUBSCRIPTION_GATE) private readonly subs: SubscriptionGate,
     @Inject(PROFILE_REPOSITORY)
     private readonly profiles: ProfileRepository,
-    @Inject(DIGEST_REPOSITORY)
-    private readonly digests: DigestRepository,
     @Inject(CREDIT_LEDGER_REPOSITORY)
     private readonly creditLedger: CreditLedgerRepository,
     @Inject(PORTFOLIO_SCRAPER)
     private readonly portfolioScraper: PortfolioScraper,
-    private readonly generateDigestUc: GenerateProfileDigestUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -156,23 +152,29 @@ export class ReviewCvUseCase {
     const plan = toQuotaPlan(subscriptionState.plan);
     const quotaIntent = isOwnerAudit
       ? ({ allowed: true, consume: 'anonymous' } as const)
-      : await this.reserveQuotaIntent(cmd.email, cmd.ip, plan, CREDIT_COSTS.review);
+      : await this.reserveQuotaIntent(
+          cmd.email,
+          cmd.ip,
+          plan,
+          CREDIT_COSTS.review,
+        );
 
     emitStep('parsing_cv');
     if (cmd.githubUsername) emitStep('analyzing_github');
 
-    const [cvSource, linkedinText, linkedinTextFormatted, githubSnapshot] = await Promise.all([
-      // Inline re-scan sends edited TEXT (no file to parse); the upload path
-      // parses/OCRs the buffer.
-      cmd.cvText != null
-        ? Promise.resolve({ text: cmd.cvText, formatted: cmd.cvText })
-        : this.extractCvSource(cmd.cvBuffer as Buffer, cmd.cvMimeType),
-      this.tryParse(cmd.linkedinBuffer),
-      this.tryParseFormatted(cmd.linkedinBuffer),
-      cmd.githubUsername
-        ? this.github.fetchProfile(cmd.githubUsername).catch(() => null)
-        : Promise.resolve(null),
-    ]);
+    const [cvSource, linkedinText, linkedinTextFormatted, githubSnapshot] =
+      await Promise.all([
+        // Inline re-scan sends edited TEXT (no file to parse); the upload path
+        // parses/OCRs the buffer.
+        cmd.cvText != null
+          ? Promise.resolve({ text: cmd.cvText, formatted: cmd.cvText })
+          : this.extractCvSource(cmd.cvBuffer as Buffer, cmd.cvMimeType),
+        this.tryParse(cmd.linkedinBuffer),
+        this.tryParseFormatted(cmd.linkedinBuffer),
+        cmd.githubUsername
+          ? this.github.fetchProfile(cmd.githubUsername).catch(() => null)
+          : Promise.resolve(null),
+      ]);
     const cvText = cvSource.text;
     const cvTextFormatted = cvSource.formatted;
 
@@ -205,45 +207,20 @@ export class ReviewCvUseCase {
         ? await this.profiles.findByEmail(cmd.email).catch(() => null)
         : null;
 
-    // Cross-source needs the CV plus at least one more source PROVIDED IN THE
-    // REQUEST (an uploaded LinkedIn, or a GitHub username typed for this
-    // candidate). A lone CV (the common anonymous case) never triggers it, and
-    // an inline text re-scan carries no second source either.
-    const hasRequestMultiSource = !!(cmd.linkedinBuffer || cmd.githubUsername);
-    const digestEnabled =
-      !!cmd.email &&
-      cmd.isRegistered &&
-      (!!cmd.cvBuffer || !!cmd.cvText) &&
-      hasRequestMultiSource;
-
     // The portfolio is inherently the signed-in user's OWN data: only ever used
     // when they explicitly opt in to auditing their own CV.
     const portfolioEnabled =
       useOwnProfile &&
       this.config.get<string>('CV_REVIEW_PORTFOLIO_ENABLED') === 'true';
-    const portfolioUrl = portfolioEnabled ? profile?.portfolioUrl ?? null : null;
+    const portfolioUrl = portfolioEnabled
+      ? (profile?.portfolioUrl ?? null)
+      : null;
     const portfolioMarkdown = portfolioUrl
       ? await this.portfolioScraper
           .fetch(portfolioUrl)
           .then((s) => s?.markdown ?? '')
           .catch(() => '')
       : '';
-
-    let digest: ProfileDigest | null = null;
-    if (digestEnabled) {
-      digest = await this.resolveDigest({
-        email: cmd.email as string,
-        cvBuffer: cmd.cvBuffer ?? null,
-        cvText,
-        linkedinText,
-        githubUsername:
-          cmd.githubUsername ??
-          (useOwnProfile ? profile?.githubUsername ?? null : null),
-        portfolioUrl,
-        requestScopedOnly: !useOwnProfile,
-        locale: cmd.locale,
-      });
-    }
 
     emitStep('reviewing_cv');
     // Stream completed top-level sections as typed events, shaped for the
@@ -276,13 +253,12 @@ export class ReviewCvUseCase {
       linkedinText,
       portfolioMarkdown,
       portfolioUrl,
-      digest,
       lean: false,
       locale: cmd.locale,
       // Only frame the audit with the signed-in user's declared role when they
       // opted into "my CV"; auditing a stranger falls back to role inference
       // (a nurse's CV must not be judged as the owner's role family).
-      userRoleType: useOwnProfile ? profile?.roleType ?? null : null,
+      userRoleType: useOwnProfile ? (profile?.roleType ?? null) : null,
       onDelta: (delta) => sectionParser.push(delta),
     });
 
@@ -294,15 +270,33 @@ export class ReviewCvUseCase {
     // issues), NOT by hiding genuine findings post-hoc. See cv-review-issues.ts.
     assignCvReviewIssueIds(result);
 
-    const { analysisId, claimToken } = await this.persist({ cmd, result, cvText, cvTextFormatted, linkedinText, linkedinTextFormatted, githubInfo });
+    const { analysisId, claimToken } = await this.persist({
+      cmd,
+      result,
+      cvText,
+      cvTextFormatted,
+      linkedinText,
+      linkedinTextFormatted,
+      githubInfo,
+    });
 
     if (quotaIntent.consume === 'credit' && cmd.email && analysisId !== null) {
-      await this.creditLedger.consume({ email: cmd.email, analysisId, scope: 'review', amount: CREDIT_COSTS.review });
+      await this.creditLedger.consume({
+        email: cmd.email,
+        analysisId,
+        scope: 'review',
+        amount: CREDIT_COSTS.review,
+      });
     }
 
     // Stored result stays complete; the emitted one is shaped for the plan.
     const shapedResult = shapeCvReviewForPlan(result, shapeCtx);
-    emit({ type: 'analysis_done', result: shapedResult, analysisId, claimToken });
+    emit({
+      type: 'analysis_done',
+      result: shapedResult,
+      analysisId,
+      claimToken,
+    });
     return { result: shapedResult, analysisId, auditMode: isOwnerAudit };
   }
 
@@ -351,7 +345,11 @@ export class ReviewCvUseCase {
     }
     const { hasActiveSubscription, isHired } = await this.subs.getState(email);
     if (!hasActiveSubscription) {
-      return { tier: 'connected', plan: 'rejected', hasActiveSubscription: false };
+      return {
+        tier: 'connected',
+        plan: 'rejected',
+        hasActiveSubscription: false,
+      };
     }
     return {
       tier: 'premium',
@@ -461,94 +459,4 @@ export class ReviewCvUseCase {
 
     return { analysisId: created.id, claimToken: null };
   }
-
-  private async resolveDigest(input: {
-    email: string;
-    cvBuffer: Buffer | null;
-    cvText: string;
-    linkedinText: string;
-    githubUsername: string | null;
-    portfolioUrl: string | null;
-    requestScopedOnly: boolean;
-    locale?: string;
-  }): Promise<ProfileDigest | null> {
-    const extraSourceCount =
-      (input.linkedinText ? 1 : 0) +
-      (input.githubUsername ? 1 : 0) +
-      (input.portfolioUrl ? 1 : 0);
-    if (extraSourceCount === 0) return null;
-
-    // Request-scoped (auditing someone else's CV): never touch the owner-keyed
-    // digest cache or their stored profile. Generate a transient digest from
-    // this request's sources only.
-    if (input.requestScopedOnly) {
-      try {
-        const { digest } = await this.generateDigestUc.execute({
-          email: input.email,
-          cvBuffer: input.cvBuffer ?? undefined,
-          cvText: input.cvText,
-          linkedinText: input.linkedinText || null,
-          githubUsername: input.githubUsername,
-          portfolioUrl: input.portfolioUrl,
-          requestScopedOnly: true,
-          locale: input.locale,
-        });
-        return digest;
-      } catch (err: any) {
-        this.logger.warn(
-          `[DIGEST] request_scoped_failed err=${err?.message || err}`,
-        );
-        return null;
-      }
-    }
-
-    // Own-CV path: reuse the persistent, owner-keyed cache when unchanged.
-    const cvHash = input.cvBuffer
-      ? sha256Hex(input.cvBuffer)
-      : input.cvText
-        ? sha256Hex(Buffer.from(input.cvText))
-        : null;
-    const currentHashes: DigestSourceHashes = {
-      cv: cvHash,
-      linkedin: input.linkedinText
-        ? sha256Hex(Buffer.from(input.linkedinText))
-        : null,
-      githubUsername: input.githubUsername?.toLowerCase() ?? null,
-      portfolioUrl: input.portfolioUrl?.trim().toLowerCase() ?? null,
-    };
-
-    const stored = await this.digests.findByEmail(input.email).catch(() => null);
-    if (stored && hashesMatch(stored.hashes, currentHashes)) {
-      return stored.digest;
-    }
-
-    try {
-      const { digest } = await this.generateDigestUc.execute({
-        email: input.email,
-        cvBuffer: input.cvBuffer ?? undefined,
-        cvText: input.cvText,
-        linkedinText: input.linkedinText || null,
-        githubUsername: input.githubUsername,
-        portfolioUrl: input.portfolioUrl,
-        locale: input.locale,
-      });
-      return digest;
-    } catch (err: any) {
-      this.logger.warn(`[DIGEST_CACHE] regen_failed err=${err?.message || err}`);
-      return null;
-    }
-  }
-}
-
-function sha256Hex(buf: Buffer): string {
-  return createHash('sha256').update(buf).digest('hex');
-}
-
-function hashesMatch(a: DigestSourceHashes, b: DigestSourceHashes): boolean {
-  return (
-    a.cv === b.cv &&
-    a.linkedin === b.linkedin &&
-    a.githubUsername === b.githubUsername &&
-    a.portfolioUrl === b.portfolioUrl
-  );
 }

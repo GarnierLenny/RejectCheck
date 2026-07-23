@@ -46,7 +46,10 @@ export type CreateRescanInput = {
 };
 
 /** Same payload as a registered save, minus the account-specific fields. */
-export type SaveAnonymousInput = Omit<SaveAnalysisInput, 'email' | 'creditCost'>;
+export type SaveAnonymousInput = Omit<
+  SaveAnalysisInput,
+  'email' | 'creditCost'
+>;
 
 export type ApplicationUpsertInput = {
   email: string;
@@ -165,7 +168,9 @@ export interface AnalysisRepository {
    * the caller (the Rescan row itself carries no email). Returns the new row's
    * id + timestamp for the client.
    */
-  createRescan(input: CreateRescanInput): Promise<{ id: number; createdAt: Date }>;
+  createRescan(
+    input: CreateRescanInput,
+  ): Promise<{ id: number; createdAt: Date }>;
 
   /**
    * Lists the keyword-only re-scan attempts for an analysis, oldest first, so
@@ -199,7 +204,9 @@ export interface AnalysisRepository {
   createShareTokenForClaim(claimToken: string): Promise<string | null>;
 
   /** Finds a shared analysis by its public token. Returns null if not found or has no result. */
-  findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null>;
+  findByShareToken(
+    token: string,
+  ): Promise<(AnalysisDetail & { email: string | null }) | null>;
 
   /**
    * One-time "unlock this CV" purchase: marks premium features (CV rewrite,

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   CrossProfileInconsistencySchema,
   TimelineEntrySchema,
-} from './profile-digest.dto';
+} from './cross-examination.dto';
 import {
   BulletReviewsSchema,
   CarouselInsightsSchema,

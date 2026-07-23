@@ -7,8 +7,7 @@ const PRICE_FOUNDER = 'price_founder';
 
 function makeConfig(priceId: string = PRICE_FOUNDER) {
   return {
-    get: (k: string) =>
-      k === 'STRIPE_FOUNDER_PRICE_ID' ? priceId : undefined,
+    get: (k: string) => (k === 'STRIPE_FOUNDER_PRICE_ID' ? priceId : undefined),
   } as unknown as ConfigService;
 }
 

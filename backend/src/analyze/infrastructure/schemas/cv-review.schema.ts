@@ -9,14 +9,14 @@
 import {
   CROSS_PROFILE_INCONSISTENCY,
   TIMELINE_ENTRY,
-} from './claude-profile-digest.schema';
+} from './cross-examination.schema';
 import {
   BULLET_REVIEWS_PROPERTY,
   CAROUSEL_INSIGHTS_PROPERTY,
 } from './claude-analysis.schema';
 
-// Mirrors the private SOURCE_ENUM of claude-profile-digest.schema.ts (not
-// exported there). Keep in sync if a new source type is ever added.
+// Mirrors the private SOURCE_ENUM of cross-examination.schema.ts (not exported
+// there). Keep in sync if a new source type is ever added.
 const SOURCE_ENUM = ['cv', 'linkedin', 'github', 'portfolio'] as const;
 
 /**
@@ -30,7 +30,7 @@ const EXPERIENCE_ANALYSIS_PROPERTY = {
   type: 'array' as const,
   maxItems: 8,
   description:
-    "Per-role recruiter deep-dive. ONE entry per role on the CV, most recent first, up to 8. Judge each entry ONLY on the bullets of that role: never import evidence or doubts from another role. Caps are ceilings, never quotas.",
+    'Per-role recruiter deep-dive. ONE entry per role on the CV, most recent first, up to 8. Judge each entry ONLY on the bullets of that role: never import evidence or doubts from another role. Caps are ceilings, never quotas.',
   items: {
     type: 'object' as const,
     properties: {
@@ -45,7 +45,7 @@ const EXPERIENCE_ANALYSIS_PROPERTY = {
       start: {
         type: ['string', 'null'] as ['string', 'null'],
         description:
-          "ISO yyyy-mm as written in the CV (month 01 if only a year is given), or null when the CV states no start date. Never guess.",
+          'ISO yyyy-mm as written in the CV (month 01 if only a year is given), or null when the CV states no start date. Never guess.',
       },
       end: {
         type: ['string', 'null'] as ['string', 'null'],
@@ -119,7 +119,7 @@ const EXPERIENCE_ANALYSIS_PROPERTY = {
             evidence: {
               type: ['string', 'null'] as ['string', 'null'],
               description:
-                "The exact bullet fact that proves it, ≤ 15 words. MUST be null when status is claimed.",
+                'The exact bullet fact that proves it, ≤ 15 words. MUST be null when status is claimed.',
             },
           },
           required: ['name', 'status', 'evidence'],
@@ -144,7 +144,7 @@ const EXPERIENCE_ANALYSIS_PROPERTY = {
             evidence: {
               type: ['string', 'null'] as ['string', 'null'],
               description:
-                "The exact bullet fact that proves it, ≤ 15 words. MUST be null when status is claimed.",
+                'The exact bullet fact that proves it, ≤ 15 words. MUST be null when status is claimed.',
             },
           },
           required: ['name', 'status', 'evidence'],
@@ -258,7 +258,8 @@ export const SUBMIT_CV_REVIEW_TOOL = {
       carousel_insights: CAROUSEL_INSIGHTS_PROPERTY,
       cv_quality: {
         type: 'object' as const,
-        description: 'CV quality scores across 6 dimensions (0-100 each). overall = weighted average of the 6 sub-scores.',
+        description:
+          'CV quality scores across 6 dimensions (0-100 each). overall = weighted average of the 6 sub-scores.',
         properties: {
           overall: {
             type: 'number' as const,
@@ -309,7 +310,15 @@ export const SUBMIT_CV_REVIEW_TOOL = {
               'Machine-readability: no tables/columns, parseable headers, standard section names, clean date formats.',
           },
         },
-        required: ['overall', 'clarity', 'impact', 'hard_skills', 'soft_skills', 'consistency', 'ats_format'],
+        required: [
+          'overall',
+          'clarity',
+          'impact',
+          'hard_skills',
+          'soft_skills',
+          'consistency',
+          'ats_format',
+        ],
       },
 
       cv_quality_notes: {
@@ -363,7 +372,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
           narrative: {
             type: 'string' as const,
             description:
-              'One sentence summarising the career story this CV tells from a recruiter\'s perspective. ≤ 40 words.',
+              "One sentence summarising the career story this CV tells from a recruiter's perspective. ≤ 40 words.",
           },
           profile_type: {
             type: 'string' as const,
@@ -436,13 +445,15 @@ export const SUBMIT_CV_REVIEW_TOOL = {
             type: 'array' as const,
             minItems: 1,
             maxItems: 5,
-            description: 'Specific gaps ordered by impact. Each must name a concrete CV evidence.',
+            description:
+              'Specific gaps ordered by impact. Each must name a concrete CV evidence.',
             items: {
               type: 'object' as const,
               properties: {
                 what: {
                   type: 'string' as const,
-                  description: 'The missing signal, anchored in CV evidence. ≤ 20 words.',
+                  description:
+                    'The missing signal, anchored in CV evidence. ≤ 20 words.',
                 },
                 fix: {
                   type: 'string' as const,
@@ -607,8 +618,7 @@ export const SUBMIT_CV_REVIEW_TOOL = {
             },
             perception: {
               type: 'string' as const,
-              description:
-                'How a recruiter perceives this. ≤ 25 words.',
+              description: 'How a recruiter perceives this. ≤ 25 words.',
             },
           },
           required: ['flag', 'perception'],

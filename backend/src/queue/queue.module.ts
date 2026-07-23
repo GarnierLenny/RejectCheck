@@ -36,17 +36,15 @@ export class QueueModule {
             enableReadyCheck: false,
           }),
         }),
-        BullModule.registerQueue(
-          {
-            name: NEGOTIATION_QUEUE,
-            defaultJobOptions: {
-              attempts: 2,
-              backoff: { type: 'exponential', delay: 5000 },
-              removeOnComplete: { count: 100 },
-              removeOnFail: { count: 200 },
-            },
+        BullModule.registerQueue({
+          name: NEGOTIATION_QUEUE,
+          defaultJobOptions: {
+            attempts: 2,
+            backoff: { type: 'exponential', delay: 5000 },
+            removeOnComplete: { count: 100 },
+            removeOnFail: { count: 200 },
           },
-        ),
+        }),
       ],
       exports: [BullModule],
     };

@@ -44,10 +44,7 @@ const SessionSchema = z.object({
     z.null(),
     z.undefined(),
   ]),
-  metadata: z
-    .object({ type: z.string().optional() })
-    .passthrough()
-    .nullish(),
+  metadata: z.object({ type: z.string().optional() }).passthrough().nullish(),
 });
 
 @Injectable()

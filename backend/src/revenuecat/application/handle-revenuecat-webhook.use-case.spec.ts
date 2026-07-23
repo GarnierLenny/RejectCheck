@@ -5,7 +5,9 @@ import type { SubscriptionRepository } from '../../stripe/ports/subscription.rep
 const expiration = Date.parse('2026-08-01T00:00:00Z');
 
 function makeUseCase() {
-  const verifier = { verify: jest.fn() } as unknown as RevenueCatWebhookVerifier;
+  const verifier = {
+    verify: jest.fn(),
+  } as unknown as RevenueCatWebhookVerifier;
   const repo = {
     upsert: jest.fn().mockResolvedValue(undefined),
     cancelByEmailAndProvider: jest.fn().mockResolvedValue(undefined),
@@ -52,7 +54,10 @@ describe('HandleRevenueCatWebhookUseCase', () => {
 
   it('activates on RENEWAL (mobile renewals stay in sync, unlike the old Stripe gap)', async () => {
     const { uc, repo } = makeUseCase();
-    await uc.execute('auth', event({ type: 'RENEWAL', entitlement_ids: ['shortlisted'] }));
+    await uc.execute(
+      'auth',
+      event({ type: 'RENEWAL', entitlement_ids: ['shortlisted'] }),
+    );
     expect(repo.upsert).toHaveBeenCalledWith(
       expect.objectContaining({ plan: 'shortlisted', status: 'active' }),
     );

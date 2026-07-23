@@ -4,9 +4,7 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import type { Profile, ProfileUpdate } from '../domain/analysis.types';
 
 /**
- * Fields exposed to API consumers. Excludes `digest` (raw synthesis, internal
- * to the analyze flow) and `digestSourceHashes` (security: leaks hash info).
- * Only `digestUpdatedAt` is surfaced so the UI can render the sync indicator.
+ * Fields exposed to API consumers.
  */
 const PROFILE_SAFE_SELECT = {
   id: true,
@@ -35,7 +33,6 @@ const PROFILE_SAFE_SELECT = {
   needsSponsorship: true,
   onboardedAt: true,
   onboardingSkipped: true,
-  digestUpdatedAt: true,
   createdAt: true,
   updatedAt: true,
   totalChallengeScore: true,

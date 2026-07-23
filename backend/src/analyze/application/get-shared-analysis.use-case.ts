@@ -47,7 +47,10 @@ export class GetSharedAnalysisUseCase {
       });
     }
 
-    let profile: { displayName: string | null; avatarUrl: string | null } | null = null;
+    let profile: {
+      displayName: string | null;
+      avatarUrl: string | null;
+    } | null = null;
     if (detail.email) {
       const p = await this.profiles.findByEmail(detail.email);
       if (p) profile = { displayName: p.displayName, avatarUrl: p.avatarUrl };

@@ -43,18 +43,34 @@ describe('computeDeltas', () => {
   });
 
   it('computes per-dimension breakdown deltas', () => {
-    const before = make({ breakdown: { keyword_match: 40, tech_stack_fit: 60 } });
-    const after = make({ breakdown: { keyword_match: 75, tech_stack_fit: 55 } });
+    const before = make({
+      breakdown: { keyword_match: 40, tech_stack_fit: 60 },
+    });
+    const after = make({
+      breakdown: { keyword_match: 75, tech_stack_fit: 55 },
+    });
     const d = computeDeltas(before, after);
-    expect(d.breakdown.keyword_match).toEqual({ before: 40, after: 75, delta: 35 });
-    expect(d.breakdown.tech_stack_fit).toEqual({ before: 60, after: 55, delta: -5 });
+    expect(d.breakdown.keyword_match).toEqual({
+      before: 40,
+      after: 75,
+      delta: 35,
+    });
+    expect(d.breakdown.tech_stack_fit).toEqual({
+      before: 60,
+      after: 55,
+      delta: -5,
+    });
   });
 
   it('returns a null delta when one side of a nullable dimension is missing', () => {
     const before = make({ breakdown: { github_signal: null } });
     const after = make({ breakdown: { github_signal: 80 } });
     const d = computeDeltas(before, after);
-    expect(d.breakdown.github_signal).toEqual({ before: null, after: 80, delta: null });
+    expect(d.breakdown.github_signal).toEqual({
+      before: null,
+      after: 80,
+      delta: null,
+    });
   });
 
   it('surfaces the ATS pass flag flipping', () => {

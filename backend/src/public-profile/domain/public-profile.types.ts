@@ -42,8 +42,8 @@ export type AchievementsBundle = {
 export type PublicProfileXp = {
   totalXp: number;
   level: number;
-  tier: string;       // TierKey from xp/domain/tier-config (kept loose to avoid cross-module type)
-  tierLabel: string;  // "Mid II", etc.
+  tier: string; // TierKey from xp/domain/tier-config (kept loose to avoid cross-module type)
+  tierLabel: string; // "Mid II", etc.
 };
 
 export type PublicProfileView = {

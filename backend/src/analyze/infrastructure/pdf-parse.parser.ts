@@ -33,7 +33,7 @@ export class PdfParseParser implements PdfParser {
       const raw = await this.extractRaw(buffer);
       return raw
         .split('\n')
-        .map(line => line.replace(/[ \t]+/g, ' ').trim())
+        .map((line) => line.replace(/[ \t]+/g, ' ').trim())
         .join('\n')
         .replace(/\n{3,}/g, '\n\n')
         .trim()

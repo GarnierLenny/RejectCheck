@@ -7,7 +7,9 @@ describe('extractBalancedJson (streamed tool-input recovery)', () => {
 
   it('tolerates trailing non-whitespace after the object (the prod bug)', () => {
     expect(extractBalancedJson('{"a":1}x')).toEqual({ a: 1 });
-    expect(extractBalancedJson('{"a":{"b":2}} garbage 123')).toEqual({ a: { b: 2 } });
+    expect(extractBalancedJson('{"a":{"b":2}} garbage 123')).toEqual({
+      a: { b: 2 },
+    });
   });
 
   it('takes the FIRST object when two are concatenated', () => {

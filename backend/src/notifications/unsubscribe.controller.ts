@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Header,
-  HttpCode,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Header, HttpCode, Post, Query } from '@nestjs/common';
 import { UnsubscribeService } from './application/unsubscribe.service';
 
 /**

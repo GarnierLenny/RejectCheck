@@ -36,11 +36,15 @@ describe('stripLongDashes', () => {
   });
 
   it('does not merge lines / list items across a newline', () => {
-    expect(stripLongDashes('line one —\nline two')).toBe('line one, \nline two');
+    expect(stripLongDashes('line one —\nline two')).toBe(
+      'line one, \nline two',
+    );
   });
 
   it('strips the section sign and its trailing space', () => {
-    expect(stripLongDashes('§ 01 · Where to start')).toBe('01 · Where to start');
+    expect(stripLongDashes('§ 01 · Where to start')).toBe(
+      '01 · Where to start',
+    );
     expect(stripLongDashes('see §09 for details')).toBe('see 09 for details');
   });
 
@@ -62,7 +66,11 @@ describe('deepStripLongDashes', () => {
       audit: {
         cv: {
           issues: [
-            { id: 'cv-abc123', what: 'Passive voice — weak verbs', severity: 'major' },
+            {
+              id: 'cv-abc123',
+              what: 'Passive voice — weak verbs',
+              severity: 'major',
+            },
           ],
         },
       },

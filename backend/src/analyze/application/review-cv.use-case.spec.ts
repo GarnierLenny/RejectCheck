@@ -13,7 +13,11 @@ import { anchorCvQuality } from '../domain/score/compose-cv-review-score';
 describe('ReviewCvUseCase — CV source extraction', () => {
   function makeUseCase(
     cvText: string,
-    opts: { ocrText?: string; claude?: Record<string, unknown>; analyses?: unknown } = {},
+    opts: {
+      ocrText?: string;
+      claude?: Record<string, unknown>;
+      analyses?: unknown;
+    } = {},
   ) {
     const pdf = {
       parse: jest.fn().mockResolvedValue(cvText),
@@ -37,10 +41,8 @@ describe('ReviewCvUseCase — CV source extraction', () => {
       pdf as any,
       noop, // subs
       noop, // profiles
-      noop, // digests
       noop, // creditLedger
       noop, // portfolioScraper
-      noop, // generateDigestUc
       config as any,
     );
   }
@@ -54,27 +56,37 @@ describe('ReviewCvUseCase — CV source extraction', () => {
 
   it('rejects an image PDF that parses to "-- 1 of 1 --" when OCR also fails', async () => {
     const uc = makeUseCase('-- 1 of 1 --', { ocrText: '' });
-    await expect(uc.execute(pdfCmd)).rejects.toBeInstanceOf(BadRequestException);
+    await expect(uc.execute(pdfCmd)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('lets a text PDF through the gate', async () => {
     const uc = makeUseCase('x'.repeat(250));
-    await expect(uc.execute(pdfCmd)).resolves.toMatchObject({ analysisId: null });
+    await expect(uc.execute(pdfCmd)).resolves.toMatchObject({
+      analysisId: null,
+    });
   });
 
   it('OCR-recovers an image-based PDF that pdf-parse could not read', async () => {
     const uc = makeUseCase('-- 1 of 1 --', { ocrText: 'y'.repeat(300) });
-    await expect(uc.execute(pdfCmd)).resolves.toMatchObject({ analysisId: null });
+    await expect(uc.execute(pdfCmd)).resolves.toMatchObject({
+      analysisId: null,
+    });
   });
 
   it('OCRs a direct image upload without touching pdf-parse', async () => {
     const uc = makeUseCase('irrelevant', { ocrText: 'z'.repeat(300) });
-    await expect(uc.execute(imgCmd)).resolves.toMatchObject({ analysisId: null });
+    await expect(uc.execute(imgCmd)).resolves.toMatchObject({
+      analysisId: null,
+    });
   });
 
   it('rejects a direct image upload whose OCR is near-empty', async () => {
     const uc = makeUseCase('irrelevant', { ocrText: '   ' });
-    await expect(uc.execute(imgCmd)).rejects.toBeInstanceOf(BadRequestException);
+    await expect(uc.execute(imgCmd)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });
 
@@ -99,16 +111,27 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
         k === 'CV_REVIEW_PORTFOLIO_ENABLED' ? portfolioFlag : undefined,
       ),
     };
-    const reviewCv = jest.fn().mockResolvedValue({ cv_quality: { overall: 60 } });
-    const claude = { transcribeDocument: jest.fn().mockResolvedValue(''), reviewCv };
+    const reviewCv = jest
+      .fn()
+      .mockResolvedValue({ cv_quality: { overall: 60 } });
+    const claude = {
+      transcribeDocument: jest.fn().mockResolvedValue(''),
+      reviewCv,
+    };
     const subs = {
-      getState: jest.fn().mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
+      getState: jest
+        .fn()
+        .mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
     };
     const profiles = {
-      findByEmail: jest.fn().mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
+      findByEmail: jest
+        .fn()
+        .mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
     };
     const portfolioScraper = {
-      fetch: jest.fn().mockResolvedValue({ markdown: 'OWNER PORTFOLIO CONTENT' }),
+      fetch: jest
+        .fn()
+        .mockResolvedValue({ markdown: 'OWNER PORTFOLIO CONTENT' }),
     };
     const analyses = {
       creditsSince: jest.fn().mockResolvedValue(0),
@@ -128,10 +151,8 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
       pdf as any,
       subs as any,
       profiles as any,
-      noop, // digests
       creditLedger as any,
       portfolioScraper as any,
-      noop, // generateDigestUc
       config as any,
     );
     return { uc, portfolioScraper, reviewCv };
@@ -169,7 +190,9 @@ describe('ReviewCvUseCase — portfolio gated by CV_REVIEW_PORTFOLIO_ENABLED', (
   it('scrapes the profile portfolio only when useOwnProfile AND the flag are set', async () => {
     const { uc, portfolioScraper } = makeRegisteredUseCase('true');
     await uc.execute({ ...cmd, useOwnProfile: true });
-    expect(portfolioScraper.fetch).toHaveBeenCalledWith('https://lennygarnier.com');
+    expect(portfolioScraper.fetch).toHaveBeenCalledWith(
+      'https://lennygarnier.com',
+    );
   });
 });
 
@@ -185,17 +208,30 @@ describe('ReviewCvUseCase — owner audit mode', () => {
       parseFormatted: jest.fn().mockResolvedValue('x'.repeat(300)),
     };
     const config = {
-      get: jest.fn((k: string) => (k === 'OWNER_EMAILS' ? ownerEmails : undefined)),
+      get: jest.fn((k: string) =>
+        k === 'OWNER_EMAILS' ? ownerEmails : undefined,
+      ),
     };
-    const reviewCv = jest.fn().mockResolvedValue({ cv_quality: { overall: 60 } });
-    const claude = { transcribeDocument: jest.fn().mockResolvedValue(''), reviewCv };
+    const reviewCv = jest
+      .fn()
+      .mockResolvedValue({ cv_quality: { overall: 60 } });
+    const claude = {
+      transcribeDocument: jest.fn().mockResolvedValue(''),
+      reviewCv,
+    };
     const subs = {
-      getState: jest.fn().mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
+      getState: jest
+        .fn()
+        .mockResolvedValue({ hasActiveSubscription: false, isHired: false }),
     };
     const profiles = {
-      findByEmail: jest.fn().mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
+      findByEmail: jest
+        .fn()
+        .mockResolvedValue({ portfolioUrl: 'https://lennygarnier.com' }),
     };
-    const portfolioScraper = { fetch: jest.fn().mockResolvedValue({ markdown: 'X' }) };
+    const portfolioScraper = {
+      fetch: jest.fn().mockResolvedValue({ markdown: 'X' }),
+    };
     const analyses = {
       creditsSince: jest.fn().mockResolvedValue(0),
       countByIp: jest.fn().mockResolvedValue(0),
@@ -207,9 +243,15 @@ describe('ReviewCvUseCase — owner audit mode', () => {
     };
     const noop = {} as any;
     const uc = new ReviewCvUseCase(
-      analyses as any, claude as any, noop, pdf as any, subs as any,
-      profiles as any, noop, creditLedger as any, portfolioScraper as any,
-      noop, config as any,
+      analyses as any,
+      claude as any,
+      noop,
+      pdf as any,
+      subs as any,
+      profiles as any,
+      creditLedger as any,
+      portfolioScraper as any,
+      config as any,
     );
     return { uc, reviewCv, analyses, creditLedger, portfolioScraper };
   }
@@ -267,15 +309,31 @@ describe('ReviewCvUseCase: experience_analysis DTO + score invariance', () => {
       seniority_alignment: 'below_title',
       ratings: { scope: 3, ownership: 4, impact: 2 },
       hard_skills: [
-        { name: 'Node.js', status: 'proven', evidence: 'Shipped the payments API in Node' },
+        {
+          name: 'Node.js',
+          status: 'proven',
+          evidence: 'Shipped the payments API in Node',
+        },
         { name: 'Kubernetes', status: 'claimed', evidence: null },
       ],
       soft_skills: [{ name: 'Mentoring', status: 'claimed', evidence: null }],
       findings: [
         // A critical here must NOT feed the score penalty (local enum).
-        { severity: 'critical', what: 'Claims a rewrite the dates make impossible', why: 'Reads as fabrication' },
-        { severity: 'medium', what: 'Main deliverable has no outcome', why: 'Recruiter cannot size the impact' },
-        { severity: 'info', what: 'Payments migration is a strong anchor', why: 'Lead the role with it' },
+        {
+          severity: 'critical',
+          what: 'Claims a rewrite the dates make impossible',
+          why: 'Reads as fabrication',
+        },
+        {
+          severity: 'medium',
+          what: 'Main deliverable has no outcome',
+          why: 'Recruiter cannot size the impact',
+        },
+        {
+          severity: 'info',
+          what: 'Payments migration is a strong anchor',
+          why: 'Lead the role with it',
+        },
       ],
       margin_note: 'Solid ownership, but nothing tells me it mattered.',
     },
@@ -309,10 +367,30 @@ describe('ReviewCvUseCase: experience_analysis DTO + score invariance', () => {
       },
       skill_radar: {
         axes: [
-          { label: 'Backend', score: 70, expected: 75, evidence: '4 years Node.js across 2 companies' },
-          { label: 'Frontend', score: 40, expected: 55, evidence: 'React mentioned once, side project' },
-          { label: 'DevOps', score: 30, expected: 50, evidence: 'No infra bullets anywhere' },
-          { label: 'Leadership', score: 35, expected: 45, evidence: 'No team-size or mentoring bullets' },
+          {
+            label: 'Backend',
+            score: 70,
+            expected: 75,
+            evidence: '4 years Node.js across 2 companies',
+          },
+          {
+            label: 'Frontend',
+            score: 40,
+            expected: 55,
+            evidence: 'React mentioned once, side project',
+          },
+          {
+            label: 'DevOps',
+            score: 30,
+            expected: 50,
+            evidence: 'No infra bullets anywhere',
+          },
+          {
+            label: 'Leadership',
+            score: 35,
+            expected: 45,
+            evidence: 'No team-size or mentoring bullets',
+          },
         ],
       },
       projected_profile: {
@@ -334,7 +412,12 @@ describe('ReviewCvUseCase: experience_analysis DTO + score invariance', () => {
         cv: {
           score: 55,
           issues: [
-            { severity: 'critical', category: 'impact', what: 'No metrics anywhere', why: 'Reads unproven' },
+            {
+              severity: 'critical',
+              category: 'impact',
+              what: 'No metrics anywhere',
+              why: 'Reads unproven',
+            },
           ],
         },
         github: { score: null, issues: [] },

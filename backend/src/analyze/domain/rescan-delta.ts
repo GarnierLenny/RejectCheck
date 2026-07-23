@@ -103,7 +103,8 @@ export function computeDeltas(
   const afterKeys = collectIssueKeys(after);
 
   let resolvedIssueCount = 0;
-  for (const key of beforeKeys) if (!afterKeys.has(key)) resolvedIssueCount += 1;
+  for (const key of beforeKeys)
+    if (!afterKeys.has(key)) resolvedIssueCount += 1;
   let newIssueCount = 0;
   for (const key of afterKeys) if (!beforeKeys.has(key)) newIssueCount += 1;
 

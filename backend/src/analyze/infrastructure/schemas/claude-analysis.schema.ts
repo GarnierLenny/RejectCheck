@@ -12,6 +12,14 @@
  * keep edits minimal and re-test against the Zod schemas on the consumer side.
  */
 
+// Cross-examination item schemas, shared with the CV-review tool. The main
+// analysis call now emits these itself (the moat), replacing the retired Haiku
+// profile-digest that used to produce them out of band.
+import {
+  CROSS_PROFILE_INCONSISTENCY,
+  TIMELINE_ENTRY,
+} from './cross-examination.schema';
+
 const FIX_SCHEMA = {
   type: 'object' as const,
   properties: {
@@ -75,8 +83,7 @@ const FIX_SCHEMA = {
             },
             proves: {
               type: 'string' as const,
-              description:
-                'What skill this project demonstrates. ≤ 15 words.',
+              description: 'What skill this project demonstrates. ≤ 15 words.',
             },
           },
           required: ['name', 'description', 'endpoints', 'bonus', 'proves'],
@@ -145,11 +152,13 @@ export const CAROUSEL_INSIGHTS_PROPERTY = {
         },
         evidence: {
           type: 'string' as const,
-          description: 'Concrete CV or JD evidence behind the insight, 28 words or fewer.',
+          description:
+            'Concrete CV or JD evidence behind the insight, 28 words or fewer.',
         },
         recruiter_consequence: {
           type: 'string' as const,
-          description: 'What a recruiter is likely to infer or do as a result, 24 words or fewer.',
+          description:
+            'What a recruiter is likely to infer or do as a result, 24 words or fewer.',
         },
       },
       required: ['headline', 'evidence', 'recruiter_consequence'],
@@ -223,7 +232,8 @@ export const CAROUSEL_INSIGHTS_PROPERTY = {
           },
           body: {
             type: 'string' as const,
-            description: 'Slide body, 36 words or fewer. CTA slide must name rejectcheck.com.',
+            description:
+              'Slide body, 36 words or fewer. CTA slide must name rejectcheck.com.',
           },
         },
         required: ['number', 'purpose', 'headline', 'body'],
@@ -240,8 +250,7 @@ const TECHNICAL_ANALYSIS_SCHEMA = {
   properties: {
     reasoning: {
       type: 'string' as const,
-      description:
-        'High-level synthesis of the technical match. ≤ 60 words.',
+      description: 'High-level synthesis of the technical match. ≤ 60 words.',
     },
     skill_priority: {
       type: 'array' as const,
@@ -272,8 +281,7 @@ const TECHNICAL_ANALYSIS_SCHEMA = {
     },
     recommendation: {
       type: 'string' as const,
-      description:
-        'Actionable strategic advice for the candidate. ≤ 50 words.',
+      description: 'Actionable strategic advice for the candidate. ≤ 50 words.',
     },
     seniority_signals: {
       type: 'array' as const,
@@ -346,25 +354,78 @@ const HIGHLIGHT_TERMS_PROPERTY = (() => {
   const termEntry = (docHint: string) => ({
     type: 'object' as const,
     properties: {
-      term: { type: 'string' as const, description: `Verbatim excerpt copy-pasted from the ${docHint}. 2-8 words. Must exist character-for-character in the document.` },
-      tooltip: { type: 'string' as const, description: 'One sentence shown on hover. ≤ 20 words.' },
+      term: {
+        type: 'string' as const,
+        description: `Verbatim excerpt copy-pasted from the ${docHint}. 2-8 words. Must exist character-for-character in the document.`,
+      },
+      tooltip: {
+        type: 'string' as const,
+        description: 'One sentence shown on hover. ≤ 20 words.',
+      },
     },
     required: ['term', 'tooltip'],
   });
-  const sourceSchema = (doc: string, flagDesc: string, issueDesc: string, skillDesc: string | null, weakDesc: string, metricsDesc: string | null) => ({
+  const sourceSchema = (
+    doc: string,
+    flagDesc: string,
+    issueDesc: string,
+    skillDesc: string | null,
+    weakDesc: string,
+    metricsDesc: string | null,
+  ) => ({
     type: 'object' as const,
     properties: {
-      flags: { type: 'array' as const, description: flagDesc, maxItems: 6, items: termEntry(doc) },
-      issues: { type: 'array' as const, description: issueDesc, maxItems: 10, items: termEntry(doc) },
-      ...(skillDesc ? { skills: { type: 'array' as const, description: skillDesc, maxItems: 12, items: { type: 'string' as const } } } : {}),
-      weak: { type: 'array' as const, description: weakDesc, maxItems: 8, items: termEntry(doc) },
-      ...(metricsDesc ? { metrics: { type: 'array' as const, description: metricsDesc, maxItems: 8, items: termEntry(doc) } } : {}),
+      flags: {
+        type: 'array' as const,
+        description: flagDesc,
+        maxItems: 6,
+        items: termEntry(doc),
+      },
+      issues: {
+        type: 'array' as const,
+        description: issueDesc,
+        maxItems: 10,
+        items: termEntry(doc),
+      },
+      ...(skillDesc
+        ? {
+            skills: {
+              type: 'array' as const,
+              description: skillDesc,
+              maxItems: 12,
+              items: { type: 'string' as const },
+            },
+          }
+        : {}),
+      weak: {
+        type: 'array' as const,
+        description: weakDesc,
+        maxItems: 8,
+        items: termEntry(doc),
+      },
+      ...(metricsDesc
+        ? {
+            metrics: {
+              type: 'array' as const,
+              description: metricsDesc,
+              maxItems: 8,
+              items: termEntry(doc),
+            },
+          }
+        : {}),
     },
-    required: ['flags', 'issues', 'weak', ...(skillDesc ? ['skills'] : []), ...(metricsDesc ? ['metrics'] : [])],
+    required: [
+      'flags',
+      'issues',
+      'weak',
+      ...(skillDesc ? ['skills'] : []),
+      ...(metricsDesc ? ['metrics'] : []),
+    ],
   });
   return {
     type: 'object' as const,
-    description: 'Verbatim phrases to underline per source document. The matching engine is a case-insensitive regex — one wrong character = no underline. Every term MUST be copy-pasteable from the source document. Omit rather than approximate. Keep excerpts 2-8 words.',
+    description:
+      'Verbatim phrases to underline per source document. The matching engine is a case-insensitive regex — one wrong character = no underline. Every term MUST be copy-pasteable from the source document. Omit rather than approximate. Keep excerpts 2-8 words.',
     properties: {
       cv: sourceSchema(
         'CV text',
@@ -384,11 +445,30 @@ const HIGHLIGHT_TERMS_PROPERTY = (() => {
       ),
       cover_letter: {
         type: 'object' as const,
-        description: 'Highlights for the motivation/cover letter. Only populate if a cover letter was provided.',
+        description:
+          'Highlights for the motivation/cover letter. Only populate if a cover letter was provided.',
         properties: {
-          flags: { type: 'array' as const, description: 'Generic opening formulas or hollow clichés copied from the letter (e.g. "I am writing to apply for", "Je me permets de vous contacter", "team player").', maxItems: 6, items: termEntry('cover letter text') },
-          issues: { type: 'array' as const, description: 'Verbatim repeated words/phrases or weak arguments copied from the cover letter.', maxItems: 10, items: termEntry('cover letter text') },
-          weak: { type: 'array' as const, description: 'Passive or conditional phrasing copied from the cover letter (e.g. "je souhaiterais", "I would be interested in").', maxItems: 8, items: termEntry('cover letter text') },
+          flags: {
+            type: 'array' as const,
+            description:
+              'Generic opening formulas or hollow clichés copied from the letter (e.g. "I am writing to apply for", "Je me permets de vous contacter", "team player").',
+            maxItems: 6,
+            items: termEntry('cover letter text'),
+          },
+          issues: {
+            type: 'array' as const,
+            description:
+              'Verbatim repeated words/phrases or weak arguments copied from the cover letter.',
+            maxItems: 10,
+            items: termEntry('cover letter text'),
+          },
+          weak: {
+            type: 'array' as const,
+            description:
+              'Passive or conditional phrasing copied from the cover letter (e.g. "je souhaiterais", "I would be interested in").',
+            maxItems: 8,
+            items: termEntry('cover letter text'),
+          },
         },
         required: ['flags', 'issues', 'weak'],
       },
@@ -400,202 +480,246 @@ const HIGHLIGHT_TERMS_PROPERTY = (() => {
 // Bridge-the-Gap project recommendation — standalone so the legacy deep tool
 // and the single-pass tool reference the same definition.
 const PROJECT_RECOMMENDATION_PROPERTY = {
+  type: 'object' as const,
+  properties: {
+    name: {
+      type: 'string' as const,
+      description: 'Project title. ≤ 6 words.',
+    },
+    description: {
+      type: 'string' as const,
+      description:
+        'What the project does and why it bridges the gap. ≤ 50 words.',
+    },
+    technologies: {
+      type: 'array' as const,
+      description:
+        'Technologies for a technical project. For a NON-technical role, list the tools, platforms, channels or methods the project uses instead (e.g. Figma, HubSpot, Salesforce, an A/B test) with category "other".',
+      items: {
         type: 'object' as const,
         properties: {
           name: {
             type: 'string' as const,
-            description: 'Project title. ≤ 6 words.',
-          },
-          description: {
-            type: 'string' as const,
             description:
-              'What the project does and why it bridges the gap. ≤ 50 words.',
+              'Technology, tool or method name, e.g. "NestJS", "Figma", "Google Ads"',
           },
-          technologies: {
-            type: 'array' as const,
-            description:
-              'Technologies for a technical project. For a NON-technical role, list the tools, platforms, channels or methods the project uses instead (e.g. Figma, HubSpot, Salesforce, an A/B test) with category "other".',
-            items: {
-              type: 'object' as const,
-              properties: {
-                name: { type: 'string' as const, description: 'Technology, tool or method name, e.g. "NestJS", "Figma", "Google Ads"' },
-                category: {
-                  type: 'string' as const,
-                  enum: ['frontend', 'backend', 'database', 'infra', 'ai/ml', 'tooling', 'cloud', 'other'],
-                },
-                reason: {
-                  type: 'string' as const,
-                  description: 'Why this was chosen for this project. ≤ 12 words.',
-                },
-              },
-              required: ['name', 'category', 'reason'],
-            },
-            maxItems: 8,
-          },
-          key_features: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-            maxItems: 3,
-            description: 'At most 3 key features. Each ≤ 12 words, action-oriented.',
-          },
-          architecture: {
+          category: {
             type: 'string' as const,
-            description: 'Short technical sketch of how the system is laid out. ≤ 50 words.',
+            enum: [
+              'frontend',
+              'backend',
+              'database',
+              'infra',
+              'ai/ml',
+              'tooling',
+              'cloud',
+              'other',
+            ],
           },
-          architecture_diagram: {
-            type: ['string', 'null'] as ['string', 'null'],
-            description: 'A valid Mermaid diagram string (flowchart LR) for a technical project: main components and data flow, max 8 nodes, no quotes or special characters in node labels. For a non-technical role use null or a simple process/flow diagram.',
-          },
-          success_criteria: {
-            type: 'array' as const,
-            items: { type: 'string' as const },
-            maxItems: 3,
-            description: 'At most 3 criteria. Each ≤ 12 words.',
-          },
-          difficulty_level: {
+          reason: {
             type: 'string' as const,
-            enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
-          },
-          why_it_matters: {
-            type: 'string' as const,
-            description: 'Why building this matters for THIS specific JD. ≤ 50 words.',
-          },
-          cv_bullet: {
-            type: 'string' as const,
-            description:
-              'A ready-to-paste CV bullet TEMPLATE the candidate adds once the project is built. Start with a strong past-tense verb, include the core technologies, and leave a clearly-marked placeholder for a REAL measured metric (e.g. "[X]% faster", "[N] users") — never fabricate a number. ≤ 25 words.',
-          },
-          signal_boost: {
-            type: 'string' as const,
-            description:
-              'One or two sentences the candidate can drop verbatim into their cover letter or say in the first interview round. Must reference a concrete detail from the job description. ≤ 40 words.',
-          },
-          sections: {
-            type: 'array' as const,
-            description: '3 to 6 implementation sections (e.g. Setup, Core, Backend, Frontend, Testing, Deployment). Only include sections relevant to this project. Each section contains 2 to 5 concrete checkable steps.',
-            items: {
-              type: 'object' as const,
-              properties: {
-                title: { type: 'string' as const, description: 'Section name. ≤ 5 words. e.g. "Setup", "Core pipeline", "Testing".' },
-                duration: { type: 'string' as const, description: 'Estimated time for this section. e.g. "Jour 1", "Jour 2-3".' },
-                steps: {
-                  type: 'array' as const,
-                  items: {
-                    type: 'object' as const,
-                    properties: {
-                      title: { type: 'string' as const, description: 'Actionable step title. ≤ 8 words.' },
-                      description: { type: 'string' as const, description: 'What to do. Be concrete and specific. ≤ 50 words.' },
-                    },
-                    required: ['title', 'description'],
-                  },
-                  minItems: 2,
-                  maxItems: 5,
-                },
-              },
-              required: ['title', 'duration', 'steps'],
-            },
-            minItems: 3,
-            maxItems: 6,
-          },
-          edge_cases: {
-            type: 'array' as const,
-            description: '2 to 4 common pitfalls specific to this project and stack.',
-            items: {
-              type: 'object' as const,
-              properties: {
-                problem: { type: 'string' as const, description: '≤ 12 words' },
-                solution: { type: 'string' as const, description: '≤ 30 words' },
-              },
-              required: ['problem', 'solution'],
-            },
-            minItems: 2,
-            maxItems: 4,
-          },
-          going_further: {
-            type: 'array' as const,
-            description: '3 to 5 ideas to extend the project after the MVP.',
-            items: { type: 'string' as const, description: '≤ 12 words each' },
-            minItems: 3,
-            maxItems: 5,
-          },
-          how_to_sell: {
-            type: 'object' as const,
-            properties: {
-              github_readme_tip: {
-                type: 'string' as const,
-                description: 'How to write the GitHub README to impress recruiters. ≤ 40 words.',
-              },
-              interview_pitch: {
-                type: 'string' as const,
-                description: 'Opening sentence to pitch this project in an interview. ≤ 40 words.',
-              },
-              star_tactics: {
-                type: 'string' as const,
-                description: 'How to get GitHub stars and community visibility (HN, Reddit, etc.). ≤ 40 words.',
-              },
-            },
-            required: ['github_readme_tip', 'interview_pitch', 'star_tactics'],
-          },
-          interview_questions: {
-            type: 'array' as const,
-            description: '3 to 5 technical interview questions a recruiter would ask about this specific project, with concise answers.',
-            items: {
-              type: 'object' as const,
-              properties: {
-                question: { type: 'string' as const },
-                answer: { type: 'string' as const, description: '≤ 60 words. Reference the project architecture and the JD.' },
-              },
-              required: ['question', 'answer'],
-            },
-            minItems: 3,
-            maxItems: 5,
-          },
-          testing_strategy: {
-            type: ['string', 'null'] as ['string', 'null'],
-            description: 'For a technical project: what to unit test, integration test, and which tools, specific to the stack. For a non-technical role: how success is validated and measured (metrics, review, stakeholder sign-off). ≤ 60 words. null only if truly not applicable.',
-          },
-          gap_bridges: {
-            type: 'array' as const,
-            description: 'For each skill gap from technical_analysis (current < expected), identify the specific section that closes it and the concrete interview claim the candidate earns by completing it.',
-            items: {
-              type: 'object' as const,
-              properties: {
-                skill_name: {
-                  type: 'string' as const,
-                  description: 'Exact skill name from technical_analysis.skills.',
-                },
-                phase_title: {
-                  type: 'string' as const,
-                  description: 'Title of the section that primarily closes this gap. Must match a section title exactly.',
-                },
-                claim: {
-                  type: 'string' as const,
-                  description: 'Concrete sentence the candidate can say in an interview after completing this phase. Start with "I built..." or "I implemented...". ≤ 20 words.',
-                },
-              },
-              required: ['skill_name', 'phase_title', 'claim'],
-            },
+            description: 'Why this was chosen for this project. ≤ 12 words.',
           },
         },
-        required: [
-          'name',
-          'description',
-          'technologies',
-          'key_features',
-          'architecture',
-          'architecture_diagram',
-          'success_criteria',
-          'difficulty_level',
-          'why_it_matters',
-          'cv_bullet',
-          'signal_boost',
-          'sections',
-          'edge_cases',
-          'going_further',
-          'how_to_sell',
-          'interview_questions',
-          'testing_strategy',
-        ],
+        required: ['name', 'category', 'reason'],
+      },
+      maxItems: 8,
+    },
+    key_features: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 3,
+      description: 'At most 3 key features. Each ≤ 12 words, action-oriented.',
+    },
+    architecture: {
+      type: 'string' as const,
+      description:
+        'Short technical sketch of how the system is laid out. ≤ 50 words.',
+    },
+    architecture_diagram: {
+      type: ['string', 'null'] as ['string', 'null'],
+      description:
+        'A valid Mermaid diagram string (flowchart LR) for a technical project: main components and data flow, max 8 nodes, no quotes or special characters in node labels. For a non-technical role use null or a simple process/flow diagram.',
+    },
+    success_criteria: {
+      type: 'array' as const,
+      items: { type: 'string' as const },
+      maxItems: 3,
+      description: 'At most 3 criteria. Each ≤ 12 words.',
+    },
+    difficulty_level: {
+      type: 'string' as const,
+      enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+    },
+    why_it_matters: {
+      type: 'string' as const,
+      description:
+        'Why building this matters for THIS specific JD. ≤ 50 words.',
+    },
+    cv_bullet: {
+      type: 'string' as const,
+      description:
+        'A ready-to-paste CV bullet TEMPLATE the candidate adds once the project is built. Start with a strong past-tense verb, include the core technologies, and leave a clearly-marked placeholder for a REAL measured metric (e.g. "[X]% faster", "[N] users") — never fabricate a number. ≤ 25 words.',
+    },
+    signal_boost: {
+      type: 'string' as const,
+      description:
+        'One or two sentences the candidate can drop verbatim into their cover letter or say in the first interview round. Must reference a concrete detail from the job description. ≤ 40 words.',
+    },
+    sections: {
+      type: 'array' as const,
+      description:
+        '3 to 6 implementation sections (e.g. Setup, Core, Backend, Frontend, Testing, Deployment). Only include sections relevant to this project. Each section contains 2 to 5 concrete checkable steps.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          title: {
+            type: 'string' as const,
+            description:
+              'Section name. ≤ 5 words. e.g. "Setup", "Core pipeline", "Testing".',
+          },
+          duration: {
+            type: 'string' as const,
+            description:
+              'Estimated time for this section. e.g. "Jour 1", "Jour 2-3".',
+          },
+          steps: {
+            type: 'array' as const,
+            items: {
+              type: 'object' as const,
+              properties: {
+                title: {
+                  type: 'string' as const,
+                  description: 'Actionable step title. ≤ 8 words.',
+                },
+                description: {
+                  type: 'string' as const,
+                  description:
+                    'What to do. Be concrete and specific. ≤ 50 words.',
+                },
+              },
+              required: ['title', 'description'],
+            },
+            minItems: 2,
+            maxItems: 5,
+          },
+        },
+        required: ['title', 'duration', 'steps'],
+      },
+      minItems: 3,
+      maxItems: 6,
+    },
+    edge_cases: {
+      type: 'array' as const,
+      description: '2 to 4 common pitfalls specific to this project and stack.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          problem: { type: 'string' as const, description: '≤ 12 words' },
+          solution: { type: 'string' as const, description: '≤ 30 words' },
+        },
+        required: ['problem', 'solution'],
+      },
+      minItems: 2,
+      maxItems: 4,
+    },
+    going_further: {
+      type: 'array' as const,
+      description: '3 to 5 ideas to extend the project after the MVP.',
+      items: { type: 'string' as const, description: '≤ 12 words each' },
+      minItems: 3,
+      maxItems: 5,
+    },
+    how_to_sell: {
+      type: 'object' as const,
+      properties: {
+        github_readme_tip: {
+          type: 'string' as const,
+          description:
+            'How to write the GitHub README to impress recruiters. ≤ 40 words.',
+        },
+        interview_pitch: {
+          type: 'string' as const,
+          description:
+            'Opening sentence to pitch this project in an interview. ≤ 40 words.',
+        },
+        star_tactics: {
+          type: 'string' as const,
+          description:
+            'How to get GitHub stars and community visibility (HN, Reddit, etc.). ≤ 40 words.',
+        },
+      },
+      required: ['github_readme_tip', 'interview_pitch', 'star_tactics'],
+    },
+    interview_questions: {
+      type: 'array' as const,
+      description:
+        '3 to 5 technical interview questions a recruiter would ask about this specific project, with concise answers.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          question: { type: 'string' as const },
+          answer: {
+            type: 'string' as const,
+            description:
+              '≤ 60 words. Reference the project architecture and the JD.',
+          },
+        },
+        required: ['question', 'answer'],
+      },
+      minItems: 3,
+      maxItems: 5,
+    },
+    testing_strategy: {
+      type: ['string', 'null'] as ['string', 'null'],
+      description:
+        'For a technical project: what to unit test, integration test, and which tools, specific to the stack. For a non-technical role: how success is validated and measured (metrics, review, stakeholder sign-off). ≤ 60 words. null only if truly not applicable.',
+    },
+    gap_bridges: {
+      type: 'array' as const,
+      description:
+        'For each skill gap from technical_analysis (current < expected), identify the specific section that closes it and the concrete interview claim the candidate earns by completing it.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          skill_name: {
+            type: 'string' as const,
+            description: 'Exact skill name from technical_analysis.skills.',
+          },
+          phase_title: {
+            type: 'string' as const,
+            description:
+              'Title of the section that primarily closes this gap. Must match a section title exactly.',
+          },
+          claim: {
+            type: 'string' as const,
+            description:
+              'Concrete sentence the candidate can say in an interview after completing this phase. Start with "I built..." or "I implemented...". ≤ 20 words.',
+          },
+        },
+        required: ['skill_name', 'phase_title', 'claim'],
+      },
+    },
+  },
+  required: [
+    'name',
+    'description',
+    'technologies',
+    'key_features',
+    'architecture',
+    'architecture_diagram',
+    'success_criteria',
+    'difficulty_level',
+    'why_it_matters',
+    'cv_bullet',
+    'signal_boost',
+    'sections',
+    'edge_cases',
+    'going_further',
+    'how_to_sell',
+    'interview_questions',
+    'testing_strategy',
+  ],
 };
 
 // =============================================================================
@@ -726,8 +850,7 @@ const JOB_DETAILS_PROPERTY = {
     languages_required: {
       type: 'string' as const,
       enum: ['french-only', 'english-only', 'bilingual', 'not-mentioned'],
-      description:
-        '"bilingual" = both French and English explicitly required.',
+      description: '"bilingual" = both French and English explicitly required.',
     },
     years_of_experience: {
       anyOf: [{ type: 'string' as const }, { type: 'null' as const }],
@@ -874,13 +997,11 @@ const SENIORITY_ANALYSIS_PROPERTY = {
     },
     detected: {
       type: 'string' as const,
-      description:
-        'Seniority the CV signals, e.g. "Mid-level". ≤ 8 words.',
+      description: 'Seniority the CV signals, e.g. "Mid-level". ≤ 8 words.',
     },
     gap: {
       type: 'string' as const,
-      description:
-        'One sentence describing the mismatch. ≤ 25 words.',
+      description: 'One sentence describing the mismatch. ≤ 25 words.',
     },
     strength: {
       type: 'string' as const,
@@ -1137,15 +1258,17 @@ const HIDDEN_RED_FLAGS_LEAN = {
  * `project_recommendation` is omitted so Claude skips it entirely. When
  * `lean` is true, all actionable content is dropped (owner teaser audits).
  */
-export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) {
+export function buildAnalysisTool(
+  generateBridgeProject: boolean,
+  lean = false,
+) {
   const properties: Record<string, unknown> = {
     job_details: JOB_DETAILS_PROPERTY,
     overall: OVERALL_PROPERTY,
     carousel_insights: CAROUSEL_INSIGHTS_PROPERTY,
     keyword_match: {
       type: 'number' as const,
-      description:
-        '0-100: presence and density of key JD keywords in the CV.',
+      description: '0-100: presence and density of key JD keywords in the CV.',
     },
     experience_level: {
       type: 'number' as const,
@@ -1153,8 +1276,7 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
     },
     tech_stack_fit: {
       type: 'number' as const,
-      description:
-        "0-100: how well the candidate's tech stack matches the JD.",
+      description: "0-100: how well the candidate's tech stack matches the JD.",
     },
     github_signal: {
       type: ['number', 'null'] as ['number', 'null'],
@@ -1184,6 +1306,22 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
       6,
     ),
     hidden_red_flags: lean ? HIDDEN_RED_FLAGS_LEAN : HIDDEN_RED_FLAGS_PROPERTY,
+    // Cross-examination (the moat): the recruiter comparing the candidate's
+    // sources against each other. Free content, so always-on even in lean.
+    timeline_entries: {
+      type: 'array' as const,
+      items: TIMELINE_ENTRY,
+      maxItems: 40,
+      description:
+        'Per-source chronology: ONE entry per role per source. ALWAYS populate. With CV only, one entry per CV role. Use dates verbatim from each source, do NOT reconcile. Omit undated roles.',
+    },
+    cross_profile_inconsistencies: {
+      type: 'array' as const,
+      items: CROSS_PROFILE_INCONSISTENCY,
+      maxItems: 8,
+      description:
+        'Concrete divergences between CV, LinkedIn, and GitHub. Only populate when at least 2 sources are available. Empty array if only CV is present, or if sources are fully consistent. Cite exact divergent values — skip vague entries.',
+    },
     challenge_analysis: CHALLENGE_ANALYSIS_PROPERTY,
   };
 
@@ -1227,6 +1365,8 @@ export function buildAnalysisTool(generateBridgeProject: boolean, lean = false) 
         'audit_github',
         'audit_linkedin',
         'hidden_red_flags',
+        'timeline_entries',
+        'cross_profile_inconsistencies',
         ...(lean
           ? []
           : [

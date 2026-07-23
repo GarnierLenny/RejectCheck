@@ -7,7 +7,11 @@ const issues: Issue[] = [{ what: 'a' }, { what: 'b' }, { what: 'c' }];
 
 describe('attachFixes (hot/deep alignment guard)', () => {
   it('attaches fixes positionally when lengths match', () => {
-    const fixes: Fix[] = [{ summary: 'fa' }, { summary: 'fb' }, { summary: 'fc' }];
+    const fixes: Fix[] = [
+      { summary: 'fa' },
+      { summary: 'fb' },
+      { summary: 'fc' },
+    ];
     const out = attachFixes(issues, fixes, 'audit_cv_issues');
     expect(out.map((o) => o.fix?.summary)).toEqual(['fa', 'fb', 'fc']);
     expect(out.map((o) => o.what)).toEqual(['a', 'b', 'c']);

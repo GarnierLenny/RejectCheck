@@ -16,14 +16,16 @@ describe('stripFabricatedNumbers', () => {
   });
 
   it('replaces fabricated numbers, preserving a trailing percent', () => {
-    expect(
-      stripFabricatedNumbers('Cut latency 60% and errors by 12', cv),
-    ).toBe('Cut latency [X]% and errors by [X]');
+    expect(stripFabricatedNumbers('Cut latency 60% and errors by 12', cv)).toBe(
+      'Cut latency [X]% and errors by [X]',
+    );
   });
 
   it('matches by value regardless of grouping/decimals', () => {
     const src = 'Managed a 1,200 person rollout.';
-    expect(stripFabricatedNumbers('Led 1200 people', src)).toBe('Led 1200 people');
+    expect(stripFabricatedNumbers('Led 1200 people', src)).toBe(
+      'Led 1200 people',
+    );
   });
 
   it('passes through empty / null unchanged', () => {
@@ -39,7 +41,11 @@ describe('sanitizeCvReviewFabrication', () => {
     const result = {
       bullet_reviews: {
         bullets: [
-          { original: 'Shipped a checkout flow', verdict: 'weak', rewrite: 'Shipped checkout lifting conversion 30%' },
+          {
+            original: 'Shipped a checkout flow',
+            verdict: 'weak',
+            rewrite: 'Shipped checkout lifting conversion 30%',
+          },
         ],
       },
       cv_tone: {
@@ -53,7 +59,9 @@ describe('sanitizeCvReviewFabrication', () => {
     expect(result.bullet_reviews!.bullets[0].rewrite).toBe(
       'Shipped checkout lifting conversion [X]%',
     );
-    expect(result.cv_tone!.rewrites![0]).toBe('Owned checkout, cut drop-off [X]%');
+    expect(result.cv_tone.rewrites![0]).toBe(
+      'Owned checkout, cut drop-off [X]%',
+    );
   });
 
   it('leaves experience_analysis byte-identical, numbers included (D5 exemption)', () => {
@@ -74,11 +82,19 @@ describe('sanitizeCvReviewFabrication', () => {
         seniority_alignment: 'matches_title',
         ratings: { scope: 3, ownership: 3, impact: 2 },
         hard_skills: [
-          { name: 'Node.js', status: 'proven', evidence: 'Shipped checkout across 3 squads' },
+          {
+            name: 'Node.js',
+            status: 'proven',
+            evidence: 'Shipped checkout across 3 squads',
+          },
         ],
         soft_skills: [],
         findings: [
-          { severity: 'medium', what: '3 of 5 bullets have no outcome', why: '60% of the role reads unproven' },
+          {
+            severity: 'medium',
+            what: '3 of 5 bullets have no outcome',
+            why: '60% of the role reads unproven',
+          },
         ],
         margin_note: '14 months of tenure, 0 quantified results.',
       },
@@ -99,7 +115,11 @@ describe('sanitizeAnalyzeFabrication', () => {
     const result = {
       bullet_reviews: {
         bullets: [
-          { original: 'Built APIs', verdict: 'weak', rewrite: 'Built APIs serving 5M requests/day' },
+          {
+            original: 'Built APIs',
+            verdict: 'weak',
+            rewrite: 'Built APIs serving 5M requests/day',
+          },
         ],
       },
       ats_critical_missing_keywords: [
@@ -109,7 +129,10 @@ describe('sanitizeAnalyzeFabrication', () => {
           required: true,
           sections_missing: [],
           score_impact: 5,
-          insertion: { before: null, after: 'Deployed 12 microservices on Kubernetes' },
+          insertion: {
+            before: null,
+            after: 'Deployed 12 microservices on Kubernetes',
+          },
         },
       ],
     } as unknown as AnalyzeResponse;

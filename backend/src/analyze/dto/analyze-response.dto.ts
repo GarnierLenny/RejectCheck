@@ -4,7 +4,7 @@ import { NegotiationAnalysisSchema } from './negotiation-response.dto';
 import {
   CrossProfileInconsistencySchema,
   TimelineEntrySchema,
-} from './profile-digest.dto';
+} from './cross-examination.dto';
 
 export const FixSchema = z.object({
   summary: z.string(),
@@ -69,28 +69,42 @@ export const CarouselInsightsSchema = z.object({
     evidence: z.string(),
     recruiter_consequence: z.string(),
   }),
-  scorecard: z.array(
-    z.object({
-      label: z.string(),
-      score: z.number().min(0).max(10),
-      evidence: z.string(),
-    }),
-  ).min(6).max(8),
-  priority_fixes: z.array(
-    z.object({
-      priority: z.number().int().min(1).max(3),
-      change: z.string(),
-      why_it_matters: z.string(),
-    }),
-  ).length(3),
-  slides: z.array(
-    z.object({
-      number: z.number().int().min(1).max(6),
-      purpose: z.enum(['hook', 'scorecard', 'aha', 'evidence', 'fixes', 'cta']),
-      headline: z.string(),
-      body: z.string(),
-    }),
-  ).length(6),
+  scorecard: z
+    .array(
+      z.object({
+        label: z.string(),
+        score: z.number().min(0).max(10),
+        evidence: z.string(),
+      }),
+    )
+    .min(6)
+    .max(8),
+  priority_fixes: z
+    .array(
+      z.object({
+        priority: z.number().int().min(1).max(3),
+        change: z.string(),
+        why_it_matters: z.string(),
+      }),
+    )
+    .length(3),
+  slides: z
+    .array(
+      z.object({
+        number: z.number().int().min(1).max(6),
+        purpose: z.enum([
+          'hook',
+          'scorecard',
+          'aha',
+          'evidence',
+          'fixes',
+          'cta',
+        ]),
+        headline: z.string(),
+        body: z.string(),
+      }),
+    )
+    .length(6),
 });
 
 // Claude sometimes returns a string instead of an array — coerce gracefully
@@ -106,9 +120,9 @@ const techItemSchema = z.union([
 export const ProjectRecommendationSchema = z.object({
   name: z.string(),
   description: z.string(),
-  technologies: z.union([z.array(techItemSchema), z.string()]).transform((v) =>
-    Array.isArray(v) ? v : [v],
-  ),
+  technologies: z
+    .union([z.array(techItemSchema), z.string()])
+    .transform((v) => (Array.isArray(v) ? v : [v])),
   key_features: strOrArr,
   architecture: z.string(),
   advanced_concepts: strOrArr.optional(),
@@ -119,27 +133,51 @@ export const ProjectRecommendationSchema = z.object({
   cv_bullet: z.string().optional(),
   signal_boost: z.string().optional(),
   architecture_diagram: z.string().nullable().optional(),
-  sections: z.array(z.object({
-    title: z.string(),
-    duration: z.string(),
-    steps: z.array(z.object({ title: z.string(), description: z.string() })),
-  })).optional(),
+  sections: z
+    .array(
+      z.object({
+        title: z.string(),
+        duration: z.string(),
+        steps: z.array(
+          z.object({ title: z.string(), description: z.string() }),
+        ),
+      }),
+    )
+    .optional(),
   /** Backward compat — flat steps from analyses before sections were introduced */
-  steps: z.array(z.object({ title: z.string(), description: z.string(), duration: z.string() })).optional(),
-  edge_cases: z.array(z.object({ problem: z.string(), solution: z.string() })).optional(),
+  steps: z
+    .array(
+      z.object({
+        title: z.string(),
+        description: z.string(),
+        duration: z.string(),
+      }),
+    )
+    .optional(),
+  edge_cases: z
+    .array(z.object({ problem: z.string(), solution: z.string() }))
+    .optional(),
   going_further: z.array(z.string()).optional(),
-  how_to_sell: z.object({
-    github_readme_tip: z.string(),
-    interview_pitch: z.string(),
-    star_tactics: z.string(),
-  }).optional(),
-  interview_questions: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
+  how_to_sell: z
+    .object({
+      github_readme_tip: z.string(),
+      interview_pitch: z.string(),
+      star_tactics: z.string(),
+    })
+    .optional(),
+  interview_questions: z
+    .array(z.object({ question: z.string(), answer: z.string() }))
+    .optional(),
   testing_strategy: z.string().nullable().optional(),
-  gap_bridges: z.array(z.object({
-    skill_name: z.string(),
-    phase_title: z.string(),
-    claim: z.string(),
-  })).optional(),
+  gap_bridges: z
+    .array(
+      z.object({
+        skill_name: z.string(),
+        phase_title: z.string(),
+        claim: z.string(),
+      }),
+    )
+    .optional(),
 });
 
 export const ChallengeAnalysisSchema = z.object({
@@ -189,30 +227,30 @@ const HighlightTermEntrySchema = z
 
 // Reusable per-source schema (cv / linkedin)
 const HighlightSourceSchema = z.object({
-  flags:   z.array(HighlightTermEntrySchema).catch([]),
-  issues:  z.array(HighlightTermEntrySchema).catch([]),
-  skills:  z.array(z.string()).catch([]),
-  weak:    z.array(HighlightTermEntrySchema).catch([]),
+  flags: z.array(HighlightTermEntrySchema).catch([]),
+  issues: z.array(HighlightTermEntrySchema).catch([]),
+  skills: z.array(z.string()).catch([]),
+  weak: z.array(HighlightTermEntrySchema).catch([]),
   metrics: z.array(HighlightTermEntrySchema).catch([]),
 });
 
 // Cover letter omits skills
 const CoverLetterHighlightSchema = z.object({
-  flags:  z.array(HighlightTermEntrySchema).catch([]),
+  flags: z.array(HighlightTermEntrySchema).catch([]),
   issues: z.array(HighlightTermEntrySchema).catch([]),
-  weak:   z.array(HighlightTermEntrySchema).catch([]),
+  weak: z.array(HighlightTermEntrySchema).catch([]),
 });
 
 export const HighlightTermsSchema = z.object({
   // New per-source format
-  cv:           HighlightSourceSchema.optional(),
-  linkedin:     HighlightSourceSchema.optional(),
+  cv: HighlightSourceSchema.optional(),
+  linkedin: HighlightSourceSchema.optional(),
   cover_letter: CoverLetterHighlightSchema.optional(),
   // Flat format — kept for backward compat with old DB rows
-  flags:  z.array(HighlightTermEntrySchema).catch([]).optional(),
+  flags: z.array(HighlightTermEntrySchema).catch([]).optional(),
   issues: z.array(HighlightTermEntrySchema).catch([]).optional(),
   skills: z.array(z.string()).catch([]).optional(),
-  weak:   z.array(HighlightTermEntrySchema).catch([]).optional(),
+  weak: z.array(HighlightTermEntrySchema).catch([]).optional(),
 });
 
 export const AtsCriticalMissingKeywordSchema = z.object({
@@ -466,7 +504,9 @@ export const AnalyzeResponseSchema = z.object({
     score: z.number().min(0).max(100),
     threshold: z.number().min(0).max(100),
     reason: z.string(),
-    critical_missing_keywords: z.array(AtsCriticalMissingKeywordSchema).optional(),
+    critical_missing_keywords: z
+      .array(AtsCriticalMissingKeywordSchema)
+      .optional(),
   }),
   seniority_analysis: z.object({
     expected: z.string(),
@@ -485,9 +525,7 @@ export const AnalyzeResponseSchema = z.object({
   audit: z.object({
     cv: z.object({
       score: z.number().min(0).max(100),
-      issues: z.array(
-        IssueHotSchema.extend({ fix: FixSchema.optional() }),
-      ),
+      issues: z.array(IssueHotSchema.extend({ fix: FixSchema.optional() })),
       strengths: z.array(z.string()).optional(),
     }),
     // github / linkedin are SPARSE sources: when the data is thin or absent,
@@ -498,18 +536,14 @@ export const AnalyzeResponseSchema = z.object({
     github: z
       .object({
         score: z.number().min(0).max(100).nullable(),
-        issues: z.array(
-          IssueHotSchema.extend({ fix: FixSchema.optional() }),
-        ),
+        issues: z.array(IssueHotSchema.extend({ fix: FixSchema.optional() })),
         strengths: z.array(z.string()).optional(),
       })
       .catch({ score: null, issues: [], strengths: [] }),
     linkedin: z
       .object({
         score: z.number().min(0).max(100).nullable(),
-        issues: z.array(
-          IssueHotSchema.extend({ fix: FixSchema.optional() }),
-        ),
+        issues: z.array(IssueHotSchema.extend({ fix: FixSchema.optional() })),
         strengths: z.array(z.string()).optional(),
       })
       .catch({ score: null, issues: [], strengths: [] }),
@@ -593,7 +627,6 @@ export function attachFixes<I, F>(
     return issues.map((issue) => ({ ...issue, fix: undefined }));
   }
   if (fixes.length !== issues.length) {
-    // eslint-disable-next-line no-console
     console.warn(
       `[MERGE_ALIGN] ${label}: deep fixes length ${fixes.length} != hot issues length ${issues.length} — dropping fixes for this section to avoid misattachment`,
     );
@@ -626,9 +659,8 @@ export function mergeHotAndDeep(
   ).cross_profile_inconsistencies as
     | AnalyzeResponse['cross_profile_inconsistencies']
     | undefined;
-  const passthroughTimeline = (
-    hot as unknown as { timeline_entries?: unknown }
-  ).timeline_entries as AnalyzeResponse['timeline_entries'] | undefined;
+  const passthroughTimeline = (hot as unknown as { timeline_entries?: unknown })
+    .timeline_entries as AnalyzeResponse['timeline_entries'] | undefined;
 
   const merged: AnalyzeResponse = {
     score: hot.score,

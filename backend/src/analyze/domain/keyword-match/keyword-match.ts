@@ -92,11 +92,7 @@ function normalize(text: string): string {
  *    "machine-learning" and "machine/learning".
  */
 function aliasToMatcher(alias: string): RegExp {
-  const body = alias
-    .trim()
-    .split(/\s+/)
-    .map(escapeRegex)
-    .join('[\\s/_-]+');
+  const body = alias.trim().split(/\s+/).map(escapeRegex).join('[\\s/_-]+');
   return new RegExp(`(?<![a-z0-9])${body}(?![a-z0-9])`, 'g');
 }
 
@@ -112,7 +108,8 @@ type CompiledEntry = {
  * and keeps a re-scan cheap.
  */
 const COMPILED: CompiledEntry[] = SKILLS_LEXICON.map((entry) => {
-  const base = entry.matchCanonical === false ? [] : [entry.canonical.toLowerCase()];
+  const base =
+    entry.matchCanonical === false ? [] : [entry.canonical.toLowerCase()];
   const aliases = dedupe([...base, ...entry.aliases]);
   return { entry, matchers: aliases.map(aliasToMatcher) };
 });

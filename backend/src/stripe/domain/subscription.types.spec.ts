@@ -1,4 +1,8 @@
-import { isActive, isHiredAndActive, type Subscription } from './subscription.types';
+import {
+  isActive,
+  isHiredAndActive,
+  type Subscription,
+} from './subscription.types';
 
 const HOUR = 60 * 60 * 1000;
 
@@ -25,9 +29,9 @@ describe('isActive', () => {
   });
 
   it('is false once the current period has elapsed (the renewal-sync bug)', () => {
-    expect(isActive(sub({ currentPeriodEnd: new Date(Date.now() - HOUR) }))).toBe(
-      false,
-    );
+    expect(
+      isActive(sub({ currentPeriodEnd: new Date(Date.now() - HOUR) })),
+    ).toBe(false);
   });
 
   it('is false for a canceled sub even within the period', () => {

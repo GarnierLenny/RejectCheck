@@ -65,9 +65,7 @@ function fullResult(): AnalyzeResponse {
       linkedin: { score: 60, issues: [issue('li1')] },
       jd_match: { required_skills: [], experience_gap: null },
     },
-    hidden_red_flags: [
-      { flag: 'gap', perception: 'bad', fix: fix('flag') },
-    ],
+    hidden_red_flags: [{ flag: 'gap', perception: 'bad', fix: fix('flag') }],
     job_details: {
       title: 'Back-End Developer',
       company: 'Acme',
@@ -215,7 +213,11 @@ describe('shapeSectionForPlan', () => {
       shaped.audit.cv,
     );
     expect(
-      shapeSectionForPlan('seniority_analysis', result.seniority_analysis, FREE),
+      shapeSectionForPlan(
+        'seniority_analysis',
+        result.seniority_analysis,
+        FREE,
+      ),
     ).toEqual(shaped.seniority_analysis);
     expect(
       shapeSectionForPlan('hidden_red_flags', result.hidden_red_flags, FREE),
@@ -241,9 +243,9 @@ describe('shapeSectionForPlan', () => {
 
   it('passes premium sections through untouched', () => {
     const result = fullResult();
-    expect(
-      shapeSectionForPlan('audit_cv', result.audit.cv, SHORTLISTED),
-    ).toBe(result.audit.cv);
+    expect(shapeSectionForPlan('audit_cv', result.audit.cv, SHORTLISTED)).toBe(
+      result.audit.cv,
+    );
     expect(shapeSectionForPlan('job_details', result.job_details, FREE)).toBe(
       result.job_details,
     );
@@ -292,11 +294,19 @@ describe('shapeCvReviewForPlan', () => {
         seniority_alignment: 'matches_title',
         ratings: { scope: 3, ownership: 3, impact: 2 },
         hard_skills: [
-          { name: 'Node.js', status: 'proven', evidence: 'Shipped checkout in Node' },
+          {
+            name: 'Node.js',
+            status: 'proven',
+            evidence: 'Shipped checkout in Node',
+          },
         ],
         soft_skills: [{ name: 'Mentoring', status: 'claimed', evidence: null }],
         findings: [
-          { severity: 'info', what: 'Checkout is a strong anchor', why: 'Lead with it' },
+          {
+            severity: 'info',
+            what: 'Checkout is a strong anchor',
+            why: 'Lead with it',
+          },
         ],
         margin_note: 'Owns things, proves little.',
       },
@@ -358,9 +368,16 @@ describe('shapeStoredResultForPlan', () => {
     const partial = {
       score: 50,
       verdict: 'Medium',
-      seniority_analysis: { expected: 'a', detected: 'b', gap: 'c', strength: 'd' },
+      seniority_analysis: {
+        expected: 'a',
+        detected: 'b',
+        gap: 'c',
+        strength: 'd',
+      },
       cv_tone: { detected: 'mixed', examples: [] },
     };
-    expect(() => shapeStoredResultForPlan(partial as never, FREE)).not.toThrow();
+    expect(() =>
+      shapeStoredResultForPlan(partial as never, FREE),
+    ).not.toThrow();
   });
 });

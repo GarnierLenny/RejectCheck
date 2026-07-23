@@ -73,7 +73,6 @@ import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
-import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { LlmJobsService } from '../queue/llm-jobs.service';
 import { EnqueueEmailUseCase } from '../notifications/application/enqueue-email.use-case';
 import type { EmailLocale } from '../notifications/domain/email.types';
@@ -160,7 +159,6 @@ export class AnalyzeController {
     private readonly rewriteCvUc: RewriteCvUseCase,
     private readonly generateCoverLetter: GenerateCoverLetterUseCase,
     private readonly generateNegotiationUc: GenerateNegotiationUseCase,
-    private readonly generateProfileDigestUc: GenerateProfileDigestUseCase,
     private readonly listHistory: ListHistoryUseCase,
     private readonly getAnalysisUc: GetAnalysisUseCase,
     private readonly deleteAnalysisUc: DeleteAnalysisUseCase,
@@ -174,7 +172,8 @@ export class AnalyzeController {
     private readonly generateStarterRepoUc: GenerateStarterRepoUseCase,
     private readonly llmJobs: LlmJobsService,
     private readonly enqueueEmail: EnqueueEmailUseCase,
-    @Inject(ANALYSIS_REPOSITORY) private readonly analysisRepo: AnalysisRepository,
+    @Inject(ANALYSIS_REPOSITORY)
+    private readonly analysisRepo: AnalysisRepository,
   ) {}
 
   /**
@@ -193,7 +192,10 @@ export class AnalyzeController {
     write: (data: object) => void,
   ): Promise<void> {
     try {
-      const { token } = await this.createShareTokenUc.execute(analysisId, email);
+      const { token } = await this.createShareTokenUc.execute(
+        analysisId,
+        email,
+      );
       write({ step: 'share', token });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -306,8 +308,12 @@ export class AnalyzeController {
     });
 
     try {
-      const { result, analysisId, auditMode: auditApplied, keywordMatch } =
-        await this.analyzeCv.execute(
+      const {
+        result,
+        analysisId,
+        auditMode: auditApplied,
+        keywordMatch,
+      } = await this.analyzeCv.execute(
         {
           cvBuffer: files.cv?.[0]?.buffer,
           cvMimeType: files.cv?.[0]?.mimetype,
@@ -435,8 +441,11 @@ export class AnalyzeController {
     });
 
     try {
-      const { result, analysisId, auditMode: auditApplied } =
-        await this.reviewCvUc.execute(
+      const {
+        result,
+        analysisId,
+        auditMode: auditApplied,
+      } = await this.reviewCvUc.execute(
         {
           cvBuffer: files.cv[0].buffer,
           cvMimeType: files.cv[0].mimetype,
@@ -520,30 +529,6 @@ export class AnalyzeController {
       ? 'fr'
       : 'en';
     return this.getProfileUc.execute(email, locale);
-  }
-
-  @UseGuards(SupabaseGuard)
-  @Post('profile/refresh-digest')
-  @ApiOperation({
-    summary:
-      'Regenerate the ProfileDigest for the authenticated user from their current profile sources (GitHub username, portfolio URL, optional inline CV/LinkedIn text). Sources missing from the request are pulled from the stored Profile row.',
-  })
-  async refreshProfileDigest(
-    @AuthEmail() email: string,
-    @Body()
-    body: {
-      cvText?: string;
-      linkedinText?: string;
-      locale?: string;
-    } = {},
-  ) {
-    const { digest, hashes } = await this.generateProfileDigestUc.execute({
-      email,
-      cvText: body.cvText,
-      linkedinText: body.linkedinText,
-      locale: body.locale,
-    });
-    return { digest, hashes };
   }
 
   @UseGuards(SupabaseGuard)
@@ -1137,20 +1122,24 @@ export class AnalyzeController {
 
   @UseGuards(SupabaseGuard)
   @Patch(':id/files')
-  @ApiOperation({ summary: 'Attach persisted file URLs (Supabase Storage) to an analysis' })
+  @ApiOperation({
+    summary: 'Attach persisted file URLs (Supabase Storage) to an analysis',
+  })
   async attachFileUrls(
     @AuthEmail() email: string,
     @Param('id') rawId: string,
     @Body() body: unknown,
   ) {
-    const id = parseInt(rawId as string, 10);
+    const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     const urlSchema = z.string().url().optional();
-    const parsed = z.object({
-      cvFileUrl: urlSchema,
-      liFileUrl: urlSchema,
-      mlFileUrl: urlSchema,
-    }).safeParse(body);
+    const parsed = z
+      .object({
+        cvFileUrl: urlSchema,
+        liFileUrl: urlSchema,
+        mlFileUrl: urlSchema,
+      })
+      .safeParse(body);
     if (!parsed.success) throw new BadRequestException('Invalid payload');
     await this.analysisRepo.attachFileUrls(id, email, parsed.data);
     return { ok: true };
@@ -1163,18 +1152,24 @@ export class AnalyzeController {
     @Param('id') rawId: string,
     @Body() body: unknown,
   ) {
-    const id = parseInt(rawId as string, 10);
+    const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
-    const parsed = z.object({ completed_steps: z.array(z.number().int().min(0)) }).safeParse(body);
+    const parsed = z
+      .object({ completed_steps: z.array(z.number().int().min(0)) })
+      .safeParse(body);
     if (!parsed.success) throw new BadRequestException('Invalid payload');
-    await this.analysisRepo.saveCompletedSteps(id, email, parsed.data.completed_steps);
+    await this.analysisRepo.saveCompletedSteps(
+      id,
+      email,
+      parsed.data.completed_steps,
+    );
     return { ok: true };
   }
 
   @UseGuards(SupabaseGuard)
   @Patch(':id/outcome')
   @ApiOperation({
-    summary: "Set the real-world outcome the user reports for their analysis",
+    summary: 'Set the real-world outcome the user reports for their analysis',
   })
   async setOutcome(
     @AuthEmail() email: string,
@@ -1222,7 +1217,10 @@ export class AnalyzeController {
   @ApiOperation({
     summary: 'Generate (or return existing) public share token for an analysis',
   })
-  async createShareToken(@AuthEmail() email: string, @Param('id') rawId: string) {
+  async createShareToken(
+    @AuthEmail() email: string,
+    @Param('id') rawId: string,
+  ) {
     const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
     return this.createShareTokenUc.execute(id, email);
@@ -1232,7 +1230,8 @@ export class AnalyzeController {
   // analysis. Unlocks the viral share loop for anonymous users.
   @Post('share-anonymous')
   @ApiOperation({
-    summary: 'Generate a public share token for an anonymous analysis (by claimToken)',
+    summary:
+      'Generate a public share token for an anonymous analysis (by claimToken)',
   })
   async createShareTokenAnonymous(@Body() body: unknown) {
     const token = (body as { claimToken?: unknown } | null)?.claimToken;
@@ -1241,7 +1240,9 @@ export class AnalyzeController {
     }
     const result = await this.createShareTokenUc.executeForClaim(token);
     if (!result) {
-      throw new NotFoundException('Analysis not found, already claimed, or empty');
+      throw new NotFoundException(
+        'Analysis not found, already claimed, or empty',
+      );
     }
     return result; // { token }
   }
@@ -1249,7 +1250,8 @@ export class AnalyzeController {
   @RequiresPremium('shortlisted')
   @Post(':id/starter-repo')
   @ApiOperation({
-    summary: 'Generate (or return cached) starter repo ZIP for the bridge project',
+    summary:
+      'Generate (or return cached) starter repo ZIP for the bridge project',
   })
   async starterRepo(
     @AuthEmail() email: string,
@@ -1259,12 +1261,16 @@ export class AnalyzeController {
     const id = parseInt(rawId, 10);
     if (isNaN(id)) throw new BadRequestException('Invalid ID');
 
-    const { repo, projectName } = await this.generateStarterRepoUc.execute(id, email);
+    const { repo, projectName } = await this.generateStarterRepoUc.execute(
+      id,
+      email,
+    );
 
-    const zipSlug = projectName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || 'starter-repo';
+    const zipSlug =
+      projectName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'starter-repo';
 
     // Build ZIP in memory with jszip
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -1273,7 +1279,10 @@ export class AnalyzeController {
     for (const file of repo.files) {
       zip.file(file.path, file.content);
     }
-    const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+    const buffer = await zip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+    });
 
     (res as unknown as import('express').Response)
       .set({

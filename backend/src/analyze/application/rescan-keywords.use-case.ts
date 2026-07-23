@@ -63,7 +63,10 @@ export class RescanKeywordsUseCase {
 
   async execute(cmd: RescanKeywordsCommand): Promise<RescanKeywordsResult> {
     // findDetailById is already scoped to (id, email) — ownership proven here.
-    const detail = await this.analyses.findDetailById(cmd.analysisId, cmd.email);
+    const detail = await this.analyses.findDetailById(
+      cmd.analysisId,
+      cmd.email,
+    );
     if (!detail) throw new AnalysisNotFoundException(cmd.analysisId);
 
     const jd = detail.jobDescription?.trim();
@@ -89,7 +92,12 @@ export class RescanKeywordsUseCase {
       );
     }
 
-    const baseline = this.resolveBaseline(detail.keywordMatch, jd, detail.cvText, current);
+    const baseline = this.resolveBaseline(
+      detail.keywordMatch,
+      jd,
+      detail.cvText,
+      current,
+    );
     // Same JD → same keyword set, so a non-null current guarantees a non-null
     // baseline. Coalesce defensively anyway.
     const coverageBefore = baseline.coverageScore ?? current.coverageScore;

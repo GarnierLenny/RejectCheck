@@ -9,7 +9,6 @@ export const CLAUDE_PROVIDER = Symbol('ClaudeProvider');
 export const GITHUB_PROVIDER = Symbol('GithubProvider');
 export const PDF_PARSER = Symbol('PdfParser');
 export const CHALLENGE_STATS_PROVIDER = Symbol('ChallengeStatsProvider');
-export const DIGEST_REPOSITORY = Symbol('DigestRepository');
 export const PORTFOLIO_SCRAPER = Symbol('PortfolioScraper');
 // SUBSCRIPTION_GATE is project-wide — re-export it from common/ports so
 // callers in this module keep a single import path. Module bindings live

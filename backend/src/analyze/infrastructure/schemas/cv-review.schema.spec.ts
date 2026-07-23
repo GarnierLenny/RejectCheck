@@ -46,7 +46,10 @@ describe('SUBMIT_CV_REVIEW_TOOL: shape', () => {
         properties: {
           axes: {
             items: {
-              properties: Record<string, { minimum?: number; maximum?: number }>;
+              properties: Record<
+                string,
+                { minimum?: number; maximum?: number }
+              >;
               required: string[];
             };
           };
@@ -75,13 +78,28 @@ describe('SUBMIT_CV_REVIEW_TOOL: shape', () => {
     const carousel = SUBMIT_CV_REVIEW_TOOL.input_schema.properties
       .carousel_insights as {
       properties: {
-        scorecard: { minItems: number; maxItems: number; items: { properties: { score: { minimum: number; maximum: number } } } };
+        scorecard: {
+          minItems: number;
+          maxItems: number;
+          items: {
+            properties: { score: { minimum: number; maximum: number } };
+          };
+        };
         slides: { minItems: number; maxItems: number };
       };
     };
-    expect(carousel.properties.scorecard).toMatchObject({ minItems: 6, maxItems: 8 });
-    expect(carousel.properties.scorecard.items.properties.score).toMatchObject({ minimum: 0, maximum: 10 });
-    expect(carousel.properties.slides).toMatchObject({ minItems: 6, maxItems: 6 });
+    expect(carousel.properties.scorecard).toMatchObject({
+      minItems: 6,
+      maxItems: 8,
+    });
+    expect(carousel.properties.scorecard.items.properties.score).toMatchObject({
+      minimum: 0,
+      maximum: 10,
+    });
+    expect(carousel.properties.slides).toMatchObject({
+      minItems: 6,
+      maxItems: 6,
+    });
   });
 });
 

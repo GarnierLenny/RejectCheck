@@ -26,7 +26,7 @@ export class ResendEmailAdapter implements EmailSenderPort {
       subject: message.subject,
       html: message.html,
       ...(message.text ? { text: message.text } : {}),
-      ...(message.replyTo ?? this.defaultReplyTo
+      ...((message.replyTo ?? this.defaultReplyTo)
         ? { replyTo: message.replyTo ?? this.defaultReplyTo }
         : {}),
       ...(message.headers ? { headers: message.headers } : {}),

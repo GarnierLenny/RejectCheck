@@ -52,7 +52,11 @@ describe('HandleSubscriptionUpdatedUseCase', () => {
     await uc.execute({
       customer: { id: 'cus_2' },
       status: 'active',
-      items: { data: [{ current_period_end: periodEnd, price: { id: PRICE_SHORTLISTED } }] },
+      items: {
+        data: [
+          { current_period_end: periodEnd, price: { id: PRICE_SHORTLISTED } },
+        ],
+      },
     });
     expect(repo.refreshByCustomerId).toHaveBeenCalledWith('cus_2', {
       status: 'active',

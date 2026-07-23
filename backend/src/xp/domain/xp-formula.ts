@@ -19,10 +19,10 @@ export type XpAwardInput = {
 };
 
 export type XpAwardBreakdown = {
-  base: number;        // base XP after difficulty multiplier
-  scoreMult: number;   // 0..1
-  streakMult: number;  // 1..1.5
-  bonus: number;       // first-perfect-on-focus-tag flat bonus
+  base: number; // base XP after difficulty multiplier
+  scoreMult: number; // 0..1
+  streakMult: number; // 1..1.5
+  bonus: number; // first-perfect-on-focus-tag flat bonus
 };
 
 export type XpAwardResult = {
@@ -44,7 +44,8 @@ export function computeXpAward(input: XpAwardInput): XpAwardResult {
   const base = BASE_XP * (DIFFICULTY_MULT[difficulty] ?? 1.0);
   const scoreMult = Math.max(0, Math.min(1, score / 100));
   // +10% per full week of streak, capped at +50%
-  const streakMult = 1 + Math.min(0.5, Math.floor(Math.max(0, currentStreak) / 7) * 0.1);
+  const streakMult =
+    1 + Math.min(0.5, Math.floor(Math.max(0, currentStreak) / 7) * 0.1);
   const main = Math.round(base * scoreMult * streakMult);
   const bonus =
     isFirstPerfectOnFocusTag && score === 100 ? FIRST_PERFECT_TAG_BONUS : 0;

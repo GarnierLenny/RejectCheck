@@ -22,7 +22,10 @@ import type {
   StreakSummary,
 } from '../domain/challenge.types';
 import type { ChallengeIssue } from '../dto/challenge.dto';
-import { AwardXpUseCase, type AwardXpResult } from '../../xp/application/award-xp.use-case';
+import {
+  AwardXpUseCase,
+  type AwardXpResult,
+} from '../../xp/application/award-xp.use-case';
 
 export type SubmitFinalAnswerResult = {
   score: number;
@@ -113,7 +116,7 @@ export class SubmitFinalAnswerUseCase {
       attemptId: finalAttempt?.id ?? attempt.id,
       challengeId,
       score: score.total,
-      difficulty: (challenge.difficulty as 'easy' | 'medium' | 'hard') ?? 'easy',
+      difficulty: challenge.difficulty ?? 'easy',
       currentStreak: streak.currentStreak,
       // V1: skip first-perfect-on-focus-tag bonus (TODO: query past attempts)
       isFirstPerfectOnFocusTag: false,

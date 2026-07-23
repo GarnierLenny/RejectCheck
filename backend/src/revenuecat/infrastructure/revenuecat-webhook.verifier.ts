@@ -29,7 +29,9 @@ export class SharedSecretRevenueCatVerifier implements RevenueCatWebhookVerifier
     const a = Buffer.from(provided);
     const b = Buffer.from(this.secret);
     if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      throw new UnauthorizedException('RevenueCat webhook authorization failed');
+      throw new UnauthorizedException(
+        'RevenueCat webhook authorization failed',
+      );
     }
   }
 }

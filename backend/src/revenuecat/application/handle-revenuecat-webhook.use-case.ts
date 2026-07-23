@@ -47,7 +47,9 @@ export class HandleRevenueCatWebhookUseCase {
 
     const parsed = RevenueCatEventSchema.safeParse(rawBody);
     if (!parsed.success) {
-      this.logger.warn(`revenuecat: malformed payload — ${parsed.error.message}`);
+      this.logger.warn(
+        `revenuecat: malformed payload — ${parsed.error.message}`,
+      );
       return;
     }
     const event = parsed.data.event;

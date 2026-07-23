@@ -25,9 +25,15 @@ describe('buildAnalysisTool — lean (owner audit mode)', () => {
 
   it('lean audits and diagnostics carry no fix field', () => {
     const auditCv = lean.properties.audit_cv as {
-      properties: { issues: { items: { properties: Record<string, unknown>; required: string[] } } };
+      properties: {
+        issues: {
+          items: { properties: Record<string, unknown>; required: string[] };
+        };
+      };
     };
-    expect(auditCv.properties.issues.items.properties).not.toHaveProperty('fix');
+    expect(auditCv.properties.issues.items.properties).not.toHaveProperty(
+      'fix',
+    );
     expect(auditCv.properties.issues.items.required).not.toContain('fix');
 
     const seniority = lean.properties.seniority_analysis as {
@@ -60,9 +66,9 @@ describe('buildAnalysisTool — lean (owner audit mode)', () => {
 describe('buildCvReviewTool — lean', () => {
   it('non-lean returns the full tool with bullet_reviews', () => {
     expect(buildCvReviewTool(false)).toBe(SUBMIT_CV_REVIEW_TOOL);
-    expect(
-      buildCvReviewTool(false).input_schema.properties,
-    ).toHaveProperty('bullet_reviews');
+    expect(buildCvReviewTool(false).input_schema.properties).toHaveProperty(
+      'bullet_reviews',
+    );
   });
 
   it('lean drops bullet_reviews from properties and required', () => {

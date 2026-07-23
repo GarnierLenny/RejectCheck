@@ -54,9 +54,10 @@ export class AwardXpUseCase {
     }
 
     const award = computeXpAward(xpInput);
-    const reason = award.breakdown.bonus > 0
-      ? 'first_perfect_focus_tag'
-      : 'challenge_completion';
+    const reason =
+      award.breakdown.bonus > 0
+        ? 'first_perfect_focus_tag'
+        : 'challenge_completion';
 
     const result = await this.repo.awardXp({
       email,

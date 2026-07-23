@@ -164,7 +164,12 @@ function isUnsafeHost(hostname: string): boolean {
   if (hostname.includes(':')) {
     const lower = hostname.replace(/^\[|\]$/g, '').toLowerCase();
     if (lower === '::1' || lower === '::') return true;
-    if (lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd')) return true;
+    if (
+      lower.startsWith('fe80:') ||
+      lower.startsWith('fc') ||
+      lower.startsWith('fd')
+    )
+      return true;
     return false;
   }
 

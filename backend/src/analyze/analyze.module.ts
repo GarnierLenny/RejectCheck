@@ -17,14 +17,11 @@ import { NegotiationProcessor } from './infrastructure/queue/negotiation.process
 // boot safely when the BullModule (and therefore Redis) is wired. Skip
 // registration when REDIS_URL is unset; the LlmJobsService falls back to
 // in-process execution via setImmediate.
-const queueProviders: Provider[] = QUEUE_ENABLED
-  ? [NegotiationProcessor]
-  : [];
+const queueProviders: Provider[] = QUEUE_ENABLED ? [NegotiationProcessor] : [];
 
 import {
   ANALYSIS_REPOSITORY,
   CLAUDE_PROVIDER,
-  DIGEST_REPOSITORY,
   GITHUB_PROVIDER,
   PDF_PARSER,
   PORTFOLIO_SCRAPER,
@@ -33,7 +30,6 @@ import {
 } from './ports/tokens';
 
 import { PrismaAnalysisRepository } from './infrastructure/prisma-analysis.repository';
-import { PrismaDigestRepository } from './infrastructure/prisma-digest.repository';
 import { PrismaProfileRepository } from './infrastructure/prisma-profile.repository';
 import { PrismaSavedCvRepository } from './infrastructure/prisma-saved-cv.repository';
 import { AnthropicClaudeProvider } from './infrastructure/anthropic-claude.provider';
@@ -48,7 +44,6 @@ import { GetQuotaSummaryUseCase } from './application/get-quota-summary.use-case
 import { RewriteCvUseCase } from './application/rewrite-cv.use-case';
 import { GenerateCoverLetterUseCase } from './application/generate-cover-letter.use-case';
 import { GenerateNegotiationUseCase } from './application/generate-negotiation.use-case';
-import { GenerateProfileDigestUseCase } from './application/generate-profile-digest.use-case';
 import { GenerateStarterRepoUseCase } from './application/generate-starter-repo.use-case';
 import { GeminiStarterRepoProvider } from './infrastructure/gemini-starter-repo.provider';
 import { ListHistoryUseCase } from './application/list-history.use-case';
@@ -84,7 +79,6 @@ import {
     { provide: ANALYSIS_REPOSITORY, useClass: PrismaAnalysisRepository },
     { provide: PROFILE_REPOSITORY, useClass: PrismaProfileRepository },
     { provide: SAVED_CV_REPOSITORY, useClass: PrismaSavedCvRepository },
-    { provide: DIGEST_REPOSITORY, useClass: PrismaDigestRepository },
     { provide: CLAUDE_PROVIDER, useClass: AnthropicClaudeProvider },
     { provide: GITHUB_PROVIDER, useClass: GithubHttpProvider },
     { provide: PORTFOLIO_SCRAPER, useClass: JinaPortfolioScraper },
@@ -97,7 +91,6 @@ import {
     RewriteCvUseCase,
     GenerateCoverLetterUseCase,
     GenerateNegotiationUseCase,
-    GenerateProfileDigestUseCase,
     ListHistoryUseCase,
     GetAnalysisUseCase,
     DeleteAnalysisUseCase,

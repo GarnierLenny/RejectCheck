@@ -47,7 +47,11 @@ const FIX = {
 
 const ANALYSIS = JSON.stringify({
   job_details: { title: 'Back-End Developer', company: 'Acme' },
-  overall: { score: 62, verdict: 'Medium', confidence: { score: 80, reason: 'ok' } },
+  overall: {
+    score: 62,
+    verdict: 'Medium',
+    confidence: { score: 80, reason: 'ok' },
+  },
   keyword_match: 70,
   experience_level: 55,
   tech_stack_fit: 60,
@@ -56,19 +60,52 @@ const ANALYSIS = JSON.stringify({
   ats_simulation: { would_pass: false, score: 55, threshold: 70, reason: 'x' },
   audit_cv: {
     score: 48,
-    issues: [{ severity: 'major', category: 'impact', what: 'w', why: 'y', fix: FIX }],
+    issues: [
+      { severity: 'major', category: 'impact', what: 'w', why: 'y', fix: FIX },
+    ],
   },
   hidden_red_flags: [{ flag: 'gap', perception: 'bad', fix: FIX }],
   bullet_reviews: {
     bullets: [
-      { original: 'helped with x', section: 'Exp', verdict: 'weak', flags: [], why: 'vague', rewrite: 'SECRET' },
+      {
+        original: 'helped with x',
+        section: 'Exp',
+        verdict: 'weak',
+        flags: [],
+        why: 'vague',
+        rewrite: 'SECRET',
+      },
     ],
   },
   ats_critical_missing_keywords: [
-    { keyword: 'k1', jd_frequency: 3, required: true, sections_missing: [], score_impact: 5 },
-    { keyword: 'k2', jd_frequency: 2, required: true, sections_missing: [], score_impact: 4 },
-    { keyword: 'k3', jd_frequency: 2, required: true, sections_missing: [], score_impact: 3 },
-    { keyword: 'k4', jd_frequency: 1, required: false, sections_missing: [], score_impact: 2 },
+    {
+      keyword: 'k1',
+      jd_frequency: 3,
+      required: true,
+      sections_missing: [],
+      score_impact: 5,
+    },
+    {
+      keyword: 'k2',
+      jd_frequency: 2,
+      required: true,
+      sections_missing: [],
+      score_impact: 4,
+    },
+    {
+      keyword: 'k3',
+      jd_frequency: 2,
+      required: true,
+      sections_missing: [],
+      score_impact: 3,
+    },
+    {
+      keyword: 'k4',
+      jd_frequency: 1,
+      required: false,
+      sections_missing: [],
+      score_impact: 2,
+    },
   ],
 });
 
@@ -87,9 +124,10 @@ describe('section-stream integration (use-case wiring)', () => {
       'bullet_reviews',
       'ats_critical_missing_keywords',
     ]);
-    const breakdown = runPipeline(ANALYSIS, { premium: true, hired: true }).find(
-      (e) => e.key === 'breakdown',
-    )!.value as Record<string, unknown>;
+    const breakdown = runPipeline(ANALYSIS, {
+      premium: true,
+      hired: true,
+    }).find((e) => e.key === 'breakdown')!.value as Record<string, unknown>;
     expect(breakdown).toEqual({
       keyword_match: 70,
       experience_level: 55,
@@ -107,9 +145,11 @@ describe('section-stream integration (use-case wiring)', () => {
       .value as unknown[];
     expect(ats).toHaveLength(3);
 
-    const bullets = (events.find((e) => e.key === 'bullet_reviews')!.value as {
-      bullets: Array<{ rewrite: unknown; verdict: string }>;
-    }).bullets;
+    const bullets = (
+      events.find((e) => e.key === 'bullet_reviews')!.value as {
+        bullets: Array<{ rewrite: unknown; verdict: string }>;
+      }
+    ).bullets;
     expect(bullets[0].rewrite).toBeNull();
     expect(bullets[0].verdict).toBe('weak'); // diagnostic teaser preserved
   });

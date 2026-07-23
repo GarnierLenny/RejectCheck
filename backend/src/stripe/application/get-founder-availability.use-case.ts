@@ -42,7 +42,10 @@ export class GetFounderAvailabilityUseCase {
     }
 
     const now = Date.now();
-    if (this.cache && now - this.cache.at < GetFounderAvailabilityUseCase.TTL_MS) {
+    if (
+      this.cache &&
+      now - this.cache.at < GetFounderAvailabilityUseCase.TTL_MS
+    ) {
       return this.cache.value;
     }
 

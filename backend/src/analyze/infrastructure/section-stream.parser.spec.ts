@@ -17,15 +17,31 @@ function run(json: string, size: number) {
 // Shape mirroring the real tool output: scalars, nulls, strings with escapes
 // and braces, nested objects/arrays.
 const SAMPLE = JSON.stringify({
-  job_details: { title: 'Back-End Developer', company: 'Acme "Corp"', pay: null },
-  overall: { score: 62, verdict: 'Medium', confidence: { score: 80, reason: 'ok' } },
+  job_details: {
+    title: 'Back-End Developer',
+    company: 'Acme "Corp"',
+    pay: null,
+  },
+  overall: {
+    score: 62,
+    verdict: 'Medium',
+    confidence: { score: 80, reason: 'ok' },
+  },
   keyword_match: 71,
   github_signal: null,
-  ats_simulation: { would_pass: false, score: 55, threshold: 70, reason: 'weak {braces} [brackets] "quotes"' },
+  ats_simulation: {
+    would_pass: false,
+    score: 55,
+    threshold: 70,
+    reason: 'weak {braces} [brackets] "quotes"',
+  },
   audit_cv: {
     score: 48,
     issues: [
-      { what: 'code: `if (a) { b[0] = "x"; }`', why: 'escaped \\ and "nested"' },
+      {
+        what: 'code: `if (a) { b[0] = "x"; }`',
+        why: 'escaped \\ and "nested"',
+      },
       { what: 'plain', why: 'plain' },
     ],
   },
@@ -147,9 +163,23 @@ describe('SectionStreamParser', () => {
           seniority_read: 'mid',
           seniority_alignment: 'below_title',
           ratings: { scope: 3, ownership: 4, impact: 2 },
-          hard_skills: [{ name: 'Node.js', status: 'proven', evidence: 'Shipped payments API' }],
-          soft_skills: [{ name: 'Mentoring', status: 'claimed', evidence: null }],
-          findings: [{ severity: 'info', what: 'Strong anchor: payments', why: 'Lead with it' }],
+          hard_skills: [
+            {
+              name: 'Node.js',
+              status: 'proven',
+              evidence: 'Shipped payments API',
+            },
+          ],
+          soft_skills: [
+            { name: 'Mentoring', status: 'claimed', evidence: null },
+          ],
+          findings: [
+            {
+              severity: 'info',
+              what: 'Strong anchor: payments',
+              why: 'Lead with it',
+            },
+          ],
           margin_note: 'Owns things, proves little.',
         },
       ],

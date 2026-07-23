@@ -10,7 +10,9 @@ import { stripJsonFences } from '../../challenge/infrastructure/strip-json-fence
 import { deepStripLongDashes } from '../../common/strip-long-dashes';
 import { ProjectRecommendationSchema } from '../dto/analyze-response.dto';
 
-type ProjectRecommendation = ReturnType<typeof ProjectRecommendationSchema.parse>;
+type ProjectRecommendation = ReturnType<
+  typeof ProjectRecommendationSchema.parse
+>;
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
@@ -40,7 +42,9 @@ export class GeminiStarterRepoProvider {
 
   private model() {
     if (!this.client) {
-      throw new InternalServerErrorException('GEMINI_API_KEY is not configured');
+      throw new InternalServerErrorException(
+        'GEMINI_API_KEY is not configured',
+      );
     }
     // Hard 45s timeout: this call runs inside the POST /starter-repo request, so
     // a hung Gemini response would otherwise pin the HTTP worker indefinitely
@@ -74,7 +78,7 @@ Description: ${project.description}
 Technologies: ${(project.technologies as Array<string | { name: string }>).map((t) => (typeof t === 'string' ? t : t.name)).join(', ')}
 Architecture: ${project.architecture}
 Key features to implement:
-${(project.key_features as string[]).map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
+${project.key_features.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
 
 Generate a minimal starter repo with:
 - A well-structured README.md with setup instructions (install, run, env vars needed)

@@ -31,13 +31,19 @@ describe('matchKeywords', () => {
 
   describe('word boundaries (the precision guarantee)', () => {
     it('does not match "Java" inside "JavaScript"', () => {
-      const r = matchKeywords('Strong JavaScript skills required.', 'javascript dev');
+      const r = matchKeywords(
+        'Strong JavaScript skills required.',
+        'javascript dev',
+      );
       expect(term(r, 'Java')).toBeUndefined();
       expect(term(r, 'JavaScript')).toBeDefined();
     });
 
     it('does not match "React" inside "reactive"', () => {
-      const r = matchKeywords('Experience with React.', 'I write reactive streams but never touched the library');
+      const r = matchKeywords(
+        'Experience with React.',
+        'I write reactive streams but never touched the library',
+      );
       const react = term(r, 'React');
       expect(react).toBeDefined();
       expect(react?.presentInCv).toBe(false); // "reactive" must not count as React
@@ -51,7 +57,10 @@ describe('matchKeywords', () => {
 
   describe('symbol-bearing tech terms', () => {
     it('matches C++ and C# without matching bare C', () => {
-      const r = matchKeywords('C++ and C# roles.', 'Built engines in C++ and tools in C#.');
+      const r = matchKeywords(
+        'C++ and C# roles.',
+        'Built engines in C++ and tools in C#.',
+      );
       expect(term(r, 'C++')?.presentInCv).toBe(true);
       expect(term(r, 'C#')?.presentInCv).toBe(true);
       expect(term(r, 'C')).toBeUndefined();
@@ -64,9 +73,15 @@ describe('matchKeywords', () => {
     });
 
     it('matches CI/CD across slash, hyphen and spaced forms', () => {
-      expect(term(matchKeywords('ci/cd pipelines', 'x'), 'CI/CD')).toBeDefined();
-      expect(term(matchKeywords('ci-cd pipelines', 'x'), 'CI/CD')).toBeDefined();
-      expect(term(matchKeywords('continuous integration', 'x'), 'CI/CD')).toBeDefined();
+      expect(
+        term(matchKeywords('ci/cd pipelines', 'x'), 'CI/CD'),
+      ).toBeDefined();
+      expect(
+        term(matchKeywords('ci-cd pipelines', 'x'), 'CI/CD'),
+      ).toBeDefined();
+      expect(
+        term(matchKeywords('continuous integration', 'x'), 'CI/CD'),
+      ).toBeDefined();
     });
 
     it('does not match ".NET" inside "asp.net" as a false bare hit', () => {
@@ -79,7 +94,10 @@ describe('matchKeywords', () => {
 
   describe('multi-word separator flexibility', () => {
     it('matches "Machine Learning" with a hyphen', () => {
-      const r = matchKeywords('machine-learning platform', 'built machine learning models');
+      const r = matchKeywords(
+        'machine-learning platform',
+        'built machine learning models',
+      );
       const ml = term(r, 'Machine Learning');
       expect(ml).toBeDefined();
       expect(ml?.presentInCv).toBe(true);
@@ -96,7 +114,10 @@ describe('matchKeywords', () => {
 
   describe('required detection', () => {
     it('flags a skill framed as required', () => {
-      const r = matchKeywords('TypeScript is required. Redis is a nice-to-have.', 'x');
+      const r = matchKeywords(
+        'TypeScript is required. Redis is a nice-to-have.',
+        'x',
+      );
       expect(term(r, 'TypeScript')?.required).toBe(true);
     });
 
@@ -163,7 +184,8 @@ describe('matchKeywords', () => {
 
   describe('determinism', () => {
     it('returns identical output for identical input', () => {
-      const jd = 'Senior Go engineer: Kubernetes, Terraform, PostgreSQL required. React a plus.';
+      const jd =
+        'Senior Go engineer: Kubernetes, Terraform, PostgreSQL required. React a plus.';
       const cv = 'Golang, k8s and postgres experience. Some terraform.';
       expect(matchKeywords(jd, cv)).toEqual(matchKeywords(jd, cv));
     });
@@ -235,7 +257,10 @@ describe('matchKeywords', () => {
     });
 
     it('keeps "SQL" the language, not a sales-qualified lead', () => {
-      const r = matchKeywords('Strong SQL and data modelling.', 'Advanced SQL.');
+      const r = matchKeywords(
+        'Strong SQL and data modelling.',
+        'Advanced SQL.',
+      );
       expect(term(r, 'SQL')?.category).toBe('language');
     });
   });

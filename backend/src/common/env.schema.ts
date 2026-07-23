@@ -66,7 +66,6 @@ export const envSchema = z.object({
   // send in the webhook's Authorization header.
   REVENUECAT_WEBHOOK_SECRET: z.string().optional(),
 
-
   SENTRY_DSN: z.string().optional(),
 
   // PostHog server-side analytics. Optional: when POSTHOG_PROJECT_TOKEN is

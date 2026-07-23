@@ -282,7 +282,11 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     };
   }
 
-  async saveCompletedSteps(id: number, email: string, steps: number[]): Promise<void> {
+  async saveCompletedSteps(
+    id: number,
+    email: string,
+    steps: number[],
+  ): Promise<void> {
     await this.prisma.analysis.updateMany({
       where: { id, email },
       data: { completedSteps: steps },
@@ -510,7 +514,10 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     if (!row) throw new AnalysisNotFoundException(id);
     if (row.shareToken) return row.shareToken;
     const token = randomUUID();
-    await this.prisma.analysis.update({ where: { id }, data: { shareToken: token } });
+    await this.prisma.analysis.update({
+      where: { id },
+      data: { shareToken: token },
+    });
     return token;
   }
 
@@ -533,7 +540,10 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     return token;
   }
 
-  async markPremiumUnlocked(analysisId: number, email: string): Promise<boolean> {
+  async markPremiumUnlocked(
+    analysisId: number,
+    email: string,
+  ): Promise<boolean> {
     // Scoped to the owner's email — a webhook can only unlock an analysis that
     // belongs to the verified buyer. Idempotent: replayed webhooks just refresh
     // the timestamp.
@@ -552,7 +562,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     return row !== null;
   }
 
-  async findByShareToken(token: string): Promise<(AnalysisDetail & { email: string | null }) | null> {
+  async findByShareToken(
+    token: string,
+  ): Promise<(AnalysisDetail & { email: string | null }) | null> {
     const row = await this.prisma.analysis.findUnique({
       where: { shareToken: token },
       select: {
@@ -597,7 +609,8 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
       coverLetter: row.coverLetter,
       result: row.result as AnalyzeResponse | null,
       deepAnalysis: row.deepAnalysis as DeepAnalyzeResponse | null,
-      negotiationAnalysis: row.negotiationAnalysis as NegotiationAnalysis | null,
+      negotiationAnalysis:
+        row.negotiationAnalysis as NegotiationAnalysis | null,
       keywordMatch: row.keywordMatch as KeywordMatchResult | null,
       completedSteps: row.completedSteps ?? [],
       // Public shared view never exposes the per-buyer rewrite unlock.
@@ -639,7 +652,10 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     };
   }
 
-  async incrementRewriteCount(analysisId: number, email: string): Promise<void> {
+  async incrementRewriteCount(
+    analysisId: number,
+    email: string,
+  ): Promise<void> {
     await this.prisma.analysis.updateMany({
       where: { id: analysisId, email },
       data: { rewriteCount: { increment: 1 } },

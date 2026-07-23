@@ -11,7 +11,6 @@ import { createClient } from "../../../lib/supabase";
 import { useLanguage } from "../../../context/language";
 import { useUpdateProfile } from "../../../lib/mutations";
 import type { Profile } from "../../../lib/queries";
-import { ProfileDigestStatus } from "./ProfileDigestStatus";
 
 const inputClass =
   "w-full bg-rc-bg border border-rc-border rounded-md px-3 py-2 text-[14px] leading-5 text-rc-text outline-none focus:border-rc-red/40 focus:ring-2 focus:ring-rc-red/20 transition-colors";
@@ -115,8 +114,6 @@ export function AutofillAnalyzeSettings({
             {t.settingsTab.autofill.description}
           </Caption>
         </header>
-
-        <ProfileDigestStatus profile={profile} />
 
         {/* GitHub username */}
         <div>

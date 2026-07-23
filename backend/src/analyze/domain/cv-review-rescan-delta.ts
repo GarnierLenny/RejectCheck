@@ -49,7 +49,11 @@ function toDelta(before: number | null, after: number | null): Delta {
  * the shared computeIssueId as the fallback keeps both sides in the same key
  * space, so the first re-scan of an old audit doesn't report total churn.
  */
-function issueKey(issue: { id?: string; category?: string; what?: string }): string {
+function issueKey(issue: {
+  id?: string;
+  category?: string;
+  what?: string;
+}): string {
   return issue.id ?? computeIssueId(issue.category, issue.what);
 }
 
@@ -91,7 +95,8 @@ export function computeCvReviewDeltas(
   const afterKeys = collectIssueKeys(after);
 
   let resolvedIssueCount = 0;
-  for (const key of beforeKeys) if (!afterKeys.has(key)) resolvedIssueCount += 1;
+  for (const key of beforeKeys)
+    if (!afterKeys.has(key)) resolvedIssueCount += 1;
   let newIssueCount = 0;
   for (const key of afterKeys) if (!beforeKeys.has(key)) newIssueCount += 1;
 

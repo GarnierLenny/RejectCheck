@@ -1,9 +1,20 @@
 import { assignCvReviewIssueIds, computeIssueId } from './cv-review-issues';
 import type { CvReviewResponse } from '../dto/cv-review-response.dto';
 
-function mk(issues: Array<{ id?: string; severity?: string; category?: string; what: string }>): CvReviewResponse {
+function mk(
+  issues: Array<{
+    id?: string;
+    severity?: string;
+    category?: string;
+    what: string;
+  }>,
+): CvReviewResponse {
   return {
-    audit: { cv: { score: 60, issues }, github: { score: null, issues: [] }, linkedin: { score: null, issues: [] } },
+    audit: {
+      cv: { score: 60, issues },
+      github: { score: null, issues: [] },
+      linkedin: { score: null, issues: [] },
+    },
   } as unknown as CvReviewResponse;
 }
 
@@ -15,8 +26,12 @@ describe('computeIssueId', () => {
   });
 
   it('differs by category and by text', () => {
-    expect(computeIssueId('impact', 'a')).not.toBe(computeIssueId('format', 'a'));
-    expect(computeIssueId('impact', 'a')).not.toBe(computeIssueId('impact', 'b'));
+    expect(computeIssueId('impact', 'a')).not.toBe(
+      computeIssueId('format', 'a'),
+    );
+    expect(computeIssueId('impact', 'a')).not.toBe(
+      computeIssueId('impact', 'b'),
+    );
   });
 });
 
@@ -27,7 +42,7 @@ describe('assignCvReviewIssueIds', () => {
       { id: 'preset', category: 'format', what: 'dates' },
     ]);
     assignCvReviewIssueIds(r);
-    const [a, b] = r.audit!.cv!.issues! as Array<{ id?: string }>;
+    const [a, b] = r.audit.cv.issues as Array<{ id?: string }>;
     expect(a.id).toBe(computeIssueId('impact', 'no metrics'));
     expect(b.id).toBe('preset');
   });

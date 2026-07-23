@@ -47,7 +47,11 @@ export class EmailDevController {
       case 'welcome':
         return { type: 'welcome', firstName: 'Alex' };
       case 'analysis_ready':
-        return { type: 'analysis_ready', analysisId: 123, role: 'Senior React Engineer' };
+        return {
+          type: 'analysis_ready',
+          analysisId: 123,
+          role: 'Senior React Engineer',
+        };
       case 'drip_d1':
         return { type: 'drip_d1' };
       case 'drip_d3':
@@ -55,7 +59,11 @@ export class EmailDevController {
     }
   }
 
-  private samplePayload(type: EmailType, locale: EmailLocale, to: string): EmailJobPayload {
+  private samplePayload(
+    type: EmailType,
+    locale: EmailLocale,
+    to: string,
+  ): EmailJobPayload {
     return { to, locale, context: this.sampleContext(type) };
   }
 
@@ -78,7 +86,9 @@ export class EmailDevController {
   ): string {
     this.assertAllowed(secret);
     if (!TYPES.includes(type)) throw new NotFoundException('unknown type');
-    return this.renderer.render(this.samplePayload(type, locale, 'preview@rejectcheck.com')).html;
+    return this.renderer.render(
+      this.samplePayload(type, locale, 'preview@rejectcheck.com'),
+    ).html;
   }
 
   @Get('send')
@@ -92,7 +102,10 @@ export class EmailDevController {
   ): Promise<string> {
     this.assertAllowed(secret);
     if (!to || !TYPES.includes(type)) {
-      return resultHtml({ ok: false, msg: 'Missing or invalid email/type.' }, secret);
+      return resultHtml(
+        { ok: false, msg: 'Missing or invalid email/type.' },
+        secret,
+      );
     }
     const enabled = this.config.get<string>('EMAIL_ENABLED') === 'true';
     try {
@@ -125,7 +138,8 @@ export class EmailDevController {
 
 // ── tiny HTML helpers ────────────────────────────────────────────────────────
 
-const q = (secret: string) => (secret ? `&secret=${encodeURIComponent(secret)}` : '');
+const q = (secret: string) =>
+  secret ? `&secret=${encodeURIComponent(secret)}` : '';
 
 function shell(body: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RejectCheck · Email dev</title></head>
@@ -146,7 +160,9 @@ function indexHtml(enabled: boolean, secret: string): string {
     ? `<div style="background:rgba(34,163,80,.15);border:1px solid #22a350;color:#7be0a0;padding:12px 14px;border-radius:10px;font-size:12px;margin-bottom:28px;">EMAIL_ENABLED=true — test sends go out via Resend (needs a verified domain).</div>`
     : `<div style="background:rgba(201,58,57,.15);border:1px solid #C93A39;color:#f7b0af;padding:12px 14px;border-radius:10px;font-size:12px;margin-bottom:28px;">EMAIL_ENABLED is not "true" — test sends are LOGGED, not delivered. Previews work either way.</div>`;
 
-  const options = TYPES.map((t) => `<option value="${t}">${t}</option>`).join('');
+  const options = TYPES.map((t) => `<option value="${t}">${t}</option>`).join(
+    '',
+  );
 
   return shell(`
     <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#C93A39;margin-bottom:10px;">RejectCheck · Email dev</div>

@@ -7,7 +7,9 @@ import type { SubscriptionRepository } from '../ports/subscription.repository';
 function makeUseCase(customerId: string | null, createImpl?: jest.Mock) {
   const create =
     createImpl ??
-    jest.fn().mockResolvedValue({ url: 'https://billing.stripe.com/session/xyz' });
+    jest
+      .fn()
+      .mockResolvedValue({ url: 'https://billing.stripe.com/session/xyz' });
   const stripe = {
     billingPortal: { sessions: { create } },
   } as unknown as StripeClient;
@@ -17,7 +19,8 @@ function makeUseCase(customerId: string | null, createImpl?: jest.Mock) {
   } as unknown as jest.Mocked<SubscriptionRepository>;
 
   const config = {
-    get: (k: string) => (k === 'FRONTEND_URL' ? 'https://rejectcheck.com' : undefined),
+    get: (k: string) =>
+      k === 'FRONTEND_URL' ? 'https://rejectcheck.com' : undefined,
   } as unknown as ConfigService;
 
   return { uc: new CreatePortalSessionUseCase(stripe, repo, config), create };
@@ -26,7 +29,10 @@ function makeUseCase(customerId: string | null, createImpl?: jest.Mock) {
 describe('CreatePortalSessionUseCase', () => {
   it('opens a portal session for the resolved Stripe customer', async () => {
     const { uc, create } = makeUseCase('cus_1');
-    const res = await uc.execute({ email: 'a@b.com', returnUrl: 'https://x/y' });
+    const res = await uc.execute({
+      email: 'a@b.com',
+      returnUrl: 'https://x/y',
+    });
     expect(create).toHaveBeenCalledWith({
       customer: 'cus_1',
       return_url: 'https://x/y',
@@ -65,7 +71,9 @@ describe('CreatePortalSessionUseCase', () => {
   it('maps other Stripe errors to a 502 rather than an opaque 500', async () => {
     const create = jest
       .fn()
-      .mockRejectedValue(Object.assign(new Error('api down'), { code: 'api_error' }));
+      .mockRejectedValue(
+        Object.assign(new Error('api down'), { code: 'api_error' }),
+      );
     const { uc } = makeUseCase('cus_1', create);
     await expect(uc.execute({ email: 'a@b.com' })).rejects.toBeInstanceOf(
       BadGatewayException,

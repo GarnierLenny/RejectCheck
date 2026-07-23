@@ -31,7 +31,9 @@ export class EmailProcessor extends WorkerHost {
         tags: { queue: EMAIL_QUEUE, emailType: context.type },
       });
       const msg = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`Email job failed (type=${context.type}, to=${to}): ${msg}`);
+      this.logger.warn(
+        `Email job failed (type=${context.type}, to=${to}): ${msg}`,
+      );
       throw err;
     }
   }

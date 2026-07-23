@@ -43,7 +43,9 @@ export class EmailJobsService {
 
   private runInline(payload: EmailJobPayload): void {
     setImmediate(() => {
-      const uc = this.moduleRef.get(RenderAndSendEmailUseCase, { strict: false });
+      const uc = this.moduleRef.get(RenderAndSendEmailUseCase, {
+        strict: false,
+      });
       uc.execute(payload).catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : String(err);
         this.logger.warn(

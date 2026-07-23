@@ -261,16 +261,6 @@ model Profile {
   country             String?
   remotePreference    String? // "remote" | "hybrid" | "onsite" | "flexible"
   needsSponsorship    Boolean? // true = needs sponsorship, false = authorized, null = unanswered
-  // ProfileDigest — generated once per user by a Haiku vision call, refreshed
-  // when any source (CV hash, LinkedIn text, GitHub username, portfolio URL)
-  // changes. The digest fuses all sources into a single compact synthesis
-  // consumed by every analyze call → no need to re-process raw CV/LinkedIn/
-  // GitHub on each analysis.
-  digest              Json?
-  digestUpdatedAt     DateTime?
-  // SHA-256 hashes of each source's content, used to detect staleness
-  // without re-fetching: { cv, linkedin, githubUsername, portfolioUrl }.
-  digestSourceHashes  Json?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 

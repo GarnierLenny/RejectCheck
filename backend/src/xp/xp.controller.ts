@@ -27,10 +27,7 @@ export class XpController {
   @Get('ledger')
   @UseGuards(SupabaseGuard)
   @ApiOperation({ summary: 'Recent XP transactions for the current user' })
-  async ledger(
-    @AuthEmail() email: string,
-    @Query('limit') limit?: string,
-  ) {
+  async ledger(@AuthEmail() email: string, @Query('limit') limit?: string) {
     const lim = limit ? Math.min(200, parseInt(limit, 10) || 50) : 50;
     return this.getLedger.execute(email, lim);
   }

@@ -11,7 +11,12 @@ export type UserXpView = {
   xpInLevel: number;
   xpForNextLevel: number;
   percentToNextLevel: number;
-  next: { level: number; tier: TierKey; tierLabel: string; xpRequired: number } | null;
+  next: {
+    level: number;
+    tier: TierKey;
+    tierLabel: string;
+    xpRequired: number;
+  } | null;
   rank: number;
   totalUsers: number;
 };
@@ -25,11 +30,17 @@ export class GetUserXpUseCase {
       this.repo.getProfileXp(email),
       this.repo.getRank(email),
     ]);
-    return { ...projectXp(totalXp), rank: rank.rank, totalUsers: rank.totalUsers };
+    return {
+      ...projectXp(totalXp),
+      rank: rank.rank,
+      totalUsers: rank.totalUsers,
+    };
   }
 }
 
-export function projectXp(totalXp: number): Omit<UserXpView, 'rank' | 'totalUsers'> {
+export function projectXp(
+  totalXp: number,
+): Omit<UserXpView, 'rank' | 'totalUsers'> {
   const progress = xpProgress(totalXp);
   return {
     totalXp,

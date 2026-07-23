@@ -4,9 +4,7 @@ import { HandleRevenueCatWebhookUseCase } from './application/handle-revenuecat-
 
 @Controller('api/revenuecat')
 export class RevenueCatController {
-  constructor(
-    private readonly handleWebhook: HandleRevenueCatWebhookUseCase,
-  ) {}
+  constructor(private readonly handleWebhook: HandleRevenueCatWebhookUseCase) {}
 
   /**
    * RevenueCat webhook — authenticated by a shared secret in the Authorization

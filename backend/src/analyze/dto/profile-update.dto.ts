@@ -15,7 +15,16 @@ export const ProfileUpdateSchema = z
     socialLinks: z.array(z.string().max(500)).max(8).optional(),
     coverLetterName: z.string().optional(),
     roleType: z
-      .enum(['software', 'product', 'design', 'data', 'marketing', 'ops', 'sales', 'other'])
+      .enum([
+        'software',
+        'product',
+        'design',
+        'data',
+        'marketing',
+        'ops',
+        'sales',
+        'other',
+      ])
       .nullable()
       .optional(),
     roleTypeOther: z.string().max(60).nullable().optional(),

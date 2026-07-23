@@ -42,10 +42,7 @@ describe('computeCvReviewDeltas', () => {
   });
 
   it('diffs the ATS structural score', () => {
-    const d = computeCvReviewDeltas(
-      mk({ atsScore: 50 }),
-      mk({ atsScore: 70 }),
-    );
+    const d = computeCvReviewDeltas(mk({ atsScore: 50 }), mk({ atsScore: 70 }));
     expect(d.atsAudit).toEqual({ before: 50, after: 70, delta: 20 });
   });
 
@@ -59,7 +56,10 @@ describe('computeCvReviewDeltas', () => {
 
   it('reports zero churn when the issue set is unchanged', () => {
     const issues = [{ what: 'A' }, { what: 'B' }];
-    const d = computeCvReviewDeltas(mk({ cvIssues: issues }), mk({ cvIssues: issues }));
+    const d = computeCvReviewDeltas(
+      mk({ cvIssues: issues }),
+      mk({ cvIssues: issues }),
+    );
     expect(d.resolvedIssueCount).toBe(0);
     expect(d.newIssueCount).toBe(0);
   });
@@ -76,8 +76,16 @@ describe('computeCvReviewDeltas', () => {
     });
     const child = mk({
       cvIssues: [
-        { id: computeIssueId('impact', 'Bullets lack metrics'), category: 'impact', what: 'Bullets lack metrics' },
-        { id: computeIssueId('format', 'Inconsistent dates'), category: 'format', what: 'Inconsistent dates' },
+        {
+          id: computeIssueId('impact', 'Bullets lack metrics'),
+          category: 'impact',
+          what: 'Bullets lack metrics',
+        },
+        {
+          id: computeIssueId('format', 'Inconsistent dates'),
+          category: 'format',
+          what: 'Inconsistent dates',
+        },
       ],
     });
     const d = computeCvReviewDeltas(parent, child);
@@ -86,9 +94,16 @@ describe('computeCvReviewDeltas', () => {
   });
 
   it('still detects a genuinely resolved issue after ids are assigned', () => {
-    const parent = mk({ cvIssues: [{ category: 'impact', what: 'no metrics' }, { category: 'tone', what: 'passive voice' }] });
+    const parent = mk({
+      cvIssues: [
+        { category: 'impact', what: 'no metrics' },
+        { category: 'tone', what: 'passive voice' },
+      ],
+    });
     // child fixed the passive-voice one; assignCvReviewIssueIds stamps ids.
-    const child = mk({ cvIssues: [{ category: 'impact', what: 'no metrics' }] });
+    const child = mk({
+      cvIssues: [{ category: 'impact', what: 'no metrics' }],
+    });
     assignCvReviewIssueIds(child);
     const d = computeCvReviewDeltas(parent, child);
     expect(d.resolvedIssueCount).toBe(1); // passive voice gone
@@ -114,12 +129,24 @@ describe('computeCvReviewDeltas', () => {
         margin_note: 'note',
       },
     ];
-    const before = mk({ quality: { overall: 40, impact: 20 }, cvIssues: [{ what: 'A' }] });
-    const after = mk({ quality: { overall: 55, impact: 45 }, cvIssues: [{ what: 'B' }] });
+    const before = mk({
+      quality: { overall: 40, impact: 20 },
+      cvIssues: [{ what: 'A' }],
+    });
+    const after = mk({
+      quality: { overall: 55, impact: 45 },
+      cvIssues: [{ what: 'B' }],
+    });
     const plain = computeCvReviewDeltas(before, after);
 
-    const beforeX = { ...before, experience_analysis: experience('old finding') } as CvReviewResponse;
-    const afterX = { ...after, experience_analysis: experience('new finding') } as CvReviewResponse;
+    const beforeX = {
+      ...before,
+      experience_analysis: experience('old finding'),
+    } as CvReviewResponse;
+    const afterX = {
+      ...after,
+      experience_analysis: experience('new finding'),
+    } as CvReviewResponse;
     const withExperience = computeCvReviewDeltas(beforeX, afterX);
 
     expect(withExperience).toEqual(plain);

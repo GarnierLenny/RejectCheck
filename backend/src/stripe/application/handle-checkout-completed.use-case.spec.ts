@@ -72,7 +72,10 @@ describe('HandleCheckoutCompletedUseCase', () => {
       metadata: { plan: 'shortlisted', email: 'attacker@evil.com' },
     });
     expect(repo.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ email: 'buyer@example.com', plan: 'shortlisted' }),
+      expect.objectContaining({
+        email: 'buyer@example.com',
+        plan: 'shortlisted',
+      }),
     );
   });
 

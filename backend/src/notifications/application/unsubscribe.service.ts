@@ -46,7 +46,9 @@ export class UnsubscribeService {
   verify(token: string): string | null {
     const dot = token.lastIndexOf('.');
     if (dot < 1) return null;
-    const email = Buffer.from(token.slice(0, dot), 'base64url').toString('utf8');
+    const email = Buffer.from(token.slice(0, dot), 'base64url').toString(
+      'utf8',
+    );
     const given = token.slice(dot + 1);
     const expected = this.sign(email);
     const a = Buffer.from(given);
@@ -96,7 +98,10 @@ export class UnsubscribeService {
     if (message.category !== 'marketing') return message;
     return {
       ...message,
-      headers: { ...message.headers, ...this.listUnsubscribeHeaders(message.to) },
+      headers: {
+        ...message.headers,
+        ...this.listUnsubscribeHeaders(message.to),
+      },
     };
   }
 }

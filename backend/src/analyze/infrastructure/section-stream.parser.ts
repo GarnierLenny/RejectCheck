@@ -69,7 +69,11 @@ export class SectionStreamParser {
             this.currentKey = this.keyChars.join('');
             this.keyChars = [];
             this.expectKey = false;
-          } else if (this.depth === 1 && this.inValue && !this.valueIsComposite) {
+          } else if (
+            this.depth === 1 &&
+            this.inValue &&
+            !this.valueIsComposite
+          ) {
             // Top-level string scalar just closed.
             this.completeValue(i);
           }

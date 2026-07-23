@@ -15,7 +15,10 @@ export class GetLedgerUseCase {
   constructor(@Inject(XP_REPOSITORY) private readonly repo: XpRepository) {}
 
   async execute(email: string, limit = 50): Promise<LedgerEntryView[]> {
-    const rows = await this.repo.recentLedger(email, Math.min(200, Math.max(1, limit)));
+    const rows = await this.repo.recentLedger(
+      email,
+      Math.min(200, Math.max(1, limit)),
+    );
     return rows.map((r) => ({
       id: r.id,
       amount: r.amount,

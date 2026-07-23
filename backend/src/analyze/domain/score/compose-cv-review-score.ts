@@ -96,7 +96,9 @@ export function anchorCvQuality(
  * vs-JD risk verdict). Thresholds preserved from the prior inline mapping so the
  * frontend ScoreSidebar keeps rendering the same way.
  */
-export function deriveCvQualityVerdict(overall: number): 'Low' | 'Medium' | 'High' {
+export function deriveCvQualityVerdict(
+  overall: number,
+): 'Low' | 'Medium' | 'High' {
   // Shared bands with the vs-JD scorer and RiskMeter: Strong >= 80, Weak < 40.
   if (overall >= 80) return 'High';
   if (overall >= 40) return 'Medium';

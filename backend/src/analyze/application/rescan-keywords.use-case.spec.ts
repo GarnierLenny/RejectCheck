@@ -15,10 +15,12 @@ type Detail = {
   keywordMatch: ReturnType<typeof matchKeywords> | null;
 };
 
-function build(opts: {
-  detail?: Detail | null;
-  parsedCv?: string;
-} = {}) {
+function build(
+  opts: {
+    detail?: Detail | null;
+    parsedCv?: string;
+  } = {},
+) {
   const detail =
     opts.detail === undefined
       ? { jobDescription: JD, cvText: ORIGINAL_CV, keywordMatch: null }
@@ -27,9 +29,10 @@ function build(opts: {
   const analyses = {
     findDetailById: jest.fn().mockResolvedValue(detail),
     attachKeywordMatch: jest.fn().mockResolvedValue(undefined),
-    createRescan: jest
-      .fn()
-      .mockResolvedValue({ id: 1, createdAt: new Date('2026-07-12T00:00:00Z') }),
+    createRescan: jest.fn().mockResolvedValue({
+      id: 1,
+      createdAt: new Date('2026-07-12T00:00:00Z'),
+    }),
     listRescans: jest.fn().mockResolvedValue([
       {
         id: 1,
@@ -69,7 +72,11 @@ describe('RescanKeywordsUseCase', () => {
     expect(r.coverageDelta).toBe(75);
 
     // Baseline was null → backfilled onto the analysis.
-    expect(analyses.attachKeywordMatch).toHaveBeenCalledWith(42, 'a@b.com', expect.any(Object));
+    expect(analyses.attachKeywordMatch).toHaveBeenCalledWith(
+      42,
+      'a@b.com',
+      expect.any(Object),
+    );
     // New attempt recorded + timeline returned.
     expect(analyses.createRescan).toHaveBeenCalledWith(
       expect.objectContaining({ analysisId: 42, coverageScore: 100 }),
@@ -89,7 +96,9 @@ describe('RescanKeywordsUseCase', () => {
 
   it('throws NotFound when the analysis is not owned by the caller', async () => {
     const { uc } = build({ detail: null });
-    await expect(uc.execute(cmd)).rejects.toBeInstanceOf(AnalysisNotFoundException);
+    await expect(uc.execute(cmd)).rejects.toBeInstanceOf(
+      AnalysisNotFoundException,
+    );
   });
 
   it('rejects an analysis with no job description (CV-review rows)', async () => {

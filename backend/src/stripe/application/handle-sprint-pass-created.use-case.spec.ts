@@ -10,7 +10,11 @@ function makeUseCase() {
     upsert: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<SubscriptionRepository>;
   const analytics = { capture: jest.fn() };
-  return { uc: new HandleSprintPassCreatedUseCase(repo, analytics), repo, analytics };
+  return {
+    uc: new HandleSprintPassCreatedUseCase(repo, analytics),
+    repo,
+    analytics,
+  };
 }
 
 const validSession = {

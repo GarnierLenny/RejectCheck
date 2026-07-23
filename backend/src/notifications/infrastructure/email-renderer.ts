@@ -84,7 +84,18 @@ export class EmailRenderer {
 
     const subject = SUBJECTS[locale][context.type];
     const unsubUrl = this.unsubscribe.unsubscribeUrl(to);
-    const html = wrapEmail({ base, locale, s, eyebrow, heading, body, ctaLabel, ctaUrl, subNote, unsubUrl });
+    const html = wrapEmail({
+      base,
+      locale,
+      s,
+      eyebrow,
+      heading,
+      body,
+      ctaLabel,
+      ctaUrl,
+      subNote,
+      unsubUrl,
+    });
     const text = `${heading}\n\n${stripTags(body)}\n\n${ctaLabel}: ${ctaUrl}`;
 
     return {
@@ -100,7 +111,10 @@ export class EmailRenderer {
 }
 
 function stripTags(html: string): string {
-  return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // ── Email shell (header + body + footer), ported from the design handoff ─────
@@ -197,10 +211,20 @@ ${social}
 
 // ── Copy (FR/EN) ─────────────────────────────────────────────────────────────
 
-type BodyCopy = { eyebrow: string; heading: string; body: string; cta: string; subNote: string };
+type BodyCopy = {
+  eyebrow: string;
+  heading: string;
+  body: string;
+  cta: string;
+  subNote: string;
+};
 type Strings = {
-  welcome: Omit<BodyCopy, 'heading'> & { heading: (n?: string | null) => string };
-  analysisReady: Omit<BodyCopy, 'body'> & { body: (role?: string | null) => string };
+  welcome: Omit<BodyCopy, 'heading'> & {
+    heading: (n?: string | null) => string;
+  };
+  analysisReady: Omit<BodyCopy, 'body'> & {
+    body: (role?: string | null) => string;
+  };
   dripD1: BodyCopy;
   dripD3: BodyCopy;
   footer: {
@@ -213,7 +237,10 @@ type Strings = {
   };
 };
 
-const SUBJECTS: Record<EmailLocale, Record<EmailJobPayload['context']['type'], string>> = {
+const SUBJECTS: Record<
+  EmailLocale,
+  Record<EmailJobPayload['context']['type'], string>
+> = {
   fr: {
     welcome: 'Bienvenue sur RejectCheck',
     analysis_ready: 'Ton analyse approfondie est prête',

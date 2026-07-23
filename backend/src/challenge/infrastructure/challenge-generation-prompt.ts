@@ -31,8 +31,7 @@ export function buildChallengePrompt(
   focusTag: FocusTag,
   difficulty: Difficulty,
 ): string {
-  return DEFAULT_CHALLENGE_GENERATION_PROMPT
-    .replaceAll('{language}', language)
+  return DEFAULT_CHALLENGE_GENERATION_PROMPT.replaceAll('{language}', language)
     .replaceAll('{language_hint}', LANGUAGE_HINTS[language])
     .replaceAll('{focus_tag}', focusTag)
     .replaceAll('{focus_description}', FOCUS_TAG_DESCRIPTIONS[focusTag])
@@ -131,4 +130,3 @@ export function validateGenerated(gen: GeneratedChallenge): void {
     }
   }
 }
-

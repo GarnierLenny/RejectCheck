@@ -64,7 +64,10 @@ export class RenderAndSendEmailUseCase {
       const msg = err instanceof Error ? err.message : String(err);
       if (dedupeKey) {
         await this.prisma.emailLog
-          .update({ where: { dedupeKey }, data: { status: 'failed', error: msg } })
+          .update({
+            where: { dedupeKey },
+            data: { status: 'failed', error: msg },
+          })
           .catch(() => undefined);
       }
       throw err;

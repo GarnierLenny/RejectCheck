@@ -59,7 +59,9 @@ export interface EmailJobPayload {
 
 /** Drips are marketing (opt-out); everything else is transactional. */
 export function emailCategoryOf(type: EmailType): EmailCategory {
-  return type === 'drip_d1' || type === 'drip_d3' ? 'marketing' : 'transactional';
+  return type === 'drip_d1' || type === 'drip_d3'
+    ? 'marketing'
+    : 'transactional';
 }
 
 /**

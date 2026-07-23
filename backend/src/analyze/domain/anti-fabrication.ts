@@ -42,7 +42,7 @@ export function stripFabricatedNumbers<T extends string | null | undefined>(
     const d = digitsOf(m[0]);
     if (d) sourceNums.add(d);
   }
-  return (text as string).replace(NUM_TOKEN, (tok) => {
+  return text.replace(NUM_TOKEN, (tok) => {
     const d = digitsOf(tok);
     if (!d || sourceNums.has(d)) return tok;
     return tok.trim().endsWith('%') ? '[X]%' : '[X]';

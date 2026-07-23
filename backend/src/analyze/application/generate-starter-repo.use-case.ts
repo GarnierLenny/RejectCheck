@@ -21,7 +21,8 @@ export class GenerateStarterRepoUseCase {
     email: string,
   ): Promise<{ repo: StarterRepo; projectName: string }> {
     const stored = await this.analyses.findById(analysisId, email);
-    if (!stored || !stored.result) throw new AnalysisNotFoundException(analysisId);
+    if (!stored || !stored.result)
+      throw new AnalysisNotFoundException(analysisId);
 
     const merged = stored.deepAnalysis
       ? mergeHotAndDeep(stored.result, stored.deepAnalysis as never)
