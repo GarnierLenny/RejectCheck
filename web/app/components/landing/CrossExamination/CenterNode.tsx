@@ -16,16 +16,60 @@ type CenterNodeProps = {
   resolved?: boolean;
 };
 
+/* The closing line of the whole sequence. Desktop anchors it in diagram
+   coordinates below the engine; mobile drops it in flow under the resolved
+   engine. Scroll-driven when `progress` is given, lit when `resolved`. */
+export function VerdictChip({
+  progress,
+  resolved = false,
+  children,
+}: {
+  progress?: MotionValue<number>;
+  resolved?: boolean;
+  children: React.ReactNode;
+}) {
+  const idle = useMotionValue(1);
+  const p = progress ?? idle;
+  const opacity = useTransform(p, [...TIMELINE.verdict], [0, 1]);
+  const y = useTransform(p, [...TIMELINE.verdict], [8, 0]);
+  return (
+    <motion.div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 7,
+        padding: "5px 12px",
+        borderRadius: 999,
+        background: "linear-gradient(0deg, var(--rc-green-bg), var(--rc-green-bg)), var(--rc-surface)",
+        border: "1px solid var(--rc-green-border)",
+        color: "var(--rc-green)",
+        fontFamily: "var(--font-mono)",
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        whiteSpace: "nowrap",
+        opacity: progress ? opacity : resolved ? 1 : 0,
+        y: progress ? y : 0,
+        willChange: "transform, opacity",
+      }}
+    >
+      ✓ {children}
+    </motion.div>
+  );
+}
+
 const SHADOW_IDLE = "0 18px 50px -14px rgba(26,25,23,0.28)";
-/* Warms through red as the engine cross-examines, then deepens as it lands. */
+/* Warms through red as the engine cross-examines, then clears to green as
+   the fixes land. */
 const SHADOW_BUSY = "0 18px 60px -12px rgba(201,58,57,0.42)";
-const SHADOW_DONE = "0 18px 64px -10px rgba(201,58,57,0.55)";
+const SHADOW_DONE = "0 18px 60px -12px rgba(34,163,80,0.38)";
 
 export function CenterNode({ progress, pulse = false, size = 112, point, resolved = false }: CenterNodeProps) {
   const idle = useMotionValue(1);
   const p = progress ?? idle;
 
-  /* A kick on each scan it fires, then a bump as the sources report back. */
+  /* A kick on each scan it fires, then a bump as the verdict lands. */
   const scanKeyframes = TIMELINE.scan.flatMap(([s]) => [s, s + 0.018, s + 0.038]);
   const scanScales = TIMELINE.scan.flatMap(() => [1, 1.06, 1]);
   const emitScale = useTransform(
@@ -35,17 +79,17 @@ export function CenterNode({ progress, pulse = false, size = 112, point, resolve
   );
   const boxShadow = useTransform(
     p,
-    [0.33, 0.52, 0.7, TIMELINE.spark[1]],
+    [0.33, 0.52, TIMELINE.centerClear[0], TIMELINE.centerClear[1]],
     [SHADOW_IDLE, SHADOW_BUSY, SHADOW_BUSY, SHADOW_DONE],
   );
   const borderColor = useTransform(
     p,
-    [0.68, TIMELINE.spark[1]],
-    ["rgba(212,207,201,1)", "rgba(201,58,57,0.55)"],
+    [0.33, 0.52, TIMELINE.centerClear[0], TIMELINE.centerClear[1]],
+    ["rgba(212,207,201,1)", "rgba(201,58,57,0.55)", "rgba(201,58,57,0.55)", "rgba(34,163,80,0.5)"],
   );
 
-  /* The spark: a red glow that blooms out from behind the node as the last
-     source reports in. */
+  /* The all-clear: a green glow blooming out from behind the node as the
+     last source reports back fixed. */
   const sparkOpacity = useTransform(p, [...TIMELINE.spark], [0, 1]);
   const sparkScale = useTransform(p, [...TIMELINE.spark], [0.55, 1.15]);
 
@@ -63,7 +107,7 @@ export function CenterNode({ progress, pulse = false, size = 112, point, resolve
           marginTop: -size * 1.3,
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(201,58,57,0.42) 0%, rgba(201,58,57,0.18) 42%, rgba(201,58,57,0) 70%)",
+            "radial-gradient(circle, rgba(34,163,80,0.30) 0%, rgba(34,163,80,0.12) 42%, rgba(34,163,80,0) 70%)",
           filter: "blur(10px)",
           pointerEvents: "none",
           opacity: progress ? sparkOpacity : resolved ? 1 : 0,
@@ -82,7 +126,7 @@ export function CenterNode({ progress, pulse = false, size = 112, point, resolve
           background: "var(--rc-surface)",
           borderWidth: 1,
           borderStyle: "solid",
-          borderColor: progress ? borderColor : resolved ? "rgba(201,58,57,0.55)" : "var(--rc-border)",
+          borderColor: progress ? borderColor : resolved ? "rgba(34,163,80,0.5)" : "var(--rc-border)",
           display: "grid",
           placeItems: "center",
           boxShadow: progress ? boxShadow : resolved ? SHADOW_DONE : SHADOW_IDLE,

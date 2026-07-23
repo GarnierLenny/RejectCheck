@@ -162,8 +162,9 @@ export function CrossExamination() {
      page scroll, ignoring the target offsets (wrong timing for every
      downstream useTransform). */
   const trackedProgress = useTransform(scrollYProgress, (v: number) => v);
-  /* Reduced motion: no pin, no drawing, just the resolved end state — every
-     line drawn, the sources reporting back in green, the spark lit. */
+  /* Reduced motion: no pin, no drawing, just the resolved end state — the
+     contradictions struck out in green, scores at their fixed values, the
+     verdict chip lit under the engine. */
   const staticProgress = useMotionValue(1);
   const progress = reduce ? staticProgress : trackedProgress;
   const nearViewport = useInView(pinRef, { margin: "600px 0px" });
@@ -191,7 +192,7 @@ export function CrossExamination() {
           <div style={{ marginBottom: "clamp(18px, 3vh, 36px)" }}>
             <SectionHead cx={cx} align="center" />
           </div>
-          <DiagramDesktop progress={progress} ambient={nearViewport && !reduce} />
+          <DiagramDesktop progress={progress} ambient={nearViewport && !reduce} verdict={cx.verdict} />
           <StepRail progress={progress} cx={cx} reduce={reduce} />
         </div>
       </div>

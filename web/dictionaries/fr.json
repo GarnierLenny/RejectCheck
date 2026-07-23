@@ -387,7 +387,8 @@
       "step2Num": "Étape 2",
       "step2Text": "On confronte",
       "step3Num": "Étape 3",
-      "step3Text": "Vous corrigez avant eux"
+      "step3Text": "Vous corrigez avant eux",
+      "verdict": "5 sources · une seule histoire"
     },
     "s02": {
       "smallLabel": "La méthode",

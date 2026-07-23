@@ -183,15 +183,28 @@ export const TIMELINE = {
   flashFor: (drawStart: number): [number, number] => [drawStart, drawStart + 0.042],
   labelFor: ([s, e]: [number, number]): [number, number] => [s + (e - s) * 0.62, e + 0.01],
   highlightFor: (drawStart: number): number => drawStart + 0.02,
-  /* Phase 3 — the sources report back to the engine. The red findings recede,
-     blue spokes redraw inward one after another, and the green spark blooms
-     behind the engine as the last one lands. */
-  dim: [0.7, 0.78] as const,
+  /* The camera pushes toward each finding as it is filed: scale rises with
+     the draw, holds, and settles back to 1 in the dead space before the next
+     window opens (origin switches are invisible while scale is 1). */
+  push: (i: number): [number, number, number, number] => {
+    const [s, e] = TIMELINE.mismatchDraw[i];
+    return [s, s + 0.04, e - 0.01, e + 0.01];
+  },
+  /* Phase 3 — the fix, acted out. Each contradiction is struck out one at a
+     time (arc retracts, pill flips to a green resolved record), the sources
+     re-report in green with their scores climbing to the fixed values, and
+     the engine turns from red alarm to green verdict. */
+  dim: [0.7, 0.76] as const,
   dimmedOpacity: 0.45,
-  reportDraw: (i: number): [number, number] => [0.74 + i * 0.03, 0.83 + i * 0.03],
-  reportFlow: [0.78, 0.84, 0.98, 1] as const,
-  spark: [0.83, 0.95] as const,
-  emit: [0.86, 0.92, 0.98] as const,
+  fix: (i: number): [number, number] => [0.715 + i * 0.06, 0.775 + i * 0.06],
+  reportDraw: (i: number): [number, number] => [0.73 + i * 0.028, 0.81 + i * 0.028],
+  /** Window in which a source's score climbs to its resolved value. */
+  scoreUp: (i: number): [number, number] => [0.79 + i * 0.028, 0.86 + i * 0.028],
+  reportFlow: [0.76, 0.82, 0.98, 1] as const,
+  centerClear: [0.87, 0.95] as const,
+  spark: [0.87, 0.96] as const,
+  verdict: [0.93, 0.98] as const,
+  emit: [0.9, 0.94, 0.98] as const,
   steps: {
     oneOut: [0.3, 0.355] as const,
     two: [0.355, 0.385, 0.66, 0.71] as const,

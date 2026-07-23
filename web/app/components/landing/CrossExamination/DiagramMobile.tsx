@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { CenterNode } from "./CenterNode";
+import { CenterNode, VerdictChip } from "./CenterNode";
 import { MISMATCHES, SOURCES, SourcePlate, sourceName } from "./SourceNode";
 
 const riseProps = (reduce: boolean, delay = 0) => ({
@@ -79,7 +79,7 @@ function MobileMismatchCard({ pair, label, reduce }: { pair: string; label: stri
 
 type DiagramMobileProps = {
   reduce: boolean;
-  cx: { step3Num: string; step3Text: string };
+  cx: { step3Num: string; step3Text: string; verdict: string };
 };
 
 /* Vertical fallback: the circular hub does not work under 768px. Nodes stack
@@ -124,8 +124,9 @@ export function DiagramMobile({ reduce, cx }: DiagramMobileProps) {
 
       {/* Every source reports back to the engine, resolved. */}
       <motion.div {...riseProps(reduce)} style={{ display: "grid", justifyItems: "center", gap: 14, marginTop: 22 }}>
-        <div aria-hidden style={{ width: 1, height: 34, background: "linear-gradient(var(--rc-border), var(--rc-blue))" }} />
+        <div aria-hidden style={{ width: 1, height: 34, background: "linear-gradient(var(--rc-border), var(--rc-green))" }} />
         <CenterNode size={92} resolved />
+        <VerdictChip resolved>{cx.verdict}</VerdictChip>
         <div
           style={{
             display: "inline-flex",

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -197,10 +197,52 @@ function DashboardContent() {
   }, [authLoading, user, profile, router, localePath]);
 
   useEffect(() => {
-    if (searchParams.get("success") === "true") setShowSuccessModal(true);
     if (searchParams.get("credit_success") === "true") {
       queryClient.invalidateQueries({ queryKey: ["quota"] });
     }
+  }, [searchParams, queryClient]);
+
+  // Just paid. Stored analyses are always complete server-side and redacted
+  // per the requester's current plan on read, so an upgrade must unlock every
+  // past analysis with no hard refresh. Two things otherwise prevent that:
+  // the Stripe webhook that flips the subscription to active may not have
+  // landed when the customer returns, and useAnalysis caches with
+  // staleTime: Infinity. So poll the subscription until it reports active
+  // (bounded), then invalidate every plan-shaped cache — invalidation forces a
+  // refetch regardless of staleTime.
+  const upgradeHandled = useRef(false);
+  useEffect(() => {
+    if (searchParams.get("success") !== "true" || upgradeHandled.current) return;
+    upgradeHandled.current = true;
+    setShowSuccessModal(true);
+
+    let cancelled = false;
+    let tries = 0;
+    const MAX_TRIES = 10;
+    const unlock = () => {
+      queryClient.invalidateQueries({ queryKey: ["analysis"] });
+      queryClient.invalidateQueries({ queryKey: ["analysis-history"] });
+      queryClient.invalidateQueries({ queryKey: ["quota"] });
+      queryClient.invalidateQueries({ queryKey: ["entitlement"] });
+    };
+    const poll = async () => {
+      if (cancelled) return;
+      tries += 1;
+      await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      if (cancelled) return;
+      const active = queryClient
+        .getQueriesData<{ status?: string } | null>({ queryKey: ["subscription"] })
+        .some(([, data]) => data?.status === "active");
+      if (active || tries >= MAX_TRIES) {
+        unlock();
+        return;
+      }
+      setTimeout(poll, 1500);
+    };
+    poll();
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams, queryClient]);
 
   useEffect(() => {

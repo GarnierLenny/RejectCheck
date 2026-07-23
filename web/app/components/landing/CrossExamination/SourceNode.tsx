@@ -10,13 +10,14 @@ import { type DiagramPoint, type SourceKey } from "./useDiagramLayout";
    (HERO_DIVERGENCES et al. in the landing page). */
 /* Scores track the contradiction count so a careful reader is not caught out:
    Portfolio is clean, LinkedIn and Cover letter carry one each, CV and GitHub
-   two. */
-export const SOURCES: Array<{ key: SourceKey; name: string; score: number; icon: ReactNode }> = [
-  { key: "cv", name: "CV", score: 58, icon: <FileText size={15} strokeWidth={1.8} /> },
-  { key: "linkedin", name: "LinkedIn", score: 74, icon: <LinkedinIcon size={14} /> },
-  { key: "github", name: "GitHub", score: 43, icon: <GithubIcon size={15} /> },
-  { key: "portfolio", name: "Portfolio", score: 88, icon: <Globe size={15} strokeWidth={1.8} /> },
-  { key: "cover", name: "Cover letter", score: 69, icon: <Mail size={15} strokeWidth={1.8} /> },
+   two. `resolved` is where each lands once the contradictions are fixed in
+   phase 3 — the climb mirrors the contradiction count too. */
+export const SOURCES: Array<{ key: SourceKey; name: string; score: number; resolved: number; icon: ReactNode }> = [
+  { key: "cv", name: "CV", score: 58, resolved: 91, icon: <FileText size={15} strokeWidth={1.8} /> },
+  { key: "linkedin", name: "LinkedIn", score: 74, resolved: 93, icon: <LinkedinIcon size={14} /> },
+  { key: "github", name: "GitHub", score: 43, resolved: 88, icon: <GithubIcon size={15} /> },
+  { key: "portfolio", name: "Portfolio", score: 88, resolved: 95, icon: <Globe size={15} strokeWidth={1.8} /> },
+  { key: "cover", name: "Cover letter", score: 69, resolved: 90, icon: <Mail size={15} strokeWidth={1.8} /> },
 ];
 
 export const MISMATCHES: Array<{ from: SourceKey; to: SourceKey; bow: number; label: string }> = [
@@ -32,9 +33,13 @@ export const sourceName = (key: SourceKey) => SOURCES.find((s) => s.key === key)
 const BORDER = "#d4cfc9";
 const GUTTER = "#fafaf9";
 const HINT = "#6b6860";
+const INK = "#1a1917";
 const RED = "#C93A39";
 const RED_WASH = "rgba(201,58,57,0.07)";
 const RED_RULE = "rgba(201,58,57,0.22)";
+const GREEN = "#22a350";
+const GREEN_WASH = "rgba(34,163,80,0.08)";
+const GREEN_RULE = "rgba(34,163,80,0.3)";
 
 /* ─── The plate ───────────────────────────────────────────────────────────
    A caption on a type-specimen sheet rather than a UI card: a tinted first
@@ -163,16 +168,20 @@ type SourceNodeProps = {
   name: string;
   icon: ReactNode;
   score: number;
+  /** Score once the contradictions touching this source are fixed. */
+  resolved: number;
   point: DiagramPoint;
   progress: MotionValue<number>;
   appear: [number, number];
   /** Window in which this source's score counts up, between phase 1 and 2. */
   scoreIn: [number, number];
+  /** Phase-3 window in which the plate clears: green flash, score climbs. */
+  clearIn: [number, number];
   /** Flash windows, one per contradiction line touching this node. */
   flashes: Array<[number, number]>;
 };
 
-export function SourceNode({ name, icon, score, point, progress, appear, scoreIn, flashes }: SourceNodeProps) {
+export function SourceNode({ name, icon, score, resolved, point, progress, appear, scoreIn, clearIn, flashes }: SourceNodeProps) {
   /* Plates stay fully opaque once in: translucent, the spokes running
      underneath show through the plate's own text. */
   const opacity = useTransform(progress, appear, [0, 1]);
@@ -218,6 +227,21 @@ export function SourceNode({ name, icon, score, point, progress, appear, scoreIn
     frames.shakeTo.push(0, -1.5, 1.5, -1, 0.5, 0);
   }
 
+  /* Phase 3: the clearing flash. Same grammar as the accusation flash, in
+     green, and this time the leader latches green — the filed record flips
+     from "contradiction found" to "contradiction fixed". */
+  const c = clearIn[0];
+  frames.border.at.push(c, c + 0.006, c + 0.035, c + 0.05);
+  frames.border.to.push(BORDER, GREEN, GREEN, BORDER);
+  frames.gutterBg.at.push(c, c + 0.006, c + 0.035, c + 0.05);
+  frames.gutterBg.to.push(GUTTER, GREEN_WASH, GREEN_WASH, GUTTER);
+  frames.gutterRule.at.push(c, c + 0.006, c + 0.035, c + 0.05);
+  frames.gutterRule.to.push(BORDER, GREEN_RULE, GREEN_RULE, BORDER);
+  frames.icon.at.push(c, c + 0.006, c + 0.035, c + 0.05);
+  frames.icon.to.push(HINT, GREEN, GREEN, HINT);
+  frames.leader.at.push(c, c + 0.01);
+  frames.leader.to.push(flashes.length ? RED : BORDER, GREEN);
+
   const borderColor = useTransform(progress, frames.border.at, frames.border.to);
   const gutterBg = useTransform(progress, frames.gutterBg.at, frames.gutterBg.to);
   const gutterRule = useTransform(progress, frames.gutterRule.at, frames.gutterRule.to);
@@ -227,10 +251,18 @@ export function SourceNode({ name, icon, score, point, progress, appear, scoreIn
   const x = useTransform(progress, frames.shakeAt, frames.shakeTo);
 
   /* Rendered as a MotionValue child so the count-up writes straight to the
-     DOM node instead of re-rendering React on every scroll frame. */
-  const counted = useTransform(progress, scoreIn, [0, score], { clamp: true });
+     DOM node instead of re-rendering React on every scroll frame. Counts up
+     to the audited score in phase 1, then climbs to the resolved score as
+     the plate clears in phase 3, the number turning green as it moves. */
+  const counted = useTransform(
+    progress,
+    [scoreIn[0], scoreIn[1], clearIn[0], clearIn[1]],
+    [0, score, score, resolved],
+    { clamp: true },
+  );
   const scoreText = useTransform(counted, (v) => String(Math.round(v)));
   const scoreOpacity = useTransform(progress, [scoreIn[0], scoreIn[0] + 0.012], [0, 1]);
+  const scoreColor = useTransform(progress, [clearIn[0], clearIn[0] + 0.02], [INK, GREEN]);
 
   return (
     <div
@@ -264,7 +296,7 @@ export function SourceNode({ name, icon, score, point, progress, appear, scoreIn
             <span style={labelStyle}>{name}</span>
             <motion.div style={{ ...leaderStyle, backgroundColor: leaderColor }} />
             <motion.span style={{ ...scoreStyle, opacity: scoreOpacity }}>
-              <motion.span style={scoreNumStyle}>{scoreText}</motion.span>
+              <motion.span style={{ ...scoreNumStyle, color: scoreColor }}>{scoreText}</motion.span>
               <span style={scoreOutOfStyle}>/100</span>
             </motion.span>
           </div>

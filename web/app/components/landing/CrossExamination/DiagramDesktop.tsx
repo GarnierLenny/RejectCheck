@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useTime, useTransform, type MotionValue } from "framer-motion";
-import { CenterNode } from "./CenterNode";
+import { CenterNode, VerdictChip } from "./CenterNode";
 import { MismatchLine } from "./MismatchLine";
 import { MISMATCHES, SOURCES, SourceNode } from "./SourceNode";
 import {
@@ -91,17 +91,18 @@ function ScanPulse({ index, center, progress }: { index: number; center: Diagram
   );
 }
 
-/* Phase 3: each source reports its cleared result back to the engine. Drawn
-   from the node inward so the motion reads as delivery, not broadcast. */
+/* Phase 3: each source reports its cleared result back to the engine, in
+   green now that its record is fixed. Drawn from the node inward so the
+   motion reads as delivery, not broadcast. */
 function ReportSpoke({ from, to, index, progress }: { from: DiagramPoint; to: DiagramPoint; index: number; progress: MotionValue<number> }) {
   const draw = TIMELINE.reportDraw(index);
   const pathLength = useTransform(progress, draw, [0, 1]);
-  const opacity = useTransform(progress, [draw[0], draw[0] + 0.005], [0, 1]);
+  const opacity = useTransform(progress, [draw[0], draw[0] + 0.005], [0, 0.8]);
   return (
     <motion.path
       d={`M ${from.x} ${from.y} L ${to.x} ${to.y}`}
       fill="none"
-      stroke="var(--rc-blue)"
+      stroke="var(--rc-green)"
       strokeWidth={1.75}
       strokeLinecap="round"
       vectorEffect="non-scaling-stroke"
@@ -167,9 +168,11 @@ type DiagramDesktopProps = {
   /** Time-based ambient animations (flow dots, cross-talk, engine pulse);
       parent turns this off when off-screen or reduced motion. */
   ambient: boolean;
+  /** Closing line under the engine once every contradiction is fixed. */
+  verdict: string;
 };
 
-export function DiagramDesktop({ progress, ambient }: DiagramDesktopProps) {
+export function DiagramDesktop({ progress, ambient, verdict }: DiagramDesktopProps) {
   const layout = useDiagramLayout();
   const dotsOpacity = useTransform(progress, [...TIMELINE.dotsWindow], [0, 1, 1, 0]);
   const meshTalkOpacity = useTransform(progress, [...TIMELINE.meshTalk], [0, 0.85, 0.85, 0]);
@@ -178,6 +181,23 @@ export function DiagramDesktop({ progress, ambient }: DiagramDesktopProps) {
   const time = useTime();
 
   const meshGeometries = MESH_PAIRS.map((p) => layout.arc(p.from, p.to, p.bow));
+  const mismatchGeometries = MISMATCHES.map((m) => layout.arc(m.from, m.to, m.bow));
+
+  /* The camera pushes toward each finding as it is filed, and settles back
+     to 1 in the dead space between findings. The origin only switches while
+     the scale sits at 1, so the jump is invisible. */
+  const pushTimes = MISMATCHES.flatMap((_, i) => [...TIMELINE.push(i)]);
+  const pushScales = MISMATCHES.flatMap(() => [1, 1.04, 1.04, 1]);
+  const pushScale = useTransform(progress, pushTimes, pushScales);
+  const pushOrigins = mismatchGeometries.map(
+    (g) => `${g.labelPoint.leftPct}% ${g.labelPoint.topPct}%`,
+  );
+  const pushOrigin = useTransform(progress, (v: number) => {
+    for (let i = MISMATCHES.length - 1; i > 0; i--) {
+      if (v >= (TIMELINE.push(i - 1)[3] + TIMELINE.push(i)[0]) / 2) return pushOrigins[i];
+    }
+    return pushOrigins[0];
+  });
 
   const flashesByKey: Record<SourceKey, Array<[number, number]>> = {
     cv: [], linkedin: [], github: [], portfolio: [], cover: [],
@@ -199,6 +219,15 @@ export function DiagramDesktop({ progress, ambient }: DiagramDesktopProps) {
         flexShrink: 1,
       }}
     >
+      <motion.div
+        style={{
+          position: "absolute",
+          inset: 0,
+          scale: pushScale,
+          transformOrigin: pushOrigin,
+          willChange: "transform",
+        }}
+      >
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="none"
@@ -238,7 +267,7 @@ export function DiagramDesktop({ progress, ambient }: DiagramDesktopProps) {
                 from={layout.nodes[s.key]}
                 to={layout.center}
                 delay={i * 0.22}
-                color="var(--rc-blue)"
+                color="var(--rc-green)"
                 r={3.4}
               />
             ))}
@@ -259,9 +288,10 @@ export function DiagramDesktop({ progress, ambient }: DiagramDesktopProps) {
       {MISMATCHES.map((m, i) => (
         <MismatchLine
           key={`${m.from}-${m.to}`}
-          geometry={layout.arc(m.from, m.to, m.bow)}
+          geometry={mismatchGeometries[i]}
           label={m.label}
           draw={TIMELINE.mismatchDraw[i]}
+          fix={TIMELINE.fix(i)}
           progress={progress}
         />
       ))}
@@ -271,14 +301,32 @@ export function DiagramDesktop({ progress, ambient }: DiagramDesktopProps) {
           name={s.name}
           icon={s.icon}
           score={s.score}
+          resolved={s.resolved}
           point={layout.nodes[s.key]}
           progress={progress}
           appear={TIMELINE.nodeAppear(i)}
           scoreIn={TIMELINE.scoreIn(i)}
+          clearIn={TIMELINE.scoreUp(i)}
           flashes={flashesByKey[s.key]}
         />
       ))}
       <CenterNode progress={progress} pulse={ambient} point={layout.center} />
+      {/* The verdict lands in the quiet band between the resolved
+          cover↔github record and the portfolio plate, anchored in diagram
+          units so it tracks the layout at any container size. */}
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: `${(492 / VIEW_H) * 100}%`,
+          transform: "translate(-50%, -50%)",
+          zIndex: 4,
+          pointerEvents: "none",
+        }}
+      >
+        <VerdictChip progress={progress}>{verdict}</VerdictChip>
+      </div>
+      </motion.div>
     </div>
   );
 }
