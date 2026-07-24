@@ -10,6 +10,7 @@ import { EnqueueEmailUseCase } from './application/enqueue-email.use-case';
 import { ScheduleDripsUseCase } from './application/schedule-drips.use-case';
 import { UnsubscribeService } from './application/unsubscribe.service';
 import { DripSchedulerCron } from './infrastructure/drip-scheduler.cron';
+import { StaleApplicationCron } from './infrastructure/stale-application.cron';
 import { EmailDevController } from './email-dev.controller';
 import { UnsubscribeController } from './unsubscribe.controller';
 import { EMAIL_SENDER } from './ports/tokens';
@@ -52,6 +53,7 @@ const workers = QUEUE_ENABLED ? [EmailProcessor] : [];
     ScheduleDripsUseCase,
     UnsubscribeService,
     DripSchedulerCron,
+    StaleApplicationCron,
     ...workers,
   ],
   // EnqueueEmailUseCase + ScheduleDripsUseCase are the public API. EMAIL_SENDER

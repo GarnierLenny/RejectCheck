@@ -38,6 +38,18 @@ type Props = {
   result?: AnalysisResult | null;
   /** Reconstructed CV text, the base the inline edits are applied to. */
   cvText?: string | null;
+  /**
+   * Controlled draft state, owned by AnalysisLayout so the left-hand source
+   * document renders the very same draft the user is editing here.
+   */
+  draft?: {
+    text: string;
+    added: ReadonlySet<string>;
+    edits: Record<string, string>;
+    onToggleKeyword: (term: string) => void;
+    onEditBullet: (original: string, text: string) => void;
+    onProjectedRiskChange?: (risk: number) => void;
+  } | null;
 };
 
 type FullPayload = {
@@ -52,7 +64,7 @@ type FullPayload = {
   code?: string;
 };
 
-export function RescanPanel({ analysisId, accessToken, result = null, cvText = null }: Props) {
+export function RescanPanel({ analysisId, accessToken, result = null, cvText = null, draft = null }: Props) {
   const { t, localePath } = useLanguage();
   const rt = t.analysisLayout.rescan;
 
@@ -270,15 +282,19 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
       {/* Inline optimize loop (move 4): live projected score from keyword +
           bullet edits, committed via rescan-inline. Needs the owned result
           (breakdown/penalties) and the reconstructed CV text. */}
-      {result?.breakdown && cvText && match && match.keywords.length > 0 && (
+      {result?.breakdown && cvText && draft && match && match.keywords.length > 0 && (
         <InlineOptimize
           result={result}
           keywords={match.keywords}
-          cvText={cvText}
           busy={fullBusy}
           onCommit={runInlineRescan}
           ro={rt.optimize}
-          analysisId={analysisId}
+          added={draft.added}
+          edits={draft.edits}
+          onToggleKeyword={draft.onToggleKeyword}
+          onEditBullet={draft.onEditBullet}
+          draft={draft.text}
+          onProjectedRiskChange={draft.onProjectedRiskChange}
         />
       )}
 

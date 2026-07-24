@@ -2700,7 +2700,11 @@
         "paidNote": "Runs a full re-scan · counts as one analysis",
         "skillsLine": "Additional skills",
         "applySuggestion": "Apply suggestion",
-        "creditNote": "· 1 credit"
+        "creditNote": "· 1 credit",
+        "change": "change",
+        "changes": "changes",
+        "stickyEyebrow": "Competitiveness",
+        "stickyJump": "Optimize"
       }
     },
     "tabs": {

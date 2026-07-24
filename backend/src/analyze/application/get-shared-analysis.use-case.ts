@@ -5,6 +5,7 @@ import type { ProfileRepository } from '../ports/profile.repository';
 import { mergeHotAndDeep } from '../dto/analyze-response.dto';
 import type { AnalyzeResponse } from '../dto/analyze-response.dto';
 import { shapeStoredResultForPlan } from '../domain/analysis-shaper';
+import { deriveRescanImprovement } from '../domain/score/rescan-improvement';
 
 export type SharedAnalysis = {
   id: number;
@@ -22,6 +23,14 @@ export type SharedAnalysis = {
   liFileUrl: string | null;
   coverLetter: string | null;
   mlFileUrl: string | null;
+  /**
+   * Rejection risk of the analysis this one improves on, when the gain is real
+   * and verified (see deriveRescanImprovement). Null means "no before/after":
+   * either this is not a re-scan, nothing improved, or the two scores are not
+   * comparable. The share card renders a plain score in that case, never a
+   * fabricated delta.
+   */
+  improvedFromScore: number | null;
 };
 
 @Injectable()
@@ -38,6 +47,17 @@ export class GetSharedAnalysisUseCase {
     if (detail.result && detail.deepAnalysis) {
       detail.result = mergeHotAndDeep(detail.result, detail.deepAnalysis);
     }
+
+    // MUST run before plan-shaping: shaping strips paid sections, and the anchor
+    // check re-derives the score from the full payload (bullet reviews and audit
+    // issues among them). Against a shaped result it would under-count hard
+    // signals, fail to reproduce, and silently reject every genuine improvement.
+    // Both sides are raw here; the parent is never shaped.
+    const improvedFromScore = deriveRescanImprovement(
+      detail.result,
+      detail.parentResult,
+    );
+
     // Public share links are always shaped free, whatever the owner's plan —
     // this both protects paid content and strips negotiation entirely.
     if (detail.result) {
@@ -71,6 +91,7 @@ export class GetSharedAnalysisUseCase {
       // the HIRED-generated one. Prefer whichever the owner has.
       coverLetter: detail.coverLetter ?? detail.motivationLetter,
       mlFileUrl: detail.mlFileUrl,
+      improvedFromScore,
     };
   }
 }

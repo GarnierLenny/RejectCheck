@@ -203,10 +203,19 @@ export interface AnalysisRepository {
    */
   createShareTokenForClaim(claimToken: string): Promise<string | null>;
 
-  /** Finds a shared analysis by its public token. Returns null if not found or has no result. */
-  findByShareToken(
-    token: string,
-  ): Promise<(AnalysisDetail & { email: string | null }) | null>;
+  /**
+   * Finds a shared analysis by its public token. Returns null if not found or
+   * has no result. `parentResult` is the payload of the analysis this one
+   * improves on (null unless it is a re-scan), so the share can show a verified
+   * before/after rather than a bare score.
+   */
+  findByShareToken(token: string): Promise<
+    | (AnalysisDetail & {
+        email: string | null;
+        parentResult: AnalyzeResponse | null;
+      })
+    | null
+  >;
 
   /**
    * One-time "unlock this CV" purchase: marks premium features (CV rewrite,

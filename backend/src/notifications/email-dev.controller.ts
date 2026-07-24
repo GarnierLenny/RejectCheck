@@ -15,7 +15,13 @@ import type {
   EmailType,
 } from './domain/email.types';
 
-const TYPES: EmailType[] = ['welcome', 'analysis_ready', 'drip_d1', 'drip_d3'];
+const TYPES: EmailType[] = [
+  'welcome',
+  'analysis_ready',
+  'drip_d1',
+  'drip_d3',
+  'application_stale',
+];
 const LOCALES: EmailLocale[] = ['fr', 'en'];
 
 // Permissive CSP so the email's inline styles render in the browser preview
@@ -56,6 +62,14 @@ export class EmailDevController {
         return { type: 'drip_d1' };
       case 'drip_d3':
         return { type: 'drip_d3' };
+      case 'application_stale':
+        return {
+          type: 'application_stale',
+          applicationId: 456,
+          jobTitle: 'Senior React Engineer',
+          company: 'Acme',
+          daysSince: 17,
+        };
     }
   }
 

@@ -86,7 +86,8 @@ export type ProjectionKeywordRow = {
  */
 export function projectCoverage(
   rows: ProjectionKeywordRow[],
-  addedTerms: Set<string>,
+  // ReadonlySet: the draft state is owned by AnalysisLayout and only read here.
+  addedTerms: ReadonlySet<string>,
 ): number | null {
   let totalWeight = 0;
   let matchedWeight = 0;

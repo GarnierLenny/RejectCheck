@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, type CSSProperties } from "react";
 import { ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
 import type { AnalysisResult } from "../types";
 import type { KeywordMatchEntry } from "./types";
@@ -9,17 +9,29 @@ import {
   projectRisk,
   type ProjectionKeywordRow,
 } from "../../lib/score-projection";
+import { isBulletResolved as isResolved } from "../../lib/cv-draft";
 
 type Props = {
   result: AnalysisResult;
   keywords: KeywordMatchEntry[];
-  cvText: string;
   busy: boolean;
   onCommit: (editedCvText: string) => void;
   /** t.analysisLayout.rescan.optimize */
   ro: Record<string, string>;
-  /** Keys the in-progress edits in sessionStorage so a reload doesn't lose them. */
-  analysisId?: number | null;
+  /**
+   * CONTROLLED draft state, owned by AnalysisLayout so the source-document panel
+   * on the left can render the very same draft. This component used to own it
+   * privately, which is why the user's edits were invisible in the document they
+   * were editing. See app/lib/cv-draft.ts.
+   */
+  added: ReadonlySet<string>;
+  edits: Record<string, string>;
+  onToggleKeyword: (term: string) => void;
+  onEditBullet: (original: string, text: string) => void;
+  /** The assembled draft (same value the left panel renders). Committed as-is. */
+  draft: string;
+  /** Reports the live projected risk up, for the sticky score header. */
+  onProjectedRiskChange?: (risk: number) => void;
 };
 
 /** 0-30 green · 31-65 amber · 66-100 red — matches the anchored verdict bands. */
@@ -48,11 +60,23 @@ function countCriticalIssues(r: AnalysisResult): number {
  * (deterministic, free, no LLM), and "validate" commits the edited CV text to a
  * full re-scan (POST :id/rescan-inline). The projection mirrors the backend
  * anchored composite — see app/lib/score-projection.ts.
+ *
+ * The draft itself is NOT owned here (see Props.added/edits): AnalysisLayout owns
+ * it so the left-hand document renders the same text the user is editing.
  */
-const STORE_KEY = (id: number | null | undefined) =>
-  id != null ? `rc_inline_optimize_${id}` : null;
-
-export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, analysisId = null }: Props) {
+export function InlineOptimize({
+  result,
+  keywords,
+  busy,
+  onCommit,
+  ro,
+  added,
+  edits,
+  onToggleKeyword,
+  onEditBullet,
+  draft,
+  onProjectedRiskChange,
+}: Props) {
   const breakdown = result.breakdown;
   const missing = useMemo(
     () => keywords.filter((k) => !k.presentInCv),
@@ -64,42 +88,8 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, a
     [result.bullet_reviews],
   );
 
-  // Restore in-progress work (checked keywords + bullet edits) so a reload
-  // mid-optimization doesn't silently discard it before the paid commit.
-  const [added, setAdded] = useState<Set<string>>(() => {
-    if (typeof window === "undefined") return new Set();
-    const key = STORE_KEY(analysisId);
-    if (!key) return new Set();
-    try {
-      const s = JSON.parse(sessionStorage.getItem(key) ?? "null");
-      if (s && Array.isArray(s.added)) return new Set(s.added as string[]);
-    } catch { /* ignore */ }
-    return new Set();
-  });
-  // original bullet text -> user's edited replacement.
-  const [edits, setEdits] = useState<Record<string, string>>(() => {
-    if (typeof window === "undefined") return {};
-    const key = STORE_KEY(analysisId);
-    if (!key) return {};
-    try {
-      const s = JSON.parse(sessionStorage.getItem(key) ?? "null");
-      if (s && s.edits && typeof s.edits === "object") return s.edits as Record<string, string>;
-    } catch { /* ignore */ }
-    return {};
-  });
-
-  useEffect(() => {
-    const key = STORE_KEY(analysisId);
-    if (!key) return;
-    try {
-      sessionStorage.setItem(key, JSON.stringify({ added: [...added], edits }));
-    } catch { /* ignore */ }
-  }, [added, edits, analysisId]);
-
-  const isBulletResolved = (original: string): boolean => {
-    const e = edits[original];
-    return e != null && e.trim().length > 0 && e.trim() !== original.trim();
-  };
+  const isBulletResolved = (original: string): boolean =>
+    isResolved(original, edits);
 
   const rows: ProjectionKeywordRow[] = keywords.map((k) => ({
     term: k.term,
@@ -132,28 +122,12 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, a
   const dirty = added.size > 0 || Object.keys(edits).some((k) => isBulletResolved(k));
   const improved = projectedRisk < current;
 
-  const toggleKeyword = (term: string) => {
-    setAdded((prev) => {
-      const next = new Set(prev);
-      if (next.has(term)) next.delete(term);
-      else next.add(term);
-      return next;
-    });
-  };
-
-  const buildEditedCv = (): string => {
-    let text = cvText;
-    for (const b of weakBullets) {
-      if (isBulletResolved(b.original)) {
-        text = text.replace(b.original, edits[b.original].trim());
-      }
-    }
-    const addedList = [...added];
-    if (addedList.length > 0) {
-      text += `\n\n${ro.skillsLine}: ${addedList.join(", ")}`;
-    }
-    return text;
-  };
+  // Publish the live projection so the sticky score header can show the same
+  // "current -> projected" the strip below shows. Effect (not render-phase) so
+  // the parent setState never happens while this component is rendering.
+  useEffect(() => {
+    onProjectedRiskChange?.(projectedRisk);
+  }, [projectedRisk, onProjectedRiskChange]);
 
   if (!breakdown) return null;
 
@@ -198,7 +172,7 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, a
               return (
                 <button
                   key={k.term}
-                  onClick={() => toggleKeyword(k.term)}
+                  onClick={() => onToggleKeyword(k.term)}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -297,9 +271,7 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, a
                   </div>
                   {canApply && (
                     <button
-                      onClick={() =>
-                        setEdits((prev) => ({ ...prev, [b.original]: b.rewrite!.trim() }))
-                      }
+                      onClick={() => onEditBullet(b.original, b.rewrite!.trim())}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -322,9 +294,7 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, a
                   )}
                   <textarea
                     value={value}
-                    onChange={(e) =>
-                      setEdits((prev) => ({ ...prev, [b.original]: e.target.value }))
-                    }
+                    onChange={(e) => onEditBullet(b.original, e.target.value)}
                     rows={2}
                     placeholder={b.rewrite ? b.rewrite : ro.rewritePlaceholder}
                     style={{
@@ -350,7 +320,7 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, a
       {/* Commit */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
         <button
-          onClick={() => onCommit(buildEditedCv())}
+          onClick={() => onCommit(draft)}
           disabled={busy || !dirty}
           style={{
             fontFamily: "var(--font-mono)",

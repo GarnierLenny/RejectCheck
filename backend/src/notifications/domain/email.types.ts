@@ -10,7 +10,13 @@ export type EmailLocale = 'en' | 'fr';
  *  opt-out (drips); suppressed for unsubscribed users. */
 export type EmailCategory = 'transactional' | 'marketing';
 
-export type EmailType = 'welcome' | 'analysis_ready' | 'drip_d1' | 'drip_d3';
+export type EmailType =
+  | 'welcome'
+  | 'analysis_ready'
+  | 'drip_d1'
+  | 'drip_d3'
+  /** First EVENT-triggered type: a tracked application has gone quiet. */
+  | 'application_stale';
 
 export interface EmailMessage {
   to: string;
@@ -42,7 +48,15 @@ export type EmailContext =
   | { type: 'welcome'; firstName?: string | null }
   | { type: 'analysis_ready'; analysisId: number; role?: string | null }
   | { type: 'drip_d1' }
-  | { type: 'drip_d3' };
+  | { type: 'drip_d3' }
+  | {
+      type: 'application_stale';
+      applicationId: number;
+      jobTitle: string;
+      company: string;
+      /** Whole days of silence, so the copy can name the number. */
+      daysSince: number;
+    };
 
 /**
  * What travels on the BullMQ EMAIL_QUEUE (and the in-process fallback). Kept
@@ -57,9 +71,15 @@ export interface EmailJobPayload {
   dedupeKey?: string;
 }
 
-/** Drips are marketing (opt-out); everything else is transactional. */
+/**
+ * Drips and the stale-application nudge are marketing (opt-out); everything
+ * else is transactional. The nudge is unsolicited re-engagement, not something
+ * the user asked for, so it must honour an unsubscribe.
+ */
 export function emailCategoryOf(type: EmailType): EmailCategory {
-  return type === 'drip_d1' || type === 'drip_d3'
+  return type === 'drip_d1' ||
+    type === 'drip_d3' ||
+    type === 'application_stale'
     ? 'marketing'
     : 'transactional';
 }
@@ -72,6 +92,12 @@ export function defaultDedupeKey(payload: EmailJobPayload): string {
   const { context, to } = payload;
   if (context.type === 'analysis_ready') {
     return `analysis_ready:${to}:${context.analysisId}`;
+  }
+  // Once per application, ever. The cron re-selects the same rows on every run
+  // (they stay stale until the user acts), so this key is the only thing
+  // standing between one nudge and one every ten minutes.
+  if (context.type === 'application_stale') {
+    return `application_stale:${to}:${context.applicationId}`;
   }
   return `${context.type}:${to}`;
 }

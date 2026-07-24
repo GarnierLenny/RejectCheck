@@ -80,6 +80,18 @@ export class EmailRenderer {
         ctaUrl = `${base}/${locale}/analyze`;
         subNote = s.dripD3.subNote;
         break;
+      case 'application_stale':
+        eyebrow = s.applicationStale.eyebrow;
+        heading = s.applicationStale.heading(context.daysSince);
+        body = s.applicationStale.body(
+          escapeHtml(context.jobTitle),
+          escapeHtml(context.company),
+          context.daysSince,
+        );
+        ctaLabel = s.applicationStale.cta;
+        ctaUrl = `${base}/${locale}/analyze`;
+        subNote = s.applicationStale.subNote;
+        break;
     }
 
     const subject = SUBJECTS[locale][context.type];
@@ -115,6 +127,23 @@ function stripTags(html: string): string {
     .replace(/<[^>]+>/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/**
+ * Escape user-supplied text before it goes into an email body.
+ *
+ * Every other template interpolates values we authored. The stale-application
+ * nudge is the first to interpolate free text the USER typed (job title and
+ * company, straight from the tracker), so without this a crafted company name
+ * injects arbitrary markup and links into an email sent from our domain.
+ */
+export function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ── Email shell (header + body + footer), ported from the design handoff ─────
@@ -227,6 +256,10 @@ type Strings = {
   };
   dripD1: BodyCopy;
   dripD3: BodyCopy;
+  applicationStale: Omit<BodyCopy, 'heading' | 'body'> & {
+    heading: (days: number) => string;
+    body: (jobTitle: string, company: string, days: number) => string;
+  };
   footer: {
     help: string;
     support: string;
@@ -246,12 +279,14 @@ const SUBJECTS: Record<
     analysis_ready: 'Ton analyse approfondie est prête',
     drip_d1: 'Comment réduire ton risque de rejet',
     drip_d3: 'Un dernier conseil avant ta prochaine candidature',
+    application_stale: 'Toujours aucune réponse ?',
   },
   en: {
     welcome: 'Welcome to RejectCheck',
     analysis_ready: 'Your deep analysis is ready',
     drip_d1: 'How to lower your rejection risk',
     drip_d3: 'One last tip before your next application',
+    application_stale: 'Still no reply?',
   },
 };
 
@@ -285,6 +320,14 @@ const STRINGS: Record<EmailLocale, Strings> = {
       body: 'Adapter ton CV à l’offre fait souvent plus de différence que le contenu lui-même. Colle l’offre dans RejectCheck pour voir le match et les écarts, offre par offre.',
       cta: 'Analyser une offre',
       subNote: 'Ça prend ~30 secondes par offre.',
+    },
+    applicationStale: {
+      eyebrow: 'Silence radio',
+      heading: (days) => `${days} jours sans réponse.`,
+      body: (jobTitle, company, days) =>
+        `Tu as postulé chez <b style="color:#18181B;font-weight:600;">${company}</b> pour <b style="color:#18181B;font-weight:600;">${jobTitle}</b> il y a ${days} jours, et toujours rien. Le plus souvent ce n’est pas toi, c’est ce que ton dossier laisse voir. Passe cette candidature au crible : tu sauras en 30 secondes ce qui a bloqué.`,
+      cta: 'Analyser cette candidature',
+      subNote: 'Le silence ne t’apprend rien. Une analyse, si.',
     },
     footer: {
       help: 'Centre d’aide',
@@ -324,6 +367,14 @@ const STRINGS: Record<EmailLocale, Strings> = {
       body: 'Tailoring your CV to the role often matters more than the content itself. Paste the job post into RejectCheck to see the match and the gaps, role by role.',
       cta: 'Analyze a job post',
       subNote: 'It takes ~30 seconds per role.',
+    },
+    applicationStale: {
+      eyebrow: 'Radio silence',
+      heading: (days) => `${days} days, no reply.`,
+      body: (jobTitle, company, days) =>
+        `You applied to <b style="color:#18181B;font-weight:600;">${company}</b> for <b style="color:#18181B;font-weight:600;">${jobTitle}</b> ${days} days ago, and heard nothing. Usually that isn’t about you, it’s about what your dossier shows. Run this one through and you’ll know in 30 seconds what held it back.`,
+      cta: 'Analyze this application',
+      subNote: 'Silence teaches you nothing. An analysis does.',
     },
     footer: {
       help: 'Help center',

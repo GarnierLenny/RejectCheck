@@ -445,6 +445,8 @@ enum EmailType {
   analysis_ready
   drip_d1
   drip_d3
+  // First event-triggered type: a tracked application has gone quiet.
+  application_stale
 }
 
 enum EmailCategory {

@@ -60,6 +60,7 @@ export async function GET(
     company: string | null;
     profile: { displayName: string | null; avatarUrl: string | null } | null;
     cvTextFormatted: string | null;
+    improvedFromScore: number | null;
   } | null = null;
 
   try {
@@ -73,7 +74,7 @@ export async function GET(
     return new ImageResponse(fallback, { width: W, height: H });
   }
 
-  const { result, jobLabel, company, profile, cvTextFormatted } = data;
+  const { result, jobLabel, company, profile, cvTextFormatted, improvedFromScore } = data;
   const isCvReview = !!(result as { cv_quality?: unknown }).cv_quality;
   const cvQ = (result as { cv_quality?: { overall: number } }).cv_quality;
   // vs-JD: display competitiveness (100 − stored rejection risk); CV audit: quality. Both higher = better.
@@ -110,6 +111,17 @@ export async function GET(
   const claimText = claim
     ? `Top quartile on ${AXIS_CLAIM_LABEL[claim.axis].en}, vs ${claim.n} ${FAMILY_LABEL[claim.family]?.en ?? claim.family} resumes`
     : null;
+
+  // Glow-up variant. A bare score is a confession; an improvement the user
+  // earned is a result, so when there IS a verified before/after the delta
+  // becomes the hero and the raw number steps back.
+  //
+  // The backend only sends improvedFromScore when the gain is real AND both
+  // sides were scored by the same anchored formula (deriveRescanImprovement),
+  // so nothing here needs to re-judge whether the delta is honest.
+  const before = improvedFromScore == null ? null : 100 - improvedFromScore;
+  const isGlowUp = !isCvReview && before != null && score > before;
+  const gained = isGlowUp ? score - before! : 0;
 
   const skillRadar = (result as { skill_radar?: { axes: { score: number; label: string }[] } }).skill_radar;
   const techAnalysis = (result as { technical_analysis?: { skills: { current: number; expected: number; name: string }[] } }).technical_analysis;
@@ -195,11 +207,29 @@ export async function GET(
 
             {/* Score */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, color: scoreColor }}>{`${score}`}</div>
+              {isGlowUp ? (
+                <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+                  <div style={{ fontSize: 56, fontWeight: 700, lineHeight: 1, color: "#a09d98", textDecoration: "line-through" }}>
+                    {`${before}`}
+                  </div>
+                  <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, color: "#a09d98" }}>→</div>
+                  <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, color: scoreColor }}>{`${score}`}</div>
+                </div>
+              ) : (
+                <div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1, color: scoreColor }}>{`${score}`}</div>
+              )}
               <div style={{ fontFamily: "monospace", fontSize: 22, letterSpacing: "0.18em", textTransform: "uppercase", color: "#6b6860" }}>
                 {isCvReview ? "CV Score" : "Competitiveness"}
               </div>
-              {claimText && (
+              {isGlowUp && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: "#2D9B6F" }}>{`+${gained} points`}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: 17, color: "#6b6860", letterSpacing: "0.04em" }}>
+                    after a rewrite
+                  </div>
+                </div>
+              )}
+              {claimText && !isGlowUp && (
                 <div style={{ fontSize: 18, fontWeight: 600, color: "#2D9B6F", maxWidth: 460, lineHeight: 1.35 }}>
                   {claimText}
                 </div>

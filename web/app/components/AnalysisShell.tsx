@@ -35,6 +35,11 @@ export type AnalysisShellProps = {
   highlights?: HighlightMap;
   /** Per-document highlights — takes precedence over `highlights` for each tab. */
   highlightsByDoc?: Partial<Record<DocTab, HighlightMap>>;
+  /**
+   * Lines the user has just rewritten, marked so the change is visible in the
+   * document rather than silently swapped. CV tab only.
+   */
+  changedLines?: string[];
   onHighlightTypeClick?: (type: keyof HighlightMap) => void;
   /** Fired with the exact clicked term (e.g. a weak bullet) so the report can focus it. */
   onHighlightTermClick?: (term: string) => void;
@@ -210,13 +215,30 @@ function highlightLine(
 
 const EMPTY_HIGHLIGHTS: HighlightMap = { flags: [], issues: [], skills: [], weak: [], metrics: [] };
 
-function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick, onTermFire }: { text: string; highlights?: HighlightMap; onTermClick?: (type: HType) => void; onTermFire?: (term: string) => void }) {
+function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, changedLines, onTermClick, onTermFire }: { text: string; highlights?: HighlightMap; changedLines?: string[]; onTermClick?: (type: HType) => void; onTermFire?: (term: string) => void }) {
   const entries = buildEntries(highlights);
   const hasAny = entries.length > 0;
   const lines = normalizeCvLines(text);
+  // Matched by CONTAINMENT on trimmed text, for two reasons: normalizeCvLines
+  // re-splits the document so line indices map to nothing stable, and a replaced
+  // bullet keeps its original "• " prefix (buildCvDraft swaps the bullet body,
+  // not the marker), so an equality test would miss every bulleted line.
+  const changed = (changedLines ?? []).map((l) => l.trim()).filter(Boolean);
   let first = true;
   return (
     <div>
+      {changed.length > 0 && (
+        <style>{`
+          @keyframes rcLineChanged {
+            from { background-color: color-mix(in srgb, var(--rc-green) 32%, transparent); }
+            to   { background-color: var(--rc-green-bg); }
+          }
+          .rc-line-changed { animation: rcLineChanged 1.1s ease-out 1; }
+          @media (prefers-reduced-motion: reduce) {
+            .rc-line-changed { animation: none; }
+          }
+        `}</style>
+      )}
 
       {/* Legend chips */}
       {hasAny && (
@@ -241,6 +263,11 @@ function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick, onTerm
             const hitBlock: React.CSSProperties = ht
               ? { paddingTop: 1, paddingBottom: 1 }
               : {};
+            const isChanged = changed.some((c) => trimmed.includes(c));
+            const changedBlock: React.CSSProperties = isChanged
+              ? { background: "var(--rc-green-bg)", borderRadius: 4, padding: "2px 6px", margin: "0 -6px" }
+              : {};
+            const changedClass = isChanged ? "rc-line-changed" : undefined;
             if (first && i < 5 && trimmed.length <= 70) {
               if (i === 0) { first = false; return <div key={i} style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>; }
               return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--rc-hint)", marginBottom: i === 1 ? 24 : 4, ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
@@ -263,13 +290,13 @@ function ParsedCvView({ text, highlights = EMPTY_HIGHLIGHTS, onTermClick, onTerm
             }
             if (trimmed.startsWith("•") || trimmed.startsWith("-") || trimmed.startsWith("·")) {
               return (
-                <div key={i} style={{ display: "flex", gap: 8, marginBottom: 5, ...hitBlock }}>
-                  <span style={{ color: ht ? H[ht].dot : "var(--rc-border)", flexShrink: 0, marginTop: 6, fontSize: 8, lineHeight: 1 }}>▸</span>
-                  <span style={{ color: "var(--rc-muted)" }}>{highlightLine(trimmed.replace(/^[•\-·]\s*/, ""), highlights, entries, onTermClick, onTermFire)}</span>
+                <div key={i} className={changedClass} style={{ display: "flex", gap: 8, marginBottom: 5, ...hitBlock, ...changedBlock }}>
+                  <span style={{ color: isChanged ? "var(--rc-green)" : ht ? H[ht].dot : "var(--rc-border)", flexShrink: 0, marginTop: 6, fontSize: 8, lineHeight: 1 }}>▸</span>
+                  <span style={{ color: isChanged ? "var(--rc-text)" : "var(--rc-muted)" }}>{highlightLine(trimmed.replace(/^[•\-·]\s*/, ""), highlights, entries, onTermClick, onTermFire)}</span>
                 </div>
               );
             }
-            return <div key={i} style={{ marginBottom: 5, color: "var(--rc-muted)", ...hitBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
+            return <div key={i} className={changedClass} style={{ marginBottom: 5, color: isChanged ? "var(--rc-text)" : "var(--rc-muted)", ...hitBlock, ...changedBlock }}>{highlightLine(trimmed, highlights, entries, onTermClick, onTermFire)}</div>;
           })}
         </div>
       </div>
@@ -288,6 +315,7 @@ export function AnalysisShell({
   liBlobUrl = null,
   mlBlobUrl = null,
   reconstructedCv,
+  changedLines,
   liText = null,
   coverLetterText = null,
   highlights = EMPTY_HIGHLIGHTS,
@@ -381,6 +409,7 @@ export function AnalysisShell({
                     <ParsedCvView
                       text={parsedText}
                       highlights={activeHighlights}
+                      changedLines={currentDoc.id === "cv" ? changedLines : undefined}
                       onTermClick={currentDoc.id === "cv" ? onHighlightTypeClick : undefined}
                       onTermFire={currentDoc.id === "cv" ? onHighlightTermClick : undefined}
                     />

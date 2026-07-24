@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import type { AnalysisResult, Fix } from "./types";
 import { Eyebrow, Mono } from "./resultAtoms";
 import { ParsedCvDisclosure } from "./ParsedCvDisclosure";
 import { RiskMeter } from "./RiskMeter";
 import { AnalysisShell, type HighlightMap, type HighlightEntry } from "./AnalysisShell";
+import { buildCvDraft, countDraftChanges, draftChangedLines } from "../lib/cv-draft";
+import { StickyScoreBar } from "./StickyScoreBar";
 import { scrollIntoViewMotionSafe } from "../lib/scroll";
 import { RadarChart } from "./RadarChart";
 import { SignalsTab } from "./tabs/SignalsTab";
@@ -930,6 +932,117 @@ export function AnalysisLayout({
   const [activeSection, setActiveSection] = useState("risk");
   const [checkedKeywords, setCheckedKeywords] = useState<Set<string>>(new Set());
   const reportRef = useRef<HTMLElement>(null);
+
+  // ── Live CV draft ─────────────────────────────────────────────────────────
+  // Owned HERE, not in InlineOptimize, so the source-document panel on the left
+  // and the optimizer in §02 render the SAME text. Before this, the optimizer
+  // kept its edits privately and the panel kept showing the untouched original,
+  // so the user's own changes were invisible in the document they were editing.
+  const draftBase = reconstructedCv ?? cvTextFormatted ?? null;
+  const draftStoreKey = analysisId != null ? `rc_inline_optimize_${analysisId}` : null;
+
+  const [draftAdded, setDraftAdded] = useState<Set<string>>(() => {
+    if (typeof window === "undefined" || !draftStoreKey) return new Set();
+    try {
+      const s = JSON.parse(sessionStorage.getItem(draftStoreKey) ?? "null");
+      if (s && Array.isArray(s.added)) return new Set(s.added as string[]);
+    } catch { /* ignore */ }
+    return new Set();
+  });
+  const [draftEdits, setDraftEdits] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined" || !draftStoreKey) return {};
+    try {
+      const s = JSON.parse(sessionStorage.getItem(draftStoreKey) ?? "null");
+      if (s && s.edits && typeof s.edits === "object") return s.edits as Record<string, string>;
+    } catch { /* ignore */ }
+    return {};
+  });
+
+  // Same sessionStorage shape and key as before the lift, so work in progress
+  // from a previous session still restores.
+  useEffect(() => {
+    if (!draftStoreKey) return;
+    try {
+      sessionStorage.setItem(
+        draftStoreKey,
+        JSON.stringify({ added: [...draftAdded], edits: draftEdits }),
+      );
+    } catch { /* ignore */ }
+  }, [draftAdded, draftEdits, draftStoreKey]);
+
+  const onToggleDraftKeyword = useCallback((term: string) => {
+    setDraftAdded((prev) => {
+      const next = new Set(prev);
+      if (next.has(term)) next.delete(term);
+      else next.add(term);
+      return next;
+    });
+  }, []);
+
+  const onEditDraftBullet = useCallback((original: string, text: string) => {
+    setDraftEdits((prev) => ({ ...prev, [original]: text }));
+  }, []);
+
+  const draftSkillsLabel = t.analysisLayout.rescan.optimize.skillsLine as string;
+  const cvDraft = useMemo(
+    () =>
+      draftBase == null
+        ? null
+        : buildCvDraft({
+            cvText: draftBase,
+            bullets: result.bullet_reviews?.bullets,
+            edits: draftEdits,
+            added: draftAdded,
+            skillsLabel: draftSkillsLabel,
+          }),
+    [draftBase, result.bullet_reviews, draftEdits, draftAdded, draftSkillsLabel],
+  );
+
+  const draftChanges = countDraftChanges(result.bullet_reviews?.bullets, draftEdits, draftAdded);
+  const changedLines = useMemo(
+    () => draftChangedLines(result.bullet_reviews?.bullets, draftEdits),
+    [result.bullet_reviews, draftEdits],
+  );
+
+  // Live projection, published by InlineOptimize so the sticky header can show
+  // the same "current -> projected" the optimizer strip shows.
+  const [projectedRisk, setProjectedRisk] = useState<number | null>(null);
+  const onProjectedRiskChange = useCallback((risk: number) => {
+    setProjectedRisk(risk);
+  }, []);
+
+  // Reveal the sticky score header once the hero GAUGE leaves the scrollport.
+  //
+  // The meter is tracked by callback ref rather than looked up by id: a
+  // querySelector in a mount-once effect silently found nothing whenever the
+  // node wasn't in the DOM yet, and never retried, so the bar stayed invisible
+  // forever. A ref-as-state re-runs the effect exactly when the node appears.
+  const [heroMeterEl, setHeroMeterEl] = useState<HTMLElement | null>(null);
+  const [heroVisible, setHeroVisible] = useState(true);
+  useEffect(() => {
+    const root = reportRef.current;
+    if (!root || !heroMeterEl) return;
+    // A plain scroll listener rather than an IntersectionObserver, deliberately:
+    // the report scrolls inside <main>, so an observer needs that element as its
+    // root, and this comparison ("has the gauge's bottom passed the scrollport
+    // top?") is exact, cheap and directly testable. Rects rather than offsetTop
+    // so it doesn't depend on which ancestor happens to be the offsetParent.
+    // No requestAnimationFrame throttle on purpose: scroll events are already
+    // frame-aligned, the check is two getBoundingClientRect reads, and React
+    // bails out when the boolean is unchanged. An rAF wrapper also silently
+    // stops updating whenever the tab is backgrounded, since rAF is starved there.
+    const update = () => {
+      const gone = heroMeterEl.getBoundingClientRect().bottom <= root.getBoundingClientRect().top;
+      setHeroVisible(!gone);
+    };
+    update();
+    root.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    return () => {
+      root.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [heroMeterEl]);
   const highlightsByDoc = useMemo((): Partial<Record<"cv" | "linkedin" | "cover", HighlightMap>> => {
     const dedup = (entries: HighlightEntry[]): HighlightEntry[] => {
       const seen = new Set<string>();
@@ -1061,7 +1174,8 @@ export function AnalysisLayout({
       liBlobUrl={liBlobUrl}
       mlBlobUrl={mlBlobUrl}
       hideDocPanel={readOnly && !cvBlobUrl && !cvTextFormatted && !reconstructedCv}
-      reconstructedCv={reconstructedCv}
+      reconstructedCv={reconstructedCv ? cvDraft : reconstructedCv}
+      changedLines={changedLines}
       liText={liText}
       coverLetterText={coverLetterText}
       highlightsByDoc={highlightsByDoc}
@@ -1092,7 +1206,9 @@ export function AnalysisLayout({
           rewrite: { label: t.analysisLayout.tabs.rewrite, badge: 0, premium: true },
         };
         const TOC = order.map((id) => ({ id, n: secNo[id], ...NAV[id] }));
-        const SEC: React.CSSProperties = { scrollMarginTop: 24, padding: "44px 0", borderTop: "1px solid var(--rc-border)" };
+        // 64 = the 52px sticky score bar plus breathing room. At the old 24 a
+        // TOC jump parked the section heading underneath the bar.
+        const SEC: React.CSSProperties = { scrollMarginTop: 64, padding: "44px 0", borderTop: "1px solid var(--rc-border)" };
         return (
         <div className="rc-toc-grid" style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "230px 1fr", minWidth: 0 }}>
 
@@ -1127,7 +1243,25 @@ export function AnalysisLayout({
           </aside>
 
           {/* ── Scrolled report ── */}
-          <main ref={reportRef} className="rc-report-main" style={{ height: "100%", overflowY: "auto", padding: "44px 48px 120px", scrollbarWidth: "thin" }}>
+          {/* NO padding-top: the sticky score bar is clamped to this element's
+              CONTENT box, so any top padding here strands it that far down the
+              screen. The bar's own 52px height provides the top gap instead. */}
+          <main ref={reportRef} className="rc-report-main" style={{ height: "100%", overflowY: "auto", padding: "0 48px 120px", scrollbarWidth: "thin" }}>
+
+            <StickyScoreBar
+              visible={!heroVisible}
+              currentRisk={result.score}
+              projectedRisk={projectedRisk}
+              changes={draftChanges}
+              onJump={() => scrollIntoViewMotionSafe(document.getElementById("sec-match"), { block: "start" })}
+              labels={{
+                eyebrow: t.analysisLayout.rescan.optimize.stickyEyebrow,
+                change: t.analysisLayout.rescan.optimize.change,
+                changes: t.analysisLayout.rescan.optimize.changes,
+                pts: t.analysisLayout.rescan.optimize.riskDrop,
+                jump: t.analysisLayout.rescan.optimize.stickyJump,
+              }}
+            />
 
             {/* The single pass is still streaming the actionable sections. */}
             {deepStatus === "pending" && (
@@ -1139,14 +1273,18 @@ export function AnalysisLayout({
             )}
 
             {/* 01 — Competitiveness (displayed as 100 − rejection risk) */}
-            <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
+            <section id="sec-risk" style={{ scrollMarginTop: 64, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
               <SectionBand
                 className="mb-8"
                 tag={`${secNo.risk} · ${t.riskMeter.competitiveness.eyebrow}`}
                 title={t.riskMeter.competitiveness.bandTitle}
                 subtitle={t.riskMeter.competitiveness.bandSubtitle}
               />
-              <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" hideEyebrow pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              {/* Observed by the sticky bar: it takes over the moment the GAUGE
+                  leaves, not when this whole (very tall) section does. */}
+              <div id="rc-hero-meter" ref={setHeroMeterEl}>
+                <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" hideEyebrow pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              </div>
               {result.technical_analysis && deepStatus === "ready" && (
                 <SkillRadarCard analysis={result.technical_analysis} />
               )}
@@ -1280,7 +1418,26 @@ export function AnalysisLayout({
                 title={t.analysisLayout.match.title}
                 subtitle={t.analysisLayout.match.subtitle}
               />
-              {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} result={result} cvText={reconstructedCv ?? cvTextFormatted} />}
+              {!readOnly && (
+                <RescanPanel
+                  analysisId={analysisId}
+                  accessToken={accessToken ?? null}
+                  result={result}
+                  cvText={draftBase}
+                  draft={
+                    cvDraft == null
+                      ? null
+                      : {
+                          text: cvDraft,
+                          added: draftAdded,
+                          edits: draftEdits,
+                          onToggleKeyword: onToggleDraftKeyword,
+                          onEditBullet: onEditDraftBullet,
+                          onProjectedRiskChange,
+                        }
+                  }
+                />
+              )}
               {/* When RescanPanel's InlineOptimize loop is the interactive
                   keyword surface, the ATS list below is display-only so §02 has
                   one live simulator, not two. readOnly viewers (no RescanPanel)

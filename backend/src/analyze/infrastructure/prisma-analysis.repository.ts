@@ -569,9 +569,13 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
     return row !== null;
   }
 
-  async findByShareToken(
-    token: string,
-  ): Promise<(AnalysisDetail & { email: string | null }) | null> {
+  async findByShareToken(token: string): Promise<
+    | (AnalysisDetail & {
+        email: string | null;
+        parentResult: AnalyzeResponse | null;
+      })
+    | null
+  > {
     const row = await this.prisma.analysis.findUnique({
       where: { shareToken: token },
       select: {
@@ -596,12 +600,17 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
         completedSteps: true,
         createdAt: true,
         updatedAt: true,
+        // The analysis this one improves on, when it is itself a re-scan. Only
+        // its `result` is needed: the whole vs-JD composite (score, breakdown,
+        // ATS, hard signals) lives in the hot pass, not in deepAnalysis.
+        parent: { select: { result: true } },
       },
     });
     if (!row || !row.result) return null;
     return {
       id: row.id,
       email: row.email,
+      parentResult: (row.parent?.result ?? null) as AnalyzeResponse | null,
       jobLabel: row.jobLabel,
       company: row.company,
       jobDescription: row.jobDescription,

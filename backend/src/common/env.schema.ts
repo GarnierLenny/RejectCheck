@@ -82,6 +82,11 @@ export const envSchema = z.object({
   // never sends real mail. Set both to send via Resend. Links in emails reuse
   // FRONTEND_URL.
   EMAIL_ENABLED: z.enum(['true', 'false']).optional(),
+  // Event-triggered nudge for tracked applications that have gone quiet.
+  // Separate from EMAIL_ENABLED and OFF by default: the application tracker UI
+  // ships behind APPLICATIONS_TAB_ENABLED=false, so users can't currently see or
+  // update the applications this emails them about. Turn both on together.
+  STALE_APPLICATION_EMAILS_ENABLED: z.enum(['true', 'false']).optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   EMAIL_REPLY_TO: z.string().optional(),

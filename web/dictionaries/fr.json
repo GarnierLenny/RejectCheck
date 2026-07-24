@@ -2700,7 +2700,11 @@
         "paidNote": "Lance un re-scan complet · compte pour une analyse",
         "skillsLine": "Compétences supplémentaires",
         "applySuggestion": "Appliquer la suggestion",
-        "creditNote": "· 1 crédit"
+        "creditNote": "· 1 crédit",
+        "change": "modification",
+        "changes": "modifications",
+        "stickyEyebrow": "Compétitivité",
+        "stickyJump": "Optimiser"
       }
     },
     "tabs": {
