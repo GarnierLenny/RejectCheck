@@ -54,6 +54,8 @@ export type ProjectRecommendation = {
   signal_boost?: string;
   // README fields (new analyses only)
   architecture_diagram?: string;
+  /** Senior-level "getting started" build roadmap (premium moat). */
+  getting_started?: { phase: string; objective: string; details: string[]; watch_out?: string }[];
   sections?: ProjectSection[];
   /** Backward compat — flat steps before sections were introduced */
   steps?: ProjectStep[];

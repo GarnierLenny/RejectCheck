@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import type { AnalysisResult, RoadmapSalaryImpact } from "../types";
-import { SectionHeader } from "../SectionHeader";
 import { getSeverityStyles } from "../types";
 import { useLanguage } from "../../../context/language";
 
@@ -136,21 +135,16 @@ export function RoadmapTab({ result }: Props) {
 
   return (
     <div className="space-y-12">
-      <SectionHeader
-        label={t.roadmapTab.yourRoadmap}
-        title={t.roadmapTab.actionPlan}
-        subtitle={t.roadmapTab.actionPlanSubtitle}
-        meta={
-          items.length > 0 ? (
-            <div className="text-right">
-              <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">{t.roadmapTab.done}</span>
-              <span className={`font-mono font-bold text-[22px] ${completion === 100 ? "text-rc-green" : "text-rc-red"}`}>
-                {completion}%
-              </span>
-            </div>
-          ) : undefined
-        }
-      />
+      {items.length > 0 && (
+        <div className="flex justify-end">
+          <div className="text-right">
+            <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint block mb-1">{t.roadmapTab.done}</span>
+            <span className={`font-mono font-bold text-[22px] ${completion === 100 ? "text-rc-green" : "text-rc-red"}`}>
+              {completion}%
+            </span>
+          </div>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="p-12 text-center bg-rc-surface border border-rc-border border-dashed">

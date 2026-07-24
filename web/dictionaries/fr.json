@@ -848,7 +848,9 @@
         "decent": "Améliorable : quelques écarts à combler.",
         "strong": "Bon match, peu de raisons de passer à côté."
       },
-      "context": "vs cette offre"
+      "context": "vs cette offre",
+      "bandTitle": "Votre compétitivité pour ce poste",
+      "bandSubtitle": "À quel point votre profil correspond à cette offre, pas vos chances d'entretien."
     }
   },
   "resultNudge": {

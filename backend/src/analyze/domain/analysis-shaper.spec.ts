@@ -150,13 +150,18 @@ describe('shapeAnalysisForPlan', () => {
     expect(shaped.bullet_reviews?.bullets[0].verdict).toBe('weak');
     expect(shaped.bullet_reviews?.bullets[0].rewrite).toBeNull();
     expect(shaped.ats_simulation.critical_missing_keywords).toHaveLength(3);
-    expect(shaped.project_recommendation).toEqual({
-      name: 'GAP BRIDGE',
-      description: 'a project',
-      difficulty_level: 'Intermediate',
-      technologies: [{ name: 'NestJS', category: 'backend', reason: 'jd' }],
-      why_it_matters: 'matters',
-    });
+  });
+
+  it('free fully locks the project — no content at all, not even a teaser', () => {
+    const shaped = shapeAnalysisForPlan(fullResult(), FREE);
+    // The whole object is omitted: no name, description, difficulty or why.
+    expect(shaped.project_recommendation).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(shaped, 'project_recommendation')).toBe(false);
+    const raw = JSON.stringify(shaped);
+    expect(raw).not.toContain('GAP BRIDGE');
+    expect(raw).not.toContain('a project');
+    // ...but its existence is still advertised so the UI can show the unlock.
+    expect(shaped.premium_locked?.project).toBe(true);
   });
 
   it('free payload carries premium_locked counts', () => {
@@ -232,13 +237,17 @@ describe('shapeSectionForPlan', () => {
         FREE,
       ),
     ).toEqual(shaped.ats_simulation.critical_missing_keywords);
+    // The project is fully locked, so the two paths intentionally diverge:
+    // the final payload OMITS the key, while the stream sends null to actively
+    // clear any teaser the frontend may have optimistically rendered.
     expect(
       shapeSectionForPlan(
         'project_recommendation',
         result.project_recommendation,
         FREE,
       ),
-    ).toEqual(shaped.project_recommendation);
+    ).toBeNull();
+    expect(shaped.project_recommendation).toBeUndefined();
   });
 
   it('passes premium sections through untouched', () => {

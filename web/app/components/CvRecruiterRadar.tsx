@@ -5,44 +5,12 @@ import { useLanguage } from "../../context/language";
 import type { ExperienceAnalysis, ExperienceSkill, SkillRadar } from "./types";
 import { RadarChart } from "./RadarChart";
 import { SkillChips } from "./SkillChips";
+import { SectionBand } from "./SectionBand";
 
 // ── Style atoms (mirrors CvAuditResult) ──────────────────────────────────────
 
 const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
 const MONO: React.CSSProperties = { fontFamily: "var(--font-mono)" };
-const DISPLAY_ITALIC: React.CSSProperties = { fontWeight: 600, color: "var(--rc-red)" };
-
-const SEC_NUM: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 14,
-  ...MONO,
-  fontSize: 10,
-  letterSpacing: "0.16em",
-  textTransform: "uppercase" as const,
-  color: "var(--rc-hint)",
-  fontWeight: 700,
-  marginBottom: 14,
-};
-
-const H2: React.CSSProperties = {
-  ...SANS,
-  fontWeight: 500,
-  fontSize: "clamp(24px,2.8vw,36px)",
-  lineHeight: 1.05,
-  letterSpacing: "-0.025em",
-  margin: 0,
-  maxWidth: 720,
-};
-
-const SUB: React.CSSProperties = {
-  ...SANS,
-  fontSize: 14,
-  lineHeight: 1.55,
-  color: "var(--rc-hint)",
-  maxWidth: 640,
-  margin: "12px 0 0",
-};
 
 const POV_SUB: React.CSSProperties = {
   ...MONO,
@@ -194,21 +162,18 @@ export function CvRecruiterRadar({ radar, seniorityDetected, experiences, redFla
 
   return (
     <section data-ca-sec="s2" id="s2" style={{ padding: "40px 0", borderBottom: "1px solid var(--rc-border)", marginBottom: 48 }}>
-      <div style={{ marginBottom: 32 }}>
-        <div style={SEC_NUM}>
-          <span style={{ width: 28, height: 1, background: "var(--rc-text)", display: "inline-block", flexShrink: 0 }} />
-          {L.kicker}
-        </div>
-        <h2 style={H2}>
-          {L.h2pre}
-          <span style={DISPLAY_ITALIC}>{L.h2em}</span>
-          {L.h2post}
-        </h2>
-        <p style={SUB}>
-          {L.sub}
-          {hasExpected ? L.subExpected(senLabel) : ""}
-        </p>
-      </div>
+      <SectionBand
+        className="mb-8"
+        tag={L.kicker}
+        title={
+          <>
+            {L.h2pre}
+            <span style={{ fontStyle: "italic" }}>{L.h2em}</span>
+            {L.h2post}
+          </>
+        }
+        subtitle={`${L.sub}${hasExpected ? L.subExpected(senLabel) : ""}`}
+      />
 
       {/* Radar + per-axis evidence rows (RadarChart renders both; the expected
           overlay and its legend only appear when at least one axis has it). */}

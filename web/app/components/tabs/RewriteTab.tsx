@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Download, CheckCircle2, Copy, Check, RefreshCw, Loader2 } from "lucide-react";
 import type { AnalysisResult } from "../types";
 import { CvPdfPreview } from "../CvPdfPreview";
+import { SectionBand } from "../SectionBand";
 import { useGenerateCoverLetter } from "../../../lib/mutations";
 import { generateCvPdf, generateCoverLetterPdf } from "../../utils/export";
 import { useLanguage } from "../../../context/language";
@@ -110,6 +111,7 @@ const ghostStyle: React.CSSProperties = { display: "inline-flex", alignItems: "c
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 type Props = {
+  sectionTag: string;
   result: AnalysisResult;
   reconstructedCv: string | null;
   isRewriting: boolean;
@@ -119,7 +121,7 @@ type Props = {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export function RewriteTab({ result, reconstructedCv, isRewriting, onRewrite, analysisId }: Props) {
+export function RewriteTab({ sectionTag, result, reconstructedCv, isRewriting, onRewrite, analysisId }: Props) {
   const { t } = useLanguage();
   const [angle, setAngle]   = useState<"jd" | "exp" | "tech">("jd");
   const [lang, setLang]     = useState<"auto" | "en" | "fr">("auto");
@@ -176,15 +178,12 @@ export function RewriteTab({ result, reconstructedCv, isRewriting, onRewrite, an
       {/* ══ CV REWRITE ════════════════════════════════════════════════════════ */}
       <section>
         {/* Header */}
-        <div style={{ marginBottom: 24 }}>
-          <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 12, letterSpacing: "0.16em" }}>{t.rewriteTab.cv.eyebrow}</Eyebrow>
-          <h1 style={{ margin: 0, fontFamily: "var(--font-display)", fontSize: 44, fontWeight: 400, letterSpacing: "-0.02em", color: "var(--rc-text)", lineHeight: 1.05 }}>
-            {t.rewriteTab.cv.title} <span style={{ fontWeight: 700, color: "var(--rc-red)" }}>{t.rewriteTab.cv.titleItalic}</span>
-          </h1>
-          <div style={{ fontFamily: "var(--font-sans)", fontSize: 15.5, color: "var(--rc-muted)", lineHeight: 1.6, marginTop: 12, maxWidth: 560 }}>
-            {t.rewriteTab.cv.subtitle}
-          </div>
-        </div>
+        <SectionBand
+          className="mb-8"
+          tag={sectionTag}
+          title={<>{t.rewriteTab.cv.title} <span style={{ fontWeight: 700 }}>{t.rewriteTab.cv.titleItalic}</span></>}
+          subtitle={t.rewriteTab.cv.subtitle}
+        />
 
         {/* Change stats */}
         <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>

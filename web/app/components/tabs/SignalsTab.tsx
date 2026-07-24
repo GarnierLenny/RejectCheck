@@ -3,6 +3,7 @@
 import { Github, Linkedin } from "react-bootstrap-icons";
 import type { AnalysisResult } from "../types";
 import type { Fix } from "../types";
+import { SectionBand } from "../SectionBand";
 import { useLanguage } from "../../../context/language";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -184,6 +185,7 @@ function IssuesList({ issues, label, onHighlightClick }: { issues: SignalSource[
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 type Props = {
+  sectionTag: string;
   github: AnalysisResult["audit"]["github"];
   linkedin: AnalysisResult["audit"]["linkedin"];
   hasGithub: boolean;
@@ -191,7 +193,7 @@ type Props = {
   onHighlightClick?: (id: string) => void;
 };
 
-export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin, onHighlightClick }: Props) {
+export function SignalsTab({ sectionTag, github, linkedin, hasGithub, hasLinkedin, onHighlightClick }: Props) {
   const { t } = useLanguage();
   const githubHasData  = hasGithub  || github.score  !== null || (github.issues?.length   ?? 0) > 0 || (github.strengths?.length   ?? 0) > 0;
   const linkedinHasData = hasLinkedin || linkedin.score !== null || (linkedin.issues?.length ?? 0) > 0 || (linkedin.strengths?.length ?? 0) > 0;
@@ -200,12 +202,11 @@ export function SignalsTab({ github, linkedin, hasGithub, hasLinkedin, onHighlig
     <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
 
       {/* 06 headline */}
-      <div>
-        <Eyebrow color="var(--rc-red)" style={{ display: "block", marginBottom: 10, letterSpacing: "0.16em" }}>{t.signalsTabNew.eyebrow}</Eyebrow>
-        <div style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--rc-text)", lineHeight: 1.18 }}>
-          {t.signalsTabNew.titlePrefix} <span style={{ fontWeight: 700, color: "var(--rc-red)" }}>{t.signalsTabNew.titleItalic}</span> {t.signalsTabNew.titleSuffix}
-        </div>
-      </div>
+      <SectionBand
+        className="mb-8"
+        tag={sectionTag}
+        title={<>{t.signalsTabNew.titlePrefix} <span style={{ fontWeight: 700 }}>{t.signalsTabNew.titleItalic}</span> {t.signalsTabNew.titleSuffix}</>}
+      />
 
       {/* Two-column source cards */}
       <div className="rc-col2-m" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>

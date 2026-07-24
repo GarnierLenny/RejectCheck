@@ -3,7 +3,7 @@
 import { CheckCircle2, AlertOctagon, Globe, FileText } from "lucide-react";
 import type { CrossProfileInconsistency, TimelineEntry } from "../types";
 import { GithubIcon, LinkedinIcon } from "../SocialIcons";
-import { SectionHeader } from "../SectionHeader";
+import { SectionBand } from "../SectionBand";
 import { SourceTimeline } from "../timeline/SourceTimeline";
 
 const SEVERITY_STYLE: Record<
@@ -42,9 +42,9 @@ function SourceIcon({
  * main analysis call (cross-examination).
  *
  * Layout (top to bottom):
- *  1. SectionHeader with severity counters
+ *  1. SectionBand with severity counters
  *  2. SourceTimeline — parallel lanes per source, divergence markers anchored
- *     to dates (only rendered when `timeline_entries` is present)
+ *     to dates (rendered whenever `timeline_entries` is present, aligned or not)
  *  3. Compact 6-col list of each inconsistency with severity, field, source
  *     values, and a recruiter-perspective note
  *
@@ -52,17 +52,20 @@ function SourceIcon({
  * tab.
  */
 export function ConsistencyTab({
+  sectionTag,
   inconsistencies,
   timelineEntries,
 }: {
+  sectionTag: string;
   inconsistencies: CrossProfileInconsistency[];
   timelineEntries: TimelineEntry[];
 }) {
   if (inconsistencies.length === 0) {
     return (
-      <div>
-        <SectionHeader
-          label="Consistency"
+      <div className="space-y-8">
+        <SectionBand
+          className="mb-8"
+          tag={sectionTag}
           title="Your sources are aligned"
           subtitle="No divergences detected between your CV, LinkedIn, GitHub, and portfolio."
         />
@@ -78,6 +81,9 @@ export function ConsistencyTab({
             </p>
           </div>
         </div>
+        {timelineEntries.length > 0 && (
+          <SourceTimeline entries={timelineEntries} markers={[]} />
+        )}
       </div>
     );
   }
@@ -106,32 +112,33 @@ export function ConsistencyTab({
 
   return (
     <div className="space-y-8">
-      <SectionHeader
-        label="Consistency"
+      <SectionBand
+        className="mb-8"
+        tag={sectionTag}
         title={`${sorted.length} mismatch${sorted.length === 1 ? "" : "es"} across your sources`}
         subtitle="A senior recruiter cross-checks candidates in 30 seconds. These are the divergences they would flag."
         meta={
           <div className="flex gap-3">
             {counts.critical > 0 && (
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rc-red" />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-red font-bold">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.9)" }} />
+                <span className="font-mono text-[11px] uppercase tracking-wider font-bold text-white">
                   {counts.critical} critical
                 </span>
               </div>
             )}
             {counts.major > 0 && (
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rc-amber" />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-amber font-bold">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.9)" }} />
+                <span className="font-mono text-[11px] uppercase tracking-wider font-bold" style={{ color: "rgba(255,255,255,0.9)" }}>
                   {counts.major} major
                 </span>
               </div>
             )}
             {counts.minor > 0 && (
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rc-muted/50" />
-                <span className="font-mono text-[11px] uppercase tracking-wider text-rc-muted">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.55)" }} />
+                <span className="font-mono text-[11px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.7)" }}>
                   {counts.minor} minor
                 </span>
               </div>

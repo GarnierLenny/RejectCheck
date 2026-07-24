@@ -24,6 +24,7 @@ import { useProfile } from "../../lib/queries";
 import { useCreateSprintPassCheckout } from "../../lib/mutations";
 import posthog from "posthog-js";
 import { CarouselBrief } from "./CarouselBrief";
+import { SectionBand } from "./SectionBand";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -375,11 +376,6 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
     <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
       {/* 01 — Skill coverage */}
       <section>
-        <SecHead
-          title={t.analysisLayout.match.title}
-          sub={t.analysisLayout.match.subtitle}
-          rule
-        />
         {!ta || deepStatus !== "ready" ? (
           <TechnicalAnalysisSkeleton />
         ) : (
@@ -601,18 +597,17 @@ function CoverLetterBody({ cl }: { cl: NonNullable<AnalysisResult["audit"]["cove
   const labelStyle: React.CSSProperties = { fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", marginRight: 2 };
   return (
     <section>
-      <SecHead title={clx.title} sub={clx.subtitle}
-        meta={
-          <div style={{ textAlign: "right" }}>
-            <Eyebrow style={{ display: "block", marginBottom: 6 }}>{clx.scoreLabel}</Eyebrow>
-            <Mono style={{ fontSize: 30, fontWeight: 500, color: scoreColor, lineHeight: 1 }}>
-              {score}<span style={{ fontSize: 15, color: "var(--rc-hint)" }}>/100</span>
-            </Mono>
-            <div style={{ width: 124, height: 5, background: "rgba(0,0,0,0.07)", borderRadius: 9999, marginTop: 8, marginLeft: "auto" }}>
-              <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999 }} />
-            </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 24 }}>
+        <div style={{ textAlign: "right" }}>
+          <Eyebrow style={{ display: "block", marginBottom: 6 }}>{clx.scoreLabel}</Eyebrow>
+          <Mono style={{ fontSize: 30, fontWeight: 500, color: scoreColor, lineHeight: 1 }}>
+            {score}<span style={{ fontSize: 15, color: "var(--rc-hint)" }}>/100</span>
+          </Mono>
+          <div style={{ width: 124, height: 5, background: "rgba(0,0,0,0.07)", borderRadius: 9999, marginTop: 8, marginLeft: "auto" }}>
+            <div style={{ height: "100%", width: `${score}%`, background: scoreColor, borderRadius: 9999 }} />
           </div>
-        } rule />
+        </div>
+      </div>
       {(cl.issues.length > 0 || (cl.strengths ?? []).length > 0) && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
@@ -677,8 +672,6 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
 
       {/* 01 — Positioning */}
       <section>
-        <SecHead title={t.analysisLayout.cv.positioningTitle}
-          sub={t.analysisLayout.report.positioningSub} rule />
 
         {/* a · Seniority */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
@@ -1048,11 +1041,6 @@ export function AnalysisLayout({
         if (type === "skills") document.getElementById("sec-match")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }}
       renderRight={({ focusDoc }) => {
-        const secHead = (n: string, title: string) => (
-          <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 18, height: 1, background: "var(--rc-red)" }} />{n} · {title}
-          </div>
-        );
         // Section order drives BOTH the nav numbers and the in-section headers,
         // so they never drift. `cover` is only in the order when a letter exists.
         const order: string[] = [
@@ -1115,7 +1103,13 @@ export function AnalysisLayout({
 
             {/* 01 — Competitiveness (displayed as 100 − rejection risk) */}
             <section id="sec-risk" style={{ scrollMarginTop: 24, paddingBottom: 44, borderBottom: "1px solid var(--rc-border)" }}>
-              <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" sectionNo={secNo.risk} pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
+              <SectionBand
+                className="mb-8"
+                tag={`${secNo.risk} · ${t.riskMeter.competitiveness.eyebrow}`}
+                title={t.riskMeter.competitiveness.bandTitle}
+                subtitle={t.riskMeter.competitiveness.bandSubtitle}
+              />
+              <RiskMeter value={100 - result.score} mode="vsjob" metric="competitiveness" hideEyebrow pending={Boolean((result as { __scorePending?: boolean }).__scorePending)} />
               {result.technical_analysis && deepStatus === "ready" && (
                 <SkillRadarCard analysis={result.technical_analysis} />
               )}
@@ -1243,14 +1237,24 @@ export function AnalysisLayout({
 
             {/* 02 — Match */}
             <section id="sec-match" style={SEC}>
-              {secHead(secNo.match, t.analysisLayout.tabs.match)}
+              <SectionBand
+                className="mb-8"
+                tag={`${secNo.match} · ${t.analysisLayout.tabs.match}`}
+                title={t.analysisLayout.match.title}
+                subtitle={t.analysisLayout.match.subtitle}
+              />
               {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} result={result} cvText={reconstructedCv ?? cvTextFormatted} />}
               <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
             </section>
 
             {/* 03 — CV */}
             <section id="sec-cv" style={SEC}>
-              {secHead(secNo.cv, t.analysisLayout.tabs.cv)}
+              <SectionBand
+                className="mb-8"
+                tag={`${secNo.cv} · ${t.analysisLayout.tabs.cv}`}
+                title={t.analysisLayout.cv.positioningTitle}
+                subtitle={t.analysisLayout.report.positioningSub}
+              />
               <ParsedCvDisclosure text={cvTextFormatted} />
               <CVBody result={result} onIssueClick={() => focusDoc("cv", true)} />
             </section>
@@ -1258,15 +1262,20 @@ export function AnalysisLayout({
             {/* 04 — Cover letter (only when a letter was provided) */}
             {hasCoverLetter && coverLetter && (
               <section id="sec-cover" style={SEC}>
-                {secHead(secNo.cover, t.analysisLayout.tabs.cover)}
+                <SectionBand
+                  className="mb-8"
+                  tag={`${secNo.cover} · ${t.analysisLayout.tabs.cover}`}
+                  title={t.analysisLayout.coverLetter.title}
+                  subtitle={t.analysisLayout.coverLetter.subtitle}
+                />
                 <CoverLetterBody cl={coverLetter} />
               </section>
             )}
 
             {/* Signals */}
             <section id="sec-signals" style={SEC}>
-              {secHead(secNo.signals, t.analysisLayout.tabs.signals)}
               <SignalsTab
+                sectionTag={`${secNo.signals} · ${t.analysisLayout.tabs.signals}`}
                 github={result.audit.github}
                 linkedin={result.audit.linkedin}
                 hasGithub={result.audit.github.score !== null || result.audit.github.issues.length > 0}
@@ -1280,8 +1289,8 @@ export function AnalysisLayout({
 
             {/* 05 — Timeline */}
             <section id="sec-timeline" style={SEC}>
-              {secHead(secNo.timeline, t.analysisLayout.tabs.timeline)}
               <ConsistencyTab
+                sectionTag={`${secNo.timeline} · ${t.analysisLayout.tabs.timeline}`}
                 inconsistencies={result.cross_profile_inconsistencies ?? []}
                 timelineEntries={result.timeline_entries ?? []}
               />
@@ -1290,7 +1299,12 @@ export function AnalysisLayout({
             {/* 06 — Roadmap (derived from the deep fixes → skeleton while pending,
                 else the empty "no issues" state misleads during generation) */}
             <section id="sec-roadmap" style={SEC}>
-              {secHead(secNo.roadmap, t.analysisLayout.tabs.roadmap)}
+              <SectionBand
+                className="mb-8"
+                tag={`${secNo.roadmap} · ${t.analysisLayout.tabs.roadmap}`}
+                title={t.roadmapTab.actionPlan}
+                subtitle={t.roadmapTab.actionPlanSubtitle}
+              />
               {deepStatus === "pending" ? (
                 <ProjectRecommendationSkeleton />
               ) : (
@@ -1300,19 +1314,21 @@ export function AnalysisLayout({
 
             {/* 07 — Bridge project */}
             <section id="sec-bridge" style={SEC}>
-              {secHead(secNo.bridge, t.analysisLayout.tabs.bridge)}
+              <SectionBand
+                className="mb-8"
+                tag={`${secNo.bridge} · ${t.analysisLayout.tabs.bridge}`}
+                title="Bridge the Gap"
+                subtitle="A high-impact project engineered to close your technical gaps and signal readiness to any recruiter."
+                meta={result.project_recommendation ? (
+                  <span className="px-3 py-1.5 rounded-full font-mono text-[11px] uppercase tracking-widest font-bold text-white" style={{ background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.3)" }}>{result.project_recommendation.difficulty_level}</span>
+                ) : undefined}
+              />
               {result.project_recommendation ? (
-                hasShortlisted ? (
-                  <BridgeTab result={result} analysisId={analysisId} completedSteps={completedSteps} />
-                ) : (
-                  <ProjectTab project={result.project_recommendation} />
-                )
+                <BridgeTab result={result} analysisId={analysisId} completedSteps={completedSteps} />
               ) : deepStatus === "pending" ? (
                 <ProjectRecommendationSkeleton />
               ) : (
-                <div style={{ padding: "32px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
-                  {t.analysisLayout.plan.bridgeNotAvailable}
-                </div>
+                <ProjectTab />
               )}
               {AI_INTERVIEW_ENABLED && hasHired && (
                 <div style={{ marginTop: 32 }}>
@@ -1323,7 +1339,12 @@ export function AnalysisLayout({
 
             {/* 08 — Negotiation */}
             <section id="sec-negotiate" style={SEC}>
-              {secHead(secNo.negotiate, t.analysisLayout.tabs.negotiate)}
+              <SectionBand
+                className="mb-8"
+                tag={`${secNo.negotiate} · ${t.analysisLayout.tabs.negotiate}`}
+                title={t.negotiationTab.title}
+                subtitle={t.negotiationTab.subtitle}
+              />
               {hasHired ? (
                 <NegotiationTab result={result} analysisId={analysisId} isPremium={true} />
               ) : (
@@ -1335,9 +1356,9 @@ export function AnalysisLayout({
 
             {/* 09 — Rewrite */}
             <section id="sec-rewrite" style={SEC}>
-              {secHead(secNo.rewrite, t.analysisLayout.tabs.rewrite)}
               {(hasShortlisted || premiumUnlocked) ? (
                 <RewriteTab
+                  sectionTag={`${secNo.rewrite} · ${t.analysisLayout.tabs.rewrite}`}
                   result={result}
                   reconstructedCv={reconstructedCv ?? null}
                   isRewriting={isRewriting ?? false}

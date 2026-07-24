@@ -40,6 +40,7 @@ export function RiskMeter({
   context,
   lede,
   sectionNo = "01",
+  hideEyebrow = false,
   pending = false,
 }: {
   value: number;
@@ -55,6 +56,8 @@ export function RiskMeter({
   /** Verdict sentence; falls back to a generic per-band line. */
   lede?: React.ReactNode;
   sectionNo?: string;
+  /** Suppress the internal "NN · eyebrow" row (used when a SectionBand renders the header instead). */
+  hideEyebrow?: boolean;
   /**
    * While the analysis is still streaming, the only score we have is the model's
    * PROVISIONAL guess — the backend replaces it with the anchored composite in
@@ -114,15 +117,17 @@ export function RiskMeter({
   if (pending) {
     return (
       <section aria-label={rm.computing} aria-busy="true">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-rc-hint" aria-hidden />
-          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
-            {sectionNo} · {eyebrow}
-          </span>
-          {ctx && (
-            <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
-          )}
-        </div>
+        {!hideEyebrow && (
+          <div className="mb-4 flex items-center gap-2">
+            <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-rc-hint" aria-hidden />
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
+              {sectionNo} · {eyebrow}
+            </span>
+            {ctx && (
+              <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
           <div
@@ -164,15 +169,17 @@ export function RiskMeter({
 
   return (
     <section aria-label={`${eyebrow}: ${v}${unit}, ${verdictText}`}>
-      <div className="mb-4 flex items-center gap-2">
-        <span className={`h-[6px] w-[6px] rounded-full ${SOLID[colorBand]}`} aria-hidden />
-        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
-          {sectionNo} · {eyebrow}
-        </span>
-        {ctx && (
-          <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
-        )}
-      </div>
+      {!hideEyebrow && (
+        <div className="mb-4 flex items-center gap-2">
+          <span className={`h-[6px] w-[6px] rounded-full ${SOLID[colorBand]}`} aria-hidden />
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-rc-hint">
+            {sectionNo} · {eyebrow}
+          </span>
+          {ctx && (
+            <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.12em] text-rc-hint">{ctx}</span>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-start gap-x-5 gap-y-3">
         <div

@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { Loader2, Copy, Check, Sparkles, AlertTriangle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { AnalysisResult, NegotiationAnalysis, LeveragePoint } from "../types";
-import { SectionHeader } from "../SectionHeader";
 import { PremiumPaywall } from "../PremiumFeature";
 // Lazy: recharts (~5 MB) only loads when the negotiation playbook is opened,
 // keeping it out of the initial /analyze bundle.
@@ -86,12 +85,6 @@ export function NegotiationTab({ result, analysisId, isPremium }: Props) {
   if (!negotiation) {
     return (
       <div className="space-y-6">
-        <SectionHeader
-          label={t.negotiationTab.premiumBadge}
-          labelColor="text-rc-red"
-          title={t.negotiationTab.title}
-          subtitle={t.negotiationTab.subtitle}
-        />
         <div className="flex flex-col items-center justify-center py-12 px-4">
           <button
             onClick={handleGenerate}
@@ -138,13 +131,6 @@ export function NegotiationTab({ result, analysisId, isPremium }: Props) {
 
   return (
     <div className="space-y-12">
-      <SectionHeader
-        label={t.negotiationTab.premiumBadge}
-        labelColor="text-rc-red"
-        title={t.negotiationTab.title}
-        subtitle={t.negotiationTab.subtitle}
-      />
-
       {/* SECTION 1 — Market positioning */}
       <section className="space-y-5">
         <h3 className="font-mono text-[11px] uppercase tracking-[0.15em] text-rc-hint font-bold">

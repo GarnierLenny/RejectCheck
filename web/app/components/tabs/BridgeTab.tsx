@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useId, useCallback } from "react";
 import {
   Download, Loader2, Copy, Check,
   Target, Layers, Zap, Globe, Shield, Database,
-  MessageSquare, FileText, AlertCircle, ChevronDown, ChevronUp,
+  MessageSquare, FileText, AlertCircle, AlertTriangle, ChevronDown, ChevronUp,
   BookOpen, TestTube2, HelpCircle, TrendingUp, Star,
   CheckCircle2, Circle,
 } from "lucide-react";
@@ -183,77 +183,6 @@ function StackLogo({ name }: { name: string }) {
       </svg>
       <span style={{ ...MONO, fontSize: 11, color: "var(--rc-text)" }}>{name}</span>
     </span>
-  );
-}
-
-// ── Difficulty indicator ──────────────────────────────────────────────────────
-
-type DifficultyLevel = "Beginner" | "Intermediate" | "Advanced" | "Expert";
-
-const DIFFICULTY_LEVELS: {
-  level: DifficultyLevel;
-  color: string;
-  bg: string;
-  activeBg: string;
-  days: string;
-  desc: string;
-}[] = [
-  { level: "Beginner",     color: "#3b82f6", bg: "rgba(59,130,246,0.08)",  activeBg: "rgba(59,130,246,0.18)",  days: "~1-2 days", desc: "Great first project to start shipping" },
-  { level: "Intermediate", color: "#6366f1", bg: "rgba(99,102,241,0.08)",  activeBg: "rgba(99,102,241,0.18)",  days: "~3 days",   desc: "Solid weekend project, one new concept" },
-  { level: "Advanced",     color: "var(--rc-amber)", bg: "rgba(217,119,6,0.08)", activeBg: "rgba(217,119,6,0.18)", days: "~5 days", desc: "Multi-layer architecture, real tradeoffs" },
-  { level: "Expert",       color: "var(--rc-red)",   bg: "var(--rc-red-bg)",     activeBg: "rgba(201,58,57,0.18)", days: "~8 days", desc: "Distributed system or production-grade complexity" },
-];
-
-function DifficultyBar({ level }: { level: DifficultyLevel }) {
-  const [hovered, setHovered] = useState<DifficultyLevel | null>(null);
-  const activeLevel = hovered ?? level;
-  const activeCfg = DIFFICULTY_LEVELS.find((d) => d.level === activeLevel)!;
-  const currentIdx = DIFFICULTY_LEVELS.findIndex((d) => d.level === level);
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-      {/* Segments */}
-      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-        {DIFFICULTY_LEVELS.map((d, i) => {
-          const isActive = d.level === level;
-          const isHovered = d.level === hovered;
-          const isPast = i < currentIdx;
-          return (
-            <div
-              key={d.level}
-              onMouseEnter={() => setHovered(d.level)}
-              onMouseLeave={() => setHovered(null)}
-              style={{
-                height: isHovered ? 10 : isActive ? 8 : 5,
-                width: isActive ? 40 : 28,
-                borderRadius: 99,
-                background: isHovered ? d.activeBg : (isActive || isPast) ? d.bg : "var(--rc-border)",
-                border: isActive ? `1.5px solid ${d.color}` : isHovered ? `1px solid ${d.color}` : "1px solid transparent",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                flexShrink: 0,
-              }}
-            />
-          );
-        })}
-      </div>
-      {/* Label */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: activeCfg.color, transition: "color 0.15s" }}>
-          {activeLevel}
-        </span>
-        <span style={{ width: 1, height: 9, background: activeCfg.color, opacity: 0.3 }} />
-        <span style={{ ...MONO, fontSize: 9, color: activeCfg.color, opacity: 0.7, transition: "color 0.15s" }}>
-          {activeCfg.days}
-        </span>
-      </div>
-      {/* Description on hover */}
-      {hovered && hovered !== level && (
-        <p style={{ ...SANS, fontSize: 11, color: "var(--rc-hint)", margin: 0, textAlign: "right", maxWidth: 200, lineHeight: 1.4 }}>
-          {activeCfg.desc}
-        </p>
-      )}
-    </div>
   );
 }
 
@@ -565,20 +494,8 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
 
-      {/* ── Hero: title + project name + description ── */}
+      {/* ── Project name + description (red SectionBand rendered by parent) ── */}
       <div style={{ paddingBottom: 40 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 32 }}>
-          <div>
-            <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(22px,2.4vw,32px)", letterSpacing: "-0.025em", margin: "0 0 6px", lineHeight: 1.1 }}>
-              Bridge the gap,{" "}<span style={DISPLAY_ITALIC}>ship the proof.</span>
-            </h2>
-            <p style={{ ...MONO, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.14em", color: "var(--rc-hint)", margin: 0 }}>
-              A project engineered to close your specific skill gaps
-            </p>
-          </div>
-          <DifficultyBar level={project.difficulty_level} />
-        </div>
-
         <h3 style={{ ...SANS, fontWeight: 600, fontSize: "clamp(18px,2vw,26px)", letterSpacing: "-0.02em", color: "var(--rc-text)", margin: "0 0 12px", lineHeight: 1.2 }}>{project.name}</h3>
         <p style={{ ...SANS, fontSize: 15, lineHeight: 1.7, color: "var(--rc-muted)", margin: "0 0 24px", maxWidth: 680 }}>{project.description}</p>
 
@@ -813,6 +730,47 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
         }
         return null;
       })()}
+
+      {/* ── Roadmap · build path ── */}
+      {project.getting_started && project.getting_started.length > 0 && (
+        <div style={SEC}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 24 }}>
+            <span style={{ ...MONO, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700 }}>Roadmap · Your build path</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+            {project.getting_started.map((phase, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+                {/* Numbered circular marker */}
+                <div style={{
+                  width: 34, height: 34, borderRadius: 99, flexShrink: 0, marginTop: 1,
+                  background: "var(--rc-red-bg)", border: "1px solid var(--rc-red-border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ ...MONO, fontSize: 13, fontWeight: 700, color: "var(--rc-red)", lineHeight: 1 }}>{i + 1}</span>
+                </div>
+                <div style={{ flex: 1, minWidth: 0, paddingTop: 3 }}>
+                  <div style={{ ...SANS, fontSize: 15, fontWeight: 700, color: "var(--rc-text)", lineHeight: 1.3, marginBottom: 4 }}>{phase.phase}</div>
+                  <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-muted)", margin: "0 0 12px", fontStyle: "italic" }}>{phase.objective}</p>
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 7 }}>
+                    {phase.details.map((detail, di) => (
+                      <li key={di} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        <span style={{ color: "var(--rc-red)", opacity: 0.55, lineHeight: 1.6, flexShrink: 0 }}>•</span>
+                        <span style={{ ...SANS, fontSize: 15, lineHeight: 1.6, color: "var(--rc-text)" }}>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {phase.watch_out && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginTop: 12 }}>
+                      <AlertTriangle size={13} style={{ color: "var(--rc-amber)", flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ ...SANS, fontSize: 12, lineHeight: 1.55, color: "var(--rc-amber)" }}>{phase.watch_out}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Edge cases ── */}
       {project.edge_cases && project.edge_cases.length > 0 && (

@@ -13,6 +13,7 @@ import { InterviewTab } from "./tabs/InterviewTab";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
 import { AnalysisShell, type HighlightMap } from "./AnalysisShell";
+import { SectionBand } from "./SectionBand";
 import { RiskMeter } from "./RiskMeter";
 import { CvAuditRescanPanel } from "./CvAuditRescanPanel";
 import { CvChecksScorecard } from "./CvChecksScorecard";
@@ -113,6 +114,10 @@ const DISPLAY_ITALIC: React.CSSProperties = {
   color: "var(--rc-red)",
 };
 
+// Emphasis inside a red SectionBand. The red DISPLAY_ITALIC accent would vanish
+// on the red band, so emphasized words stay white and go italic to keep the lift.
+const BAND_EM: React.CSSProperties = { fontStyle: "italic" };
+
 const EYEBROW: React.CSSProperties = {
   ...MONO,
   fontSize: 10,
@@ -121,22 +126,6 @@ const EYEBROW: React.CSSProperties = {
   color: "var(--rc-hint)",
   fontWeight: 700,
 };
-
-const SEC_NUM: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 14,
-  ...MONO,
-  fontSize: 10,
-  letterSpacing: "0.16em",
-  textTransform: "uppercase" as const,
-  color: "var(--rc-hint)",
-  marginBottom: 14,
-};
-
-function SecNumLine() {
-  return <span style={{ width: 28, height: 1, background: "var(--rc-text)", display: "inline-block", flexShrink: 0 }} />;
-}
 
 /** Evidence list for 03 seniority: the concrete signals behind a verdict. */
 function SenioritySignalList({ accent, kicker, items }: { accent: string; kicker: string; items: string[] }) {
@@ -765,12 +754,11 @@ export function CvAuditResult({
 
           {/* ── 02 The one move ── */}
           <section data-ca-sec="s1" id="s1" style={{ paddingBottom: 64, paddingTop: 0 }}>
-            <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />02 · Where to start</div>
-              <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                Your urgent <span style={DISPLAY_ITALIC}>fix</span>, and your <span style={DISPLAY_ITALIC}>lever</span>.
-              </h2>
-            </div>
+            <SectionBand
+              className="mb-8"
+              tag="02 · Where to start"
+              title={<>Your urgent <span style={BAND_EM}>fix</span>, and your <span style={BAND_EM}>lever</span>.</>}
+            />
 
             {topIssue ? (
               <div style={{
@@ -824,15 +812,14 @@ export function CvAuditResult({
 
           {/* ── 03 Seniority gap ── */}
           <section data-ca-sec="s5" id="s5" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-            <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />03 · Seniority gap</div>
-              <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                {hasGap
-                  ? <>Your writing <span style={DISPLAY_ITALIC}>reads below</span> your titles.</>
-                  : <>Seniority signals <span style={DISPLAY_ITALIC}>are aligned.</span></>
-                }
-              </h2>
-            </div>
+            <SectionBand
+              className="mb-8"
+              tag="03 · Seniority gap"
+              title={hasGap
+                ? <>Your writing <span style={BAND_EM}>reads below</span> your titles.</>
+                : <>Seniority signals <span style={BAND_EM}>are aligned.</span></>
+              }
+            />
 
             {/* Seniority track */}
             <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, padding: "28px 32px", marginBottom: 24 }}>
@@ -943,17 +930,16 @@ export function CvAuditResult({
           {/* ── 05 Timeline & consistency ── */}
           {(inconsistencies.length > 0 || (result.timeline_entries?.length ?? 0) > 0) && (
             <section data-ca-sec="s4" id="s4" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />05 · Timeline &amp; consistency</div>
-                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                  {result.timeline_entries?.length
-                    ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={DISPLAY_ITALIC}>across your profiles.</span></>
-                    : inconsistencies.length === 1
-                      ? <>One <span style={DISPLAY_ITALIC}>inconsistency</span> across your profiles.</>
-                      : <>{inconsistencies.length} <span style={DISPLAY_ITALIC}>inconsistencies</span> across your profiles.</>
-                  }
-                </h2>
-              </div>
+              <SectionBand
+                className="mb-8"
+                tag="05 · Timeline & consistency"
+                title={result.timeline_entries?.length
+                  ? <>{result.timeline_entries.length} entr{result.timeline_entries.length !== 1 ? "ies" : "y"} <span style={BAND_EM}>across your profiles.</span></>
+                  : inconsistencies.length === 1
+                    ? <>One <span style={BAND_EM}>inconsistency</span> across your profiles.</>
+                    : <>{inconsistencies.length} <span style={BAND_EM}>inconsistencies</span> across your profiles.</>
+                }
+              />
 
               {result.timeline_entries && result.timeline_entries.length > 0 && (() => {
                 const markers = inconsistencies
@@ -1019,12 +1005,11 @@ export function CvAuditResult({
 
           {q && (
             <section data-ca-sec="s6" id="s6" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ marginBottom: 32 }}>
-                <div style={SEC_NUM}><SecNumLine />06 · Quality breakdown</div>
-                <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                  Six dimensions of how your CV <span style={DISPLAY_ITALIC}>reads</span>.
-                </h2>
-              </div>
+              <SectionBand
+                className="mb-8"
+                tag="06 · Quality breakdown"
+                title={<>Six dimensions of how your CV <span style={BAND_EM}>reads</span>.</>}
+              />
 
               <div ref={qualityRef} style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
                 <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid var(--rc-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1097,12 +1082,11 @@ export function CvAuditResult({
 
           {/* ── 07 All findings ── */}
           <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-            <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />07 · Findings · merged by severity</div>
-              <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                All signals, <span style={DISPLAY_ITALIC}>ranked</span>.
-              </h2>
-            </div>
+            <SectionBand
+              className="mb-8"
+              tag="07 · Findings · merged by severity"
+              title={<>All signals, <span style={BAND_EM}>ranked</span>.</>}
+            />
 
             {mergedIssues.length === 0 ? (
               <div style={{ background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: 6, padding: "24px 28px", ...SANS, fontSize: 14, color: "var(--rc-muted)" }}>
@@ -1157,15 +1141,12 @@ export function CvAuditResult({
 
           {/* ── 08 Roadmap ── */}
           <section data-ca-sec="s8" id="s8" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-            <div style={{ marginBottom: 32 }}>
-              <div style={SEC_NUM}><SecNumLine />08 · Roadmap</div>
-              <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(24px,2.8vw,36px)", lineHeight: 1.05, letterSpacing: "-0.025em", margin: 0, maxWidth: 720 }}>
-                In <span style={DISPLAY_ITALIC}>a few hours</span>, your profile reads one band up.
-              </h2>
-              <p style={{ ...SANS, fontSize: 15, lineHeight: 1.6, color: "var(--rc-muted)", marginTop: 14, maxWidth: 580 }}>
-                Prioritized order. Each step shows estimated time and quality gain.
-              </p>
-            </div>
+            <SectionBand
+              className="mb-8"
+              tag="08 · Roadmap"
+              title={<>In <span style={BAND_EM}>a few hours</span>, your profile reads one band up.</>}
+              subtitle="Prioritized order. Each step shows estimated time and quality gain."
+            />
 
             {roadmap.map((item, idx) => (
               <div key={item.id} style={{
@@ -1213,7 +1194,7 @@ export function CvAuditResult({
           {/* ── 10 CV rewrite (shortlisted) ── */}
           {hasShortlisted && (
             <section data-ca-sec="s10" id="s10" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />10 · CV rewrite</div>
+              <SectionBand className="mb-8" tag="10 · CV rewrite" title="CV rewrite" />
               <ImproveTab
                 reconstructedCv={reconstructedCv}
                 isLoading={isRewriting}
@@ -1227,7 +1208,7 @@ export function CvAuditResult({
           {/* ── 11 Cover letter (shortlisted) ── */}
           {hasShortlisted && (
             <section data-ca-sec="s11" id="s11" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />11 · Cover letter</div>
+              <SectionBand className="mb-8" tag="11 · Cover letter" title="Cover letter" />
               <CoverLetterTab
                 analysisId={_analysisId}
                 isPremium={true}
@@ -1241,7 +1222,7 @@ export function CvAuditResult({
           {/* ── 12 AI mock interview (hired) ── */}
           {AI_INTERVIEW_ENABLED && hasHired && (
             <section data-ca-sec="s12" id="s12" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
-              <div style={{ ...SEC_NUM, marginBottom: 32 }}><SecNumLine />12 · AI mock interview</div>
+              <SectionBand className="mb-8" tag="12 · AI mock interview" title="AI mock interview" />
               <InterviewTab
                 isPremium={true}
                 analysisId={_analysisId}
@@ -1283,14 +1264,13 @@ export function CvAuditResult({
             return (
               <section data-ca-sec="s-pro" id="s-pro" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
 
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 24, marginBottom: 32 }}>
-                  <div>
-                    <div style={SEC_NUM}><SecNumLine />{hasShortlisted ? "12 · Hired feature" : AI_INTERVIEW_ENABLED ? "10-12 · Pro features" : "10-11 · Pro features"}</div>
-                    <h2 style={{ ...SANS, fontWeight: 500, fontSize: "clamp(26px,2.8vw,36px)", letterSpacing: "-0.025em", margin: 0, lineHeight: 1.05 }}>
-                      Your audit is done. <span style={DISPLAY_ITALIC}>Now fix it.</span>
-                    </h2>
-                  </div>
-                  {!hasShortlisted && AI_INTERVIEW_ENABLED && (
+                <SectionBand
+                  className="mb-8"
+                  tag={hasShortlisted ? "12 · Hired feature" : AI_INTERVIEW_ENABLED ? "10-12 · Pro features" : "10-11 · Pro features"}
+                  title={<>Your audit is done. <span style={BAND_EM}>Now fix it.</span></>}
+                />
+                {!hasShortlisted && AI_INTERVIEW_ENABLED && (
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 32 }}>
                     <div style={{ display: "flex", flexShrink: 0, border: "1px solid var(--rc-border)", borderRadius: 6, overflow: "hidden" }}>
                       {(["shortlisted", "hired"] as const).map((tier) => {
                         const active = proTier === tier;
@@ -1301,8 +1281,8 @@ export function CvAuditResult({
                         );
                       })}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid var(--rc-border)" }}>
                   <div className="rc-col2-m" style={{ background: "#111", display: "grid", gridTemplateColumns: hasShortlisted ? "1fr" : "repeat(2, 1fr)" }}>

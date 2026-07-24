@@ -848,7 +848,9 @@
         "decent": "Workable, a few gaps to close first.",
         "strong": "Strong match, few reasons to pass on this."
       },
-      "context": "vs this job"
+      "context": "vs this job",
+      "bandTitle": "How competitive you are for this role",
+      "bandSubtitle": "How well your profile matches this posting, not your odds of an interview."
     }
   },
   "resultNudge": {

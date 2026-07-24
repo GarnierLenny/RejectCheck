@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { consumeSSE } from "../../lib/sse";
 import { useLanguage } from "../../context/language";
+import { SectionBand } from "./SectionBand";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 
@@ -308,37 +309,7 @@ export function CvAuditRescanPanel({
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            ...MONO,
-            fontSize: 10,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "var(--rc-hint)",
-            fontWeight: 700,
-            marginBottom: 12,
-          }}
-        >
-          {L.kicker}
-        </div>
-        <h2
-          style={{
-            ...SANS,
-            fontWeight: 500,
-            fontSize: "clamp(24px,2.8vw,36px)",
-            lineHeight: 1.05,
-            letterSpacing: "-0.025em",
-            margin: 0,
-            maxWidth: 720,
-          }}
-        >
-          {L.title}
-        </h2>
-        <p style={{ ...SANS, fontSize: 14, color: "var(--rc-hint)", maxWidth: 640, marginTop: 12 }}>
-          {L.intro}
-        </p>
-      </div>
+      <SectionBand className="mb-8" tag={L.kicker} title={L.title} subtitle={L.intro} />
 
       <div
         style={{

@@ -144,6 +144,20 @@ export const ProjectRecommendationSchema = z.object({
       }),
     )
     .optional(),
+  /**
+   * Senior-level "getting started" build roadmap (premium moat). Optional here
+   * for backward compat with rows stored before this field existed.
+   */
+  getting_started: z
+    .array(
+      z.object({
+        phase: z.string(),
+        objective: z.string(),
+        details: z.array(z.string()),
+        watch_out: z.string().optional(),
+      }),
+    )
+    .optional(),
   /** Backward compat — flat steps from analyses before sections were introduced */
   steps: z
     .array(

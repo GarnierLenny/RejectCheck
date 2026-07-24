@@ -28,15 +28,6 @@ export type ShapeContext = {
 /** Keywords shown to free users; the rest is counted in premium_locked. */
 const FREE_ATS_KEYWORDS = 3;
 
-/** Fields of project_recommendation kept as the free teaser. */
-const PROJECT_TEASER_FIELDS = [
-  'name',
-  'description',
-  'difficulty_level',
-  'technologies',
-  'why_it_matters',
-] as const;
-
 type AnyRecord = Record<string, unknown>;
 
 const isRecord = (v: unknown): v is AnyRecord =>
@@ -76,15 +67,6 @@ function countBulletRewrites(bulletReviews: unknown): number {
   }
   return bulletReviews.bullets.filter((b) => isRecord(b) && b.rewrite != null)
     .length;
-}
-
-function projectTeaser<T>(project: T): T {
-  if (!isRecord(project)) return project;
-  const teaser: AnyRecord = {};
-  for (const field of PROJECT_TEASER_FIELDS) {
-    if (field in project) teaser[field] = project[field];
-  }
-  return teaser as T;
 }
 
 /**
@@ -134,11 +116,12 @@ export function shapeAnalysisForPlan(
   if (result.bullet_reviews) {
     shaped.bullet_reviews = redactBulletReviews(result.bullet_reviews);
   }
-  if (result.project_recommendation) {
-    shaped.project_recommendation = projectTeaser(
-      result.project_recommendation,
-    );
-  }
+  // Product decision: the project is FULLY locked for free users. Even the old
+  // teaser (name / description / why_it_matters) leaked enough to reconstruct
+  // the whole build with an LLM, so we emit NO project content at all. Its
+  // presence is signalled only via premium_locked.project below, so the
+  // frontend can still render the unlock CTA.
+  delete (shaped as AnyRecord).project_recommendation;
 
   shaped.premium_locked = {
     fixes:
@@ -198,7 +181,9 @@ export function shapeSectionForPlan(
     case 'ats_critical_missing_keywords':
       return Array.isArray(value) ? value.slice(0, FREE_ATS_KEYWORDS) : value;
     case 'project_recommendation':
-      return projectTeaser(value);
+      // Fully locked for free users: stream nothing. The unlock CTA is driven
+      // by premium_locked.project in the final shaped payload, not this section.
+      return null;
     default:
       return value;
   }

@@ -609,6 +609,42 @@ const PROJECT_RECOMMENDATION_PROPERTY = {
       minItems: 3,
       maxItems: 6,
     },
+    getting_started: {
+      type: 'array' as const,
+      description:
+        'A senior-level "getting started" build roadmap: 4 to 6 ordered phases taking the candidate from an empty repo to a shippable MVP. This is the moat — BIG-PICTURE mentoring a staff engineer gives before anyone writes a line, never code. No snippets, no file names, no API signatures. Per phase, orient them: which official docs / specs / references to read FIRST, how to stand up the environment and tooling, what to build first and WHY that order de-risks the project, and the one pitfall that trips most people up.',
+      items: {
+        type: 'object' as const,
+        properties: {
+          phase: {
+            type: 'string' as const,
+            description:
+              'Short phase name. ≤ 6 words, e.g. "Foundations & environment".',
+          },
+          objective: {
+            type: 'string' as const,
+            description:
+              'One line stating what this phase achieves and why it comes here. ≤ 20 words.',
+          },
+          details: {
+            type: 'array' as const,
+            items: { type: 'string' as const },
+            minItems: 3,
+            maxItems: 4,
+            description:
+              '3 to 4 concrete big-picture steps: which docs/specs to read first, how to set up the env & tooling, what to tackle first and the reason. Each ≤ 25 words. Never code — no snippets, signatures or file paths.',
+          },
+          watch_out: {
+            type: 'string' as const,
+            description:
+              'Optional: the single most common pitfall at this phase and how to avoid it, big-picture. ≤ 25 words. Omit entirely if none stands out.',
+          },
+        },
+        required: ['phase', 'objective', 'details'],
+      },
+      minItems: 4,
+      maxItems: 6,
+    },
     edge_cases: {
       type: 'array' as const,
       description: '2 to 4 common pitfalls specific to this project and stack.',
@@ -714,6 +750,7 @@ const PROJECT_RECOMMENDATION_PROPERTY = {
     'cv_bullet',
     'signal_boost',
     'sections',
+    'getting_started',
     'edge_cases',
     'going_further',
     'how_to_sell',
