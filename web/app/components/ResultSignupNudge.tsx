@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Sparkles, ArrowRight, X } from "lucide-react";
@@ -11,11 +11,27 @@ import { useLanguage } from "../../context/language";
  * the signup at the aha-moment (the audit's #1 leak: anonymous users see all
  * the value then leave without an account). Dismissible for the session.
  */
+const DISMISS_KEY = "rc_signup_nudge_dismissed";
+
 export function ResultSignupNudge() {
   const { t, localePath } = useLanguage();
   const n = t.resultNudge;
   const reduce = useReducedMotion();
+  // "Dismissible for the session" was plain component state, so the nudge came
+  // straight back on the next result or any remount. Persist the dismissal.
   const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(DISMISS_KEY) === "1") setDismissed(true);
+    } catch { /* ignore */ }
+  }, []);
+
+  const dismiss = () => {
+    setDismissed(true);
+    try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
+  };
+
   if (dismissed) return null;
 
   return (
@@ -51,7 +67,7 @@ export function ResultSignupNudge() {
 
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={dismiss}
           aria-label={n.dismiss}
           className="absolute right-2.5 top-2.5 grid h-6 w-6 place-items-center rounded-md text-rc-hint transition-colors hover:bg-rc-bg hover:text-rc-text"
         >

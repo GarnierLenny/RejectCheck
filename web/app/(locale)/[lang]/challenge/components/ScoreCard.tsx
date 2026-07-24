@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useLanguage } from "../../../../../context/language";
 import { useChallengeStreak } from "../../../../../lib/challenge";
 import { RANK_REWARDS_ENABLED } from "../../../../../lib/features";
+import { percentileFromBuckets } from "../../../../lib/percentile";
 import type { ChallengeIssue, DayStats, FinalResponse, PublicChallenge } from "../../../../../lib/challenge";
 
 const SEVERITY_STYLES: Record<ChallengeIssue["severity"], string> = {
@@ -24,14 +25,9 @@ type Props = {
   result: FinalResponse;
 };
 
+/** Thin adapter over the shared helper (lib/percentile.ts), which owns the math. */
 function percentileFromDistribution(stats: DayStats, score: number): number {
-  if (stats.completions === 0) return 0;
-  let below = 0;
-  for (let i = 0; i < 10; i++) {
-    const bucketTop = (i + 1) * 10;
-    if (bucketTop <= score) below += stats.scoreDistribution[i];
-  }
-  return Math.round((below / stats.completions) * 100);
+  return percentileFromBuckets(stats.scoreDistribution, stats.completions, score);
 }
 
 export function ScoreCard({ challenge, result }: Props) {

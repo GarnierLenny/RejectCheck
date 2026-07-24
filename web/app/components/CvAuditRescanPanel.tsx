@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { consumeSSE } from "../../lib/sse";
+import { scrollIntoViewMotionSafe } from "../lib/scroll";
 import { useLanguage } from "../../context/language";
 import { SectionBand } from "./SectionBand";
 
@@ -69,7 +70,11 @@ const COPY = {
     hint: "Tip: click a highlighted bullet in your CV on the left to jump straight to it.",
     noneAccepted: "Accept at least one rewrite to re-audit.",
     run: "Re-audit my CV",
-    running: "Re-auditing, this takes a moment...",
+    creditNote: "· 1 credit",
+    running: "Re-auditing your CV...",
+    progress: "Re-scoring your six quality dimensions, this takes ~30s.",
+    unapplied: "of your accepted rewrites couldn't be matched to your CV text and weren't applied. Edit them directly in the box below.",
+    outdated: "The report above still shows your previous audit. Open the updated version to see the new scores everywhere.",
     resultTitle: "What moved",
     overall: "Overall quality",
     resolved: "resolved",
@@ -95,7 +100,11 @@ const COPY = {
     hint: "Astuce : clique un bullet surligné dans ton CV à gauche pour aller droit dessus.",
     noneAccepted: "Accepte au moins une réécriture pour relancer l'audit.",
     run: "Re-auditer mon CV",
-    running: "Re-audit en cours, ça prend un instant...",
+    creditNote: "· 1 crédit",
+    running: "Re-audit de ton CV...",
+    progress: "On re-note tes six dimensions de qualité, ça prend ~30s.",
+    unapplied: "de tes réécritures acceptées n'ont pas pu être retrouvées dans le texte de ton CV et n'ont pas été appliquées. Modifie-les directement dans le champ ci-dessous.",
+    outdated: "Le rapport ci-dessus montre encore ton audit précédent. Ouvre la version mise à jour pour voir les nouveaux scores partout.",
     resultTitle: "Ce qui a bougé",
     overall: "Qualité globale",
     resolved: "résolues",
@@ -140,6 +149,33 @@ function fmtDelta(delta: number | null): string {
 
 const MONO = { fontFamily: "var(--rc-mono, ui-monospace, monospace)" } as const;
 const SANS = { fontFamily: "var(--rc-sans, system-ui, sans-serif)" } as const;
+
+/**
+ * Whitespace-tolerant replace: the bullet `original` comes from the parsed CV,
+ * but the reconstructed CV text can differ by newlines/spacing, so an exact
+ * `String.replace` silently no-ops and the edit never lands. We match the
+ * original as a sequence of tokens separated by any whitespace. Returns the new
+ * text and whether the original was actually found.
+ */
+function applyBulletEdit(
+  text: string,
+  original: string,
+  replacement: string,
+): { text: string; applied: boolean } {
+  const trimmed = original.trim();
+  if (!trimmed) return { text, applied: false };
+  if (text.includes(trimmed)) {
+    return { text: text.replace(trimmed, replacement), applied: true };
+  }
+  const escaped = trimmed
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\s+/g, "\\s+");
+  const re = new RegExp(escaped);
+  if (re.test(text)) {
+    return { text: text.replace(re, replacement), applied: true };
+  }
+  return { text, applied: false };
+}
 
 /** The sub-score that gained the most on this re-audit (for the "what moved" line). */
 function biggestMover(
@@ -206,6 +242,9 @@ export function CvAuditRescanPanel({
   const [error, setError] = useState<string | null>(null);
   const [deltas, setDeltas] = useState<CvReviewRescanDeltas | null>(null);
   const [newId, setNewId] = useState<number | null>(null);
+  // Accepted rewrites whose original couldn't be located in the CV text (so
+  // they weren't applied) — surfaced instead of silently dropped.
+  const [unappliedCount, setUnappliedCount] = useState(0);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [pulse, setPulse] = useState<string | null>(null);
@@ -221,15 +260,20 @@ export function CvAuditRescanPanel({
   };
   const dirtyCount = improvable.filter(isResolved).length;
 
-  const buildEditedCv = (): string => {
+  const buildEditedCv = (): { text: string; unapplied: number } => {
     let out = base;
+    let unapplied = 0;
     for (const b of improvable) {
-      if (isResolved(b) && b.original) out = out.replace(b.original, valueOf(b).trim());
+      if (isResolved(b) && b.original) {
+        const r = applyBulletEdit(out, b.original, valueOf(b).trim());
+        out = r.text;
+        if (!r.applied) unapplied += 1;
+      }
     }
-    return out;
+    return { text: out, unapplied };
   };
 
-  const assembledCv = editorMode ? buildEditedCv() : fallbackText.trim();
+  const assembledCv = editorMode ? buildEditedCv().text : fallbackText.trim();
   const canRun =
     !!analysisId &&
     !!accessToken &&
@@ -251,7 +295,7 @@ export function CvAuditRescanPanel({
     if (!focusedOriginal) return;
     const el = cardRefs.current[focusedOriginal];
     if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    scrollIntoViewMotionSafe(el, { block: "center" });
     setPulse(focusedOriginal);
     const t = setTimeout(() => setPulse(null), 1600);
     return () => clearTimeout(t);
@@ -259,7 +303,8 @@ export function CvAuditRescanPanel({
 
   const run = async () => {
     if (!analysisId || !accessToken || busy) return;
-    const cvText = assembledCv.trim();
+    const built = editorMode ? buildEditedCv() : { text: fallbackText.trim(), unapplied: 0 };
+    const cvText = built.text.trim();
     if (cvText.length < MIN_CHARS) {
       setError(L.tooShort);
       return;
@@ -268,6 +313,7 @@ export function CvAuditRescanPanel({
     setError(null);
     setDeltas(null);
     setNewId(null);
+    setUnappliedCount(built.unapplied);
     try {
       const res = await fetch(
         `${apiUrl}/api/analyze/${analysisId}/rescan-cv-review`,
@@ -497,9 +543,20 @@ export function CvAuditRescanPanel({
               borderRadius: 6,
               padding: "12px 22px",
               cursor: canRun ? "pointer" : "not-allowed",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
-            {busy ? L.running : L.run}
+            {busy ? (
+              <>
+                <Loader2 size={13} className="rc-rescan-spin" /> {L.running}
+              </>
+            ) : (
+              <>
+                {L.run} <span style={{ opacity: 0.7, fontWeight: 600 }}>{L.creditNote}</span>
+              </>
+            )}
           </button>
           {editorMode && dirtyCount > 0 && !busy && (
             <span style={{ ...MONO, fontSize: 11, color: "var(--rc-green)", fontWeight: 700 }}>
@@ -513,6 +570,34 @@ export function CvAuditRescanPanel({
             <span style={{ ...SANS, fontSize: 13, color: "var(--rc-red)" }}>{error}</span>
           )}
         </div>
+
+        {/* Progress row: a 30s+ paid operation needs more than a text swap. */}
+        {busy && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ ...SANS, fontSize: 12.5, color: "var(--rc-muted)", marginBottom: 8 }}>{L.progress}</div>
+            <div className="rc-rescan-track"><div className="rc-rescan-fill" /></div>
+          </div>
+        )}
+
+        {/* Accepted edits that couldn't be located in the CV text — flagged,
+            never silently dropped. */}
+        {!busy && unappliedCount > 0 && (
+          <div style={{ ...SANS, fontSize: 12.5, color: "var(--rc-amber)", marginTop: 12, lineHeight: 1.5 }}>
+            {unappliedCount} {L.unapplied}
+          </div>
+        )}
+
+        <style>{`
+          .rc-rescan-spin{animation:rcRescanSpin .9s linear infinite}
+          @keyframes rcRescanSpin{to{transform:rotate(360deg)}}
+          .rc-rescan-track{height:4px;background:var(--rc-border);border-radius:99px;overflow:hidden}
+          .rc-rescan-fill{height:100%;width:40%;border-radius:99px;background:var(--rc-red);animation:rcRescanSlide 1.3s ease-in-out infinite}
+          @keyframes rcRescanSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+          @media (prefers-reduced-motion: reduce){
+            .rc-rescan-spin{animation:none}
+            .rc-rescan-fill{animation:none;width:100%;opacity:.5}
+          }
+        `}</style>
 
         {deltas && (
           <div style={{ marginTop: 26, borderTop: "1px solid var(--rc-border)", paddingTop: 22 }}>
@@ -529,6 +614,26 @@ export function CvAuditRescanPanel({
             >
               {L.resultTitle}
             </div>
+
+            {/* The surrounding report still renders the pre-rescan numbers until
+                the user reloads into the new analysis — say so explicitly. */}
+            {newId != null && (
+              <div
+                style={{
+                  ...SANS,
+                  fontSize: 12.5,
+                  color: "var(--rc-amber)",
+                  background: "var(--rc-amber-bg)",
+                  border: "1px solid var(--rc-amber-border)",
+                  borderRadius: 6,
+                  padding: "10px 12px",
+                  marginBottom: 18,
+                  lineHeight: 1.5,
+                }}
+              >
+                {L.outdated}
+              </div>
+            )}
 
             {/* Overall headline movement */}
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>

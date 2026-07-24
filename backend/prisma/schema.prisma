@@ -140,6 +140,14 @@ model Analysis {
   premiumUnlockedAt     DateTime? // One-time "unlock this CV" purchase: when set, the CV rewrite is unlocked for THIS analysis without a subscription. Set by the analysis_unlock Stripe webhook.
   rewriteCount          Int                @default(0) // CV rewrites generated for this analysis. Capped (REWRITE_REGEN_CAP) to bound LLM cost — applies to subscribers AND one-time unlocks.
   creditCost            Int                @default(100) // credits deducted from monthly allowance: 100 = analyze JD, 50 = CV audit
+  // Denormalised percentile inputs. `cv_quality.overall` and the role family
+  // both live inside `result` (JSONB) with no index, so every distribution query
+  // is an unindexed scan of every analysis ever run. Written at analysis time.
+  // Nothing READS these yet: the per-family percentile stays dark until a family
+  // has enough rows to be worth quoting (see PERCENTILE_MIN_N). The point of
+  // shipping the columns early is to stop losing the data in the meantime.
+  cvQualityOverall      Int? // CV-audit headline 0-100. Null for vs-JD analyses.
+  roleFamily            String? // Resolved archetype family (see role-family.ts).
   outcome               AnalysisOutcome    @default(not_applied) // real-world result reported by the user (moat: calibrates the risk score against actual outcomes)
   outcomeUpdatedAt      DateTime? // when the user last set the outcome (null = never touched, still the default)
   createdAt             DateTime           @default(now())
@@ -154,6 +162,8 @@ model Analysis {
   // Covers /api/analyze/history (WHERE email = ? ORDER BY createdAt DESC).
   @@index([email, createdAt(sort: Desc)])
   @@index([parentAnalysisId])
+  // Covers the per-family score distribution the percentile gate reads.
+  @@index([roleFamily, cvQualityOverall])
 }
 
 // Lightweight, FREE keyword-only re-scan attempt. The retention loop: the user

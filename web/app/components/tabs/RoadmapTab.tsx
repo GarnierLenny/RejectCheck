@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import type { AnalysisResult, RoadmapSalaryImpact } from "../types";
 import { getSeverityStyles } from "../types";
@@ -8,6 +8,7 @@ import { useLanguage } from "../../../context/language";
 
 type Props = {
   result: AnalysisResult;
+  analysisId?: number | null;
 };
 
 type PriorityItem = {
@@ -37,12 +38,43 @@ function stripMd(text: string): string {
   return text.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").replace(/`(.+?)`/g, "$1").trim();
 }
 
-export function RoadmapTab({ result }: Props) {
+const roadmapKey = (id: number | null | undefined) =>
+  id != null ? `rc_roadmap_${id}` : null;
+
+export function RoadmapTab({ result, analysisId = null }: Props) {
   const { t } = useLanguage();
-  const [done, setDone] = useState<Set<string>>(new Set());
+  // Persist checked-off fixes across reloads (localStorage, keyed by analysis).
+  const [done, setDone] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    const key = roadmapKey(analysisId);
+    if (!key) return new Set();
+    try {
+      const stored = JSON.parse(localStorage.getItem(key) ?? "null");
+      if (Array.isArray(stored)) return new Set(stored as string[]);
+    } catch { /* ignore */ }
+    return new Set();
+  });
+
+  // Re-hydrate if the analysis id arrives/changes after mount.
+  useEffect(() => {
+    const key = roadmapKey(analysisId);
+    if (!key) return;
+    try {
+      const stored = JSON.parse(localStorage.getItem(key) ?? "null");
+      setDone(Array.isArray(stored) ? new Set(stored as string[]) : new Set());
+    } catch { setDone(new Set()); }
+  }, [analysisId]);
 
   const toggle = (id: string) =>
-    setDone(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    setDone(prev => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      const key = roadmapKey(analysisId);
+      if (key) {
+        try { localStorage.setItem(key, JSON.stringify([...n])); } catch { /* ignore */ }
+      }
+      return n;
+    });
 
   // Map roadmap_item_id → salary impact (HIRED-only — null for FREE/SHORTLISTED)
   const salaryImpactById = useMemo(() => {
@@ -178,8 +210,17 @@ export function RoadmapTab({ result }: Props) {
                     return (
                       <div
                         key={item.id}
+                        role="checkbox"
+                        aria-checked={isDone}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggle(item.id);
+                          }
+                        }}
                         onClick={() => toggle(item.id)}
-                        className="flex items-start gap-4 px-6 py-5 hover:bg-rc-surface-raised transition-colors cursor-pointer group"
+                        className="flex items-start gap-4 px-6 py-5 hover:bg-rc-surface-raised transition-colors cursor-pointer group focus-visible:outline focus-visible:outline-2 focus-visible:outline-rc-red"
                       >
                         <div className="mt-0.5 shrink-0">
                           {isDone

@@ -22,7 +22,45 @@
  */
 
 import { quantize, deflate, composePenalty } from './compose-score';
-import type { HardSignalCounts } from './compose-score';
+import type { HardSignalCounts, PenaltyWeights } from './compose-score';
+
+/**
+ * CV-audit deflation strength, DELIBERATELY WEAKER than the vs-JD default (0.85).
+ *
+ * The shared 0.85 was justified by "LLM sub-scores cluster generously in the
+ * 70-90 band". Measured against production on 2026-07-24 that is true of the
+ * vs-JD parts (its keyword_match is a deterministic coverage score, and that
+ * headline lands median 72) but FALSE here: the six cv_quality sub-scores land
+ * impact median 40, clarity median 60, and their weighted average is median 52,
+ * p75 62, max 77. The prompt recalibration already removed the generosity at the
+ * source, so the old curve was deflating an input that was no longer inflated.
+ *
+ * Kept non-zero rather than removed: a mild corrective still absorbs future
+ * prompt drift back toward generosity, without crushing an honest input.
+ */
+export const CV_DEFLATION = 0.15;
+
+/**
+ * CV-audit penalty costs, DELIBERATELY LIGHTER than the vs-JD default.
+ *
+ * The old shared costs (4/3/2, caps 12/9/8) assumed these signals were rare
+ * events. In production they are the norm: median 3 red flags, 2 critical
+ * issues, 3 fatal bullets per CV, which put the MEDIAN penalty at 24 of a 29
+ * cap. A penalty almost every CV maxes out carries no information: it stopped
+ * discriminating and became a flat -24 offset that, stacked on the deflation
+ * above, floored 34% of real CVs at exactly 0 and destroyed the difference
+ * between a weak CV and a catastrophic one.
+ *
+ * At 1/1/1 (caps 4/3/3) the signals still cost a genuinely bad dossier more than
+ * a clean one, but the six sub-scores carry the judgment, which is where the
+ * real variance lives (p25 40 -> p75 62). This is NOT score inflation: no CV's
+ * inputs changed, and the ceiling is still set by the sub-scores themselves.
+ */
+export const CV_PENALTY: PenaltyWeights = {
+  redFlag: { cost: 1, cap: 4 },
+  criticalIssue: { cost: 1, cap: 3 },
+  fatalBullet: { cost: 1, cap: 3 },
+};
 
 /**
  * Weights over the six cv_quality sub-scores (sum to 1). Impact carries the most
@@ -75,9 +113,9 @@ export function anchorCvQuality(
     ats_format: quantize(raw.ats_format ?? 0),
   };
 
-  // Deflate the weighted average before quantizing: the six LLM sub-scores
-  // cluster generously, so a merely-decent CV would otherwise land ~80. The
-  // same curve as the vs-JD composite keeps both scorers on one wavelength.
+  // Deflate the weighted average before quantizing, on THIS pipeline's curve
+  // (CV_DEFLATION), not the vs-JD one: the two feed the formula inputs with very
+  // different distributions, so one shared strength mis-served both.
   const base = deflate(
     subs.impact * CV_QUALITY_WEIGHTS.impact +
       subs.clarity * CV_QUALITY_WEIGHTS.clarity +
@@ -85,8 +123,11 @@ export function anchorCvQuality(
       subs.consistency * CV_QUALITY_WEIGHTS.consistency +
       subs.soft_skills * CV_QUALITY_WEIGHTS.soft_skills +
       subs.ats_format * CV_QUALITY_WEIGHTS.ats_format,
+    CV_DEFLATION,
   );
-  const overall = quantize(base - (penalty ? composePenalty(penalty) : 0));
+  const overall = quantize(
+    base - (penalty ? composePenalty(penalty, CV_PENALTY) : 0),
+  );
 
   return { ...subs, overall };
 }
@@ -99,8 +140,15 @@ export function anchorCvQuality(
 export function deriveCvQualityVerdict(
   overall: number,
 ): 'Low' | 'Medium' | 'High' {
-  // Shared bands with the vs-JD scorer and RiskMeter: Strong >= 80, Weak < 40.
-  if (overall >= 80) return 'High';
-  if (overall >= 40) return 'Medium';
+  // Display bands for the QUALITY headline. Frontend mirror: SCORE_BANDS.strength
+  // in web/app/lib/cv-quality-score.ts — changing one means changing both.
+  //
+  // These are NOT the vs-JD competitiveness cutoffs (80/40). Re-derived from the
+  // distribution the RECALIBRATED curve produces over the 74 production CVs
+  // (p25 25, median 45, p75 50, max 70, nothing on the floor): 55/30 splits them
+  // 26% weak / 54% decent / 20% strong, every band populated and the top one
+  // selective but reachable.
+  if (overall >= 55) return 'High';
+  if (overall >= 30) return 'Medium';
   return 'Low';
 }

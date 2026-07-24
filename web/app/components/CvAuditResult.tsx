@@ -12,6 +12,7 @@ import { CoverLetterTab } from "./tabs/CoverLetterTab";
 import { InterviewTab } from "./tabs/InterviewTab";
 import { AI_INTERVIEW_ENABLED } from "../../lib/features";
 import { SourceTimeline } from "./timeline/SourceTimeline";
+import { scrollIntoViewMotionSafe } from "../lib/scroll";
 import { AnalysisShell, type HighlightMap } from "./AnalysisShell";
 import { SectionBand } from "./SectionBand";
 import { RiskMeter } from "./RiskMeter";
@@ -20,6 +21,7 @@ import { CvChecksScorecard } from "./CvChecksScorecard";
 import { CvBenchmarkPanel } from "./CvBenchmarkPanel";
 import { CvNextLever } from "./CvNextLever";
 import { CvGlanceStrip } from "./CvGlanceStrip";
+import { BenchmarkClaimLine } from "./BenchmarkClaimLine";
 import { CvRecruiterRadar } from "./CvRecruiterRadar";
 import { CvExperienceDeepDive } from "./CvExperienceDeepDive";
 import { CvTimelineConsistency } from "./CvTimelineConsistency";
@@ -53,24 +55,28 @@ function qualityLabel(n: number): string {
 }
 
 // Per-source cards speak the SAME weak/decent/strong language as the hero
-// RiskMeter (weak <40 · decent 40-79 · strong ≥80), so the big score above and
-// the source cards below never read as two contradicting verdicts. Kept separate
-// from qualityColor/qualityLabel, which 02's per-dimension bars anchor at 70.
+// RiskMeter, so the big score above and the source cards below never read as two
+// contradicting verdicts. They do NOT share its cutoffs: the hero is deflated
+// and penalised, these raw per-source scores are neither, so equal numbers would
+// mean unequal things. Calibrated instead so a tier is equally RARE on both
+// scales (2026-07-24, n=126): >=70 is 21% here vs 22% strong on the hero, <45 is
+// 24% here vs 31% weak. Kept separate from qualityColor/qualityLabel, which 02's
+// per-dimension bars anchor at 70.
 function sourceVerdictLabel(score: number): string {
-  if (score >= 80) return "Strong · good signal";
-  if (score >= 40) return "Decent · room to grow";
+  if (score >= 70) return "Strong · good signal";
+  if (score >= 45) return "Decent · room to grow";
   return "Weak · undersells";
 }
 
 function sourceColor(n: number): string {
-  if (n >= 80) return "var(--rc-green)";
-  if (n >= 40) return "var(--rc-amber)";
+  if (n >= 70) return "var(--rc-green)";
+  if (n >= 45) return "var(--rc-amber)";
   return "var(--rc-red)";
 }
 
 function sourceBorder(n: number): string {
-  if (n >= 80) return "var(--rc-green-border)";
-  if (n >= 40) return "var(--rc-amber-border)";
+  if (n >= 70) return "var(--rc-green-border)";
+  if (n >= 45) return "var(--rc-amber-border)";
   return "var(--rc-red-border)";
 }
 
@@ -80,10 +86,14 @@ function sevClass(sev: string) {
   return { color: "var(--rc-hint)", bg: "var(--rc-bg)", border: "var(--rc-border)" };
 }
 
+// Qualitative lift keyed to severity. We deliberately avoid precise point
+// values ("+18 pts"): those were never produced by the scoring model, and the
+// inline re-scan below would contradict them. Severity is real data; the
+// restatement as High/Medium/Low is honest.
 function impactFromSeverity(sev: string): string {
-  if (sev === "critical") return "+18 pts";
-  if (sev === "major")    return "+12 pts";
-  return "+6 pts";
+  if (sev === "critical") return "High lift";
+  if (sev === "major")    return "Medium lift";
+  return "Low lift";
 }
 
 const SENIORITY_LEVELS = ["Junior", "Mid", "Senior", "Staff", "Lead", "Principal"];
@@ -175,6 +185,12 @@ type Props = {
   sharedByAvatar?: string | null;
   /** Locale-aware target for the readOnly CTA (e.g. `/en/analyze`). */
   ctaHref?: string;
+  /**
+   * When this audit was actually run (ISO string). Drives the "Audited …ago"
+   * label. Omit for a freshly-completed run (defaults to mount time); pass it
+   * when reopening a saved/shared analysis so the timestamp isn't a fake "0s".
+   */
+  auditedAt?: string | null;
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -200,11 +216,20 @@ export function CvAuditResult({
   sharedByName = null,
   sharedByAvatar = null,
   ctaHref = "/analyze",
+  auditedAt = null,
 }: Props) {
   const [barGo, setBarGo] = useState(false);
   const [activeSection, setActiveSection] = useState("s1");
   const [now] = useState(() => new Date());
-  const [proTier, setProTier] = useState<"shortlisted" | "hired">("hired");
+  // Real audit time when reopening a saved/shared analysis; mount time for a
+  // fresh run (genuinely seconds old). Never a perpetual fake "0s ago".
+  const auditedDate = useMemo(() => (auditedAt ? new Date(auditedAt) : now), [auditedAt, now]);
+  // Defaults to the cheaper tier: it is the one whose features (10 CV rewrite,
+  // 11 cover letter) the paywall actually shows. While AI_INTERVIEW_ENABLED is
+  // off the tier switcher never renders, so a "hired" default left the CTA
+  // reading "Get Hired" above a Shortlisted feature list, with no way to
+  // correct it. A default should also serve the reader, not the price list.
+  const [proTier, setProTier] = useState<"shortlisted" | "hired">("shortlisted");
   const hasShortlisted = userPlan === "shortlisted" || userPlan === "hired";
   const hasHired = userPlan === "hired";
   const mainRef = useRef<HTMLElement>(null);
@@ -265,7 +290,7 @@ export function CvAuditResult({
   }, [result, reconstructedCv]);
 
   const scrollTo = (id: string) => {
-    mainRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: "smooth" });
+    scrollIntoViewMotionSafe(mainRef.current?.querySelector(`#${id}`));
   };
 
   // ── Derived data ──────────────────────────────────────────────────────────
@@ -326,13 +351,21 @@ export function CvAuditResult({
   // click one to jump to its editor in the re-audit panel), plus any per-source
   // highlight terms the model returned. Clicking a bullet sets `focusBullet`,
   // which the re-scan panel scrolls to.
+  // §09 is the only consumer of a bullet click. On a shared/anonymous view it
+  // is not rendered, so advertising "click to rewrite" there produced a dead
+  // click: the highlight stays (it is useful on its own) but drops the promise.
+  // Mirrors the §09 render condition below.
+  const rescanAvailable = !!(result.cv_quality && !readOnly && _analysisId && accessToken);
   const [focusBullet, setFocusBullet] = useState<{ term: string; n: number } | null>(null);
   const highlightsByDoc = useMemo((): Partial<Record<"cv", HighlightMap>> => {
     const seen = new Set<string>();
     const weak = (result.bullet_reviews?.bullets ?? [])
       .filter((b) => b.verdict !== "strong" && (b.original ?? "").trim().length > 0)
       .filter((b) => (seen.has(b.original) ? false : (seen.add(b.original), true)))
-      .map((b) => ({ term: b.original, tooltip: b.why || "Weak bullet, click to rewrite" }));
+      .map((b) => ({
+        term: b.original,
+        tooltip: b.why || (rescanAvailable ? "Weak bullet, click to rewrite" : "Weak bullet"),
+      }));
     const ht = result.highlight_terms?.cv;
     const map: HighlightMap = {
       flags: ht ? ht.flags.map((e) => ({ term: e.term, tooltip: e.tooltip })) : [],
@@ -342,7 +375,7 @@ export function CvAuditResult({
       metrics: ht ? ht.metrics.map((e) => ({ term: e.term, tooltip: e.tooltip })) : [],
     };
     return { cv: map };
-  }, [result.bullet_reviews, result.highlight_terms]);
+  }, [result.bullet_reviews, result.highlight_terms, rescanAvailable]);
 
   // 02 quality
   const q = result.cv_quality;
@@ -415,7 +448,7 @@ export function CvAuditResult({
       title: "Align seniority signals in your language",
       detail: "Use leadership verbs and quantify scope to match how you actually operate.",
       time: "10m",
-      pts: "+12 pts",
+      pts: "Medium lift",
       now: false,
     });
   }
@@ -549,7 +582,11 @@ export function CvAuditResult({
         reconstructedCv={reconstructedCv}
         liText={liText}
         highlightsByDoc={highlightsByDoc}
-        onHighlightTermClick={(term) => setFocusBullet((f) => ({ term, n: (f?.n ?? 0) + 1 }))}
+        onHighlightTermClick={
+          rescanAvailable
+            ? (term) => setFocusBullet((f) => ({ term, n: (f?.n ?? 0) + 1 }))
+            : undefined
+        }
         renderRight={() => (
           <div className="rc-toc-grid" style={{ flex: 1, overflow: "hidden", display: "grid", gridTemplateColumns: "240px 1fr", maxWidth: 1380, margin: "0 auto", width: "100%" }}>
 
@@ -611,13 +648,24 @@ export function CvAuditResult({
                 <p style={{ ...MONO, fontSize: 11.5, lineHeight: 1.6, color: "var(--rc-hint)", margin: "10px 0 0", maxWidth: 640 }}>
                   How it lands: six dimensions average{" "}
                   <strong style={{ color: "var(--rc-muted)" }}>{Math.round(overallBreakdown.weightedAverage)}</strong>, calibrated down to{" "}
-                  <strong style={{ color: "var(--rc-muted)" }}>{Math.round(overallBreakdown.deflated)}</strong> (scores cluster high, so the curve keeps &ldquo;strong&rdquo; meaningful)
+                  <strong style={{ color: "var(--rc-muted)" }}>{Math.round(overallBreakdown.deflated)}</strong> (a recruiter curve, so &ldquo;strong&rdquo; stays selective)
                   {overallBreakdown.penalty > 0 && (
                     <>, minus <strong style={{ color: "var(--rc-red)" }}>{overallBreakdown.penalty}</strong> for {overallPenaltyPhrase}</>
                   )}
                   , landing at <strong style={{ color: "var(--rc-text)" }}>{overallBreakdown.overall}</strong>.
                 </p>
               )}
+              {/* Gives the headline number a referent. Self-censoring: renders
+                  nothing unless the CV actually clears the corpus top quartile
+                  on some axis. */}
+              <BenchmarkClaimLine
+                cvText={reconstructedCv}
+                overall={q.overall}
+                roleHints={[
+                  ...(result.projected_profile?.target_roles ?? []),
+                  ...(result.projected_profile?.domains ?? []),
+                ]}
+              />
               <CvGlanceStrip mergedCounts={sevCounts} checksPassed={checksPassed} timelineFlags={timelineFlags} overall={q.overall} />
             </div>
           )}
@@ -653,7 +701,7 @@ export function CvAuditResult({
               <span style={{ width: 1, height: 12, background: "var(--rc-border)", display: "inline-block" }} />
               <span style={{ color: "var(--rc-red)", display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <span style={{ width: 6, height: 6, borderRadius: 99, background: "var(--rc-red)", display: "inline-block", animation: "pulse 2s infinite" }} />
-                Audited {timeAgo(now)}
+                Audited {timeAgo(auditedDate)}
               </span>
             </div>
 
@@ -969,7 +1017,8 @@ export function CvAuditResult({
                   ) : null}
                   {inconsistencies.map((inc, idx) => {
                     const sev = sevClass(inc.severity);
-                    const impactStr = inc.severity === "critical" ? "−12" : inc.severity === "major" ? "−6" : "−3";
+                    // Qualitative, not fabricated point values (see impactFromSeverity).
+                    const impactStr = inc.severity === "critical" ? "High" : inc.severity === "major" ? "Medium" : "Low";
                     return (
                       <div key={idx} style={{ padding: "20px 0", borderTop: idx === 0 ? "none" : "1px solid var(--rc-border)", display: "grid", gridTemplateColumns: "80px 1fr 48px", gap: 16, alignItems: "start" }}>
                         <span style={{ ...MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "2px 7px", borderRadius: 4, color: sev.color, background: sev.bg, border: `1px solid ${sev.border}`, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4, alignSelf: "start", justifySelf: "center" }}>

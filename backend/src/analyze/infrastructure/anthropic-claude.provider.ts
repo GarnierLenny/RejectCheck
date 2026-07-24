@@ -771,6 +771,13 @@ ${cvText}`;
     };
     const langName = langLabel[input.language] ?? input.language;
 
+    // The angle picker (RewriteTab) chooses which story the letter leads with.
+    const angleDirective: Record<'jd' | 'exp' | 'tech', string> = {
+      jd: "Lead angle: role fit. Frame the letter around how the candidate matches this specific job's requirements and the company's problem.",
+      exp: "Lead angle: track record. Frame the letter around the candidate's most relevant past achievements and impact, tying them back to this role.",
+      tech: "Lead angle: craft and technical depth. Frame the letter around the candidate's hands-on skills and how they'd apply to this role's hardest problems.",
+    };
+
     const skills = input.result.technical_analysis?.skills as
       | Array<{ name: string; current: number; expected: number }>
       | undefined;
@@ -813,6 +820,8 @@ Tone and format rules (strictly enforced):
 - No disguised lists: do not use parentheses to pack in multiple items — if something is worth saying, say it in a sentence
 - No CV narration: do not open a sentence by labelling your own experience ("My background in X", "Throughout my career", "Across my roles")
 - Write like a smart person sending an email, not like a model completing a task. If a sentence would look at home in a corporate template, rewrite it.
+
+${angleDirective[input.angle]}
 
 Content rules:
 - Open with something concrete and specific: a detail from the JD, something about the company's product or problem, or a direct claim grounded in a real achievement

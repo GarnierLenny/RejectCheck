@@ -12,6 +12,7 @@ import { useLanguage } from "../../../../context/language";
 import { Check, ShieldCheck, Star } from "lucide-react";
 import { toast } from "sonner";
 import posthog from "posthog-js";
+import { useBfcacheReset } from "../../../hooks/useBfcacheReset";
 
 function PricingContent() {
   const searchParams = useSearchParams();
@@ -112,6 +113,8 @@ function PricingContent() {
       toast.error("Payment cancelled. You can try again when you're ready.", { duration: 5000 });
     }
   }, [searchParams]);
+
+  useBfcacheReset(() => setLoadingPlan(null));
 
   async function handlePaidPlan(plan: 'shortlisted' | 'hired' | 'founder') {
     // Anonymous checkout is supported: the backend route is OptionalSupabaseGuard

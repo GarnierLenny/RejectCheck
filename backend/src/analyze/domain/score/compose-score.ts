@@ -96,10 +96,27 @@ export const DEFLATION = 0.85;
  * drops to mid. This calibrates the MEASUREMENT (LLM generosity), it is NOT a
  * market-outcome guess. Shared by the vs-JD composite and the CV-audit quality.
  */
-export function deflate(raw: number): number {
+export function deflate(raw: number, strength: number = DEFLATION): number {
   const x = clamp0100(raw);
-  return clamp0100(x + (DEFLATION * x * (x - 100)) / 100);
+  return clamp0100(x + (strength * x * (x - 100)) / 100);
 }
+
+/**
+ * Per-signal penalty cost and cap. Parameterised because the two pipelines feed
+ * this very different inputs: see CV_PENALTY in compose-cv-review-score.ts.
+ */
+export type PenaltyWeights = {
+  redFlag: { cost: number; cap: number };
+  criticalIssue: { cost: number; cap: number };
+  fatalBullet: { cost: number; cap: number };
+};
+
+/** The vs-JD costs. Unchanged: that pipeline's distribution is healthy. */
+export const VSJD_PENALTY: PenaltyWeights = {
+  redFlag: { cost: REDFLAG_RISK, cap: REDFLAG_CAP },
+  criticalIssue: { cost: CRITICAL_ISSUE_RISK, cap: CRITICAL_ISSUE_CAP },
+  fatalBullet: { cost: FATAL_BULLET_RISK, cap: FATAL_BULLET_CAP },
+};
 
 /** Verdict is a pure function of the risk band — never trusted from the model. */
 export function deriveVerdict(risk: number): 'Low' | 'Medium' | 'High' {
@@ -133,16 +150,19 @@ export type ComposeRiskInput = {
  * (adds to risk) and the CV-audit quality (subtracts from quality), so a red
  * flag costs the same on both screens.
  */
-export function composePenalty(c: HardSignalCounts): number {
+export function composePenalty(
+  c: HardSignalCounts,
+  w: PenaltyWeights = VSJD_PENALTY,
+): number {
   return (
-    Math.min(REDFLAG_CAP, Math.max(0, c.redFlagCount) * REDFLAG_RISK) +
+    Math.min(w.redFlag.cap, Math.max(0, c.redFlagCount) * w.redFlag.cost) +
     Math.min(
-      CRITICAL_ISSUE_CAP,
-      Math.max(0, c.criticalIssueCount) * CRITICAL_ISSUE_RISK,
+      w.criticalIssue.cap,
+      Math.max(0, c.criticalIssueCount) * w.criticalIssue.cost,
     ) +
     Math.min(
-      FATAL_BULLET_CAP,
-      Math.max(0, c.fatalBulletCount) * FATAL_BULLET_RISK,
+      w.fatalBullet.cap,
+      Math.max(0, c.fatalBulletCount) * w.fatalBullet.cost,
     )
   );
 }

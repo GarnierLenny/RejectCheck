@@ -3177,3 +3177,101 @@ body {
   .rc-faq__q { font-size: 16px; padding: 22px 0; }
   .rc-faq__a { padding-right: 0; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — report bodies
+   The two reports animate bar fills, staggered reveals and infinite pulse
+   dots via inline styles, which no earlier @media block reached. Honour the
+   OS setting across the whole report surface rather than per component.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .rc-report-main *,
+  .rc-report-main *::before,
+  .rc-report-main *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HERO CTAs — the two landing calls-to-action were inline-styled with no
+   hover/active/focus states (the primary had no transition at all, and the
+   secondary drove hover from JS mouse handlers, so keyboard focus got
+   nothing). Same look, real states, keyboard included.
+   ═══════════════════════════════════════════════════════════════════════ */
+.rc-hero-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-sans); font-weight: 500; font-size: 15px;
+  padding: 13px 26px; border-radius: 6px;
+  background: linear-gradient(180deg, #C0392B, #A93226);
+  color: #fff; text-decoration: none;
+  box-shadow: 0 10px 28px rgba(192,57,43,0.28);
+  white-space: nowrap; flex-shrink: 0;
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}
+.rc-hero-cta:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(192,57,43,0.38); filter: brightness(1.04); }
+.rc-hero-cta:active { transform: scale(0.98); box-shadow: 0 6px 18px rgba(192,57,43,0.30); }
+.rc-hero-cta:focus-visible { outline: 2px solid var(--rc-red); outline-offset: 3px; }
+
+.rc-hero-cta--ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  flex-wrap: wrap; row-gap: 2px;
+  font-family: var(--font-sans); font-weight: 500; font-size: 14px;
+  padding: 13px 20px; border-radius: 6px;
+  border: 1px solid var(--rc-border); background: var(--rc-surface);
+  color: var(--rc-text); text-decoration: none;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+.rc-hero-cta--ghost:hover { border-color: var(--rc-red); transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.07); }
+/* Reddit variant keeps the orange brand accent the JS handlers used. */
+.rc-hero-cta--reddit:hover { border-color: #FF4500; box-shadow: 0 6px 18px rgba(255,69,0,0.12); }
+.rc-hero-cta--reddit:focus-visible { outline-color: #FF4500; }
+.rc-hero-cta--ghost:active { transform: scale(0.98); }
+.rc-hero-cta--ghost:focus-visible { outline: 2px solid var(--rc-red); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-hero-cta, .rc-hero-cta--ghost { transition: none; }
+  .rc-hero-cta:hover, .rc-hero-cta--ghost:hover,
+  .rc-hero-cta:active, .rc-hero-cta--ghost:active { transform: none; }
+}
+
+/* Landing pricing-card CTAs: same inline look, plus the states they lacked. */
+.rc-plan-cta {
+  font-family: var(--font-sans); font-weight: 500; font-size: 14px;
+  padding: 11px 18px; border-radius: 6px;
+  text-align: center; white-space: nowrap; display: block; text-decoration: none;
+  border: 1px solid var(--rc-text); background: transparent; color: var(--rc-text);
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+.rc-plan-cta:hover { background: var(--rc-text); color: var(--rc-bg, #fff); transform: translateY(-1px); }
+.rc-plan-cta:active { transform: scale(0.98); }
+.rc-plan-cta:focus-visible { outline: 2px solid var(--rc-red); outline-offset: 3px; }
+
+.rc-plan-cta--founder {
+  background: linear-gradient(180deg, #C0392B, #A93226);
+  border: 1px solid var(--rc-red); color: #fff;
+  box-shadow: 0 8px 24px rgba(192,57,43,0.26);
+}
+.rc-plan-cta--founder:hover { background: linear-gradient(180deg, #C0392B, #A93226); color: #fff; filter: brightness(1.05); box-shadow: 0 12px 30px rgba(192,57,43,0.36); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-plan-cta { transition: none; }
+  .rc-plan-cta:hover, .rc-plan-cta:active { transform: none; }
+}
+
+/* Login: invalid-field highlight + "last used" provider badge (long loop). */
+.rc-auth-input--invalid { border-color: var(--rc-red) !important; }
+.rc-auth-oauth-last {
+  margin-left: auto; font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--rc-hint);
+  border: 1px solid var(--rc-border); border-radius: 99px; padding: 2px 6px;
+}
+
+/* Issue rows: the "view in CV" cue stays subtle until hover/focus. */
+.rc-issue-row__cue { opacity: 0; transition: opacity 140ms ease; }
+.rc-issue-row:hover .rc-issue-row__cue,
+.rc-issue-row:focus-visible .rc-issue-row__cue { opacity: 1; }
+.rc-issue-row:focus-visible { outline: 2px solid var(--rc-red); outline-offset: -2px; }
+@media (hover: none) { .rc-issue-row__cue { opacity: 1; } }

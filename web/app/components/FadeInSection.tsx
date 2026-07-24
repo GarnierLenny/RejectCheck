@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 
 type Props = {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ type Props = {
 export function FadeInSection({ children, className = "", delay = 0 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     const el = ref.current;
@@ -28,14 +30,17 @@ export function FadeInSection({ children, className = "", delay = 0 }: Props) {
     return () => observer.disconnect();
   }, [delay]);
 
+  // Reduced motion: show the content outright rather than sliding it in.
+  const shown = visible || !!reduce;
+
   return (
     <div
       ref={ref}
       className={className}
       style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(22px)",
-        transition: "opacity 0.55s ease-out, transform 0.55s ease-out",
+        opacity: shown ? 1 : 0,
+        transform: shown ? "translateY(0)" : "translateY(22px)",
+        transition: reduce ? "none" : "opacity 0.55s ease-out, transform 0.55s ease-out",
       }}
     >
       {children}
@@ -68,8 +73,11 @@ export function useInView(threshold = 0.18) {
 
 export function useCountUp(target: number, run: boolean, ms = 1600) {
   const [v, setV] = useState(0);
+  const reduce = useReducedMotion();
   useEffect(() => {
     if (!run) return;
+    // Reduced motion: jump straight to the final value.
+    if (reduce) { setV(target); return; }
     const start = performance.now();
     let raf = 0;
     const tick = (now: number) => {
@@ -80,15 +88,18 @@ export function useCountUp(target: number, run: boolean, ms = 1600) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [run, target, ms]);
+  }, [run, target, ms, reduce]);
   return v;
 }
 
 export function useTyped(text: string, run: boolean, speed = 32) {
   const [out, setOut] = useState("");
   const [done, setDone] = useState(false);
+  const reduce = useReducedMotion();
   useEffect(() => {
     if (!run) return;
+    // Reduced motion: render the full string instead of typing it out.
+    if (reduce) { setOut(text); setDone(true); return; }
     setOut("");
     setDone(false);
     let i = 0;
@@ -101,6 +112,6 @@ export function useTyped(text: string, run: boolean, speed = 32) {
       }
     }, speed);
     return () => clearInterval(id);
-  }, [run, text, speed]);
+  }, [run, text, speed, reduce]);
   return { out, done };
 }

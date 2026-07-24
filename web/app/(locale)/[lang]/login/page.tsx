@@ -15,6 +15,9 @@ type Mode = "signin" | "signup" | "reset";
 
 type OAuthProvider = "google" | "linkedin_oidc" | "github";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LAST_PROVIDER_KEY = "rc_last_oauth_provider";
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,6 +32,16 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
+  const [invalidField, setInvalidField] = useState<"email" | "password" | null>(null);
+  const [lastProvider, setLastProvider] = useState<OAuthProvider | null>(null);
+
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem(LAST_PROVIDER_KEY);
+      if (v === "google" || v === "linkedin_oidc" || v === "github") setLastProvider(v);
+    } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -53,6 +66,9 @@ function LoginContent() {
     setError(null);
     setInfo(null);
     setLoading(true);
+    // Track which provider was pressed so the spinner lands on that button
+    // instead of on the email submit button the user never clicked.
+    setLoadingProvider(provider);
     posthog.capture("oauth_login_initiated", { provider });
     const callbackUrl = new URL('/auth/callback', window.location.origin);
     callbackUrl.searchParams.set('next', redirect);
@@ -64,6 +80,11 @@ function LoginContent() {
     if (error) {
       setError(error.message);
       setLoading(false);
+      setLoadingProvider(null);
+    } else {
+      // Remember the provider that worked so returning users can see which
+      // one they used last (long loop) instead of guessing every time.
+      try { localStorage.setItem(LAST_PROVIDER_KEY, provider); } catch { /* ignore */ }
     }
     // On success the browser is redirected to the provider; no need to reset loading.
   }
@@ -72,6 +93,21 @@ function LoginContent() {
     e.preventDefault();
     setError(null);
     setInfo(null);
+
+    // The form is noValidate, so nothing was checking these before: an empty
+    // or malformed email went to the server and came back as a raw English
+    // error with no indication of which field was at fault.
+    if (!EMAIL_RE.test(email.trim())) {
+      setError(t.login.invalidEmail);
+      setInvalidField("email");
+      return;
+    }
+    if (mode !== "reset" && password.length === 0) {
+      setError(t.login.passwordRequired);
+      setInvalidField("password");
+      return;
+    }
+    setInvalidField(null);
     setLoading(true);
 
     if (mode === "reset") {
@@ -180,8 +216,8 @@ function LoginContent() {
           <h1 className="rc-auth-h1">{heading}</h1>
           <p className="rc-auth-sub">{subheading}</p>
 
-          {error && <div className="rc-auth-alert err">{error}</div>}
-          {info && <div className="rc-auth-alert ok">{info}</div>}
+          {error && <div className="rc-auth-alert err" role="alert">{error}</div>}
+          {info && <div className="rc-auth-alert ok" role="status" aria-live="polite">{info}</div>}
 
           {mode !== "reset" && (
             <>
@@ -193,9 +229,15 @@ function LoginContent() {
                     className="rc-auth-oauth-btn"
                     onClick={() => handleOAuth(b.provider)}
                     disabled={loading}
+                    aria-busy={loadingProvider === b.provider}
                   >
-                    {b.icon}
+                    {loadingProvider === b.provider
+                      ? <span className="rc-auth-spin" aria-hidden style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid currentColor", borderTopColor: "transparent", display: "inline-block" }} />
+                      : b.icon}
                     {b.label}
+                    {lastProvider === b.provider && loadingProvider !== b.provider && (
+                      <span className="rc-auth-oauth-last">{t.login.lastUsed}</span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -215,7 +257,8 @@ function LoginContent() {
             <div className="rc-auth-input-wrap">
               <input
                 id="email"
-                className="rc-auth-input"
+                className={`rc-auth-input${invalidField === "email" ? " rc-auth-input--invalid" : ""}`}
+                aria-invalid={invalidField === "email"}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useModalA11y } from "../hooks/useModalA11y";
+import { useBfcacheReset } from "../hooks/useBfcacheReset";
 import Link from "next/link";
 import { useBuyCredits } from "../../lib/mutations";
 import { useQuota, useSubscription } from "../../lib/queries";
@@ -22,11 +24,15 @@ const PACKS = [
 export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [loadingQty, setLoadingQty] = useState<number | null>(null);
+  useBfcacheReset(() => setLoadingQty(null));
 
   const buyCredits = useBuyCredits();
   const { data: quota } = useQuota();
   const { data: sub } = useSubscription();
   const { t, localePath } = useLanguage();
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalA11y(panelRef, isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -49,10 +55,17 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
   const isHired = sub?.plan === "hired";
 
   const handleBuy = (quantity: number) => {
+    if (loadingQty !== null) return;
     setLoadingQty(quantity);
+    // Keep the pending state through the Stripe redirect — clearing it on
+    // success would flash the button back to idle while the page navigates.
+    // The hook toasts on failure (including a null checkout url).
     buyCredits.mutate(
       { quantity },
-      { onSettled: () => setLoadingQty(null) },
+      {
+        onError: () => setLoadingQty(null),
+        onSuccess: ({ url }) => { if (!url) setLoadingQty(null); },
+      },
     );
   };
 
@@ -65,6 +78,9 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
         className={`relative bg-white border border-rc-border rounded-2xl w-full max-w-[460px] shadow-[0_32px_80px_rgba(0,0,0,0.18)] transition-all duration-[250ms] overflow-hidden ${
           isOpen ? "translate-y-0 scale-100" : "translate-y-3 scale-[0.98]"
         }`}
@@ -115,10 +131,19 @@ export function BuyCreditsModal({ isOpen, onClose }: BuyCreditsModalProps) {
                   <p className="font-mono text-[11px] text-rc-hint mt-0.5">{pack.sub}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 ml-4">
-                  <span className={`text-[15px] font-bold ${pack.popular ? "text-rc-red" : "text-rc-text"}`}>
-                    {loadingQty === pack.quantity ? "…" : pack.price}
-                  </span>
-                  <span className={`text-[14px] ${pack.popular ? "text-rc-red" : "text-rc-hint"}`}>→</span>
+                  {loadingQty === pack.quantity ? (
+                    <span className={`flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.08em] ${pack.popular ? "text-rc-red" : "text-rc-muted"}`}>
+                      <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      {t.buyCreditsModal.redirecting}
+                    </span>
+                  ) : (
+                    <>
+                      <span className={`text-[15px] font-bold ${pack.popular ? "text-rc-red" : "text-rc-text"}`}>
+                        {pack.price}
+                      </span>
+                      <span className={`text-[14px] ${pack.popular ? "text-rc-red" : "text-rc-hint"}`}>→</span>
+                    </>
+                  )}
                 </div>
               </button>
             ))}

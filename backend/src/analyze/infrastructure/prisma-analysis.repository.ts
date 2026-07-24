@@ -22,6 +22,7 @@ import type {
 } from '../dto/analyze-response.dto';
 import type { NegotiationAnalysis } from '../dto/negotiation-response.dto';
 import type { KeywordMatchResult } from '../domain/keyword-match/keyword-match';
+import { derivePercentileColumns } from '../domain/score/role-family';
 
 type AnalysisRow = {
   id: number;
@@ -101,6 +102,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
           ? (input.keywordMatch as unknown as Prisma.InputJsonValue)
           : Prisma.DbNull,
         result: input.result as unknown as Prisma.InputJsonValue,
+        // Denormalised percentile inputs, written from the very payload they are
+        // derived from so the column and the JSON can never disagree.
+        ...derivePercentileColumns(input.result),
         deepAnalysis: input.deepAnalysis
           ? (input.deepAnalysis as unknown as Prisma.InputJsonValue)
           : Prisma.DbNull,
@@ -136,6 +140,9 @@ export class PrismaAnalysisRepository implements AnalysisRepository {
           ? (input.keywordMatch as unknown as Prisma.InputJsonValue)
           : Prisma.DbNull,
         result: input.result as unknown as Prisma.InputJsonValue,
+        // Denormalised percentile inputs, written from the very payload they are
+        // derived from so the column and the JSON can never disagree.
+        ...derivePercentileColumns(input.result),
       },
     });
     return { id: created.id, claimToken };

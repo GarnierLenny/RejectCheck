@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { setPendingCv } from "../../../lib/pending-cv";
+import { validateCvFile, CV_ACCEPT_ATTR, type CvFileError } from "../../../lib/upload-constraints";
 import { SAMPLE_JDS } from "../../../lib/sample-jds";
 import { Navbar } from "../../components/Navbar";
 import { FadeInSection } from "../../components/FadeInSection";
@@ -812,16 +813,25 @@ export default function Home() {
   const [heroDragging, setHeroDragging] = useState(false);
   const heroFileRef = useRef<HTMLInputElement>(null);
   const [dropHover, setDropHover] = useState(false);
+  const [heroFileError, setHeroFileError] = useState<CvFileError | null>(null);
 
+  /** Shared accept path for picker + drop: enforces the backend's real
+   * accept-list/size so a bad file errs here instead of dying server-side. */
+  function acceptHeroFile(file: File | undefined) {
+    if (!file) return;
+    const err = validateCvFile(file);
+    if (err) { setHeroFileError(err); return; }
+    setHeroFileError(null);
+    setHeroCvFile(file);
+    setHeroStep(2);
+  }
   function handleHeroDrop(e: React.DragEvent) {
     e.preventDefault();
     setHeroDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) { setHeroCvFile(file); setHeroStep(2); }
+    acceptHeroFile(e.dataTransfer.files[0]);
   }
   function handleHeroFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) { setHeroCvFile(file); setHeroStep(2); }
+    acceptHeroFile(e.target.files?.[0]);
   }
   function handleHeroSubmit() {
     if (!heroCvFile) return;
@@ -932,43 +942,14 @@ export default function Home() {
                 <span>{t.landing.s01.subtitleLine4}<span style={EMPH}>{t.landing.s01.subtitleEmphasis}</span>.</span>
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 34 }}>
-                <Link
-                  href={localePath("/analyze")}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 8,
-                    fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 15,
-                    padding: "13px 26px", borderRadius: 6,
-                    background: "linear-gradient(180deg, #C0392B, #A93226)",
-                    color: "#fff", textDecoration: "none",
-                    boxShadow: "0 10px 28px rgba(192,57,43,0.28)",
-                    whiteSpace: "nowrap", flexShrink: 0,
-                  }}
-                >
+                <Link href={localePath("/analyze")} className="rc-hero-cta">
                   {t.landing.s01.dropCta}
                 </Link>
                 <a
                   href="https://www.reddit.com/r/rejectcheck/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    flexWrap: "wrap", rowGap: 2,
-                    fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14,
-                    padding: "13px 20px", borderRadius: 6,
-                    border: "1px solid var(--rc-border)", background: "var(--rc-surface)",
-                    color: "var(--rc-text)", textDecoration: "none",
-                    transition: "border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#FF4500";
-                    e.currentTarget.style.transform = "translateY(-1px)";
-                    e.currentTarget.style.boxShadow = "0 6px 18px rgba(255,69,0,0.12)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--rc-border)";
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
+                  className="rc-hero-cta--ghost rc-hero-cta--reddit"
                 >
                   <span>{t.landing.s01.redditCtaLabel}</span>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: "#FF4500", letterSpacing: "-0.01em" }}>r/rejectcheck</span>
@@ -1017,16 +998,17 @@ export default function Home() {
             {/* Dropzone wrapper */}
             <div
               style={{
-                border: `1.5px dashed ${dropHover ? "var(--rc-red)" : "var(--rc-border)"}`,
+                border: `1.5px dashed ${heroDragging || dropHover ? "var(--rc-red)" : "var(--rc-border)"}`,
                 borderRadius: 6,
                 padding: "28px 32px",
-                background: dropHover ? "#fbf1f0" : "var(--rc-surface)",
+                background: heroDragging || dropHover ? "#fbf1f0" : "var(--rc-surface)",
                 transition: "all 200ms ease",
               }}
               onMouseEnter={() => setDropHover(true)}
               onMouseLeave={() => setDropHover(false)}
             >
               {heroStep === 1 && (
+                <>
                 <div
                   style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, cursor: "pointer" }}
                   onDragOver={(e) => { e.preventDefault(); setHeroDragging(true); }}
@@ -1040,7 +1022,7 @@ export default function Home() {
                   <input
                     ref={heroFileRef}
                     type="file"
-                    accept=".pdf,.doc,.docx"
+                    accept={CV_ACCEPT_ATTR}
                     style={{ display: "none" }}
                     onChange={handleHeroFile}
                   />
@@ -1068,6 +1050,12 @@ export default function Home() {
                     {t.landing.s01.dropCta}
                   </button>
                 </div>
+                {heroFileError && (
+                  <div role="alert" style={{ marginTop: 12, padding: "9px 12px", border: "1px solid rgba(201,58,57,0.3)", background: "rgba(201,58,57,0.05)", borderRadius: 4, fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--rc-red)" }}>
+                    {heroFileError === "type" ? t.uploadForm.intake.slots.fileTypeError : t.uploadForm.intake.slots.fileSizeError}
+                  </div>
+                )}
+                </>
               )}
 
               {heroStep === 2 && (
@@ -1417,16 +1405,7 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href={localePath("/analyze")}
-                style={{
-                  fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14,
-                  padding: "11px 18px", borderRadius: 6,
-                  border: "1px solid var(--rc-text)", background: "transparent", color: "var(--rc-text)",
-                  textAlign: "center", whiteSpace: "nowrap", display: "block",
-                  textDecoration: "none",
-                }}
-              >
+              <Link href={localePath("/analyze")} className="rc-plan-cta">
                 {t.pricing.plans.free.cta}
               </Link>
             </div>
@@ -1487,19 +1466,7 @@ export default function Home() {
               )}
               <Link
                 href={localePath("/pricing")}
-                style={{
-                  fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14,
-                  padding: "11px 18px", borderRadius: 6,
-                  ...(founderActive
-                    ? {
-                        background: "linear-gradient(180deg, #C0392B, #A93226)",
-                        border: "1px solid var(--rc-red)", color: "#fff",
-                        boxShadow: "0 8px 24px rgba(192,57,43,0.26)",
-                      }
-                    : { border: "1px solid var(--rc-text)", background: "transparent", color: "var(--rc-text)" }),
-                  textAlign: "center", whiteSpace: "nowrap", display: "block",
-                  textDecoration: "none",
-                }}
+                className={`rc-plan-cta${founderActive ? " rc-plan-cta--founder" : ""}`}
               >
                 {founderActive ? t.pricing.founder.cta : t.pricing.plans.hired.cta}
               </Link>

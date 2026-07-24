@@ -69,9 +69,15 @@ export function CoverLetterTab({ analysisId, isPremium, company, candidateName, 
 
   async function handleCopy() {
     if (!coverLetter) return;
-    await navigator.clipboard.writeText(coverLetter);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    // Only confirm a copy that actually happened: a blocked clipboard
+    // (insecure context, denied permission) must not flash a fake checkmark.
+    try {
+      await navigator.clipboard.writeText(coverLetter);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* leave the button in its idle state — nothing was copied */
+    }
   }
 
   async function handleExportPdf() {

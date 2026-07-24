@@ -370,7 +370,7 @@
       "stat3Label": "to start",
       "dropLabel": "Drop your CV here",
       "dropItalic": "or paste a job link.",
-      "dropHint": "PDF or DOCX up to 5MB · no signup required for the first run",
+      "dropHint": "PDF or photo up to 10MB · no signup required for the first run",
       "dropCta": "Get my instant diagnosis →",
       "redditCtaLabel": "Free full audit on",
       "founderSeatsLabel": "founder seats left"
@@ -592,8 +592,9 @@
       "hint": "case studies · process · craft",
       "placeholder": "your-domain.com",
       "precision": "+precision",
-      "pingOk": "URL reachable: the site responds correctly.",
-      "pingError": "URL unreachable: check the address."
+      "pingOk": "Address checks out. Your browser can't fully verify the site from here.",
+      "pingError": "Couldn't reach this address: check it.",
+      "pingInvalid": "That doesn't look like a valid URL."
     },
     "pills": {
       "recommended": "Recommended",
@@ -685,7 +686,9 @@
         "savedUse": "Saved, click to use",
         "uploadDifferent": "Upload a different file",
         "cvDropPrompt": "Drop your CV or click to browse.",
-        "cvFormat": "PDF · DOCX · 5MB max",
+        "cvFormat": "PDF · PNG · JPG · 10MB max",
+        "fileTypeError": "This format isn't supported. Send a PDF or a photo of your CV (PNG, JPG, WebP).",
+        "fileSizeError": "This file is too large: 10MB max.",
         "saveHint": "Save CVs for quick reuse in Settings",
         "jobPlaceholder": "Paste the posting: title, must-haves, nice-to-haves, salary if shown...",
         "pasteUrl": "Paste a URL instead",
@@ -738,7 +741,8 @@
         "publicSignalsOptional": "Public signals · optional",
         "signalsAdded": "added",
         "check": "Check",
-        "analyzing": "Analyzing..."
+        "analyzing": "Analyzing...",
+        "clearSignal": "Clear"
       },
       "privacy": "Stays private, auto-deleted after 30 days, never used for training"
     }
@@ -759,7 +763,8 @@
       "analyzing_github": "GitHub signal",
       "dual_ai_analysis": "Deep analysis",
       "negotiation_coaching": "Negotiation coaching",
-      "finalizing": "Final diagnostic"
+      "finalizing": "Final diagnostic",
+      "reviewing_cv": "CV review"
     },
     "tags": {
       "done": "Done",
@@ -773,7 +778,10 @@
       "audit_jd_match": "Matching your profile against the role's requirements…",
       "ats_simulation": "Checking ATS keyword & format fit and spotting missing keywords…",
       "cv_tone": "Assessing your seniority and the tone of your bullet points…",
-      "hidden_red_flags": "Detecting hidden red flags (gaps, short tenures…)…"
+      "hidden_red_flags": "Detecting hidden red flags (gaps, short tenures…)…",
+      "cv_quality": "Scoring your CV across the six quality dimensions…",
+      "bullet_reviews": "Reviewing your bullet points one by one…",
+      "seniority_analysis": "Reading the seniority your CV actually signals…"
     },
     "claudeTasks": [
       "CV Audit",
@@ -789,8 +797,17 @@
       "title": "This is taking longer than expected…",
       "subtitle": "The analysis didn't respond in time. No credit was used, you can try again.",
       "eta": "Timeout",
-      "retry": "Restart analysis"
-    }
+      "retry": "Restart analysis",
+      "streamLost": "The connection dropped before the analysis finished. Check your network and try again.",
+      "subtitleCharged": "The analysis didn't finish. This run used a credit; if the result never arrived, contact us and we'll restore it."
+    },
+    "claudeTasksCvReview": [
+      "Quality Score",
+      "CV Audit",
+      "Bullet Review",
+      "Seniority",
+      "Red Flags"
+    ]
   },
   "riskMeter": {
     "eyebrow": "Rejection risk",
@@ -915,7 +932,8 @@
     "upgradeSub": "30 full analyses / month · extras on demand",
     "upgradeCta": "See plans →",
     "paymentNote": "One-time payment · Stripe",
-    "close": "Close"
+    "close": "Close",
+    "redirecting": "Redirecting…"
   },
   "quota": {
     "monthlyAnalyses": "Monthly analyses",
@@ -1210,7 +1228,8 @@
     ],
     "noFabrication": "Nothing is fabricated. Every change traces back to a specific problem found in this scan. Your voice stays intact.",
     "signInRequired": "Sign in to enable CV rewriting.",
-    "rewriteButton": "Rewrite my CV"
+    "rewriteButton": "Rewrite my CV",
+    "exportFailed": "Export failed. Please try again."
   },
   "interviewTab": {
     "premiumBadge": "Premium Feature",
@@ -1393,7 +1412,10 @@
     "strengthWeak": "Weak",
     "strengthMedium": "Medium",
     "strengthStrong": "Strong",
-    "passwordHint": "8+ characters, mix letters & numbers"
+    "passwordHint": "8+ characters, mix letters & numbers",
+    "invalidEmail": "Enter a valid email address.",
+    "passwordRequired": "Enter your password.",
+    "lastUsed": "Last used"
   },
   "resetPassword": {
     "eyebrow": "New password",
@@ -1497,7 +1519,10 @@
       "noteStrong": "Strong match",
       "page": "Page",
       "prev": "← Prev",
-      "next": "Next →"
+      "next": "Next →",
+      "actionOpen": "Open analysis",
+      "actionExport": "Export analysis",
+      "actionDelete": "Delete analysis"
     },
     "outcomes": {
       "header": "Outcome",
@@ -1508,6 +1533,31 @@
       "interview": "Interview",
       "offer": "Offer",
       "rejected": "Rejected"
+    },
+    "sessionExpired": "Your session expired. Sign in again to see your analyses.",
+    "loadError": "Couldn't load your analyses. Check your connection and retry.",
+    "signInAgain": "Sign in again",
+    "retry": "Retry",
+    "pilot": {
+      "scoreTrend": "score trend",
+      "needTwoRuns": "Run 2+ analyses to see your score trend.",
+      "todaysInsights": "Today's insights",
+      "firstAnalysisPrompt": "Run your first analysis to get personalized insights.",
+      "yourRank": "Your rank",
+      "buildSkillProfile": "Run analyses to build your skill profile.",
+      "noEvolution": "No evolution to show yet.",
+      "needTwoRunsProgress": "Run at least 2 analyses to track progress.",
+      "bestRun": "Best run",
+      "worstRun": "Worst run",
+      "maxLevel": "Max level",
+      "riskUnderControl": "Your average risk score is under control. Keep diversifying your applications.",
+      "noStale": "No stale applications. Good momentum.",
+      "moreAnalysesForTips": "Run more analyses to unlock personalized tips.",
+      "aKeySkill": "A key skill",
+      "topRiskRole": "your top-risk role",
+      "tailorFor": "Tailor your CV for {company}, biggest gain available.",
+      "followUp": "Follow up with {company}: {days} days with no reply.",
+      "skillThin": "{skill} appears thin across your recent analyses."
     }
   },
   "toasts": {
@@ -1524,7 +1574,8 @@
     "rewriteNoResult": "Rewrite returned no result. Please try again.",
     "markdownDownloaded": "Markdown report downloaded",
     "pdfGenerated": "PDF report generated",
-    "pdfFailed": "Failed to generate PDF"
+    "pdfFailed": "Failed to generate PDF",
+    "saveFailed": "Couldn’t save your change. Please try again."
   },
   "credits": {
     "breadcrumbAccount": "Account",
@@ -2529,7 +2580,7 @@
   },
   "analysisLayout": {
     "parsedCv": {
-      "summary": "▸ See what an ATS reads from your PDF",
+      "summary": "See what an ATS reads from your PDF",
       "hint": "This is the plain text an ATS extracts from your file. If it looks garbled or out of order, the recruiter's software sees the same, so fix your PDF's structure (avoid tables, columns, headers/footers, and images for text)."
     },
     "heroHeadline": {
@@ -2647,7 +2698,9 @@
         "validating": "Re-scanning…",
         "validate": "Validate (full re-scan)",
         "paidNote": "Runs a full re-scan · counts as one analysis",
-        "skillsLine": "Additional skills"
+        "skillsLine": "Additional skills",
+        "applySuggestion": "Apply suggestion",
+        "creditNote": "· 1 credit"
       }
     },
     "tabs": {
@@ -2752,7 +2805,8 @@
     "exportingPdf": "Exporting…",
     "share": "↗ Share",
     "sharing": "…",
-    "newAnalysis": "↻ New"
+    "newAnalysis": "↻ New",
+    "viewInCv": "View in CV"
   },
   "rewriteTab": {
     "cv": {

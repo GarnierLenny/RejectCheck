@@ -53,6 +53,7 @@ export function DashboardShell({
           firstName={firstName}
           onBuyCredits={onBuyCredits}
           onOpenNav={() => setMobileNavOpen(true)}
+          mobileNavOpen={mobileNavOpen}
         />
         {children}
       </main>

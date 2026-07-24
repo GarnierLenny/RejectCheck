@@ -17,7 +17,11 @@
 
 import type { AnalysisResult, CvQuality } from "../components/types";
 import { computeCvMetrics } from "./cv-checks";
-import { explainOverall, hardSignalCountsFromResult } from "./cv-quality-score";
+import {
+  explainOverall,
+  explainOverallLegacy,
+  hardSignalCountsFromResult,
+} from "./cv-quality-score";
 
 export type AuditInconsistencySeverity = "error" | "warn";
 
@@ -100,18 +104,29 @@ export function checkAuditConsistency(
     //    formula can't reproduce means the anchor didn't run (stale/raw row).
     const validDims = dims.filter(isScore);
     if (isScore(q.overall) && validDims.length === DIMENSION_KEYS.length) {
-      const expected = explainOverall(
-        {
-          clarity: q.clarity,
-          impact: q.impact,
-          hard_skills: q.hard_skills,
-          soft_skills: q.soft_skills,
-          consistency: q.consistency,
-          ats_format: q.ats_format,
-        },
-        hardSignalCountsFromResult(result),
-      ).overall;
-      const drift = Math.abs(q.overall - expected);
+      const subs = {
+        clarity: q.clarity,
+        impact: q.impact,
+        hard_skills: q.hard_skills,
+        soft_skills: q.soft_skills,
+        consistency: q.consistency,
+        ats_format: q.ats_format,
+      };
+      const counts = hardSignalCountsFromResult(result);
+      const expected = explainOverall(subs, counts).overall;
+      // Accept EITHER anchored curve: the current one, or the pre-2026-07-24 one
+      // a historical row was scored with. In both cases the anchor genuinely ran,
+      // so reporting "the anchor may not have run" would be a false diagnosis.
+      //
+      // Deliberately NOT accepting the raw weighted average: a headline equal to
+      // that means the anchoring call never happened (it was lost in a merge for
+      // a period, which is why 65% of production history looks like this). That
+      // is precisely what this check exists to surface, and it is dev-only
+      // console output, so the noise goes to a developer and never to a user.
+      const drift = Math.min(
+        Math.abs(q.overall - expected),
+        Math.abs(q.overall - explainOverallLegacy(subs, counts)),
+      );
       if (drift > OVERALL_TOLERANCE) {
         out.push({
           code: "overall_vs_dimensions",

@@ -4,7 +4,9 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useAuth } from "../../../../context/auth";
+import { ApiError } from "../../../../lib/api";
 import {
   useSubscription,
   useAnalysisHistory,
@@ -139,7 +141,7 @@ function DashboardContent() {
   const queryClient = useQueryClient();
   const { t, locale, localePath } = useLanguage();
 
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { data: profile } = useProfile();
 
   const [analysisPage, setAnalysisPage] = useState(1);
@@ -150,7 +152,7 @@ function DashboardContent() {
 
   const { data: subscription } = useSubscription();
   const { data: quota } = useQuota();
-  const { data: analysisData, isLoading: loadingHistory } = useAnalysisHistory(analysisPage);
+  const { data: analysisData, isLoading: loadingHistory, isError: historyError, error: historyErr } = useAnalysisHistory(analysisPage);
   const { data: interviewSummary } = useInterviewHistory(1);
   const { data: summaryData } = useAnalysisHistory(1);
   const { data: applicationsData, isLoading: applicationsLoading } = useApplications();
@@ -268,7 +270,10 @@ function DashboardContent() {
       await deleteAnalysis.mutateAsync(id);
       setAnalysisPage(1);
     } catch (err) {
+      // The row used to just stay put with the failure logged to a console
+      // the user never opens.
       console.error("Delete failed:", err);
+      toast.error(t.toasts.saveFailed);
     } finally {
       setIsDeleting(null);
     }
@@ -417,14 +422,16 @@ function DashboardContent() {
     : null;
   const pilotLines: { tone: "warn" | "nudge" | "info"; body: string }[] = [
     topRiskItem && (topRiskItem.result?.score ?? 0) > 60
-      ? { tone: "warn", body: `Tailor your CV for ${topRiskItem.company || topRiskItem.result?.job_details?.company || "your top-risk role"}, biggest gain available.` }
-      : { tone: "info", body: "Your average risk score is under control. Keep diversifying your applications." },
+      ? { tone: "warn", body: t.dashboardShell.pilot.tailorFor.replace("{company}", topRiskItem.company || topRiskItem.result?.job_details?.company || t.dashboardShell.pilot.topRiskRole) }
+      : { tone: "info", body: t.dashboardShell.pilot.riskUnderControl },
     staleApplications[0]
-      ? { tone: "nudge", body: `Follow up with ${staleApplications[0].company}: ${Math.floor((now - new Date(staleApplications[0].appliedAt).getTime()) / 86400000)} days with no reply.` }
-      : { tone: "info", body: "No stale applications. Good momentum." },
+      ? { tone: "nudge", body: t.dashboardShell.pilot.followUp
+            .replace("{company}", staleApplications[0].company ?? "")
+            .replace("{days}", String(Math.floor((now - new Date(staleApplications[0].appliedAt).getTime()) / 86400000))) }
+      : { tone: "info", body: t.dashboardShell.pilot.noStale },
     topSkills.length > 0
-      ? { tone: "info", body: `${topSkills[topSkills.length - 1]?.subject || "A key skill"} appears thin across your recent analyses.` }
-      : { tone: "info", body: "Run more analyses to unlock personalized tips." },
+      ? { tone: "info", body: t.dashboardShell.pilot.skillThin.replace("{skill}", topSkills[topSkills.length - 1]?.subject || t.dashboardShell.pilot.aKeySkill) }
+      : { tone: "info", body: t.dashboardShell.pilot.moreAnalysesForTips },
   ];
 
   // Filtered history
@@ -501,7 +508,7 @@ function DashboardContent() {
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
                 <div className="flex items-center justify-between px-5 pt-4 pb-3">
                   <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">
-                    {t.account.home.recentAnalyses} · score trend
+                    {t.account.home.recentAnalyses} · {t.dashboardShell.pilot.scoreTrend}
                   </p>
                   <div className="flex gap-1.5">
                     {(["7d", "14d", "30d"] as const).map(p => (
@@ -523,7 +530,7 @@ function DashboardContent() {
                   {homeChartData.length < 2 ? (
                     <div className="h-full flex items-center justify-center">
                       <p className="font-mono text-[11px] text-rc-hint text-center">
-                        Run 2+ analyses to see your score trend.
+                        {t.dashboardShell.pilot.needTwoRuns}
                       </p>
                     </div>
                   ) : (
@@ -619,7 +626,7 @@ function DashboardContent() {
               {/* Pilot insights */}
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden">
                 <div className="flex items-center justify-between px-5 pt-4 pb-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
-                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Today's insights</p>
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">{t.dashboardShell.pilot.todaysInsights}</p>
                   <span className="flex items-center gap-1 font-mono text-[9px] text-rc-green font-bold tracking-[0.1em]">
                     <span className="w-1.5 h-1.5 rounded-full bg-rc-green animate-pulse" />
                     Live
@@ -640,7 +647,7 @@ function DashboardContent() {
                       )}
                     </p>
                   ) : (
-                    <p className="font-sans text-[14px] text-rc-hint mb-4">Run your first analysis to get personalized insights.</p>
+                    <p className="font-sans text-[14px] text-rc-hint mb-4">{t.dashboardShell.pilot.firstAnalysisPrompt}</p>
                   )}
                   <div className="space-y-3">
                     {pilotLines.map((line, i) => {
@@ -660,7 +667,7 @@ function DashboardContent() {
               {RANK_REWARDS_ENABLED && (
               <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-xl p-5">
                 <div className="flex items-baseline justify-between mb-3">
-                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">Your rank</p>
+                  <p className="font-mono text-[10px] tracking-[0.18em] uppercase text-rc-hint font-bold">{t.dashboardShell.pilot.yourRank}</p>
                   <span className="font-black text-[18px] text-rc-red leading-none">
                     {xpData?.totalXp.toLocaleString() ?? 0}
                     <span className="font-mono text-[10px] text-rc-hint ml-1">XP</span>
@@ -675,7 +682,7 @@ function DashboardContent() {
                       </span>
                     </p>
                     <p className="font-mono text-[10px] text-rc-hint mb-2">
-                      → {xpData.next?.tierLabel ?? "Max level"} · {xpData.xpInLevel}/{xpData.xpForNextLevel} XP
+                      → {xpData.next?.tierLabel ?? t.dashboardShell.pilot.maxLevel} · {xpData.xpInLevel}/{xpData.xpForNextLevel} XP
                     </p>
                     <div className="h-1.5 bg-rc-surface-hero rounded-full overflow-hidden">
                       <div
@@ -700,7 +707,7 @@ function DashboardContent() {
                 </div>
                 {topSkills.length === 0 ? (
                   <p className="font-mono text-[11px] text-rc-hint text-center py-4">
-                    Run analyses to build your skill profile.
+                    {t.dashboardShell.pilot.buildSkillProfile}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -759,8 +766,8 @@ function DashboardContent() {
                 <div className="flex-1 px-2 pb-2">
                   {!evoHasData ? (
                     <div className="h-full flex flex-col items-center justify-center gap-2">
-                      <p className="font-mono text-[11px] text-rc-hint">No evolution to show yet.</p>
-                      <p className="font-mono text-[10px] text-rc-hint/60 text-center max-w-[220px]">Run at least 2 analyses to track progress.</p>
+                      <p className="font-mono text-[11px] text-rc-hint">{t.dashboardShell.pilot.noEvolution}</p>
+                      <p className="font-mono text-[10px] text-rc-hint/60 text-center max-w-[220px]">{t.dashboardShell.pilot.needTwoRunsProgress}</p>
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
@@ -804,7 +811,7 @@ function DashboardContent() {
                     good: overviewAvgRisk !== null && overviewAvgRisk < 40,
                   },
                   {
-                    label: "Best run",
+                    label: t.dashboardShell.pilot.bestRun,
                     value: bestRun ? String(bestRun.result?.score ?? "-") : "-",
                     sub: bestRun
                       ? `${new Date(bestRun.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${bestRun.jobLabel || bestRun.result?.job_details?.title || ""}`
@@ -812,7 +819,7 @@ function DashboardContent() {
                     good: true,
                   },
                   {
-                    label: "Worst run",
+                    label: t.dashboardShell.pilot.worstRun,
                     value: worstRun ? String(worstRun.result?.score ?? "-") : "-",
                     sub: worstRun
                       ? `${new Date(worstRun.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" })} · ${worstRun.jobLabel || worstRun.result?.job_details?.title || ""}`
@@ -902,6 +909,32 @@ function DashboardContent() {
                   <div className="p-8 text-center">
                     <span className="font-mono text-[11px] text-rc-hint animate-pulse">{t.dashboardShell.loading}</span>
                   </div>
+                ) : historyError ? (
+                  // A failed history load must not masquerade as "no analyses
+                  // yet" — surface it, and offer re-auth if the session expired.
+                  <div className="p-16 flex flex-col items-center gap-4 text-center">
+                    <FileText className="w-10 h-10 text-rc-hint/20" />
+                    <p className="text-rc-muted font-medium">
+                      {(historyErr instanceof ApiError && historyErr.status === 401)
+                        ? t.dashboardShell.sessionExpired
+                        : t.dashboardShell.loadError}
+                    </p>
+                    {(historyErr instanceof ApiError && historyErr.status === 401) ? (
+                      <button
+                        onClick={async () => { await signOut(); router.replace(localePath("/login")); }}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-rc-red text-white rounded-xl font-mono text-[10px] tracking-widest uppercase hover:opacity-90"
+                      >
+                        {t.dashboardShell.signInAgain} <ArrowRight className="w-3 h-3" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ["analysis-history"] })}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 border border-rc-border rounded-xl font-mono text-[10px] tracking-widest uppercase text-rc-text hover:border-rc-red/40"
+                      >
+                        {t.dashboardShell.retry}
+                      </button>
+                    )}
+                  </div>
                 ) : totalAnalyses === 0 ? (
                   <div className="p-16 flex flex-col items-center gap-4">
                     <FileText className="w-10 h-10 text-rc-hint/20" />
@@ -942,13 +975,28 @@ function DashboardContent() {
                           </span>
                           <OutcomeSelect id={item.id} value={item.outcome ?? "not_applied"} />
                           <span className={`font-mono text-[10px] ${aiNote.color}`}>{aiNote.text}</span>
-                          <div className="flex items-center gap-3 justify-end">
-                            <Link href={localePath(`/analyze?id=${item.id}`)} className="text-rc-hint hover:text-rc-red transition-colors no-underline text-[14px]">→</Link>
-                            <button onClick={e => handleOpenExport(e, item)} className="text-rc-hint hover:text-rc-text transition-colors text-[14px]">↓</button>
+                          {/* Bare glyphs announced as garbage by screen readers
+                              and near-untappable on mobile: labelled, with real
+                              touch targets and the destructive one set apart. */}
+                          <div className="flex items-center gap-1 justify-end">
+                            <Link
+                              href={localePath(`/analyze?id=${item.id}`)}
+                              aria-label={t.dashboardShell.analysesTable.actionOpen}
+                              title={t.dashboardShell.analysesTable.actionOpen}
+                              className="text-rc-hint hover:text-rc-red transition-colors no-underline text-[14px] p-2 leading-none"
+                            >→</Link>
+                            <button
+                              onClick={e => handleOpenExport(e, item)}
+                              aria-label={t.dashboardShell.analysesTable.actionExport}
+                              title={t.dashboardShell.analysesTable.actionExport}
+                              className="text-rc-hint hover:text-rc-text transition-colors text-[14px] p-2 leading-none"
+                            >↓</button>
                             <button
                               onClick={e => handleDelete(e, item.id)}
                               disabled={isDeleting === item.id}
-                              className="text-rc-hint hover:text-rc-red transition-colors disabled:opacity-30 text-[12px]"
+                              aria-label={t.dashboardShell.analysesTable.actionDelete}
+                              title={t.dashboardShell.analysesTable.actionDelete}
+                              className="ml-1 text-rc-hint hover:text-rc-red transition-colors disabled:opacity-30 text-[12px] p-2 leading-none"
                             >✕</button>
                           </div>
                         </div>

@@ -14,6 +14,7 @@ interface Props {
 export function CvPdfViewer({ url }: Props) {
   const [numPages, setNumPages] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -33,11 +34,29 @@ export function CvPdfViewer({ url }: Props) {
       className="overflow-y-auto bg-rc-bg border border-rc-border"
       style={{ height: "calc(100vh - 180px)" }}
     >
-      {loading && (
+      {loading && !failed && (
         <div className="flex items-center justify-center h-40">
           <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint animate-pulse">
             Loading PDF…
           </span>
+        </div>
+      )}
+
+      {/* A load failure used to clear the spinner and leave a blank pane with
+          no explanation — say what happened and offer a way out. */}
+      {failed && (
+        <div role="alert" className="flex flex-col items-center justify-center gap-3 h-40 px-6 text-center">
+          <span className="font-mono text-[11px] uppercase tracking-widest text-rc-red">
+            This PDF could not be displayed.
+          </span>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-[11px] uppercase tracking-widest text-rc-hint underline hover:text-rc-text transition-colors"
+          >
+            Open it in a new tab
+          </a>
         </div>
       )}
 
@@ -46,8 +65,9 @@ export function CvPdfViewer({ url }: Props) {
         onLoadSuccess={({ numPages }) => {
           setNumPages(numPages);
           setLoading(false);
+          setFailed(false);
         }}
-        onLoadError={() => setLoading(false)}
+        onLoadError={() => { setLoading(false); setFailed(true); }}
         loading={null}
         className="flex flex-col items-center gap-2 py-4"
       >

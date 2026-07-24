@@ -370,7 +370,7 @@
       "stat3Label": "pour commencer",
       "dropLabel": "Déposez votre CV ici",
       "dropItalic": "ou collez un lien d'offre.",
-      "dropHint": "PDF ou DOCX jusqu'à 5 Mo · sans inscription pour la première analyse",
+      "dropHint": "PDF ou photo jusqu'à 10 Mo · sans inscription pour la première analyse",
       "dropCta": "Mon diagnostic instantané →",
       "redditCtaLabel": "Audit complet offert sur",
       "founderSeatsLabel": "places founder restantes"
@@ -592,8 +592,9 @@
       "hint": "case studies · process · craft",
       "placeholder": "ton-domaine.com",
       "precision": "+précision",
-      "pingOk": "URL accessible : le site répond correctement.",
-      "pingError": "URL inaccessible : vérifie l'adresse."
+      "pingOk": "L'adresse est valide. Ton navigateur ne peut pas vérifier le site complètement d'ici.",
+      "pingError": "Impossible de joindre cette adresse : vérifie-la.",
+      "pingInvalid": "Ça ne ressemble pas à une URL valide."
     },
     "pills": {
       "recommended": "Recommandé",
@@ -685,7 +686,9 @@
         "savedUse": "Sauvegardé, cliquer pour utiliser",
         "uploadDifferent": "Uploader un autre fichier",
         "cvDropPrompt": "Déposez votre CV ou cliquez pour parcourir.",
-        "cvFormat": "PDF · DOCX · 5 Mo max",
+        "cvFormat": "PDF · PNG · JPG · 10 Mo max",
+        "fileTypeError": "Ce format n'est pas pris en charge. Envoie un PDF ou une photo de ton CV (PNG, JPG, WebP).",
+        "fileSizeError": "Ce fichier est trop lourd : 10 Mo max.",
         "saveHint": "Sauvegardez vos CVs pour les réutiliser dans les Paramètres",
         "jobPlaceholder": "Collez l'offre : titre, indispensables, nice-to-haves, salaire si indiqué...",
         "pasteUrl": "Coller une URL",
@@ -738,7 +741,8 @@
         "publicSignalsOptional": "Signaux publics · optionnel",
         "signalsAdded": "ajouté(s)",
         "check": "Vérifier",
-        "analyzing": "Analyse en cours..."
+        "analyzing": "Analyse en cours...",
+        "clearSignal": "Effacer"
       },
       "privacy": "Données privées, supprimées automatiquement après 30 jours, jamais utilisées pour l'entraînement"
     }
@@ -759,7 +763,8 @@
       "analyzing_github": "Signal GitHub",
       "dual_ai_analysis": "Analyse approfondie",
       "negotiation_coaching": "Coach Négociation",
-      "finalizing": "Diagnostic final"
+      "finalizing": "Diagnostic final",
+      "reviewing_cv": "Revue du CV"
     },
     "tags": {
       "done": "Fait",
@@ -773,7 +778,10 @@
       "audit_jd_match": "Je confronte ton profil aux exigences de l'offre…",
       "ats_simulation": "Je simule le passage ATS et repère les mots-clés manquants…",
       "cv_tone": "J'évalue ta séniorité et le ton de tes bullet points…",
-      "hidden_red_flags": "Je détecte les red flags cachés (trous, tenures courtes…)…"
+      "hidden_red_flags": "Je détecte les red flags cachés (trous, tenures courtes…)…",
+      "cv_quality": "Note ton CV sur les six dimensions de qualité…",
+      "bullet_reviews": "Passe tes bullet points en revue un par un…",
+      "seniority_analysis": "Lit le niveau de séniorité que ton CV signale vraiment…"
     },
     "claudeTasks": [
       "Audit du CV",
@@ -789,8 +797,17 @@
       "title": "Ça prend plus de temps que prévu…",
       "subtitle": "L'analyse n'a pas répondu à temps. Aucun crédit consommé, tu peux relancer.",
       "eta": "Timeout",
-      "retry": "Relancer l'analyse"
-    }
+      "retry": "Relancer l'analyse",
+      "streamLost": "La connexion a été coupée avant la fin de l'analyse. Vérifie ton réseau et relance.",
+      "subtitleCharged": "L'analyse n'a pas abouti. Ce lancement a consommé un crédit ; si le résultat n'est jamais arrivé, contacte-nous et on te le restitue."
+    },
+    "claudeTasksCvReview": [
+      "Score qualité",
+      "Audit CV",
+      "Revue bullets",
+      "Séniorité",
+      "Red flags"
+    ]
   },
   "riskMeter": {
     "eyebrow": "Risque de rejet",
@@ -915,7 +932,8 @@
     "upgradeSub": "30 analyses complètes / mois · extras à la demande",
     "upgradeCta": "Voir les plans →",
     "paymentNote": "Paiement unique · Stripe",
-    "close": "Fermer"
+    "close": "Fermer",
+    "redirecting": "Redirection…"
   },
   "quota": {
     "monthlyAnalyses": "Analyses ce mois",
@@ -1210,7 +1228,8 @@
     ],
     "noFabrication": "Rien n'est inventé. Chaque changement remonte à un problème spécifique trouvé dans ce scan. Votre voix reste intacte.",
     "signInRequired": "Connectez-vous pour activer la réécriture de CV.",
-    "rewriteButton": "Réécrire mon CV"
+    "rewriteButton": "Réécrire mon CV",
+    "exportFailed": "L'export a échoué. Réessaie."
   },
   "interviewTab": {
     "premiumBadge": "Fonctionnalité Premium",
@@ -1393,7 +1412,10 @@
     "strengthWeak": "Faible",
     "strengthMedium": "Moyen",
     "strengthStrong": "Fort",
-    "passwordHint": "8+ caractères, mêle lettres et chiffres"
+    "passwordHint": "8+ caractères, mêle lettres et chiffres",
+    "invalidEmail": "Saisis une adresse email valide.",
+    "passwordRequired": "Saisis ton mot de passe.",
+    "lastUsed": "Dernier utilisé"
   },
   "resetPassword": {
     "eyebrow": "Nouveau mot de passe",
@@ -1497,7 +1519,10 @@
       "noteStrong": "Bon match",
       "page": "Page",
       "prev": "← Préc.",
-      "next": "Suiv. →"
+      "next": "Suiv. →",
+      "actionOpen": "Ouvrir l'analyse",
+      "actionExport": "Exporter l'analyse",
+      "actionDelete": "Supprimer l'analyse"
     },
     "outcomes": {
       "header": "Résultat",
@@ -1508,6 +1533,31 @@
       "interview": "Entretien",
       "offer": "Offre",
       "rejected": "Rejeté"
+    },
+    "sessionExpired": "Ta session a expiré. Reconnecte-toi pour voir tes analyses.",
+    "loadError": "Impossible de charger tes analyses. Vérifie ta connexion et réessaie.",
+    "signInAgain": "Se reconnecter",
+    "retry": "Réessayer",
+    "pilot": {
+      "scoreTrend": "évolution du score",
+      "needTwoRuns": "Lance 2 analyses ou plus pour voir l'évolution de ton score.",
+      "todaysInsights": "Insights du jour",
+      "firstAnalysisPrompt": "Lance ta première analyse pour des conseils personnalisés.",
+      "yourRank": "Ton rang",
+      "buildSkillProfile": "Lance des analyses pour construire ton profil de compétences.",
+      "noEvolution": "Pas encore d'évolution à afficher.",
+      "needTwoRunsProgress": "Lance au moins 2 analyses pour suivre tes progrès.",
+      "bestRun": "Meilleur run",
+      "worstRun": "Moins bon run",
+      "maxLevel": "Niveau max",
+      "riskUnderControl": "Ton score de risque moyen est maîtrisé. Continue à diversifier tes candidatures.",
+      "noStale": "Aucune candidature en attente. Bonne dynamique.",
+      "moreAnalysesForTips": "Lance plus d'analyses pour débloquer des conseils personnalisés.",
+      "aKeySkill": "Une compétence clé",
+      "topRiskRole": "ton poste le plus risqué",
+      "tailorFor": "Adapte ton CV pour {company}, c'est le plus gros gain disponible.",
+      "followUp": "Relance {company} : {days} jours sans réponse.",
+      "skillThin": "{skill} apparaît peu dans tes analyses récentes."
     }
   },
   "toasts": {
@@ -1524,7 +1574,8 @@
     "rewriteNoResult": "La réécriture n'a rien renvoyé. Réessaie.",
     "markdownDownloaded": "Rapport Markdown téléchargé",
     "pdfGenerated": "Rapport PDF généré",
-    "pdfFailed": "Échec de la génération du PDF"
+    "pdfFailed": "Échec de la génération du PDF",
+    "saveFailed": "Impossible d’enregistrer. Réessaie."
   },
   "credits": {
     "breadcrumbAccount": "Compte",
@@ -2529,7 +2580,7 @@
   },
   "analysisLayout": {
     "parsedCv": {
-      "summary": "▸ Vois ce qu'un ATS lit de ton PDF",
+      "summary": "Vois ce qu'un ATS lit de ton PDF",
       "hint": "Voici le texte brut qu'un ATS extrait de ton fichier. S'il paraît brouillé ou dans le désordre, le logiciel du recruteur voit la même chose, donc corrige la structure de ton PDF (évite tableaux, colonnes, en-têtes/pieds de page et images pour le texte)."
     },
     "heroHeadline": {
@@ -2647,7 +2698,9 @@
         "validating": "Re-scan en cours…",
         "validate": "Valider (re-scan complet)",
         "paidNote": "Lance un re-scan complet · compte pour une analyse",
-        "skillsLine": "Compétences supplémentaires"
+        "skillsLine": "Compétences supplémentaires",
+        "applySuggestion": "Appliquer la suggestion",
+        "creditNote": "· 1 crédit"
       }
     },
     "tabs": {
@@ -2752,7 +2805,8 @@
     "exportingPdf": "Export en cours…",
     "share": "↗ Partager",
     "sharing": "…",
-    "newAnalysis": "↻ Nouveau"
+    "newAnalysis": "↻ Nouveau",
+    "viewInCv": "Voir dans le CV"
   },
   "rewriteTab": {
     "cv": {

@@ -109,6 +109,7 @@ export default async function SharedAnalysisPage({
       liFileUrl={data.liFileUrl}
       coverLetter={data.coverLetter}
       mlFileUrl={data.mlFileUrl}
+      createdAt={data.createdAt}
     />
   );
 }

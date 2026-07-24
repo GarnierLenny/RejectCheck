@@ -278,6 +278,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
           busy={fullBusy}
           onCommit={runInlineRescan}
           ro={rt.optimize}
+          analysisId={analysisId}
         />
       )}
 

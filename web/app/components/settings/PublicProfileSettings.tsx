@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { Heading, FieldLabel, Caption, Text } from "../typography";
 import { Button } from "../Button";
@@ -63,6 +64,18 @@ export function PublicProfileSettings({
   const [socialDrafts, setSocialDrafts] = useState<string[]>([""]);
   const [socialSaved, setSocialSaved] = useState(false);
 
+  // Optimistic override for the public switch: non-null while a toggle is in
+  // flight, cleared once the server value catches up (or on failure).
+  const [publicOptimistic, setPublicOptimistic] = useState<boolean | null>(null);
+  const serverIsPublic = profile?.isPublic ?? true;
+  const isPublicShown = publicOptimistic ?? serverIsPublic;
+
+  useEffect(() => {
+    if (publicOptimistic !== null && serverIsPublic === publicOptimistic) {
+      setPublicOptimistic(null);
+    }
+  }, [serverIsPublic, publicOptimistic]);
+
   useEffect(() => {
     if (!profile) return;
     setDisplayName(profile.displayName ?? profile.username ?? "");
@@ -78,12 +91,30 @@ export function PublicProfileSettings({
       ? `${window.location.origin}/${lang}/u/${profile.username}`
       : null;
 
+  // Blur-saves await the mutation directly: a rejection used to escape as an
+  // unhandled promise while the "Saved" badge flashed anyway. useUpdateProfile's
+  // onError toasts and refetches (re-syncing these fields), so here we only
+  // avoid claiming a save that did not happen.
+  const lastSaveOk = useRef(true);
+  async function safeSave(data: Parameters<typeof updateProfile.mutateAsync>[0]) {
+    try {
+      await updateProfile.mutateAsync(data);
+      lastSaveOk.current = true;
+    } catch {
+      lastSaveOk.current = false;
+    }
+  }
+  function flashSaved(setter: (v: boolean) => void) {
+    if (!lastSaveOk.current) return;
+    setter(true);
+    setTimeout(() => setter(false), 2000);
+  }
+
   async function handleNameBlur() {
     const current = profile?.displayName ?? profile?.username ?? "";
     if (displayName === current) return;
-    await updateProfile.mutateAsync({ displayName });
-    setNameSaved(true);
-    setTimeout(() => setNameSaved(false), 2000);
+    await safeSave({ displayName });
+    flashSaved(setNameSaved);
   }
 
   async function handleClaimUsername() {
@@ -125,30 +156,42 @@ export function PublicProfileSettings({
   async function handleBioBlur() {
     const current = profile?.bio ?? "";
     if (bioDraft === current || bioDraft.length > 240) return;
-    await updatePublicSettings.mutateAsync({ bio: bioDraft || null });
+    try {
+      await updatePublicSettings.mutateAsync({ bio: bioDraft || null });
+    } catch {
+      toast.error(t.toasts.saveFailed);
+      return;
+    }
     setBioSaved(true);
     setTimeout(() => setBioSaved(false), 2000);
   }
 
   async function handleTogglePublic(next: boolean) {
-    await updatePublicSettings.mutateAsync({ isPublic: next });
+    // Move the thumb immediately, then let the server confirm. Binding the
+    // switch straight to server state left it sitting in the old position
+    // (dimmed) for the whole roundtrip, which reads as a dead control.
+    setPublicOptimistic(next);
+    try {
+      await updatePublicSettings.mutateAsync({ isPublic: next });
+    } catch {
+      setPublicOptimistic(null); // snap back to the server value
+      toast.error(t.toasts.saveFailed);
+    }
   }
 
   async function handlePortfolioBlur() {
     const current = profile?.portfolioUrl ?? "";
     if (portfolioUrl === current) return;
-    await updateProfile.mutateAsync({ portfolioUrl });
-    setPortfolioSaved(true);
-    setTimeout(() => setPortfolioSaved(false), 2000);
+    await safeSave({ portfolioUrl });
+    flashSaved(setPortfolioSaved);
   }
 
   async function persistSocialLinks(next: string[]) {
     const cleaned = next.map((s) => s.trim()).filter(Boolean);
     const current = profile?.socialLinks ?? [];
     if (JSON.stringify(cleaned) === JSON.stringify(current)) return;
-    await updateProfile.mutateAsync({ socialLinks: cleaned });
-    setSocialSaved(true);
-    setTimeout(() => setSocialSaved(false), 2000);
+    await safeSave({ socialLinks: cleaned });
+    flashSaved(setSocialSaved);
   }
 
   async function handleSocialBlur() {
@@ -169,9 +212,14 @@ export function PublicProfileSettings({
 
   async function handleCopyProfileUrl() {
     if (!profileUrl) return;
-    await navigator.clipboard.writeText(profileUrl);
-    setProfileUrlCopied(true);
-    setTimeout(() => setProfileUrlCopied(false), 1500);
+    // Confirm only a copy that actually succeeded.
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setProfileUrlCopied(true);
+      setTimeout(() => setProfileUrlCopied(false), 1500);
+    } catch {
+      toast.error(t.toasts.saveFailed);
+    }
   }
 
   return (
@@ -256,7 +304,15 @@ export function PublicProfileSettings({
           />
           <SavedBadge show={bioSaved} label={t.settingsTab.savedBadge} />
         </div>
-        <Caption as="p" className="block text-right tabular-nums">{bioDraft.length}/240</Caption>
+        {/* The input is hard-sliced at 240, so warn before the user hits the
+            wall rather than silently swallowing keystrokes. */}
+        <Caption
+          as="p"
+          tone={bioDraft.length >= 240 ? "red" : bioDraft.length >= 220 ? "amber" : undefined}
+          className="block text-right tabular-nums"
+        >
+          {bioDraft.length}/240
+        </Caption>
       </div>
 
       {/* URL */}
@@ -339,9 +395,8 @@ export function PublicProfileSettings({
           <Caption as="p" className="block">{t.settingsTab.publicProfile.publicToggleHint}</Caption>
         </div>
         <Toggle
-          checked={profile?.isPublic ?? true}
+          checked={isPublicShown}
           onChange={handleTogglePublic}
-          disabled={updatePublicSettings.isPending}
           label={t.settingsTab.publicProfile.publicToggleLabel}
         />
       </div>

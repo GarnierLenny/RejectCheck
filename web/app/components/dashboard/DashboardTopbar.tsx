@@ -12,9 +12,11 @@ interface Props {
   onBuyCredits: () => void;
   /** Opens the mobile nav drawer (rendered only below md). */
   onOpenNav?: () => void;
+  /** Drives aria-expanded on the drawer trigger. */
+  mobileNavOpen?: boolean;
 }
 
-export function DashboardTopbar({ activeTab, firstName, onBuyCredits, onOpenNav }: Props) {
+export function DashboardTopbar({ activeTab, firstName, onBuyCredits, onOpenNav, mobileNavOpen = false }: Props) {
   const { t, locale, localePath } = useLanguage();
   const s = t.dashboardShell;
 
@@ -45,6 +47,8 @@ export function DashboardTopbar({ activeTab, firstName, onBuyCredits, onOpenNav 
             type="button"
             onClick={onOpenNav}
             aria-label="Open menu"
+            aria-expanded={!!mobileNavOpen}
+            aria-controls="dashboard-sidebar"
             className="md:hidden flex items-center justify-center p-2 -ml-2 shrink-0 text-rc-text"
           >
             <Menu size={22} />

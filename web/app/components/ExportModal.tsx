@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useModalA11y } from "../hooks/useModalA11y";
 import { X, FileDown, Check, FileText } from "lucide-react";
 import type { AnalysisResult } from "./types";
 import { generatePdf, generateMarkdown, triggerDownload, getExportFilenames } from "../utils/export";
@@ -15,15 +16,21 @@ export function ExportModal({ isOpen, onClose, result }: ExportModalProps) {
   const [selectedFormats, setSelectedFormats] = useState<string[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
       setSelectedFormats([]); // Reset on open
+      setError(false);
     } else {
       setTimeout(() => setIsVisible(false), 300);
     }
   }, [isOpen]);
+
+  // Escape, focus trap, initial focus and body scroll lock.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalA11y(panelRef, isOpen, onClose);
 
   if (!isOpen && !isVisible) return null;
 
@@ -39,21 +46,25 @@ export function ExportModal({ isOpen, onClose, result }: ExportModalProps) {
     if (!result || selectedFormats.length === 0) return;
     
     setIsDownloading(true);
+    setError(false);
     try {
       const { pdf: pdfName, md: mdName } = getExportFilenames(result);
 
       if (selectedFormats.includes("PDF")) {
         await generatePdf(result, pdfName);
       }
-      
+
       if (selectedFormats.includes("Markdown")) {
         const mdContent = generateMarkdown(result);
         triggerDownload(mdContent, mdName, "text/markdown");
       }
 
       onClose();
-    } catch (error) {
-      console.error("Export failed:", error);
+    } catch (err) {
+      // Keep the modal open and tell the user, rather than logging to a
+      // console they'll never see and leaving them wondering.
+      console.error("Export failed:", err);
+      setError(true);
     } finally {
       setIsDownloading(false);
     }
@@ -68,7 +79,12 @@ export function ExportModal({ isOpen, onClose, result }: ExportModalProps) {
       />
       
       {/* Modal Card */}
-      <div className={`relative bg-white border border-rc-border rounded-3xl p-8 w-full max-w-[420px] shadow-[0_40px_100px_rgba(0,0,0,0.15)] transition-all duration-300 transform ${isOpen ? "translate-y-0 scale-100" : "translate-y-4 scale-95"}`}>
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        className={`relative bg-white border border-rc-border rounded-3xl p-8 w-full max-w-[420px] shadow-[0_40px_100px_rgba(0,0,0,0.15)] transition-all duration-300 transform ${isOpen ? "translate-y-0 scale-100" : "translate-y-4 scale-95"}`}
+      >
         <button onClick={onClose} className="absolute top-6 right-6 p-2 text-rc-hint hover:text-rc-red transition-colors">
           <X className="w-5 h-5" />
         </button>
@@ -109,8 +125,14 @@ export function ExportModal({ isOpen, onClose, result }: ExportModalProps) {
           </button>
         </div>
 
+        {error && (
+          <p role="alert" className="mb-4 text-center font-mono text-[11px] text-rc-red">
+            Export failed. Please try again.
+          </p>
+        )}
+
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={onClose}
             className="flex-1 py-4 px-6 rounded-2xl bg-rc-bg border border-rc-border font-mono text-[11px] tracking-widest uppercase text-rc-hint hover:text-rc-text transition-all"
           >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "../../context/language";
+import { SCORE_BANDS } from "../lib/cv-quality-score";
 
 const SANS: React.CSSProperties = { fontFamily: "var(--font-sans)" };
 
@@ -20,11 +21,15 @@ const invariant = (label: string) => (n: number) => {
   return label;
 };
 
+// NB: the section number below is hardcoded here AND in the CvAuditResult TOC
+// (tocItem("s1", "02", "Where to start")). It said 01 until the radar took that
+// slot in the reorder, which left this line pointing at the wrong section.
+// If the TOC is renumbered again, this has to move with it.
 const COPY = {
   en: {
-    strongBar: "80 = Strong.",
+    strongBar: (n: number) => `${n} = Strong.`,
     away: (n: number) =>
-      `You are ${n} point${n === 1 ? "" : "s"} away; the two biggest gains are waiting in section 01.`,
+      `You are ${n} point${n === 1 ? "" : "s"} away; the two biggest gains are waiting in section 02.`,
     congrats: (overall: number) =>
       `You cleared the bar at ${overall}; what remains below is polish, not rescue.`,
     critical: invariant("critical"),
@@ -34,9 +39,9 @@ const COPY = {
     flags: (n: number) => (n === 1 ? "timeline flag" : "timeline flags"),
   },
   fr: {
-    strongBar: "80 = Fort.",
+    strongBar: (n: number) => `${n} = Fort.`,
     away: (n: number) =>
-      `Il te manque ${n} point${n === 1 ? "" : "s"} ; les deux plus gros gains t'attendent dans la section 01.`,
+      `Il te manque ${n} point${n === 1 ? "" : "s"} ; les deux plus gros gains t'attendent dans la section 02.`,
     congrats: (overall: number) =>
       `Barre franchie à ${overall} ; ce qui reste plus bas est du polish, pas du sauvetage.`,
     critical: (n: number) => (n === 1 ? "critique" : "critiques"),
@@ -92,13 +97,17 @@ export function CvGlanceStrip({ mergedCounts, checksPassed = null, timelineFlags
   const { locale } = useLanguage();
   const L = locale === "fr" ? COPY.fr : COPY.en;
 
-  const away = Math.max(0, 80 - overall);
+  // Finish line = the Strong band, single source in lib/cv-quality-score.ts.
+  // Hardcoding it here is what let the strip promise an 80 that no scored CV in
+  // production had ever reached.
+  const strongBar = SCORE_BANDS.strength.strong;
+  const away = Math.max(0, strongBar - overall);
 
   return (
     <div>
       <p style={{ ...SANS, fontSize: 13, lineHeight: 1.55, color: "var(--rc-hint)", margin: "0 0 18px", fontVariantNumeric: "tabular-nums" }}>
-        <b style={{ color: "var(--rc-text)", fontWeight: 600 }}>{L.strongBar}</b>{" "}
-        {overall >= 80 ? L.congrats(overall) : L.away(away)}
+        <b style={{ color: "var(--rc-text)", fontWeight: 600 }}>{L.strongBar(strongBar)}</b>{" "}
+        {overall >= strongBar ? L.congrats(overall) : L.away(away)}
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>

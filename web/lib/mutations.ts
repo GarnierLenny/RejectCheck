@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { useAuth } from '../context/auth';
+import { useLanguage } from '../context/language';
 import { apiFetch, authHeaders } from './api';
 import type {
   Profile,
@@ -47,6 +49,7 @@ export function useDeleteAnalysis() {
 
 export function useUpdateProfile() {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const token = session?.access_token;
   const userId = session?.user?.id;
   const queryClient = useQueryClient();
@@ -62,6 +65,13 @@ export function useUpdateProfile() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', userId] });
+    },
+    // Blur-saves have no Save button: without this, a failed save is silent
+    // and the input keeps showing a value the server never stored. Refetching
+    // the profile snaps the UI back to the last saved state.
+    onError: () => {
+      toast.error(t.toasts.saveFailed);
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },
   });
@@ -320,6 +330,7 @@ export function useCreateCheckout() {
  */
 export function useBuyCredits() {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const token = session?.access_token;
 
   return useMutation({
@@ -334,7 +345,11 @@ export function useBuyCredits() {
       }),
     onSuccess: ({ url }) => {
       if (url) window.location.href = url;
+      // A null url means the checkout session couldn't be created (price id
+      // unset, Stripe down): a purchase click must never end in silence.
+      else toast.error(t.toasts.paymentFailed);
     },
+    onError: () => toast.error(t.toasts.paymentFailed),
   });
 }
 
@@ -347,6 +362,7 @@ export function useBuyCredits() {
  */
 export function useCreateSprintPassCheckout() {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const token = session?.access_token;
 
   return useMutation({
@@ -366,7 +382,9 @@ export function useCreateSprintPassCheckout() {
       ),
     onSuccess: ({ url }) => {
       if (url) window.location.href = url;
+      // null url = deal not configured: callers handle the /pricing fallback.
     },
+    onError: () => toast.error(t.toasts.paymentFailed),
   });
 }
 
@@ -515,7 +533,15 @@ export function useGenerateCoverLetter() {
   const token = session?.access_token;
 
   return useMutation({
-    mutationFn: ({ analysisId, language }: { analysisId: number; language: string }) =>
+    mutationFn: ({
+      analysisId,
+      language,
+      angle,
+    }: {
+      analysisId: number;
+      language: string;
+      angle?: 'jd' | 'exp' | 'tech';
+    }) =>
       apiFetch<{ coverLetter: string; detectedLanguage: string }>(
         '/api/analyze/cover-letter',
         {
@@ -524,7 +550,7 @@ export function useGenerateCoverLetter() {
             'Content-Type': 'application/json',
             ...authHeaders(token!),
           },
-          body: JSON.stringify({ analysisId, language }),
+          body: JSON.stringify({ analysisId, language, angle }),
         },
       ),
   });
@@ -600,6 +626,7 @@ export function useSaveStepProgress() {
  */
 export function useSetOutcome() {
   const { session } = useAuth();
+  const { t } = useLanguage();
   const token = session?.access_token;
   const userId = session?.user?.id;
   const queryClient = useQueryClient();
@@ -631,6 +658,9 @@ export function useSetOutcome() {
     },
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots?.forEach(([qKey, prev]) => queryClient.setQueryData(qKey, prev));
+      // The badge snapping back to its old value with no explanation looked
+      // like the app ignoring the user, on the outcome-capture surface.
+      toast.error(t.toasts.saveFailed);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['analysis-history', userId] });

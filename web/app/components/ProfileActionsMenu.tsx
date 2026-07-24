@@ -64,6 +64,7 @@ export function ProfileActionsMenu({ username, disabled }: Props) {
       <div
         role="menu"
         aria-hidden={!open}
+        inert={!open}
         className={`absolute right-0 mt-2 w-56 bg-rc-surface border border-rc-border rounded-lg shadow-lg overflow-hidden z-50 origin-top-right transition-all duration-150 ease-out ${
           open
             ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"

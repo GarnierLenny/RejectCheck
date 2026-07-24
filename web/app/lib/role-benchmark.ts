@@ -11,6 +11,7 @@
 
 import ARCHETYPES from "./role-archetypes.json";
 import { computeCvMetrics } from "./cv-checks";
+import { bandFor } from "./cv-quality-score";
 
 export type Band = { p25: number; median: number; p75: number };
 type FamilyData = { n: number; avg_bullets_detected: number; axes: Record<string, Band> };
@@ -62,6 +63,10 @@ export type BenchAxis = {
   belowMedian: boolean;
   /** Normalized shortfall vs median (0 when at/above median). Drives the next action. */
   gap: number;
+  /** At or above the corpus top quartile on this axis. */
+  aboveP75: boolean;
+  /** Normalized margin over p75 (0 when below it). Ranks the strongest axis. */
+  lead: number;
 };
 
 export type Benchmark = {
@@ -70,6 +75,8 @@ export type Benchmark = {
   axes: BenchAxis[];
   /** The single highest-leverage axis below median, or null when at/above on all. */
   nextAxis: BenchAxis | null;
+  /** The single strongest axis at or above p75, or null when none clears it. */
+  topAxis: BenchAxis | null;
 };
 
 const JUDGED: Array<{ key: BenchAxisKey; metric: "quantifiedBulletPct" | "actionVerbPct" | "metricDensity" }> = [
@@ -90,9 +97,99 @@ export function computeBenchmark(cvText: string, hints: string[]): Benchmark | n
     const your = m[metric];
     const belowMedian = your < band.median;
     const gap = belowMedian && band.median > 0 ? (band.median - your) / band.median : 0;
-    return { key, your, band, belowMedian, gap };
+    const aboveP75 = your >= band.p75;
+    const lead = aboveP75 && band.p75 > 0 ? (your - band.p75) / band.p75 : 0;
+    return { key, your, band, belowMedian, gap, aboveP75, lead };
   });
 
   const below = axes.filter((a) => a.belowMedian).sort((a, b) => b.gap - a.gap);
-  return { family, n: fam.n, axes, nextAxis: below[0] ?? null };
+  const above = axes.filter((a) => a.aboveP75).sort((a, b) => b.lead - a.lead);
+  return { family, n: fam.n, axes, nextAxis: below[0] ?? null, topAxis: above[0] ?? null };
+}
+
+/**
+ * The one comparative claim we are willing to put next to the headline score and
+ * on the public share card: "top quartile on X, vs N <family> resumes".
+ *
+ * HONEST BY CONSTRUCTION, and this is the whole point of the function. TWO gates,
+ * both required, because measuring the first one alone showed it was not enough:
+ *
+ *  1. The CV must clear the corpus top quartile on some axis. Necessary, but far
+ *     from sufficient: measured over the 70 scored CVs with text (2026-07-24),
+ *     86% clear p75 somewhere, because typical resumes in the corpus barely
+ *     quantify anything, so the bar is low. A badge 86% of people get is not a
+ *     distinction, it is wallpaper.
+ *  2. The HEADLINE must be in the Strong band. Without this, 20 of the 23 weak
+ *     CVs earned a "top quartile" brag sitting directly under a failing score,
+ *     which reads as the product contradicting itself and burns the credibility
+ *     that makes the claim worth anything. With it, the claim fires for 21% of
+ *     CVs, which matches how rare the Strong band actually is (22%).
+ *
+ * So a weak or merely decent CV gets NOTHING. No fallback phrasing, no softened
+ * claim, no "close to typical" consolation: the alternative is manufacturing a
+ * flex the data does not support. Same principle as computeBenchmark returning
+ * null for an unresolved family — better silent than uncitable. (The upside for
+ * everyone else is a different artifact entirely: an improvement delta, which is
+ * a flex from any starting point.)
+ *
+ * Pure, and deterministic for a given CV: the only thing that can move a claim
+ * is a deliberate recalibration of role-archetypes.json.
+ */
+/** Display label per family. Single source: the panel and the claim line share it. */
+export const FAMILY_LABEL: Record<string, { en: string; fr: string }> = {
+  software: { en: "software", fr: "tech" },
+  engineering: { en: "engineering", fr: "ingénierie" },
+  finance: { en: "finance", fr: "finance" },
+  sales: { en: "sales", fr: "vente" },
+  marketing: { en: "marketing", fr: "marketing" },
+  design: { en: "design", fr: "design" },
+  hr: { en: "HR", fr: "RH" },
+  legal: { en: "legal", fr: "juridique" },
+  healthcare: { en: "healthcare", fr: "santé" },
+  education: { en: "education", fr: "éducation" },
+  consulting: { en: "consulting", fr: "conseil" },
+  operations: { en: "operations", fr: "opérations" },
+  hospitality: { en: "hospitality", fr: "hôtellerie" },
+  trades: { en: "trades", fr: "métiers" },
+};
+
+/**
+ * Short noun phrase naming the axis inside a claim sentence ("top quartile on
+ * quantified impact"). Deliberately plainer than the panel's AXIS_LABEL, which
+ * is a column header and reads wrong mid-sentence.
+ */
+export const AXIS_CLAIM_LABEL: Record<BenchAxisKey, { en: string; fr: string }> = {
+  quantified_bullet_pct: { en: "quantified impact", fr: "l'impact chiffré" },
+  action_verb_pct: { en: "action verbs", fr: "les verbes d'action" },
+  metric_density: { en: "hard numbers", fr: "les chiffres concrets" },
+};
+
+export type BenchmarkClaim = {
+  family: string;
+  /** Corpus size behind the claim, so the copy can cite it. */
+  n: number;
+  axis: BenchAxisKey;
+  /** The user's value on that axis. */
+  your: number;
+  /** The top-quartile cutoff it cleared. */
+  p75: number;
+};
+
+export function buildBenchmarkClaim(
+  cvText: string,
+  hints: string[],
+  /** The cv_quality.overall headline this claim would sit next to. */
+  overall: number,
+): BenchmarkClaim | null {
+  // Gate 2: never put a brag under a score that does not support it.
+  if (bandFor("strength", overall) !== "strong") return null;
+  const b = computeBenchmark(cvText, hints);
+  if (!b || !b.topAxis) return null;
+  return {
+    family: b.family,
+    n: b.n,
+    axis: b.topAxis.key,
+    your: b.topAxis.your,
+    p75: b.topAxis.band.p75,
+  };
 }

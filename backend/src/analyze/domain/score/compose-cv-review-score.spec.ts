@@ -24,7 +24,7 @@ describe('anchorCvQuality', () => {
 
   it('recomputes overall as the quantized weighted average of the six sub-scores', () => {
     // Marketing-sample sub-scores. Quantized: impact 20, clarity 50, hard 40,
-    // consistency 55, soft 30, ats 50. Weighted avg = 38.1 -> deflate ~18 -> 20.
+    // consistency 55, soft 30, ats 50. Weighted avg 38.1 -> deflate(.15) 34.6 -> 35.
     const out = anchorCvQuality({
       clarity: 48,
       impact: 18,
@@ -33,10 +33,10 @@ describe('anchorCvQuality', () => {
       consistency: 55,
       ats_format: 50,
     });
-    expect(out.overall).toBe(20);
+    expect(out.overall).toBe(35);
   });
 
-  it('deflates an all-equal sub-score set (60 -> 40) instead of echoing it', () => {
+  it('deflates an all-equal sub-score set (60 -> 55) instead of echoing it', () => {
     const out = anchorCvQuality({
       clarity: 60,
       impact: 60,
@@ -45,8 +45,10 @@ describe('anchorCvQuality', () => {
       consistency: 60,
       ats_format: 60,
     });
-    // deflate(60) = 39.6 -> quantize -> 40: a "60-average" CV is only Decent.
-    expect(out.overall).toBe(40);
+    // deflate(60, CV_DEFLATION) = 56.4 -> quantize -> 55. Still pulled down, but
+    // no longer to 40: the old 0.85 curve was correcting a generosity the six
+    // sub-scores do not actually have (measured median 52, not 70-90).
+    expect(out.overall).toBe(55);
   });
 
   it('ignores the model-supplied overall entirely (pure function of the sub-scores)', () => {
@@ -60,9 +62,9 @@ describe('anchorCvQuality', () => {
     };
     const withInflatedOverall = anchorCvQuality({ ...base, overall: 99 });
     const withLowOverall = anchorCvQuality({ ...base, overall: 5 });
-    // Pure function of the sub-scores: deflate(70) = 52.15 -> quantize -> 50.
-    expect(withInflatedOverall.overall).toBe(50);
-    expect(withLowOverall.overall).toBe(50);
+    // Pure function of the sub-scores: deflate(70, .15) = 66.85 -> quantize -> 65.
+    expect(withInflatedOverall.overall).toBe(65);
+    expect(withLowOverall.overall).toBe(65);
   });
 
   it('is defensive against a missing / partial cv_quality object', () => {
@@ -81,15 +83,47 @@ describe('anchorCvQuality', () => {
       ats_format: 80,
     };
     const clean = anchorCvQuality(subs).overall;
-    // deflate(80)=66.4 -> 65 clean ; penalty 2*4+1*3+1*2=13 -> quantize(53.4)=55.
+    // deflate(80,.15)=77.6 -> 80 clean ; CV penalty 2*1+1*1+1*1=4 -> 73.6 -> 75.
     const flagged = anchorCvQuality(subs, {
       redFlagCount: 2,
       criticalIssueCount: 1,
       fatalBulletCount: 1,
     }).overall;
-    expect(clean).toBe(65);
-    expect(flagged).toBe(55);
+    expect(clean).toBe(80);
+    expect(flagged).toBe(75);
     expect(flagged).toBeLessThan(clean);
+  });
+
+  it('caps the penalty far below the vs-JD cap, so a flagged CV is not floored', () => {
+    // The regression this locks: production CVs carry a MEDIAN of 3 red flags,
+    // 2 critical issues and 3 fatal bullets. Under the old shared costs that was
+    // 24 of a 29-point cap on the median CV, which combined with the old
+    // deflation to floor 34% of real CVs at exactly 0. The signals must still
+    // cost something, but they must not be able to erase the score.
+    const subs = {
+      clarity: 60,
+      impact: 60,
+      hard_skills: 60,
+      soft_skills: 60,
+      consistency: 60,
+      ats_format: 60,
+    };
+    const typical = anchorCvQuality(subs, {
+      redFlagCount: 3,
+      criticalIssueCount: 2,
+      fatalBulletCount: 3,
+    }).overall;
+    // deflate(60,.15)=56.4, penalty 3+2+3=8 -> 48.4 -> 50. Not zero.
+    expect(typical).toBe(50);
+
+    // Even a pathological signal count cannot exceed the 10-point cap.
+    const pathological = anchorCvQuality(subs, {
+      redFlagCount: 99,
+      criticalIssueCount: 99,
+      fatalBulletCount: 99,
+    }).overall;
+    expect(pathological).toBe(45); // 56.4 - 10 = 46.4 -> 45
+    expect(pathological).toBeGreaterThan(0);
   });
 
   it('has weights that sum to 1', () => {
@@ -100,12 +134,14 @@ describe('anchorCvQuality', () => {
 
 describe('deriveCvQualityVerdict', () => {
   it('maps the quality headline to bands (higher = better)', () => {
-    // Shared bands: Strong >= 80, Decent 40-79, Weak < 40.
-    expect(deriveCvQualityVerdict(80)).toBe('High');
+    // Quality bands (NOT the vs-JD competitiveness cutoffs): Strong >= 55,
+    // Decent 30-54, Weak < 30. Derived from the distribution the recalibrated
+    // curve produces over the 74 production CVs: 26% / 54% / 20%.
+    expect(deriveCvQualityVerdict(55)).toBe('High');
     expect(deriveCvQualityVerdict(85)).toBe('High');
-    expect(deriveCvQualityVerdict(79)).toBe('Medium');
-    expect(deriveCvQualityVerdict(40)).toBe('Medium');
-    expect(deriveCvQualityVerdict(39)).toBe('Low');
+    expect(deriveCvQualityVerdict(54)).toBe('Medium');
+    expect(deriveCvQualityVerdict(30)).toBe('Medium');
+    expect(deriveCvQualityVerdict(29)).toBe('Low');
     expect(deriveCvQualityVerdict(0)).toBe('Low');
   });
 });

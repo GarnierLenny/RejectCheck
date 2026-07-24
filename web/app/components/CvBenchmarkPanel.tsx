@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useLanguage } from "../../context/language";
-import { computeBenchmark, type BenchAxis, type BenchAxisKey } from "../lib/role-benchmark";
+import { computeBenchmark, FAMILY_LABEL, type BenchAxis, type BenchAxisKey } from "../lib/role-benchmark";
 
 type Props = {
   cvText: string;
@@ -21,8 +21,11 @@ const COPY = {
     strong: "strong",
     above: "above typical",
     below: "below typical",
+    // Scoping stays (what these axes measure, and against what). The old tail
+    // ("so you can beat typical here and still have gaps") talked the reader out
+    // of the only citable number on the page and is gone.
     mechanicsNote:
-      "These three measure surface mechanics: how often you quantify, lead with an action verb, and use numbers. They are not the recruiter-judgment score up top, so you can beat typical here and still have gaps to close.",
+      "These three measure surface mechanics: how often you quantify, lead with an action verb, and use numbers.",
     onTrack: "You're at or above typical resumes on every measured axis. Focus on the recruiter-judgment notes above.",
     nextLabel: "Your one lever",
   },
@@ -37,27 +40,10 @@ const COPY = {
     above: "au-dessus du typique",
     below: "sous le typique",
     mechanicsNote:
-      "Ces trois axes mesurent la mécanique de surface : à quelle fréquence tu chiffres, tu ouvres par un verbe d'action, et tu utilises des nombres. Ce n'est pas le score de jugement recruteur plus haut : tu peux battre le typique ici et garder des lacunes à combler.",
+      "Ces trois axes mesurent la mécanique de surface : à quelle fréquence tu chiffres, tu ouvres par un verbe d'action, et tu utilises des nombres.",
     onTrack: "Tu es au niveau ou au-dessus des CV typiques sur chaque axe mesuré. Concentre-toi sur les notes recruteur plus haut.",
     nextLabel: "Ton levier n°1",
   },
-};
-
-const FAMILY_LABEL: Record<string, { en: string; fr: string }> = {
-  software: { en: "software", fr: "tech" },
-  engineering: { en: "engineering", fr: "ingénierie" },
-  finance: { en: "finance", fr: "finance" },
-  sales: { en: "sales", fr: "vente" },
-  marketing: { en: "marketing", fr: "marketing" },
-  design: { en: "design", fr: "design" },
-  hr: { en: "HR", fr: "RH" },
-  legal: { en: "legal", fr: "juridique" },
-  healthcare: { en: "healthcare", fr: "santé" },
-  education: { en: "education", fr: "éducation" },
-  consulting: { en: "consulting", fr: "conseil" },
-  operations: { en: "operations", fr: "opérations" },
-  hospitality: { en: "hospitality", fr: "hôtellerie" },
-  trades: { en: "trades", fr: "métiers" },
 };
 
 const AXIS_LABEL: Record<BenchAxisKey, { en: string; fr: string; unit: string }> = {

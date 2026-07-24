@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -102,6 +103,26 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits, mobileO
   const _nextMonth = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth() + 1, 1));
   const resetDays = Math.ceil((_nextMonth.getTime() - _now.getTime()) / 86400000);
 
+  // Below md the drawer stays mounted and only slides off-screen, so when
+  // closed its links were still reachable by Tab: an invisible menu the
+  // keyboard walked through. `inert` removes it, but only on mobile, since
+  // the same element is the static desktop sidebar.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose?.(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen, onClose]);
+
   return (
     <>
       {/* Backdrop — mobile drawer only */}
@@ -113,6 +134,8 @@ export function DashboardSidebar({ activeTab, onTabChange, onBuyCredits, mobileO
         />
       )}
       <aside
+        id="dashboard-sidebar"
+        inert={isMobile && !mobileOpen}
         className={`flex flex-col flex-shrink-0 h-full bg-rc-bg fixed inset-y-0 left-0 z-50 transition-transform duration-200 md:static md:z-auto md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}

@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { bandFor } from "../../../../lib/cv-quality-score";
+import { buildBenchmarkClaim, FAMILY_LABEL, AXIS_CLAIM_LABEL } from "../../../../lib/role-benchmark";
 
 export const runtime = "edge";
 
@@ -57,6 +59,7 @@ export async function GET(
     jobLabel: string | null;
     company: string | null;
     profile: { displayName: string | null; avatarUrl: string | null } | null;
+    cvTextFormatted: string | null;
   } | null = null;
 
   try {
@@ -70,7 +73,7 @@ export async function GET(
     return new ImageResponse(fallback, { width: W, height: H });
   }
 
-  const { result, jobLabel, company, profile } = data;
+  const { result, jobLabel, company, profile, cvTextFormatted } = data;
   const isCvReview = !!(result as { cv_quality?: unknown }).cv_quality;
   const cvQ = (result as { cv_quality?: { overall: number } }).cv_quality;
   // vs-JD: display competitiveness (100 − stored rejection risk); CV audit: quality. Both higher = better.
@@ -80,8 +83,33 @@ export async function GET(
   const avatarUrl = profile?.avatarUrl ?? null;
   const positionLabel = [jobLabel, company].filter(Boolean).join(" @ ");
 
-  // Both scores are now higher = better (green high, red low).
-  const scoreColor = score >= 70 ? "#2D9B6F" : score >= 40 ? "#c47f00" : "#C93A39";
+  // Both scores are higher = better (green high, red low). Bands are PER METRIC
+  // (single source: lib/cv-quality-score.ts) so the shared card's colour agrees
+  // with the tier the report itself shows. They sit on different curves: at the
+  // old flat 70/40 only 5% of CV audits could ever produce a green card, because
+  // the deflated quality headline has never exceeded 75 in production.
+  const scoreTier = bandFor(isCvReview ? "strength" : "competitiveness", score);
+  const scoreColor =
+    scoreTier === "strong" ? "#2D9B6F" : scoreTier === "decent" ? "#c47f00" : "#C93A39";
+
+  // Comparative claim under the score. A bare number has no referent and reads
+  // as self-promotion with no payoff; "top quartile, vs 118 engineering resumes"
+  // is a citable flex. Same honest gate as the report: buildBenchmarkClaim
+  // returns null unless the CV genuinely clears the corpus top quartile, so a
+  // weak CV simply gets the number alone rather than an invented compliment.
+  const pp = (result as { projected_profile?: { target_roles?: string[]; domains?: string[] } })
+    .projected_profile;
+  const claim =
+    isCvReview && cvTextFormatted
+      ? buildBenchmarkClaim(
+          cvTextFormatted,
+          [...(pp?.target_roles ?? []), ...(pp?.domains ?? [])],
+          score,
+        )
+      : null;
+  const claimText = claim
+    ? `Top quartile on ${AXIS_CLAIM_LABEL[claim.axis].en}, vs ${claim.n} ${FAMILY_LABEL[claim.family]?.en ?? claim.family} resumes`
+    : null;
 
   const skillRadar = (result as { skill_radar?: { axes: { score: number; label: string }[] } }).skill_radar;
   const techAnalysis = (result as { technical_analysis?: { skills: { current: number; expected: number; name: string }[] } }).technical_analysis;
@@ -171,6 +199,11 @@ export async function GET(
               <div style={{ fontFamily: "monospace", fontSize: 22, letterSpacing: "0.18em", textTransform: "uppercase", color: "#6b6860" }}>
                 {isCvReview ? "CV Score" : "Competitiveness"}
               </div>
+              {claimText && (
+                <div style={{ fontSize: 18, fontWeight: 600, color: "#2D9B6F", maxWidth: 460, lineHeight: 1.35 }}>
+                  {claimText}
+                </div>
+              )}
             </div>
           </div>
 

@@ -83,43 +83,48 @@ export function ShareModal({
     } catch { /* user cancelled or unsupported */ }
   }
 
-  async function handleX() {
-    setXState("copying");
-    let clipboardOk = false;
+  /**
+   * Copy the OG card, then send the user to the share intent.
+   *
+   * The tab is opened synchronously inside the click handler: opening it after
+   * the await (or from a setTimeout) falls outside the user-gesture window and
+   * gets killed by popup blockers, silently dropping the share. We keep the
+   * handle (so `noopener` can't be passed, since that returns null) and null
+   * the opener ourselves while the blank tab is still same-origin.
+   */
+  async function shareWithCard(
+    intentUrl: string,
+    setState: (s: "idle" | "copying" | "ready") => void,
+  ): Promise<boolean> {
+    setState("copying");
+    const win = window.open("about:blank", "_blank");
+    if (win) win.opener = null;
+    const go = () => {
+      if (win) win.location.href = intentUrl;
+      else window.open(intentUrl, "_blank", "noopener,noreferrer");
+    };
     try {
       const res = await fetch(cardUrl);
       const blob = await res.blob();
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      clipboardOk = true;
-      setXState("ready");
-      setTimeout(() => {
-        window.open(xUrl, "_blank", "noopener,noreferrer");
-        setXState("idle");
-      }, 2000);
+      setState("ready");
+      // Brief beat so the user registers "image copied" before the tab takes over.
+      setTimeout(() => { go(); setState("idle"); }, 2000);
+      return true;
     } catch {
-      window.open(xUrl, "_blank", "noopener,noreferrer");
-      setXState("idle");
+      go();
+      setState("idle");
+      return false;
     }
+  }
+
+  async function handleX() {
+    const clipboardOk = await shareWithCard(xUrl, setXState);
     posthog.capture("share_click_x", { token, mode, clipboard_ok: clipboardOk });
   }
 
   async function handleLinkedIn() {
-    setLiState("copying");
-    let clipboardOk = false;
-    try {
-      const res = await fetch(cardUrl);
-      const blob = await res.blob();
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      clipboardOk = true;
-      setLiState("ready");
-      setTimeout(() => {
-        window.open(liUrl, "_blank", "noopener,noreferrer");
-        setLiState("idle");
-      }, 2000);
-    } catch {
-      window.open(liUrl, "_blank", "noopener,noreferrer");
-      setLiState("idle");
-    }
+    const clipboardOk = await shareWithCard(liUrl, setLiState);
     posthog.capture("share_click_linkedin", { token, mode, clipboard_ok: clipboardOk });
   }
 

@@ -11,6 +11,7 @@ import type { JdWarningKey } from "../hooks/useJdValidation";
 import { PdfPreviewModal } from "./PdfPreviewModal";
 import { URL_PRESETS, type UrlField } from "../../lib/onboarding-data";
 import { useQuota, type RoleType } from "../../lib/queries";
+import { validateCvFile, CV_ACCEPT_ATTR, type CvFileError } from "../../lib/upload-constraints";
 
 type Props = {
   cvFile: File | null;
@@ -126,7 +127,9 @@ export function UploadForm({
 
   const [loadingCvId, setLoadingCvId] = useState<number | null>(null);
   const [loadingLi, setLoadingLi] = useState(false);
-  const [pingStatus, setPingStatus] = useState<"idle" | "checking" | "ok" | "error">("idle");
+  const [cvDragging, setCvDragging] = useState(false);
+  const [cvFileError, setCvFileError] = useState<CvFileError | null>(null);
+  const [pingStatus, setPingStatus] = useState<"idle" | "checking" | "ok" | "error" | "invalid">("idle");
   const [openSignal, setOpenSignal] = useState<"github" | "linkedin" | "portfolio" | "cover" | null>(null);
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
   const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
@@ -137,6 +140,31 @@ export function UploadForm({
     if (savedPortfolioUrl && !portfolioUrl.trim()) setPortfolioUrl(savedPortfolioUrl);
     portfolioHydrated.current = true;
   }, [savedPortfolioUrl, portfolioUrl, setPortfolioUrl]);
+
+  // Safety net: a file dropped outside the dropzone must never make the
+  // browser navigate to it (which would unload the app and lose all inputs).
+  useEffect(() => {
+    const prevent = (e: DragEvent) => e.preventDefault();
+    document.addEventListener("dragover", prevent);
+    document.addEventListener("drop", prevent);
+    return () => {
+      document.removeEventListener("dragover", prevent);
+      document.removeEventListener("drop", prevent);
+    };
+  }, []);
+
+  /** Single entry point for CV files (picker + drop): validates against the
+   * backend's real accept-list/size before arming the bay. */
+  function handleCvFile(file: File | null) {
+    if (!file) return;
+    const err = validateCvFile(file);
+    if (err) {
+      setCvFileError(err);
+      return;
+    }
+    setCvFileError(null);
+    setCvFile(file);
+  }
 
   const hasCv = !!cvFile;
   const hasJob = jobDescription.trim().length > 0;
@@ -237,6 +265,11 @@ export function UploadForm({
         .rc-bay__dz { display:flex; flex-direction:column; align-items:center; justify-content:center; border:1.5px dashed var(--rc-border); border-radius:6px; padding:28px; text-align:center; transition:all 180ms ease; cursor:pointer; background:#fff; }
         .rc-bay__dz:hover { border-color:var(--rc-red); background:rgba(201,58,57,0.03); }
         .rc-bay__dz:hover .rc-dz-ico { color:var(--rc-red); }
+        .rc-bay__dz:focus-visible { outline:2px solid var(--rc-red); outline-offset:2px; }
+        .rc-bay--drag { border-color:var(--rc-red); background:rgba(201,58,57,0.02); }
+        .rc-bay--drag .rc-bay__dz { border-color:var(--rc-red); background:rgba(201,58,57,0.04); }
+        .rc-bay--drag .rc-dz-ico { color:var(--rc-red); }
+        .rc-file-error { margin-top:10px; padding:9px 12px; border:1px solid rgba(201,58,57,0.3); background:rgba(201,58,57,0.05); border-radius:4px; font-family:var(--font-mono); font-size:11px; color:var(--rc-red); letter-spacing:0.02em; }
         .rc-dz-ico { color:var(--rc-hint); margin-bottom:12px; }
         .rc-dz-h { font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; margin:0 0 6px; color:var(--rc-hint); }
         .rc-dz-hint { font-family:var(--font-mono); font-size:11px; color:var(--rc-hint); letter-spacing:0.04em; }
@@ -329,8 +362,18 @@ export function UploadForm({
           {/* ── Two bays ────────────────────────────────────────── */}
           <div className="rc-bays">
 
-            {/* CV bay */}
-            <div className={`rc-bay ${hasCv ? "rc-bay--filled" : ""}`}>
+            {/* CV bay — drop target in all three states (empty, saved list,
+                file card) so a drag anywhere on the bay lands or replaces. */}
+            <div
+              className={`rc-bay ${hasCv ? "rc-bay--filled" : ""} ${cvDragging ? "rc-bay--drag" : ""}`}
+              onDragOver={(e) => { e.preventDefault(); setCvDragging(true); }}
+              onDragLeave={() => setCvDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setCvDragging(false);
+                handleCvFile(e.dataTransfer.files?.[0] ?? null);
+              }}
+            >
               <div className="rc-bay__head">
                 <span className="rc-bay__title">
                   <span className="rc-bay__num">1</span>
@@ -380,7 +423,14 @@ export function UploadForm({
                         </button>
                       </div>
                     ) : (
-                      <div onClick={() => fileRef.current?.click()} className="rc-bay__dz" style={{ flex: 1 }}>
+                      <div
+                        onClick={() => fileRef.current?.click()}
+                        className="rc-bay__dz"
+                        style={{ flex: 1 }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileRef.current?.click(); } }}
+                      >
                         <div className="rc-dz-ico"><IcoUpload /></div>
                         <p className="rc-dz-h">{i.slots.cvDropPrompt.split(" or ")[0]}</p>
                         <p className="rc-dz-hint">{i.slots.cvFormat}</p>
@@ -400,7 +450,7 @@ export function UploadForm({
                           <span>{(cvFile.size / 1024).toFixed(0)} KB · PDF</span>
                         </div>
                         <button type="button" className="rc-filecard__x"
-                          onClick={() => { if (fileRef.current) fileRef.current.value = ""; setCvFile(null); }}>✕</button>
+                          onClick={() => { if (fileRef.current) fileRef.current.value = ""; setCvFile(null); setCvFileError(null); }}>✕</button>
                       </div>
                       <button type="button" onClick={() => fileRef.current?.click()}
                         className="w-full flex items-center justify-center gap-1.5 py-2 rounded border border-dashed border-rc-border hover:border-rc-red/30 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-red transition-all">
@@ -409,8 +459,14 @@ export function UploadForm({
                     </div>
                   )}
                 </div>
-                <input type="file" ref={fileRef} accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/png,image/jpeg,image/webp" className="hidden"
-                  onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
+                <input type="file" ref={fileRef} accept={CV_ACCEPT_ATTR} className="hidden"
+                  onChange={(e) => handleCvFile(e.target.files?.[0] ?? null)} />
+
+                {cvFileError && !cvFile && (
+                  <div className="rc-file-error" role="alert">
+                    {cvFileError === "type" ? i.slots.fileTypeError : i.slots.fileSizeError}
+                  </div>
+                )}
 
                 {/* Signals chips */}
                 <div className="rc-signals">
@@ -425,7 +481,9 @@ export function UploadForm({
                     <button type="button"
                       className={`rc-chip ${githubUsername.trim() ? "on" : ""}`}
                       onClick={() => {
-                        if (githubUsername.trim()) { setGithubUsername(""); return; }
+                        // Tapping a filled chip used to silently wipe the value.
+                        // It now reopens the input for editing; clearing is an
+                        // explicit action inside the expand.
                         setOpenSignal(openSignal === "github" ? null : "github");
                       }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.27.73-1.56-2.55-.29-5.24-1.28-5.24-5.71 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.83 1.19 3.09 0 4.44-2.7 5.41-5.26 5.7.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
@@ -435,7 +493,6 @@ export function UploadForm({
                     <button type="button"
                       className={`rc-chip ${liFile ? "on" : ""}`}
                       onClick={() => {
-                        if (liFile) { if (liRef.current) liRef.current.value = ""; setLiFile(null); return; }
                         setOpenSignal(openSignal === "linkedin" ? null : "linkedin");
                       }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM8 19H5V8h3v11zM6.5 6.7c-.97 0-1.75-.79-1.75-1.76 0-.97.78-1.75 1.75-1.75s1.75.79 1.75 1.75c0 .97-.78 1.76-1.75 1.76zM20 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V8h3v1.77c1.4-2.59 7-2.78 7 2.48V19z"/></svg>
@@ -445,7 +502,6 @@ export function UploadForm({
                     <button type="button"
                       className={`rc-chip ${portfolioUrl.trim() ? "on" : ""}`}
                       onClick={() => {
-                        if (portfolioUrl.trim()) { setPortfolioUrl(""); setPingStatus("idle"); return; }
                         setOpenSignal(openSignal === "portfolio" ? null : "portfolio");
                       }}>
                       <IcoGlobe size={13} />
@@ -456,7 +512,6 @@ export function UploadForm({
                       <button type="button"
                         className={`rc-chip ${(mlFile || mlText.trim()) ? "on" : ""}`}
                         onClick={() => {
-                          if (mlFile || mlText.trim()) { if (mlRef.current) mlRef.current.value = ""; setMlFile(null); setMlText(""); return; }
                           setOpenSignal(openSignal === "cover" ? null : "cover");
                         }}>
                         <IcoMail size={13} />
@@ -468,7 +523,15 @@ export function UploadForm({
                   {/* Expanded signal inputs */}
                   {openSignal === "github" && (
                     <div className="rc-signal-expand">
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-2">{t.uploadForm.github.label}</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-rc-hint">{t.uploadForm.github.label}</p>
+                        {githubUsername.trim() && (
+                          <button type="button" onClick={() => setGithubUsername("")}
+                            className="font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-red transition-colors">
+                            {i.actionBar.clearSignal}
+                          </button>
+                        )}
+                      </div>
                       <div className="relative">
                         <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] text-rc-hint pointer-events-none">github.com/</span>
                         <input
@@ -522,7 +585,15 @@ export function UploadForm({
                   )}
                   {openSignal === "portfolio" && (
                     <div className="rc-signal-expand">
-                      <p className="font-mono text-[9px] uppercase tracking-widest text-rc-hint mb-2">{t.uploadForm.portfolio.label}</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-mono text-[9px] uppercase tracking-widest text-rc-hint">{t.uploadForm.portfolio.label}</p>
+                        {portfolioUrl.trim() && (
+                          <button type="button" onClick={() => { setPortfolioUrl(""); setPingStatus("idle"); }}
+                            className="font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-red transition-colors">
+                            {i.actionBar.clearSignal}
+                          </button>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <input
                           type="url"
@@ -535,13 +606,23 @@ export function UploadForm({
                         />
                         {pingStatus === "ok" && <Tooltip text={t.uploadForm.portfolio.pingOk}><CheckCircle2 size={14} className="text-rc-green shrink-0 cursor-help" /></Tooltip>}
                         {pingStatus === "error" && <Tooltip text={t.uploadForm.portfolio.pingError}><XCircle size={14} className="text-rc-red shrink-0 cursor-help" /></Tooltip>}
+                        {pingStatus === "invalid" && <Tooltip text={t.uploadForm.portfolio.pingInvalid}><XCircle size={14} className="text-rc-amber shrink-0 cursor-help" /></Tooltip>}
                         <button
                           type="button"
                           disabled={!portfolioUrl.trim() || pingStatus === "checking"}
                           onClick={async () => {
-                            const url = portfolioUrl.trim(); if (!url) return;
+                            const raw = portfolioUrl.trim(); if (!raw) return;
+                            const normalized = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+                            let host = "";
+                            try { host = new URL(normalized).hostname; } catch { setPingStatus("invalid"); return; }
+                            if (!host.includes(".")) { setPingStatus("invalid"); return; }
                             setPingStatus("checking");
-                            try { await fetch(url, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) }); setPingStatus("ok"); }
+                            // A no-cors HEAD returns an opaque response: a rejection is
+                            // real signal (host didn't resolve, timed out), but a
+                            // resolution proves almost nothing. So the success copy
+                            // claims only that the address checks out, not that the
+                            // site "responds correctly".
+                            try { await fetch(normalized, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) }); setPingStatus("ok"); }
                             catch { setPingStatus("error"); }
                           }}
                           className="font-mono text-[10px] uppercase tracking-wider px-2.5 py-1.5 border border-rc-border text-rc-hint hover:text-rc-text hover:border-rc-text/30 transition-colors disabled:opacity-40 shrink-0"
@@ -616,7 +697,7 @@ export function UploadForm({
                     <span>
                       {warningText
                         ? <span style={{ color: "var(--rc-amber)" }}>{warningText}</span>
-                        : <span style={jdLen > 0 && !jdValid ? { color: "var(--rc-amber)" } : {}}>{jdLen > 0 ? `${jdLen} / 5000` : ""}</span>
+                        : <span style={jdLen > 0 && !jdValid ? { color: "var(--rc-amber)" } : {}}>{jdLen > 0 ? `${jdLen} / ${JD_MAX_CHARS}` : ""}</span>
                       }
                     </span>
                     {jdLen > 0 && (

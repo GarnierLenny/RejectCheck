@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Heading, FieldLabel, Caption } from "../typography";
@@ -87,7 +87,22 @@ export function TargetingSettings({
     setCountry(profile.country ?? "");
   }, [profile]);
 
+  // Blur-saves await the mutation directly, so a rejection used to surface as
+  // an unhandled promise and the "Saved" badge still flashed. useUpdateProfile's
+  // onError toasts and refetches (which re-syncs these fields from the server);
+  // here we just make sure we never claim a save that did not happen.
+  const lastSaveOk = useRef(true);
+  async function safeSave(data: Parameters<typeof updateProfile.mutateAsync>[0]) {
+    try {
+      await updateProfile.mutateAsync(data);
+      lastSaveOk.current = true;
+    } catch {
+      lastSaveOk.current = false;
+    }
+  }
+
   function flash(setter: (v: boolean) => void) {
+    if (!lastSaveOk.current) return;
     setter(true);
     setTimeout(() => setter(false), 2000);
   }
@@ -96,7 +111,7 @@ export function TargetingSettings({
     setRole(next);
     if (next === profile?.roleType) return;
     const value = next === "" ? null : next;
-    await updateProfile.mutateAsync({
+    await safeSave({
       roleType: value,
       // Reset techStack if the new role is non-tech (it would be hidden anyway).
       ...(value && !TECH_ROLES.includes(value) ? { techStack: [] } : {}),
@@ -111,7 +126,7 @@ export function TargetingSettings({
   async function handleRoleOtherBlur() {
     const current = profile?.roleTypeOther ?? "";
     if (roleOther === current) return;
-    await updateProfile.mutateAsync({
+    await safeSave({
       roleTypeOther: roleOther.trim() || null,
     });
     flash(setRoleOtherSaved);
@@ -120,7 +135,7 @@ export function TargetingSettings({
   async function handleXpChange(next: ExperienceLevel | "") {
     setXp(next);
     if (next === profile?.experienceLevel) return;
-    await updateProfile.mutateAsync({
+    await safeSave({
       experienceLevel: next === "" ? null : next,
     });
     flash(setXpSaved);
@@ -133,7 +148,7 @@ export function TargetingSettings({
     else if (stacks.length >= MAX_STACKS) return;
     else next = [...stacks, name];
     setStacks(next);
-    await updateProfile.mutateAsync({ techStack: next });
+    await safeSave({ techStack: next });
     flash(setStacksSaved);
   }
 
@@ -142,14 +157,14 @@ export function TargetingSettings({
       ? langs.filter((c) => c !== code)
       : [...langs, code];
     setLangs(next);
-    await updateProfile.mutateAsync({ languages: next });
+    await safeSave({ languages: next });
     flash(setLangsSaved);
   }
 
   async function handleRemoteChange(next: RemotePreference | "") {
     setRemotePref(next);
     if (next === (profile?.remotePreference ?? "")) return;
-    await updateProfile.mutateAsync({
+    await safeSave({
       remotePreference: next === "" ? null : next,
     });
     flash(setRemoteSaved);
@@ -159,21 +174,21 @@ export function TargetingSettings({
     setSponsorship(next);
     const value = next === "" ? null : next === "needs";
     if (value === (profile?.needsSponsorship ?? null)) return;
-    await updateProfile.mutateAsync({ needsSponsorship: value });
+    await safeSave({ needsSponsorship: value });
     flash(setSponsorshipSaved);
   }
 
   async function handleCountryBlur() {
     const current = profile?.country ?? "";
     if (country.trim() === current) return;
-    await updateProfile.mutateAsync({ country: country.trim() || null });
+    await safeSave({ country: country.trim() || null });
     flash(setCountrySaved);
   }
 
   async function handleRetake() {
     setRetaking(true);
     try {
-      await updateProfile.mutateAsync({
+      await safeSave({
         onboardedAt: null,
         onboardingSkipped: false,
       });

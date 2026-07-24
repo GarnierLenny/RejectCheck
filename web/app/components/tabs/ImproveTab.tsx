@@ -24,15 +24,19 @@ type ImproveTabProps = {
 
 export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisId, onRewrite }: ImproveTabProps) {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [exportError, setExportError] = useState(false);
   const { t } = useLanguage();
 
   async function handleExport() {
     if (!reconstructedCv) return;
     setIsExportingPdf(true);
+    setExportError(false);
     try {
       await generateCvPdf(reconstructedCv, "cv-rewritten.pdf");
     } catch {
-      // silently fail
+      // The download failed — tell the user instead of leaving the button
+      // spinning back to idle with nothing to show for it.
+      setExportError(true);
     } finally {
       setIsExportingPdf(false);
     }
@@ -97,6 +101,12 @@ export function ImproveTab({ reconstructedCv, isLoading, isPremium, hasAnalysisI
           {isExportingPdf ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
           {t.improveTab.downloadPdf}
         </button>
+
+        {exportError && (
+          <span role="alert" style={{ ...MONO, fontSize: 11, color: "var(--rc-red)", lineHeight: 1.6 }}>
+            {t.improveTab.exportFailed}
+          </span>
+        )}
 
         <span style={{ ...MONO, fontSize: 10, color: "var(--rc-hint)", lineHeight: 1.6 }}>
           {t.improveTab.pdfNote}

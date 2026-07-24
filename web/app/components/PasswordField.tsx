@@ -70,7 +70,6 @@ export function PasswordField({
           onClick={() => setReveal((r) => !r)}
           aria-label={reveal ? t.login.hidePassword : t.login.showPassword}
           aria-pressed={reveal}
-          tabIndex={-1}
         >
           {reveal ? <EyeOff width={18} height={18} /> : <Eye width={18} height={18} />}
         </button>

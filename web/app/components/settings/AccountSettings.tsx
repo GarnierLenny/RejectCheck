@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Trash2,
   Plus,
@@ -53,6 +54,8 @@ export function AccountSettings({
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
+  // Saved-CV pending deletion (two-step confirm, same pattern as delete-account).
+  const [confirmCvId, setConfirmCvId] = useState<number | null>(null);
 
   async function handleCvUpload(file: File) {
     if (!userId) return;
@@ -68,9 +71,22 @@ export function AccountSettings({
         .getPublicUrl(path);
       await addSavedCv.mutateAsync({ name: file.name, url: publicUrl });
       posthog.capture("cv_saved", { saved_cv_count: savedCvs.length + 1 });
+    } catch {
+      // The upload used to fail silently: the spinner stopped and no CV appeared.
+      toast.error(t.toasts.saveFailed);
     } finally {
       setCvUploading(false);
       if (cvRef.current) cvRef.current.value = "";
+    }
+  }
+
+  async function handleDeleteSavedCv(id: number) {
+    try {
+      await deleteSavedCv.mutateAsync(id);
+    } catch {
+      toast.error(t.toasts.saveFailed);
+    } finally {
+      setConfirmCvId(null);
     }
   }
 
@@ -200,20 +216,42 @@ export function AccountSettings({
                     <polyline points="14 2 14 8 20 8" />
                   </svg>
                   <Text className="flex-1 truncate">{cv.name}</Text>
-                  <button
-                    onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })}
-                    className="text-rc-hint hover:text-rc-text transition-colors"
-                    aria-label={t.settingsTab.account.preview}
-                  >
-                    <Eye size={14} />
-                  </button>
-                  <button
-                    onClick={() => deleteSavedCv.mutate(cv.id)}
-                    className="text-rc-hint hover:text-rc-red transition-colors"
-                    aria-label={t.settingsTab.account.delete}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  {confirmCvId === cv.id ? (
+                    // Deleting a saved CV is permanent, so it gets the same
+                    // two-step confirm as the delete-account button below.
+                    <>
+                      <button
+                        onClick={() => handleDeleteSavedCv(cv.id)}
+                        disabled={deleteSavedCv.isPending}
+                        className="font-mono text-[10px] uppercase tracking-widest text-rc-red hover:underline px-2 py-1.5 disabled:opacity-60"
+                      >
+                        {deleteSavedCv.isPending ? t.settingsTab.account.deleting : t.settingsTab.account.confirm}
+                      </button>
+                      <button
+                        onClick={() => setConfirmCvId(null)}
+                        className="font-mono text-[10px] uppercase tracking-widest text-rc-hint hover:text-rc-text px-2 py-1.5"
+                      >
+                        {t.settingsTab.account.cancel}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setPreviewPdf({ url: cv.url, name: cv.name })}
+                        className="text-rc-hint hover:text-rc-text transition-colors p-1.5"
+                        aria-label={t.settingsTab.account.preview}
+                      >
+                        <Eye size={14} />
+                      </button>
+                      <button
+                        onClick={() => setConfirmCvId(cv.id)}
+                        className="text-rc-hint hover:text-rc-red transition-colors p-1.5"
+                        aria-label={t.settingsTab.account.delete}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

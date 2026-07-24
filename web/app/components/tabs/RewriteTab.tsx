@@ -162,7 +162,7 @@ export function RewriteTab({ sectionTag, result, reconstructedCv, isRewriting, o
 
   function handleGenerate() {
     if (!analysisId) return;
-    generateLetter({ analysisId, language: lang }, { onSuccess: (data) => setCoverLetter(data.coverLetter) });
+    generateLetter({ analysisId, language: lang, angle }, { onSuccess: (data) => setCoverLetter(data.coverLetter) });
   }
 
   async function handleCopy() {

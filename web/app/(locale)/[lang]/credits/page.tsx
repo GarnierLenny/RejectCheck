@@ -8,6 +8,7 @@ import { useQuota, useSubscription } from "../../../../lib/queries";
 import { useBuyCredits } from "../../../../lib/mutations";
 import { useLanguage } from "../../../../context/language";
 import { Navbar } from "../../../components/Navbar";
+import { useBfcacheReset } from "../../../hooks/useBfcacheReset";
 
 // Prices mirror the backend source of truth (backend/src/credits/domain/credit-packs.ts).
 // Keep in sync when repricing.
@@ -17,15 +18,6 @@ const PACKS = [
   { quantity: 2000, price: "27,99 €", badge: "-22%", popular: false },
 ] as const;
 
-const MOCK_HISTORY: { id: number; event: string; date: string; delta: number; type: string }[] = [];
-
-function HistoryIcon({ type }: { type: string }) {
-  const base = "w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[11px] font-bold flex-shrink-0";
-  if (type === "reset")   return <div className={`${base} bg-rc-green/10 text-rc-green`}>↻</div>;
-  if (type === "achat")   return <div className={`${base} bg-rc-green/10 text-rc-green`}>+</div>;
-  return <div className={`${base} bg-rc-border/40 text-rc-hint`}>·</div>;
-}
-
 function CreditsContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -34,6 +26,9 @@ function CreditsContent() {
   const { t, locale, localePath } = useLanguage();
   const buyCredits = useBuyCredits();
   const [loadingQty, setLoadingQty] = useState<number | null>(null);
+  // Pending state is held through the Stripe redirect; clear it if the browser
+  // restores this page from bfcache when the user comes back.
+  useBfcacheReset(() => setLoadingQty(null));
 
   useEffect(() => {
     if (!authLoading && !user) router.replace(localePath("/login"));
@@ -52,8 +47,18 @@ function CreditsContent() {
   const resetDate = _nextMonth.toLocaleDateString(locale, { day: "numeric", month: "long" });
 
   const handleBuy = (quantity: number) => {
+    if (loadingQty !== null) return;
     setLoadingQty(quantity);
-    buyCredits.mutate({ quantity }, { onSettled: () => setLoadingQty(null) });
+    // Keep the pending state through the Stripe redirect — clearing it on
+    // success would flash the button back to idle while the page navigates.
+    // The hook toasts on failure (including a null checkout url).
+    buyCredits.mutate(
+      { quantity },
+      {
+        onError: () => setLoadingQty(null),
+        onSuccess: ({ url }) => { if (!url) setLoadingQty(null); },
+      },
+    );
   };
 
   if (authLoading || !user) return null;
@@ -62,10 +67,11 @@ function CreditsContent() {
     <div className="bg-rc-bg text-rc-text font-sans min-h-screen">
       <Navbar />
 
-      <div className="max-w-[1440px] mx-auto px-8 py-12">
-        <div className="grid gap-10" style={{ gridTemplateColumns: "9fr 11fr" }}>
-
-          {/* ── LEFT COLUMN ── */}
+      <div className="max-w-[720px] mx-auto px-8 py-12">
+        {/* History panel removed: it rendered hardcoded empty mock data (and a
+            dead "Export all" button) with no backend behind it. Reintroduce
+            only alongside a real credit-events endpoint. */}
+        <div>
           <div className="flex flex-col gap-6">
             {/* Breadcrumb + title */}
             <div>
@@ -157,7 +163,12 @@ function CreditsContent() {
                           : "bg-rc-bg border border-rc-border text-rc-text hover:border-rc-red/40"
                       }`}
                     >
-                      {loadingQty === pack.quantity ? "…" : t.credits.buy}
+                      {loadingQty === pack.quantity ? (
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          {t.buyCreditsModal.redirecting}
+                        </span>
+                      ) : t.credits.buy}
                     </button>
                   </div>
                 ))}
@@ -193,46 +204,6 @@ function CreditsContent() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* ── RIGHT COLUMN: HISTORY ── */}
-          <div>
-            <div className="flex items-baseline justify-between mb-5">
-              <h2 className="font-serif text-[32px] font-normal leading-none" style={{ letterSpacing: -0.5 }}>
-                {t.credits.history}
-              </h2>
-              <button className="font-mono text-[10px] tracking-[0.15em] uppercase text-rc-hint hover:text-rc-text transition-colors">
-                {t.credits.exportAll}
-              </button>
-            </div>
-
-            <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl overflow-hidden">
-              {/* Table header */}
-              <div className="grid px-4 py-3 border-b border-rc-border/60" style={{ gridTemplateColumns: "1fr auto auto" }}>
-                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint">{t.credits.event}</span>
-                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint pr-4">{t.credits.date}</span>
-                <span className="font-mono text-[9px] tracking-[0.18em] uppercase text-rc-hint w-8 text-right">Δ</span>
-              </div>
-
-              {/* Rows */}
-              {MOCK_HISTORY.length === 0 ? (
-                <div className="px-4 py-10 text-center">
-                  <p className="font-mono text-[11px] text-rc-hint">{t.credits.noEvents}</p>
-                </div>
-              ) : MOCK_HISTORY.map((row, i) => (
-                <div
-                  key={row.id}
-                  className={`flex items-center gap-3 px-4 py-4 ${i < MOCK_HISTORY.length - 1 ? "border-b border-rc-border/40" : ""}`}
-                >
-                  <HistoryIcon type={row.type} />
-                  <span className="flex-1 text-[13px] font-semibold text-rc-text min-w-0 truncate">{row.event}</span>
-                  <span className="font-mono text-[11px] text-rc-hint whitespace-nowrap px-3">{row.date}</span>
-                  <span className={`font-mono text-[13px] font-bold w-8 text-right tabular-nums ${row.delta > 0 ? "text-rc-green" : "text-rc-red"}`}>
-                    {row.delta > 0 ? `+${row.delta}` : row.delta}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
 
         </div>

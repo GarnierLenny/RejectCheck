@@ -6,6 +6,7 @@ import { Eyebrow, Mono } from "./resultAtoms";
 import { ParsedCvDisclosure } from "./ParsedCvDisclosure";
 import { RiskMeter } from "./RiskMeter";
 import { AnalysisShell, type HighlightMap, type HighlightEntry } from "./AnalysisShell";
+import { scrollIntoViewMotionSafe } from "../lib/scroll";
 import { RadarChart } from "./RadarChart";
 import { SignalsTab } from "./tabs/SignalsTab";
 import { ConsistencyTab } from "./tabs/ConsistencyTab";
@@ -94,10 +95,16 @@ function CopyBtn({ text, label }: { text: string; label: string }) {
   const [done, setDone] = useState(false);
   return (
     <button
-      onClick={() => {
-        navigator.clipboard?.writeText(text);
-        setDone(true);
-        setTimeout(() => setDone(false), 1400);
+      onClick={async () => {
+        // Only flip to ✓ once the write actually resolves — an insecure
+        // context or denied permission must not fake a successful copy.
+        try {
+          await navigator.clipboard?.writeText(text);
+          setDone(true);
+          setTimeout(() => setDone(false), 1400);
+        } catch {
+          /* leave the label unchanged so the user can retry */
+        }
       }}
       style={{ marginLeft: "auto", fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.04em", color: done ? "var(--rc-green)" : "var(--rc-text)", background: "var(--rc-surface)", border: "1px solid var(--rc-border)", borderRadius: R_SM, padding: "4px 10px", cursor: "pointer" }}
     >
@@ -243,15 +250,22 @@ function FixBlock({ fix }: { fix: Fix | null | undefined }) {
 
 // ── IssueItem ─────────────────────────────────────────────────────────────────
 
-function IssueItem({ issue, last, onHighlight }: {
+function IssueItem({ issue, last, onHighlight, viewInCvLabel }: {
   issue: { severity: string; category: string; what: string; why: string; fix?: Fix | null };
   last: boolean;
   onHighlight?: () => void;
+  viewInCvLabel?: string;
 }) {
   const c = sevColor(issue.severity);
   return (
     <div
       onClick={onHighlight}
+      role={onHighlight ? "button" : undefined}
+      tabIndex={onHighlight ? 0 : undefined}
+      onKeyDown={onHighlight ? (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onHighlight(); }
+      } : undefined}
+      className={onHighlight ? "rc-issue-row" : undefined}
       style={{ padding: "24px 28px", borderBottom: last ? "none" : "1px solid var(--rc-border)", cursor: onHighlight ? "pointer" : undefined, transition: "background 0.1s" }}
       onMouseEnter={e => { if (onHighlight) (e.currentTarget as HTMLElement).style.background = "var(--rc-surface-raised)"; }}
       onMouseLeave={e => { if (onHighlight) (e.currentTarget as HTMLElement).style.background = ""; }}
@@ -260,6 +274,13 @@ function IssueItem({ issue, last, onHighlight }: {
         <span style={{ width: 3, height: 13, background: c, flexShrink: 0 }} />
         <SevTag sev={issue.severity} />
         <Mono style={{ fontSize: 11, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.14em" }}>{issue.category}</Mono>
+        {/* The cross-panel jump was discoverable only by accident: nothing
+            said these rows were clickable. */}
+        {onHighlight && viewInCvLabel && (
+          <span className="rc-issue-row__cue" style={{ fontFamily: "var(--font-mono)", marginLeft: "auto", fontSize: 10, color: "var(--rc-hint)", textTransform: "uppercase", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
+            {viewInCvLabel} →
+          </span>
+        )}
       </div>
       <div style={{ fontFamily: "var(--font-sans)", fontSize: 17, fontWeight: 600, color: "var(--rc-text)", lineHeight: 1.35, marginBottom: 10, letterSpacing: "-0.01em" }}>
         <MD>{issue.what}</MD>
@@ -360,17 +381,22 @@ function SkillRadarCard({ analysis }: { analysis: TechnicalAnalysis }) {
 
 // ── Match tab body ─────────────────────────────────────────────────────────────
 
-function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
+function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword, interactive = true }: {
   result: AnalysisResult;
   deepStatus: string;
   checkedKeywords: Set<string>;
   toggleKeyword: (kw: string) => void;
+  /** When the InlineOptimize loop above owns the interactive "add keywords,
+   * watch the score move" gesture, this ATS list becomes a display-only
+   * reference (keywords + insertion snippets) so §02 has one live simulator,
+   * not two competing ones keyed on different keyword sets. */
+  interactive?: boolean;
 }) {
   const { t } = useLanguage();
   const ta = result.technical_analysis;
   const ats = result.ats_simulation;
   const atsCritical = ats?.critical_missing_keywords ?? [];
-  const sim = ats ? Math.min(100, ats.score + [...checkedKeywords].reduce((s, kw) => s + (atsCritical.find((k) => k.keyword === kw)?.score_impact ?? 0), 0)) : 0;
+  const sim = ats && interactive ? Math.min(100, ats.score + [...checkedKeywords].reduce((s, kw) => s + (atsCritical.find((k) => k.keyword === kw)?.score_impact ?? 0), 0)) : ats?.score ?? 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
@@ -505,13 +531,15 @@ function MatchBody({ result, deepStatus, checkedKeywords, toggleKeyword }: {
             const pref = [...kws].filter((k) => !k.required).sort((a, b) => b.score_impact - a.score_impact);
             const maxImpact = Math.max(8, ...kws.map((k) => k.score_impact));
             const KwRow = ({ k, accent }: { k: typeof kws[0]; accent: string }) => (
-              <div onClick={() => toggleKeyword(k.keyword)} style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer" }}>
-                <div style={{ marginTop: 2, width: 16, height: 16, flexShrink: 0, borderRadius: R_SM, border: `1px solid ${checkedKeywords.has(k.keyword) ? "var(--rc-green)" : "var(--rc-border)"}`, background: checkedKeywords.has(k.keyword) ? "var(--rc-green)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {checkedKeywords.has(k.keyword) && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
+              <div onClick={interactive ? () => toggleKeyword(k.keyword) : undefined} style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: interactive ? "pointer" : "default" }}>
+                {interactive && (
+                  <div style={{ marginTop: 2, width: 16, height: 16, flexShrink: 0, borderRadius: R_SM, border: `1px solid ${checkedKeywords.has(k.keyword) ? "var(--rc-green)" : "var(--rc-border)"}`, background: checkedKeywords.has(k.keyword) ? "var(--rc-green)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {checkedKeywords.has(k.keyword) && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                  </div>
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 15, fontWeight: 600, color: checkedKeywords.has(k.keyword) ? "var(--rc-hint)" : "var(--rc-text)", textDecoration: checkedKeywords.has(k.keyword) ? "line-through" : "none" }}>{k.keyword}</span>
+                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 15, fontWeight: 600, color: interactive && checkedKeywords.has(k.keyword) ? "var(--rc-hint)" : "var(--rc-text)", textDecoration: interactive && checkedKeywords.has(k.keyword) ? "line-through" : "none" }}>{k.keyword}</span>
                     <Mono style={{ fontSize: 10, color: accent, background: `color-mix(in srgb, ${accent} 10%, transparent)`, borderRadius: R_SM, padding: "2px 6px" }}>{k.jd_frequency}× in JD</Mono>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -752,7 +780,7 @@ function CVBody({ result, onIssueClick }: { result: AnalysisResult; onIssueClick
           </div>
         </div>
         <Sheet>
-          {cv.issues.map((it, i) => <IssueItem key={i} issue={it} last={i === cv.issues.length - 1} onHighlight={onIssueClick} />)}
+          {cv.issues.map((it, i) => <IssueItem key={i} issue={it} last={i === cv.issues.length - 1} onHighlight={onIssueClick} viewInCvLabel={t.analysisLayout.viewInCv} />)}
         </Sheet>
       </section>
 
@@ -1038,7 +1066,7 @@ export function AnalysisLayout({
       coverLetterText={coverLetterText}
       highlightsByDoc={highlightsByDoc}
       onHighlightTypeClick={(type) => {
-        if (type === "skills") document.getElementById("sec-match")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (type === "skills") scrollIntoViewMotionSafe(document.getElementById("sec-match"), { block: "start" });
       }}
       renderRight={({ focusDoc }) => {
         // Section order drives BOTH the nav numbers and the in-section headers,
@@ -1076,7 +1104,16 @@ export function AnalysisLayout({
                 const on = activeSection === s.id;
                 return (
                   <a key={s.id} href={`#sec-${s.id}`}
-                    onClick={(e) => { e.preventDefault(); document.getElementById(`sec-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }); }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Highlight the clicked item immediately (the observer
+                      // otherwise only catches up mid-scroll, flashing every
+                      // section it crosses) and put the section in the URL so
+                      // it can be linked to.
+                      setActiveSection(s.id);
+                      history.replaceState(null, "", `#sec-${s.id}`);
+                      scrollIntoViewMotionSafe(document.getElementById(`sec-${s.id}`), { block: "start" });
+                    }}
                     style={{ position: "relative", display: "flex", alignItems: "center", gap: 10, padding: "8px", borderRadius: R_SM, textDecoration: "none", color: on ? "var(--rc-red)" : "var(--rc-hint)", background: on ? "var(--rc-red-bg)" : "transparent", transition: "color 0.15s, background 0.15s" }}>
                     {on && <span style={{ position: "absolute", left: 0, top: 6, bottom: 6, width: 2, borderRadius: 99, background: "var(--rc-red)" }} />}
                     <Mono style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: on ? "var(--rc-red)" : "var(--rc-hint)" }}>{s.n}</Mono>
@@ -1244,7 +1281,17 @@ export function AnalysisLayout({
                 subtitle={t.analysisLayout.match.subtitle}
               />
               {!readOnly && <RescanPanel analysisId={analysisId} accessToken={accessToken ?? null} result={result} cvText={reconstructedCv ?? cvTextFormatted} />}
-              <MatchBody result={result} deepStatus={deepStatus} checkedKeywords={checkedKeywords} toggleKeyword={toggleKeyword} />
+              {/* When RescanPanel's InlineOptimize loop is the interactive
+                  keyword surface, the ATS list below is display-only so §02 has
+                  one live simulator, not two. readOnly viewers (no RescanPanel)
+                  keep the interactive ATS simulator. */}
+              <MatchBody
+                result={result}
+                deepStatus={deepStatus}
+                checkedKeywords={checkedKeywords}
+                toggleKeyword={toggleKeyword}
+                interactive={!(!readOnly && !!result.breakdown && !!(reconstructedCv ?? cvTextFormatted))}
+              />
             </section>
 
             {/* 03 — CV */}
@@ -1308,7 +1355,7 @@ export function AnalysisLayout({
               {deepStatus === "pending" ? (
                 <ProjectRecommendationSkeleton />
               ) : (
-                <RoadmapTab result={result} />
+                <RoadmapTab result={result} analysisId={analysisId} />
               )}
             </section>
 
@@ -1345,13 +1392,9 @@ export function AnalysisLayout({
                 title={t.negotiationTab.title}
                 subtitle={t.negotiationTab.subtitle}
               />
-              {hasHired ? (
-                <NegotiationTab result={result} analysisId={analysisId} isPremium={true} />
-              ) : (
-                <div style={{ padding: "32px 0", textAlign: "center", fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--rc-hint)" }}>
-                  {t.analysisLayout.plan.negotiationPremium}
-                </div>
-              )}
+              {/* Free/shortlisted users get the real paywall (badge + unlock
+                  CTA) rather than a dead-end line of hint text. */}
+              <NegotiationTab result={result} analysisId={analysisId} isPremium={hasHired} />
             </section>
 
             {/* 09 — Rewrite */}

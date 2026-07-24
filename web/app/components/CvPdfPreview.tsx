@@ -7,7 +7,28 @@ import dynamic from "next/dynamic";
 // ssr:false — same pattern as the negotiation salary chart. Importing the bare
 // ESM package here directly breaks the server compile ("ESM packages need to be
 // imported").
-const CvPdfDocument = dynamic(() => import("./CvPdfDocument"), { ssr: false });
+// The chunk is ~3 MB, so without a `loading` fallback the user stares at an
+// empty 520px box while it downloads.
+const CvPdfDocument = dynamic(() => import("./CvPdfDocument"), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "var(--font-mono)",
+        fontSize: 11,
+        letterSpacing: "0.12em",
+        textTransform: "uppercase",
+        color: "var(--rc-hint)",
+      }}
+    >
+      <span className="animate-pulse">Building your PDF preview…</span>
+    </div>
+  ),
+});
 
 /**
  * Renders the exact CvRewritePdf document (the same template used for the

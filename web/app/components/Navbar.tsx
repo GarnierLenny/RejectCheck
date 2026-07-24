@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
@@ -19,6 +19,23 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
   const { user, loading } = useAuth();
   const { t, localePath } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  // The mobile menu could only be dismissed by pressing the hamburger again:
+  // add Escape and outside-click, the two dismissals users reach for first.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    const onDown = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDown);
+    };
+  }, [menuOpen]);
 
   const linkClass = (page: NavPage) =>
     `font-sans text-[11px] tracking-[0.04em] uppercase px-4 py-2 transition-all duration-200 no-underline ${
@@ -52,7 +69,7 @@ export function Navbar({ center, activePage }: NavbarProps = {}) {
     ) : null;
 
   return (
-    <nav className="relative w-full flex items-center justify-between md:grid md:grid-cols-3 px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border bg-white/50 backdrop-blur-md sticky top-0 z-50">
+    <nav ref={navRef} className="relative w-full flex items-center justify-between md:grid md:grid-cols-3 px-5 py-4 md:px-[40px] border-b-[0.5px] border-rc-border bg-white/50 backdrop-blur-md sticky top-0 z-50">
       {/* Left: logo */}
       <Link href={localePath("/")} className="flex items-center gap-2.5 no-underline hover:opacity-80 transition-opacity">
         <Image src="/RejectCheck_500_bg_less.png" alt="RejectCheck Logo" width={36} height={36} />

@@ -3,6 +3,7 @@
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useLanguage } from "../../context/language";
+import { bandFor, type ScoreTier } from "../lib/cv-quality-score";
 
 type Band = "low" | "mid" | "high";
 
@@ -76,8 +77,10 @@ export function RiskMeter({
   // High-is-better label set (same shape, different copy per metric).
   const hb = metric === "competitiveness" ? rm.competitiveness : rm.strength;
 
-  // Shared competitiveness/quality bands: Strong >= 80, Decent >= 40, Weak < 40.
-  const tier = v >= 80 ? "strong" : v >= 40 ? "decent" : "weak";
+  // Display bands, single source in lib/cv-quality-score.ts. The CV-audit and
+  // vs-JD headlines sit on different curves (the former is deflated AND
+  // penalised), so they deliberately do NOT share cutoffs — see SCORE_BANDS.
+  const tier: ScoreTier = bandFor(metric === "strength" ? "strength" : "competitiveness", v);
   const riskTier = riskBand(v);
   // Colour follows the tier when higher-is-better (green only at Strong), else
   // the risk band.

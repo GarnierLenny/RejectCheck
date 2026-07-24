@@ -59,20 +59,35 @@ export function AutofillAnalyzeSettings({
     setCoverLetterName(profile.coverLetterName ?? "");
   }, [profile]);
 
+  // See TargetingSettings: swallow the rejection (onError already toasts and
+  // refetches) and never flash "Saved" for a save that failed.
+  const lastSaveOk = useRef(true);
+  async function safeSave(data: Parameters<typeof updateProfile.mutateAsync>[0]) {
+    try {
+      await updateProfile.mutateAsync(data);
+      lastSaveOk.current = true;
+    } catch {
+      lastSaveOk.current = false;
+    }
+  }
+  function flashSaved(setter: (v: boolean) => void) {
+    if (!lastSaveOk.current) return;
+    setter(true);
+    setTimeout(() => setter(false), 2000);
+  }
+
   async function handleGithubBlur() {
     const current = profile?.githubUsername ?? "";
     if (githubUsername === current) return;
-    await updateProfile.mutateAsync({ githubUsername });
-    setGithubSaved(true);
-    setTimeout(() => setGithubSaved(false), 2000);
+    await safeSave({ githubUsername });
+    flashSaved(setGithubSaved);
   }
 
   async function handleCoverLetterNameBlur() {
     const current = profile?.coverLetterName ?? "";
     if (coverLetterName === current) return;
-    await updateProfile.mutateAsync({ coverLetterName });
-    setCoverLetterNameSaved(true);
-    setTimeout(() => setCoverLetterNameSaved(false), 2000);
+    await safeSave({ coverLetterName });
+    flashSaved(setCoverLetterNameSaved);
   }
 
   async function handleLinkedinUpload(file: File) {
@@ -87,9 +102,8 @@ export function AutofillAnalyzeSettings({
       const {
         data: { publicUrl },
       } = supabase.storage.from("user-profiles").getPublicUrl(path);
-      await updateProfile.mutateAsync({ linkedinUrl: publicUrl });
-      setLinkedinSaved(true);
-      setTimeout(() => setLinkedinSaved(false), 2000);
+      await safeSave({ linkedinUrl: publicUrl });
+      flashSaved(setLinkedinSaved);
     } finally {
       setLinkedinUploading(false);
     }

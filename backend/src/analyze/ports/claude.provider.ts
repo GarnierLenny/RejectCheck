@@ -57,6 +57,8 @@ export type GenerateCoverLetterInput = {
   company: string | null;
   candidateName: string | null;
   language: string;
+  /** Story the letter leads with: 'jd' role-fit, 'exp' track record, 'tech' craft. */
+  angle: 'jd' | 'exp' | 'tech';
 };
 
 export type GenerateNegotiationInput = {

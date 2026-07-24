@@ -13,7 +13,6 @@ import { UploadForm } from "../../../components/UploadForm";
 import { Navbar } from "../../../components/Navbar";
 import { LoadingScreen } from "../../../components/LoadingScreen";
 import { PaywallScreen, type PaywallMode } from "../../../components/PaywallScreen";
-import { ScoreSidebar } from "../../../components/ScoreSidebar";
 import { AtsTab } from "../../../components/tabs/AtsTab";
 import { CvAnalysisTab } from "../../../components/tabs/CvAnalysisTab";
 import { CvReviewTab } from "../../../components/tabs/CvReviewTab";
@@ -218,6 +217,9 @@ function AnalyzeContent() {
   // analysis_done, so the query has data but it's stale wrt deep/nego that
   // are still streaming). Lets the SSE handler stay the source of truth.
   const streamingRef = useRef(false);
+  // Set when the backend emits analysis_done: the point a credit is spent.
+  // Drives honest error copy if the run dies after that.
+  const creditConsumedRef = useRef(false);
 
   const urlId = searchParams.get('id') ? parseInt(searchParams.get('id')!) : null;
 
@@ -272,7 +274,9 @@ function AnalyzeContent() {
 
     const pending = consumePendingCv();
     if (pending) {
-      setCvFile(pending.file);
+      // The file can be null when a reload dropped the in-memory hand-off but
+      // the typed job description survived; keep the text either way.
+      if (pending.file) setCvFile(pending.file);
       if (pending.jd) setJobDescription(pending.jd);
     }
 
@@ -376,6 +380,10 @@ function AnalyzeContent() {
   async function handleCvReviewSubmit(e?: React.MouseEvent<HTMLButtonElement>) {
     e?.preventDefault();
     if (!cvFile) return;
+    // Guard against a double-submit before React re-renders the disabled state:
+    // two rapid clicks would otherwise fire two POSTs and burn quota twice.
+    if (streamingRef.current) return;
+    creditConsumedRef.current = false;
 
     const formData = new FormData();
     formData.append("cv", cvFile);
@@ -415,6 +423,17 @@ function AnalyzeContent() {
         return;
       }
 
+      // Any other non-OK response (400 bad file, 413 too large, 500…) carries
+      // a JSON error body, not an SSE stream — consuming it would resolve
+      // silently and strand the loading screen forever.
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          (body && typeof body.message === "string" && body.message) ||
+            `${t.loadingScreen.error.subtitle} (HTTP ${res.status})`,
+        );
+      }
+
       type CvReviewPayload = {
         step: string;
         delta?: string;
@@ -432,6 +451,10 @@ function AnalyzeContent() {
 
       let latestResult: AnalysisResult | null = null;
       let latestAnalysisId: number | null = null;
+      // Guards against a stream that closes cleanly before the backend sent a
+      // terminal event (network drop, proxy timeout): without it the await
+      // resolves and the loading screen spins forever.
+      let sawTerminal = false;
 
       const primeQueryCache = () => {
         if (latestAnalysisId && latestResult && user?.id) {
@@ -459,6 +482,7 @@ function AnalyzeContent() {
           if (payload.result) {
             latestResult = payload.result;
             setResult(payload.result);
+            creditConsumedRef.current = true;
             queryClient.invalidateQueries({ queryKey: ['quota'] });
             posthog.capture("cv_review_completed", {
               score: payload.result.score,
@@ -495,6 +519,7 @@ function AnalyzeContent() {
               { result: payload.result, jobDescription: '' },
             );
           }
+          sawTerminal = true;
           setLoading(false);
         } else if (payload.step === "error") {
           if (payload.code === "QUOTA_EXCEEDED") {
@@ -505,6 +530,7 @@ function AnalyzeContent() {
                 : "subscriber_cap";
             posthog.capture("paywall_shown", { reason: mode });
             setPaywallState({ mode, monthlyCap: payload.details?.monthlyCap });
+            sawTerminal = true;
             setLoading(false);
             streamingRef.current = false;
             return;
@@ -514,6 +540,8 @@ function AnalyzeContent() {
           setCurrentStep(payload.step);
         }
       });
+
+      if (!sawTerminal) throw new Error(t.loadingScreen.error.streamLost);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "CV review failed";
       setError(message);
@@ -530,6 +558,10 @@ function AnalyzeContent() {
   async function handleSubmit(e?: React.MouseEvent<HTMLButtonElement>) {
     e?.preventDefault();
     if (!cvFile || !jobDescription.trim()) return;
+    // Guard against a double-submit before React re-renders the disabled state:
+    // two rapid clicks would otherwise fire two POSTs and burn quota twice.
+    if (streamingRef.current) return;
+    creditConsumedRef.current = false;
 
     const formData = new FormData();
     formData.append("cv", cvFile);
@@ -586,6 +618,17 @@ function AnalyzeContent() {
         return;
       }
 
+      // Any other non-OK response (400 bad file, 413 too large, 500…) carries
+      // a JSON error body, not an SSE stream — consuming it would resolve
+      // silently and strand the loading screen forever.
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          (body && typeof body.message === "string" && body.message) ||
+            `${t.loadingScreen.error.subtitle} (HTTP ${res.status})`,
+        );
+      }
+
       type AnalyzePayload = {
         step: string;
         delta?: string;
@@ -612,6 +655,10 @@ function AnalyzeContent() {
       // because React state updates are async and we need the freshest copy.
       let latestResult: AnalysisResult | null = null;
       let latestAnalysisId: number | null = null;
+      // Guards against a stream that closes cleanly before the backend sent a
+      // terminal event (network drop, proxy timeout): without it the await
+      // resolves and the loading screen spins forever.
+      let sawTerminal = false;
 
       let latestCvTextFormatted: string | null = null;
       let latestLinkedinTextFormatted: string | null = null;
@@ -663,6 +710,7 @@ function AnalyzeContent() {
             setResult(payload.result);
             // Quota was just consumed server-side — refetch so the indicator
             // and the dashboard card reflect the new monthlyUsed / balance.
+            creditConsumedRef.current = true;
             queryClient.invalidateQueries({ queryKey: ['quota'] });
             posthog.capture("cv_analysis_completed", {
               score: payload.result.score,
@@ -728,6 +776,7 @@ function AnalyzeContent() {
               { result: payload.result, jobDescription },
             );
           }
+          sawTerminal = true;
           setLoading(false);
         } else if (payload.step === "error") {
           // Quota errors render the right paywall variant instead of bubbling
@@ -747,6 +796,7 @@ function AnalyzeContent() {
               mode,
               monthlyCap: payload.details?.monthlyCap,
             });
+            sawTerminal = true;
             setLoading(false);
             setStreaming(false);
             streamingRef.current = false;
@@ -757,6 +807,8 @@ function AnalyzeContent() {
           setCurrentStep(payload.step);
         }
       });
+
+      if (!sawTerminal) throw new Error(t.loadingScreen.error.streamLost);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Analysis failed";
       setError(message);
@@ -1133,6 +1185,7 @@ function AnalyzeContent() {
                 hasLinkedin={liFile !== null}
                 hasML={mlFile !== null || mlText.trim().length > 0}
                 isHired={isHiredTier}
+                mode={analyzeMode}
                 onFinished={() => setVisualLoadingDone(true)}
               />
             ) : analysisFailed ? (
@@ -1143,7 +1196,9 @@ function AnalyzeContent() {
                 hasLinkedin={liFile !== null}
                 hasML={mlFile !== null || mlText.trim().length > 0}
                 isHired={isHiredTier}
+                mode={analyzeMode}
                 errored
+                creditConsumed={creditConsumedRef.current}
                 onRetry={() => { (analyzeMode === 'cv-review' ? handleCvReviewSubmit : handleSubmit)(); }}
               />
             ) : (
@@ -1172,7 +1227,7 @@ function AnalyzeContent() {
                     setAnalyzeMode(useReviewMode ? 'cv-review' : 'vs-job');
                     return useReviewMode ? handleCvReviewSubmit(e) : handleSubmit(e);
                   }}
-                  loading={false} error={error}
+                  loading={loading} error={error}
                   savedCvFiles={savedCvs}
                   savedLinkedinUrl={profile?.linkedinUrl ?? undefined}
                   savedPortfolioUrl={profile?.portfolioUrl ?? undefined}

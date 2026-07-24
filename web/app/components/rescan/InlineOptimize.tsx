@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
 import type { AnalysisResult } from "../types";
 import type { KeywordMatchEntry } from "./types";
@@ -18,6 +18,8 @@ type Props = {
   onCommit: (editedCvText: string) => void;
   /** t.analysisLayout.rescan.optimize */
   ro: Record<string, string>;
+  /** Keys the in-progress edits in sessionStorage so a reload doesn't lose them. */
+  analysisId?: number | null;
 };
 
 /** 0-30 green · 31-65 amber · 66-100 red — matches the anchored verdict bands. */
@@ -47,7 +49,10 @@ function countCriticalIssues(r: AnalysisResult): number {
  * full re-scan (POST :id/rescan-inline). The projection mirrors the backend
  * anchored composite — see app/lib/score-projection.ts.
  */
-export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }: Props) {
+const STORE_KEY = (id: number | null | undefined) =>
+  id != null ? `rc_inline_optimize_${id}` : null;
+
+export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro, analysisId = null }: Props) {
   const breakdown = result.breakdown;
   const missing = useMemo(
     () => keywords.filter((k) => !k.presentInCv),
@@ -59,9 +64,37 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }:
     [result.bullet_reviews],
   );
 
-  const [added, setAdded] = useState<Set<string>>(new Set());
+  // Restore in-progress work (checked keywords + bullet edits) so a reload
+  // mid-optimization doesn't silently discard it before the paid commit.
+  const [added, setAdded] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    const key = STORE_KEY(analysisId);
+    if (!key) return new Set();
+    try {
+      const s = JSON.parse(sessionStorage.getItem(key) ?? "null");
+      if (s && Array.isArray(s.added)) return new Set(s.added as string[]);
+    } catch { /* ignore */ }
+    return new Set();
+  });
   // original bullet text -> user's edited replacement.
-  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [edits, setEdits] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    const key = STORE_KEY(analysisId);
+    if (!key) return {};
+    try {
+      const s = JSON.parse(sessionStorage.getItem(key) ?? "null");
+      if (s && s.edits && typeof s.edits === "object") return s.edits as Record<string, string>;
+    } catch { /* ignore */ }
+    return {};
+  });
+
+  useEffect(() => {
+    const key = STORE_KEY(analysisId);
+    if (!key) return;
+    try {
+      sessionStorage.setItem(key, JSON.stringify({ added: [...added], edits }));
+    } catch { /* ignore */ }
+  }, [added, edits, analysisId]);
 
   const isBulletResolved = (original: string): boolean => {
     const e = edits[original];
@@ -214,7 +247,12 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }:
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
             {weakBullets.map((b, i) => {
               const resolved = isBulletResolved(b.original);
-              const value = edits[b.original] ?? b.rewrite ?? b.original;
+              // Only what the user has actually committed lands in the textarea
+              // and counts toward the projected score. The AI rewrite is offered
+              // via an explicit "Apply suggestion" button below — never silently
+              // prefilled, which would show a fix that the score ignores.
+              const value = edits[b.original] ?? "";
+              const canApply = !!b.rewrite && b.rewrite.trim() !== b.original.trim() && value.trim() !== b.rewrite.trim();
               return (
                 <div
                   key={`${b.original.slice(0, 24)}-${i}`}
@@ -257,13 +295,38 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }:
                   >
                     {b.original}
                   </div>
+                  {canApply && (
+                    <button
+                      onClick={() =>
+                        setEdits((prev) => ({ ...prev, [b.original]: b.rewrite!.trim() }))
+                      }
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        marginBottom: 8,
+                        padding: "5px 10px",
+                        borderRadius: 5,
+                        cursor: "pointer",
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        letterSpacing: "0.04em",
+                        border: "1px solid var(--rc-green-border)",
+                        background: "var(--rc-green-bg)",
+                        color: "var(--rc-green)",
+                      }}
+                    >
+                      <Sparkles size={11} /> {ro.applySuggestion}
+                    </button>
+                  )}
                   <textarea
                     value={value}
                     onChange={(e) =>
                       setEdits((prev) => ({ ...prev, [b.original]: e.target.value }))
                     }
                     rows={2}
-                    placeholder={ro.rewritePlaceholder}
+                    placeholder={b.rewrite ? b.rewrite : ro.rewritePlaceholder}
                     style={{
                       width: "100%",
                       resize: "vertical",
@@ -311,7 +374,9 @@ export function InlineOptimize({ result, keywords, cvText, busy, onCommit, ro }:
               <Loader2 size={12} className="rc-spin" /> {ro.validating}
             </>
           ) : (
-            ro.validate
+            <>
+              {ro.validate} <span style={{ opacity: 0.75, fontWeight: 600 }}>{ro.creditNote}</span>
+            </>
           )}
         </button>
         <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--rc-hint)", letterSpacing: "0.02em" }}>

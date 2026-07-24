@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRef, useState } from "react";
+import { useModalA11y } from "../hooks/useModalA11y";
 import { X } from "lucide-react";
 
 interface PdfPreviewModalProps {
@@ -10,13 +11,11 @@ interface PdfPreviewModalProps {
 }
 
 export function PdfPreviewModal({ url, name, onClose }: PdfPreviewModalProps) {
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  // Escape was already handled here; the hook adds the focus trap, initial
+  // focus and body scroll lock this dialog was missing.
+  useModalA11y(panelRef, true, onClose);
 
   return (
     <div
@@ -24,6 +23,10 @@ export function PdfPreviewModal({ url, name, onClose }: PdfPreviewModalProps) {
       onClick={onClose}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={name}
         className="relative bg-rc-surface border border-rc-border rounded-lg shadow-2xl flex flex-col"
         style={{ width: "min(860px, 95vw)", height: "min(90vh, 1000px)" }}
         onClick={e => e.stopPropagation()}
@@ -40,17 +43,29 @@ export function PdfPreviewModal({ url, name, onClose }: PdfPreviewModalProps) {
           <button
             onClick={onClose}
             className="text-rc-hint hover:text-rc-text transition-colors p-1 rounded hover:bg-rc-bg"
+            aria-label="Close preview"
           >
             <X size={14} />
           </button>
         </div>
 
-        {/* PDF iframe */}
-        <iframe
-          src={url}
-          className="flex-1 w-full rounded-b-lg"
-          title={name}
-        />
+        {/* PDF iframe. A slow PDF used to leave a blank pane with no signal
+            that anything was happening. */}
+        <div className="relative flex-1 min-h-0">
+          {!iframeLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-mono text-[11px] uppercase tracking-widest text-rc-hint animate-pulse">
+                Loading PDF…
+              </span>
+            </div>
+          )}
+          <iframe
+            src={url}
+            className="w-full h-full rounded-b-lg"
+            title={name}
+            onLoad={() => setIframeLoaded(true)}
+          />
+        </div>
       </div>
     </div>
   );

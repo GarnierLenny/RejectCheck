@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ElementType } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FileText, Search, Zap, ChevronRight, Lock } from "lucide-react";
 import { Github, Linkedin } from "react-bootstrap-icons";
@@ -18,23 +18,50 @@ type Props = {
   errored?: boolean;
   /** Optional: wired to the retry button in the error state. */
   onRetry?: () => void;
+  /**
+   * True once the backend emitted analysis_done (the point quota is consumed).
+   * The error copy otherwise promises "no credit was used", which it cannot
+   * know: a stream that dies after analysis_done has already spent one.
+   */
+  creditConsumed?: boolean;
+  /** Which pipeline is running: they emit different steps and section keys. */
+  mode?: "vs-job" | "cv-review";
 };
 
 type StepStatus = "pending" | "running" | "done" | "skipped";
 
 // The visible pipeline = the 5 hot-pass phases. Negotiation + finalizing run
 // invisibly after the user is already on the result view (skeletons there).
-const STEP_DEFS = [
-  { id: "parsing_cv" as const, Icon: FileText },
-  { id: "matching_skills" as const, Icon: Search },
-  { id: "analyzing_linkedin" as const, Icon: Linkedin, needs: "linkedin" as const },
-  { id: "analyzing_github" as const, Icon: Github, needs: "github" as const },
-  { id: "dual_ai_analysis" as const, Icon: Zap, deep: true as const },
+type StepDef = {
+  id: string;
+  /** Kept alongside each step for future use; icons come from two libraries. */
+  Icon: ElementType;
+  needs?: "linkedin" | "github";
+  deep?: true;
+};
+
+const VS_JOB_STEPS: StepDef[] = [
+  { id: "parsing_cv", Icon: FileText },
+  { id: "matching_skills", Icon: Search },
+  { id: "analyzing_linkedin", Icon: Linkedin, needs: "linkedin" },
+  { id: "analyzing_github", Icon: Github, needs: "github" },
+  { id: "dual_ai_analysis", Icon: Zap, deep: true },
+];
+
+// A CV audit runs a different pipeline: no JD to match, and the backend emits
+// `reviewing_cv` rather than `dual_ai_analysis`. Reusing the vs-JD steps left
+// the visible pipeline stuck on "CV parsing" for the whole run.
+const CV_REVIEW_STEPS: StepDef[] = [
+  { id: "parsing_cv", Icon: FileText },
+  { id: "analyzing_github", Icon: Github, needs: "github" },
+  { id: "reviewing_cv", Icon: Zap, deep: true },
 ];
 
 // Claude sub-task JSON keys emitted in the hot tool_use stream. Order matters
-// for the reasoning panel + the deep-step sub-progress.
-const SUBTASK_KEYS = [
+// for the reasoning panel + the deep-step sub-progress. These are per-pipeline:
+// the vs-JD keys (ats_simulation, audit_jd_match) are never emitted by a CV
+// audit, so the deep-step sub-progress could never complete.
+const VS_JOB_SUBTASK_KEYS = [
   "audit_cv",
   "audit_jd_match",
   "ats_simulation",
@@ -42,15 +69,34 @@ const SUBTASK_KEYS = [
   "hidden_red_flags",
 ] as const;
 
-const WATCHDOG_MS = 45_000;
+const CV_REVIEW_SUBTASK_KEYS = [
+  "cv_quality",
+  "audit_cv",
+  "bullet_reviews",
+  "seniority_analysis",
+  "hidden_red_flags",
+] as const;
+
+/**
+ * Must sit past the advertised ETA (~80-90s), otherwise the "taking longer
+ * than usual" line fires midway through a perfectly normal run and tells
+ * nearly every user something is wrong.
+ */
+const WATCHDOG_MS = 120_000;
 
 /** Maps a backend SSE `currentStep` to a main-step index (skips share idx). */
-function backendIndexOf(currentStep: string | null, total: number): number {
+function backendIndexOf(
+  currentStep: string | null,
+  total: number,
+  steps: StepDef[],
+): number {
   if (!currentStep) return -1;
   if (currentStep === "done") return total;
   // Motivation-letter parsing + ATS run within the deep phase.
-  if (currentStep === "parsing_motivation_letter" || currentStep === "running_ats") return 4;
-  return STEP_DEFS.findIndex((s) => s.id === currentStep);
+  if (currentStep === "parsing_motivation_letter" || currentStep === "running_ats") {
+    return steps.findIndex((s) => s.deep);
+  }
+  return steps.findIndex((s) => s.id === currentStep);
 }
 
 export function LoadingScreen({
@@ -63,10 +109,19 @@ export function LoadingScreen({
   onFinished,
   errored = false,
   onRetry,
+  creditConsumed = false,
+  mode = "vs-job",
 }: Props) {
   const { t } = useLanguage();
   const ls = t.loadingScreen;
   const reduce = useReducedMotion();
+  const STEP_DEFS = mode === "cv-review" ? CV_REVIEW_STEPS : VS_JOB_STEPS;
+  const SUBTASK_KEYS = mode === "cv-review" ? CV_REVIEW_SUBTASK_KEYS : VS_JOB_SUBTASK_KEYS;
+  // Sub-step chips are positional, so they need the matching per-pipeline set:
+  // a CV audit has no "Skills Match" or "ATS Simulation".
+  const subtaskLabels = (mode === "cv-review"
+    ? ls.claudeTasksCvReview
+    : ls.claudeTasks) as string[];
   void hasML;
   void isHired;
 
@@ -75,7 +130,7 @@ export function LoadingScreen({
     (id === "analyzing_linkedin" && !hasLinkedin) ||
     (id === "analyzing_github" && !hasGithub);
 
-  const backendIdx = backendIndexOf(currentStep, total);
+  const backendIdx = backendIndexOf(currentStep, total, STEP_DEFS);
   const backendDone = currentStep === "done" || backendIdx >= total;
 
   // The currently-running main step: first non-skipped step at or after the
@@ -143,7 +198,7 @@ export function LoadingScreen({
   const isError = errored;
   const title = isError ? ls.error.title : backendDone ? ls.readyTitle : ls.title;
   const subtitle = isError
-    ? ls.error.subtitle
+    ? (creditConsumed ? ls.error.subtitleCharged : ls.error.subtitle)
     : backendDone
       ? ls.readySubtitle
       : slow
@@ -275,7 +330,7 @@ export function LoadingScreen({
                         className={`flex items-center gap-2 font-mono text-[10.5px] ${si <= firstActiveSub || subDone[si] ? "text-rc-muted" : "text-rc-hint"}`}
                       >
                         <span className={`h-1.5 w-1.5 rounded-full ${subDone[si] || si === firstActiveSub ? "bg-rc-red" : "bg-rc-border"}`} />
-                        {(ls.claudeTasks as string[])[si]}
+                        {subtaskLabels[si]}
                       </div>
                     ))}
                   </div>

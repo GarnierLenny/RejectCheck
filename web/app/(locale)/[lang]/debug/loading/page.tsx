@@ -5,7 +5,7 @@ import { LoadingScreen } from "../../../../components/LoadingScreen";
 
 // Scripted SSE sequence: main steps, then the deep step holds while the 5
 // Claude sub-task keys stream into `streamText` (humanized in the panel).
-const SEQUENCE: { step: string; addKey?: string }[] = [
+const VS_JOB_SEQUENCE: { step: string; addKey?: string }[] = [
   { step: "parsing_cv" },
   { step: "matching_skills" },
   { step: "analyzing_linkedin" },
@@ -20,10 +20,25 @@ const SEQUENCE: { step: string; addKey?: string }[] = [
   { step: "done" },
 ];
 
+// Mirrors what review-cv.use-case.ts actually emits: no JD match, and the deep
+// step is `reviewing_cv`, not `dual_ai_analysis`.
+const CV_REVIEW_SEQUENCE: { step: string; addKey?: string }[] = [
+  { step: "parsing_cv" },
+  { step: "analyzing_github" },
+  { step: "reviewing_cv" },
+  { step: "reviewing_cv", addKey: "cv_quality" },
+  { step: "reviewing_cv", addKey: "audit_cv" },
+  { step: "reviewing_cv", addKey: "bullet_reviews" },
+  { step: "reviewing_cv", addKey: "seniority_analysis" },
+  { step: "reviewing_cv", addKey: "hidden_red_flags" },
+  { step: "done" },
+];
+
 export default function LoadingDebugPage() {
   const [hasGithub, setHasGithub] = useState(true);
   const [hasLinkedin, setHasLinkedin] = useState(true);
   const [errored, setErrored] = useState(false);
+  const [cvReview, setCvReview] = useState(false);
   const [run, setRun] = useState(0); // bump to restart
 
   const [step, setStep] = useState<string | null>(null);
@@ -31,6 +46,7 @@ export default function LoadingDebugPage() {
 
   useEffect(() => {
     if (errored) return;
+    const SEQUENCE = cvReview ? CV_REVIEW_SEQUENCE : VS_JOB_SEQUENCE;
     setStream("");
     setStep(SEQUENCE[0].step);
     let i = 0;
@@ -49,7 +65,7 @@ export default function LoadingDebugPage() {
       setStep(cur.step);
     }, 1300);
     return () => clearInterval(id);
-  }, [run, errored]);
+  }, [run, errored, cvReview]);
 
   const Toggle = ({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) => (
     <button
@@ -72,6 +88,7 @@ export default function LoadingDebugPage() {
         <div className="flex flex-wrap gap-2">
           <Toggle on={hasGithub} label="GitHub" onClick={() => { setHasGithub((v) => !v); setRun((r) => r + 1); }} />
           <Toggle on={hasLinkedin} label="LinkedIn" onClick={() => { setHasLinkedin((v) => !v); setRun((r) => r + 1); }} />
+          <Toggle on={cvReview} label="CV audit" onClick={() => { setCvReview((v) => !v); setRun((r) => r + 1); }} />
         </div>
         <div className="flex gap-2">
           <button
@@ -97,6 +114,7 @@ export default function LoadingDebugPage() {
         streamText={stream}
         hasGithub={hasGithub}
         hasLinkedin={hasLinkedin}
+        mode={cvReview ? "cv-review" : "vs-job"}
         hasML={true}
         errored={errored}
         onRetry={() => { setErrored(false); setRun((r) => r + 1); }}

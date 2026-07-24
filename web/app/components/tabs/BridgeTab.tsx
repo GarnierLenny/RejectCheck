@@ -661,6 +661,15 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
                           return (
                             <div
                               key={ki}
+                              role="checkbox"
+                              aria-checked={isDone}
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggle(step.globalIdx);
+                                }
+                              }}
                               style={{ display: "flex", gap: 12, padding: "12px 16px", borderTop: "1px solid var(--rc-border)", cursor: "pointer", background: isDone ? "rgba(22,163,74,0.03)" : "transparent", transition: "background 0.1s" }}
                               onClick={() => toggle(step.globalIdx)}
                             >
@@ -674,9 +683,9 @@ export function BridgeTab({ result, analysisId, completedSteps: initialCompleted
                                 <p style={{
                                   ...SANS, fontSize: 12, lineHeight: 1.6, color: "var(--rc-muted)",
                                   margin: 0, overflow: "hidden",
-                                  maxHeight: isDone ? 0 : 120,
-                                  opacity: isDone ? 0 : 1,
-                                  marginTop: isDone ? 0 : 4,
+                                  maxHeight: 120,
+                                  opacity: isDone ? 0.55 : 1,
+                                  marginTop: 4,
                                   transition: "max-height 0.28s ease, opacity 0.2s ease, margin-top 0.28s ease",
                                 }}>{step.description}</p>
                               </div>

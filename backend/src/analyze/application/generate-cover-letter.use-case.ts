@@ -30,6 +30,7 @@ export class GenerateCoverLetterUseCase {
     email: string,
     analysisId: number,
     language: string,
+    angle: 'jd' | 'exp' | 'tech' = 'jd',
   ): Promise<GenerateCoverLetterResult> {
     const analysis = await this.analyses.findById(analysisId, email);
     if (!analysis || !analysis.result) {
@@ -58,6 +59,7 @@ export class GenerateCoverLetterUseCase {
       company: analysis.company,
       candidateName,
       language: detectedLanguage,
+      angle,
     });
 
     await this.analyses.attachCoverLetter(analysisId, email, coverLetter);

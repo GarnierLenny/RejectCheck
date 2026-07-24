@@ -651,6 +651,7 @@ export class AnalyzeController {
       email,
       parsed.data.analysisId,
       parsed.data.language,
+      parsed.data.angle,
     );
   }
 

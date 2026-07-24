@@ -22,6 +22,7 @@ type Props = {
   liFileUrl?: string | null;
   coverLetter?: string | null;
   mlFileUrl?: string | null;
+  createdAt?: string | null;
 };
 
 export function SharedAnalysisView({
@@ -37,6 +38,7 @@ export function SharedAnalysisView({
   liFileUrl = null,
   coverLetter = null,
   mlFileUrl = null,
+  createdAt = null,
 }: Props) {
   const { t } = useLanguage();
 
@@ -154,6 +156,7 @@ export function SharedAnalysisView({
       onExportMd={noop}
       isSharing={false}
       userPlan="free"
+      auditedAt={createdAt}
       sharedByName={profile?.displayName ?? null}
       sharedByAvatar={avatarUrl}
       ctaHref={`/${lang}/analyze`}
