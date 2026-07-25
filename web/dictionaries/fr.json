@@ -807,7 +807,9 @@
       "Revue bullets",
       "Séniorité",
       "Red flags"
-    ]
+    ],
+    "subtitleEmail": "Claude lit votre candidature comme le ferait un recruteur. Vous pouvez fermer cet onglet, on vous envoie le rapport par email dès qu'il est prêt.",
+    "slowSubtitleEmail": "C'est un peu plus long que d'habitude. Pas besoin d'attendre, on vous envoie le rapport par email dès qu'il arrive."
   },
   "riskMeter": {
     "eyebrow": "Risque de rejet",
@@ -1575,7 +1577,8 @@
     "markdownDownloaded": "Rapport Markdown téléchargé",
     "pdfGenerated": "Rapport PDF généré",
     "pdfFailed": "Échec de la génération du PDF",
-    "saveFailed": "Impossible d’enregistrer. Réessaie."
+    "saveFailed": "Impossible d’enregistrer. Réessaie.",
+    "deleteAccountFailed": "Impossible de supprimer votre compte. Rien n'a été supprimé, réessayez ou contactez le support."
   },
   "credits": {
     "breadcrumbAccount": "Compte",

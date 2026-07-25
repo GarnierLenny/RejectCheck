@@ -26,6 +26,14 @@ type Props = {
   creditConsumed?: boolean;
   /** Which pipeline is running: they emit different steps and section keys. */
   mode?: "vs-job" | "cv-review";
+  /**
+   * True when leaving is SAFE: the backend sends an `analysis_ready` email if
+   * the SSE connection closes before the run finishes, but only for a
+   * recognised account (see notifyReportReady, guarded on `clientGone && email`).
+   * A guest gets nothing, so the reassurance must not be shown to them — it
+   * would be a promise the product cannot keep.
+   */
+  canEmailWhenDone?: boolean;
 };
 
 type StepStatus = "pending" | "running" | "done" | "skipped";
@@ -111,6 +119,7 @@ export function LoadingScreen({
   onRetry,
   creditConsumed = false,
   mode = "vs-job",
+  canEmailWhenDone = false,
 }: Props) {
   const { t } = useLanguage();
   const ls = t.loadingScreen;
@@ -197,13 +206,23 @@ export function LoadingScreen({
 
   const isError = errored;
   const title = isError ? ls.error.title : backendDone ? ls.readyTitle : ls.title;
+  // The run takes 80-90s and the copy used to end on "keep this page open",
+  // which asks for 90 seconds of attention while offering no way out. Roughly
+  // 1 in 8 signed-in users left anyway (measured 2026-07-24 from analysis_ready
+  // sends), and because nothing told them a report was coming, a recoverable
+  // exit read as a total loss. Telling them leaving is safe also lowers the cost
+  // of staying: the wait stops being a gamble.
   const subtitle = isError
     ? (creditConsumed ? ls.error.subtitleCharged : ls.error.subtitle)
     : backendDone
       ? ls.readySubtitle
       : slow
-        ? ls.slowSubtitle
-        : ls.subtitle;
+        ? canEmailWhenDone
+          ? ls.slowSubtitleEmail
+          : ls.slowSubtitle
+        : canEmailWhenDone
+          ? ls.subtitleEmail
+          : ls.subtitle;
 
   return (
     <div className="flex flex-1 items-center justify-center px-4 py-10">

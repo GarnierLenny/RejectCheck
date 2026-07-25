@@ -1186,6 +1186,7 @@ function AnalyzeContent() {
                 hasML={mlFile !== null || mlText.trim().length > 0}
                 isHired={isHiredTier}
                 mode={analyzeMode}
+                canEmailWhenDone={!!user?.email}
                 onFinished={() => setVisualLoadingDone(true)}
               />
             ) : analysisFailed ? (
@@ -1197,6 +1198,7 @@ function AnalyzeContent() {
                 hasML={mlFile !== null || mlText.trim().length > 0}
                 isHired={isHiredTier}
                 mode={analyzeMode}
+                canEmailWhenDone={!!user?.email}
                 errored
                 creditConsumed={creditConsumedRef.current}
                 onRetry={() => { (analyzeMode === 'cv-review' ? handleCvReviewSubmit : handleSubmit)(); }}

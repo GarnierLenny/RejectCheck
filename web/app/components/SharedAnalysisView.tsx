@@ -107,6 +107,12 @@ export function SharedAnalysisView({
               </span>
             </div>
           </div>
+          {/* The written-but-never-wired line. It asks the visitor the question
+              the whole page implies; the button alone only names an action.
+              Hidden below lg so the compact bar stays compact on mobile. */}
+          <span className="hidden lg:inline shrink-0 font-sans text-[12.5px] text-rc-muted mr-1">
+            {t.share.ctaText.replace("{name}", displayName)}
+          </span>
           <Link
             href={`/${lang}/analyze`}
             onClick={() => posthog.capture("share_sticky_cta_clicked", { token, mode: "vs-job" })}
@@ -160,6 +166,8 @@ export function SharedAnalysisView({
       sharedByName={profile?.displayName ?? null}
       sharedByAvatar={avatarUrl}
       ctaHref={`/${lang}/analyze`}
+      ctaLabel={t.share.ctaButtonCvReview}
+      ctaText={t.share.ctaTextCvReview.replace("{name}", displayName)}
     />
   );
 }

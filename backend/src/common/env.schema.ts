@@ -32,6 +32,13 @@ export const envSchema = z.object({
   SUPABASE_URL: nonEmpty.refine((v) => v.startsWith('https://'), {
     message: 'SUPABASE_URL must start with https://',
   }),
+  // Optional. Auth is verified via JWKS, so the backend has never needed an
+  // admin key. It is required for ONE thing: deleting the Supabase auth record
+  // when a user deletes their account (DELETE /api/account). Without it the
+  // user's data is still fully erased, but the login shell survives and they
+  // could sign back in to an empty account — the endpoint reports which
+  // happened via `authUserDeleted`.
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
   ANTHROPIC_API_KEY: nonEmpty,
   // OpenAI is currently optional: only used by interview.service.ts for TTS + Whisper.

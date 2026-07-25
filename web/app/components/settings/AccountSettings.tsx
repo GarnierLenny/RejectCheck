@@ -91,8 +91,18 @@ export function AccountSettings({
   }
 
   async function handleDeleteAccount() {
+    // The capture used to run BEFORE the request, so it recorded a deletion
+    // whether or not one happened — production logged 20 "account_deleted"
+    // events against 10 failed calls. And with no catch, the throw skipped the
+    // sign-out and redirect entirely, leaving the user on an unchanged screen
+    // with no error: which is why they pressed it twenty times.
+    try {
+      await deleteAccount.mutateAsync();
+    } catch {
+      toast.error(t.toasts.deleteAccountFailed);
+      return;
+    }
     posthog.capture("account_deleted", { plan: subscription?.plan ?? "free" });
-    await deleteAccount.mutateAsync();
     posthog.reset();
     await supabase.auth.signOut();
     window.location.href = `/${lang}`;

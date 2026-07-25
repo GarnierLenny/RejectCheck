@@ -807,7 +807,9 @@
       "Bullet Review",
       "Seniority",
       "Red Flags"
-    ]
+    ],
+    "subtitleEmail": "Claude is reading your application the way a recruiter would. You can close this tab, we'll email you the moment it's ready.",
+    "slowSubtitleEmail": "This is taking a little longer than usual. No need to wait around, we'll email you the report as soon as it lands."
   },
   "riskMeter": {
     "eyebrow": "Rejection risk",
@@ -1575,7 +1577,8 @@
     "markdownDownloaded": "Markdown report downloaded",
     "pdfGenerated": "PDF report generated",
     "pdfFailed": "Failed to generate PDF",
-    "saveFailed": "Couldn’t save your change. Please try again."
+    "saveFailed": "Couldn’t save your change. Please try again.",
+    "deleteAccountFailed": "Couldn't delete your account. Nothing was removed, please try again or contact support."
   },
   "credits": {
     "breadcrumbAccount": "Account",

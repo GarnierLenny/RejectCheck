@@ -77,13 +77,15 @@ export function DiagnosticResult({
   const role = result.job_details?.title ?? "";
   const company = result.job_details?.company ?? "";
 
-  const btn = (primary = false): React.CSSProperties => ({
+  // `accent` mirrors CvAuditResult's iconBtn(active) rather than introducing a
+  // second visual language for the same idea.
+  const btn = (primary = false, accent = false): React.CSSProperties => ({
     fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 600, letterSpacing: "0.08em",
     textTransform: "uppercase", padding: "7px 12px",
-    border: `1px solid ${primary ? "var(--rc-text)" : "var(--rc-border)"}`,
+    border: `1px solid ${primary ? "var(--rc-text)" : accent ? "var(--rc-red)" : "var(--rc-border)"}`,
     borderRadius: 4, cursor: "pointer",
-    background: primary ? "var(--rc-text)" : "var(--rc-surface)",
-    color: primary ? "#fff" : "var(--rc-hint)",
+    background: primary ? "var(--rc-text)" : accent ? "var(--rc-red-bg)" : "var(--rc-surface)",
+    color: primary ? "#fff" : accent ? "var(--rc-red)" : "var(--rc-hint)",
     display: "inline-flex", alignItems: "center", gap: 6,
     whiteSpace: "nowrap" as const, transition: "all 150ms ease",
   });
@@ -115,7 +117,7 @@ export function DiagnosticResult({
             {isExportingPdf ? t.analysisLayout.exportingPdf : t.analysisLayout.exportPdf}
           </button>
           {onShare && (
-            <button style={{ ...btn(), opacity: isSharing ? 0.4 : 1, cursor: isSharing ? "not-allowed" : "pointer" }} onClick={onShare} disabled={isSharing}>
+            <button style={{ ...btn(false, true), opacity: isSharing ? 0.4 : 1, cursor: isSharing ? "not-allowed" : "pointer" }} onClick={onShare} disabled={isSharing}>
               {isSharing ? t.analysisLayout.sharing : t.analysisLayout.share}
             </button>
           )}

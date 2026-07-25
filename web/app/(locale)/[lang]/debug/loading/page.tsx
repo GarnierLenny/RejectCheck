@@ -39,6 +39,9 @@ export default function LoadingDebugPage() {
   const [hasLinkedin, setHasLinkedin] = useState(true);
   const [errored, setErrored] = useState(false);
   const [cvReview, setCvReview] = useState(false);
+  // Signed-in users are told they can close the tab (the backend emails them);
+  // guests are not, because no email is sent for them. Both need previewing.
+  const [signedIn, setSignedIn] = useState(true);
   const [run, setRun] = useState(0); // bump to restart
 
   const [step, setStep] = useState<string | null>(null);
@@ -89,6 +92,7 @@ export default function LoadingDebugPage() {
           <Toggle on={hasGithub} label="GitHub" onClick={() => { setHasGithub((v) => !v); setRun((r) => r + 1); }} />
           <Toggle on={hasLinkedin} label="LinkedIn" onClick={() => { setHasLinkedin((v) => !v); setRun((r) => r + 1); }} />
           <Toggle on={cvReview} label="CV audit" onClick={() => { setCvReview((v) => !v); setRun((r) => r + 1); }} />
+          <Toggle on={signedIn} label="Signed in" onClick={() => setSignedIn((v) => !v)} />
         </div>
         <div className="flex gap-2">
           <button
@@ -115,6 +119,7 @@ export default function LoadingDebugPage() {
         hasGithub={hasGithub}
         hasLinkedin={hasLinkedin}
         mode={cvReview ? "cv-review" : "vs-job"}
+        canEmailWhenDone={signedIn}
         hasML={true}
         errored={errored}
         onRetry={() => { setErrored(false); setRun((r) => r + 1); }}

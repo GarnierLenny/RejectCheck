@@ -19,6 +19,7 @@ import { RiskMeter } from "./RiskMeter";
 import { CvAuditRescanPanel } from "./CvAuditRescanPanel";
 import { CvChecksScorecard } from "./CvChecksScorecard";
 import { CvBenchmarkPanel } from "./CvBenchmarkPanel";
+import { CorpusFactCard } from "./CorpusFactCard";
 import { CvNextLever } from "./CvNextLever";
 import { CvGlanceStrip } from "./CvGlanceStrip";
 import { BenchmarkClaimLine } from "./BenchmarkClaimLine";
@@ -182,6 +183,15 @@ type Props = {
    */
   readOnly?: boolean;
   sharedByName?: string | null;
+  /**
+   * Localised share CTA, passed in rather than read from a dictionary: this
+   * component has no useLanguage of its own, which is why its share button used
+   * to be hardcoded English for every visitor. The caller (SharedAnalysisView)
+   * does have `t`, so the copy is localised there and handed down.
+   */
+  ctaLabel?: string;
+  /** The line above the button. Hidden on narrow screens; the button carries it alone. */
+  ctaText?: string;
   sharedByAvatar?: string | null;
   /** Locale-aware target for the readOnly CTA (e.g. `/en/analyze`). */
   ctaHref?: string;
@@ -214,6 +224,8 @@ export function CvAuditResult({
   accessToken = null,
   readOnly = false,
   sharedByName = null,
+  ctaLabel,
+  ctaText,
   sharedByAvatar = null,
   ctaHref = "/analyze",
   auditedAt = null,
@@ -557,14 +569,24 @@ export function CvAuditResult({
         </div>
         <div className="rc-topbar-actions" style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {readOnly ? (
-            <Link href={ctaHref} style={{ ...MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", padding: "8px 16px", background: "var(--rc-red)", color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              Analyze yours →
-            </Link>
+            <>
+              {ctaText && (
+                <span className="hidden lg:inline" style={{ ...SANS, fontSize: 12.5, color: "var(--rc-muted)", marginRight: 4 }}>
+                  {ctaText}
+                </span>
+              )}
+              <Link href={ctaHref} style={{ ...MONO, fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", padding: "8px 16px", background: "var(--rc-red)", color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                {ctaLabel ?? "Analyze yours"} →
+              </Link>
+            </>
           ) : (
             <>
               <button style={iconBtn()} onClick={onExportMd}>↓ .md</button>
+              {/* Share is accented, not neutral like the exports beside it: it is
+                  the only action here that brings anyone new to the product, and
+                  it was reading as a third file-download option. */}
               {onShare && (
-                <button style={iconBtn()} onClick={onShare} disabled={isSharing}>
+                <button style={iconBtn(true)} onClick={onShare} disabled={isSharing}>
                   {isSharing ? "…" : "↗ Share"}
                 </button>
               )}
@@ -1128,6 +1150,17 @@ export function CvAuditResult({
               ]}
             />
           )}
+
+          {/* Same corpus as the panel above, but a fact about EVERYONE rather
+              than about this user: the one thing here that can be shared
+              without exposing anything. Renders unconditionally (a corpus fact
+              is true regardless of whether we could place the role). */}
+          <CorpusFactCard
+            roleHints={[
+              ...(result.projected_profile?.target_roles ?? []),
+              ...(result.projected_profile?.domains ?? []),
+            ]}
+          />
 
           {/* ── 07 All findings ── */}
           <section data-ca-sec="s7" id="s7" style={{ padding: "64px 0", borderTop: "1px solid var(--rc-border)" }}>
