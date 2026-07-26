@@ -481,9 +481,10 @@ export function UploadForm({
                     <button type="button"
                       className={`rc-chip ${githubUsername.trim() ? "on" : ""}`}
                       onClick={() => {
-                        // Tapping a filled chip used to silently wipe the value.
-                        // It now reopens the input for editing; clearing is an
-                        // explicit action inside the expand.
+                        // Chip is a toggle: reclicking a filled ("on") chip
+                        // deactivates it (clears + collapses). An empty chip
+                        // just opens/closes its input.
+                        if (githubUsername.trim()) { setGithubUsername(""); setOpenSignal(null); return; }
                         setOpenSignal(openSignal === "github" ? null : "github");
                       }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.27.73-1.56-2.55-.29-5.24-1.28-5.24-5.71 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18.92-.26 1.91-.39 2.89-.39.98 0 1.97.13 2.89.39 2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.83 1.19 3.09 0 4.44-2.7 5.41-5.26 5.7.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
@@ -493,6 +494,7 @@ export function UploadForm({
                     <button type="button"
                       className={`rc-chip ${liFile ? "on" : ""}`}
                       onClick={() => {
+                        if (liFile) { setLiFile(null); setOpenSignal(null); return; }
                         setOpenSignal(openSignal === "linkedin" ? null : "linkedin");
                       }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM8 19H5V8h3v11zM6.5 6.7c-.97 0-1.75-.79-1.75-1.76 0-.97.78-1.75 1.75-1.75s1.75.79 1.75 1.75c0 .97-.78 1.76-1.75 1.76zM20 19h-3v-5.6c0-3.37-4-3.11-4 0V19h-3V8h3v1.77c1.4-2.59 7-2.78 7 2.48V19z"/></svg>
@@ -502,6 +504,7 @@ export function UploadForm({
                     <button type="button"
                       className={`rc-chip ${portfolioUrl.trim() ? "on" : ""}`}
                       onClick={() => {
+                        if (portfolioUrl.trim()) { setPortfolioUrl(""); setPingStatus("idle"); setOpenSignal(null); return; }
                         setOpenSignal(openSignal === "portfolio" ? null : "portfolio");
                       }}>
                       <IcoGlobe size={13} />
@@ -512,6 +515,7 @@ export function UploadForm({
                       <button type="button"
                         className={`rc-chip ${(mlFile || mlText.trim()) ? "on" : ""}`}
                         onClick={() => {
+                          if (mlFile || mlText.trim()) { setMlFile(null); setMlText(""); setOpenSignal(null); return; }
                           setOpenSignal(openSignal === "cover" ? null : "cover");
                         }}>
                         <IcoMail size={13} />
