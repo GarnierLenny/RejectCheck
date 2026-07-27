@@ -216,9 +216,9 @@
     "features": {
       "title": "Every tab, a tool",
       "ats": {
-        "label": "ATS simulation",
-        "title": "Bot Filter",
-        "desc": "Keyword density scan against your job description. See the exact score, what's missing, and how close you are to the ATS threshold."
+        "label": "Parsing check",
+        "title": "ATS reality check",
+        "desc": "Most ATS don't auto-reject on a keyword score. We check your file parses cleanly and carries the terms the job actually weights, so you know what a recruiter will see."
       },
       "radar": {
         "label": "Skill gap radar",
@@ -360,10 +360,10 @@
       "subtitleLine1": "You send 100 applications. 96 disappear into silence.",
       "subtitleLine2": "RejectCheck audits everything a recruiter sees of you:",
       "subtitleLine3": "CV, cover letter, LinkedIn, GitHub, portfolio.",
-      "subtitleLine4": "It catches what would get you rejected, and what would make you ",
-      "subtitleEmphasis": "impossible to ignore",
+      "subtitleLine4": "It names the one thing that would get you cut, so you can fix it and watch the score ",
+      "subtitleEmphasis": "move before you apply",
       "stat1Value": "~1 min",
-      "stat1Label": "to first diagnosis",
+      "stat1Label": "to your verdict",
       "stat2Value": "3 free",
       "stat2Label": "per month",
       "stat3Value": "No signup",
@@ -371,7 +371,7 @@
       "dropLabel": "Drop your CV here",
       "dropItalic": "or paste a job link.",
       "dropHint": "PDF or photo up to 10MB · no signup required for the first run",
-      "dropCta": "Get my instant diagnosis →",
+      "dropCta": "See why you'd be cut →",
       "redditCtaLabel": "Free full audit on",
       "founderSeatsLabel": "founder seats left"
     },
@@ -395,6 +395,7 @@
       "h2Part1": "Six dimensions a recruiter scans in",
       "h2Italic": "six seconds.",
       "h2Part2": "We score each one, in numbers.",
+      "subtitle": "We don't sell a magic ATS score. We tell you what a human would think.",
       "items": [
         {
           "n": "01",
@@ -438,7 +439,7 @@
       "smallLabel": "The report",
       "h2Part1": "Not a score. A",
       "h2Italic": "briefing.",
-      "subtitle": "The report you get isn't a thumbs-up or down. It's an actionable document, the kind you'd pay a senior recruiter $300 to write for you.",
+      "subtitle": "The report you get isn't a thumbs-up or down. It's an actionable document, the kind you'd pay a senior recruiter $300 to write for you. Fix what it flags, re-run it, and watch the score move.",
       "browserSaved": "SAVED · 2 MIN AGO",
       "topFixTitle": "The one fix that moves you most",
       "topFixBody": "Add distributed systems, gRPC, and observability to your bullets where they truthfully apply. Estimated score impact: −22 points.",
@@ -456,32 +457,24 @@
     },
     "s04": {
       "smallLabel": "Honestly",
-      "h2Part1": "There are other tools. Here's",
-      "h2Italic": "what they don't do.",
+      "h2Part1": "What you get, and",
+      "h2Italic": "what we won't do.",
       "compRows": [
         {
-          "feat": "Honest verdict score",
-          "sub": "Tells you when you'll be rejected, not just \"matched\"."
+          "feat": "A verdict, not a match percentage",
+          "sub": "It tells you you'd be rejected, and names the reason. A number on its own isn't an answer."
         },
         {
-          "feat": "GitHub / portfolio scan",
-          "sub": "Reads your public repos and weighs them against the JD."
+          "feat": "Fix it and watch it change",
+          "sub": "Rewrite what it flags, re-run the audit, and see the score move. Not a one-shot report you read once and close."
         },
         {
-          "feat": "Multi-source cross-check",
-          "sub": "Your CV, LinkedIn and GitHub reconciled against one job, not a single keyword scan."
+          "feat": "No upsell on the essentials",
+          "sub": "Your score, your missing keywords and your red flags are free, permanently. The paywall is on the fixes, never the diagnosis."
         },
         {
-          "feat": "Bullet-by-bullet rewrite",
-          "sub": "Suggests truthful rewrites, not generic action verbs."
-        },
-        {
-          "feat": "No upsell on essentials",
-          "sub": "Score, keywords, and red flags are always free."
-        },
-        {
-          "feat": "Pricing",
-          "sub": "Premium analysis, billed monthly. Cancel anytime."
+          "feat": "The price shown is the price paid",
+          "sub": "No trial trap, no card required to test it, cancel in one click from your account."
         }
       ]
     },

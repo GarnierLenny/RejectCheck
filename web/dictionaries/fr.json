@@ -216,9 +216,9 @@
     "features": {
       "title": "Chaque onglet, un outil",
       "ats": {
-        "label": "Simulation ATS",
-        "title": "Filtre Bot",
-        "desc": "Scan de densité de mots-clés par rapport à l'offre d'emploi. Score exact, ce qui manque, et distance du seuil ATS."
+        "label": "Contrôle de parsing",
+        "title": "ATS : la réalité",
+        "desc": "La plupart des ATS ne rejettent pas automatiquement sur un score de mots-clés. On vérifie que votre fichier se parse proprement et porte les termes que l'offre pondère vraiment, pour que vous sachiez ce qu'un recruteur verra."
       },
       "radar": {
         "label": "Radar de compétences",
@@ -360,10 +360,10 @@
       "subtitleLine1": "Vous envoyez 100 candidatures. 96 disparaissent dans le silence.",
       "subtitleLine2": "RejectCheck audite tout ce qu'un recruteur voit de vous :",
       "subtitleLine3": "CV, lettre de motivation, LinkedIn, GitHub, portfolio.",
-      "subtitleLine4": "Il repère ce qui vous vaudrait un refus, et ce qui vous rendrait ",
-      "subtitleEmphasis": "impossible à ignorer",
+      "subtitleLine4": "Il nomme la seule chose qui vous ferait écarter. Corrigez-la, et regardez le score ",
+      "subtitleEmphasis": "bouger avant de postuler",
       "stat1Value": "~1 min",
-      "stat1Label": "avant le diagnostic",
+      "stat1Label": "avant votre verdict",
       "stat2Value": "3 gratuites",
       "stat2Label": "par mois",
       "stat3Value": "Sans compte",
@@ -371,7 +371,7 @@
       "dropLabel": "Déposez votre CV ici",
       "dropItalic": "ou collez un lien d'offre.",
       "dropHint": "PDF ou photo jusqu'à 10 Mo · sans inscription pour la première analyse",
-      "dropCta": "Mon diagnostic instantané →",
+      "dropCta": "Voir pourquoi je serais écarté →",
       "redditCtaLabel": "Audit complet offert sur",
       "founderSeatsLabel": "places founder restantes"
     },
@@ -395,6 +395,7 @@
       "h2Part1": "Six dimensions qu'un recruteur scanne en",
       "h2Italic": "six secondes.",
       "h2Part2": "On score chacune, en chiffres.",
+      "subtitle": "On ne vend pas de score ATS magique. On vous dit ce qu'un humain penserait.",
       "items": [
         {
           "n": "01",
@@ -438,7 +439,7 @@
       "smallLabel": "Le rapport",
       "h2Part1": "Pas un score. Un",
       "h2Italic": "briefing.",
-      "subtitle": "Le rapport que vous recevez n'est pas un pouce levé ou baissé. C'est un document actionnable, le genre pour lequel vous paieriez 300 € à un recruteur senior.",
+      "subtitle": "Le rapport que vous recevez n'est pas un pouce levé ou baissé. C'est un document actionnable, le genre pour lequel vous paieriez 300 € à un recruteur senior. Corrigez ce qu'il signale, relancez, et regardez le score bouger.",
       "browserSaved": "ENREGISTRÉ · IL Y A 2 MIN",
       "topFixTitle": "La correction qui vous fait gagner le plus",
       "topFixBody": "Ajoutez distributed systems, gRPC et observability dans vos bullets là où c'est vrai. Impact estimé sur le score : −22 points.",
@@ -456,32 +457,24 @@
     },
     "s04": {
       "smallLabel": "Honnêtement",
-      "h2Part1": "Il y a d'autres outils. Voici",
-      "h2Italic": "ce qu'ils ne font pas.",
+      "h2Part1": "Ce que vous obtenez, et",
+      "h2Italic": "ce qu'on ne fera pas.",
       "compRows": [
         {
-          "feat": "Score de verdict honnête",
-          "sub": "Dit quand vous serez rejeté, pas juste « matché »."
+          "feat": "Un verdict, pas un pourcentage de match",
+          "sub": "Il vous dit que vous seriez rejeté, et il en nomme la raison. Un chiffre seul n'est pas une réponse."
         },
         {
-          "feat": "Scan GitHub / portfolio",
-          "sub": "Lit vos repos publics et les pèse contre l'offre."
+          "feat": "Corrigez, et regardez le score bouger",
+          "sub": "Réécrivez ce qu'il signale, relancez l'audit, et voyez le score évoluer. Pas un rapport unique qu'on lit puis qu'on ferme."
         },
         {
-          "feat": "Croisement multi-source",
-          "sub": "Ton CV, ton LinkedIn et ton GitHub recoupés face à une offre, pas un simple scan de mots-clés."
+          "feat": "Aucun upsell sur l'essentiel",
+          "sub": "Votre score, vos mots-clés manquants et vos red flags sont gratuits, définitivement. Le paywall est sur les corrections, jamais sur le diagnostic."
         },
         {
-          "feat": "Réécriture bullet par bullet",
-          "sub": "Propose des réécritures honnêtes, pas des verbes d'action génériques."
-        },
-        {
-          "feat": "Sans upsell sur l'essentiel",
-          "sub": "Score, mots-clés et red flags sont toujours gratuits."
-        },
-        {
-          "feat": "Tarif",
-          "sub": "Analyse premium, facturée au mois. Résiliable à tout moment."
+          "feat": "Le prix affiché est le prix payé",
+          "sub": "Pas de piège d'essai, pas de carte pour tester, annulation en un clic depuis votre compte."
         }
       ]
     },

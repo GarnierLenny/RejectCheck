@@ -851,56 +851,6 @@ export default function Home() {
     { name: "Terraform",       pct: 12 },
   ];
 
-  const compRows = [
-    {
-      feat: t.landing.s04.compRows[0].feat,
-      sub: t.landing.s04.compRows[0].sub,
-      rc: { mark: "✓", cls: "y" },
-      jobscan: { mark: "×", cls: "n" },
-      rw: { mark: "×", cls: "n" },
-      rezi: { mark: "partial", cls: "m" },
-    },
-    {
-      feat: t.landing.s04.compRows[1].feat,
-      sub: t.landing.s04.compRows[1].sub,
-      rc: { mark: "✓", cls: "y" },
-      jobscan: { mark: "×", cls: "n" },
-      rw: { mark: "×", cls: "n" },
-      rezi: { mark: "×", cls: "n" },
-    },
-    {
-      feat: t.landing.s04.compRows[2].feat,
-      sub: t.landing.s04.compRows[2].sub,
-      rc: { mark: "✓", cls: "y" },
-      jobscan: { mark: "×", cls: "n" },
-      rw: { mark: "×", cls: "n" },
-      rezi: { mark: "×", cls: "n" },
-    },
-    {
-      feat: t.landing.s04.compRows[3].feat,
-      sub: t.landing.s04.compRows[3].sub,
-      rc: { mark: "✓", cls: "y" },
-      jobscan: { mark: "generic", cls: "m" },
-      rw: { mark: "generic", cls: "m" },
-      rezi: { mark: "✓", cls: "y" },
-    },
-    {
-      feat: t.landing.s04.compRows[4].feat,
-      sub: t.landing.s04.compRows[4].sub,
-      rc: { mark: "✓", cls: "y" },
-      jobscan: { mark: "paywall", cls: "n" },
-      rw: { mark: "paywall", cls: "n" },
-      rezi: { mark: "paywall", cls: "n" },
-    },
-    {
-      feat: t.landing.s04.compRows[5].feat,
-      sub: t.landing.s04.compRows[5].sub,
-      rc: { mark: "€19.99/mo", cls: "brand" },
-      jobscan: { mark: "$50/mo", cls: "" },
-      rw: { mark: "$49/mo", cls: "" },
-      rezi: { mark: "$29/mo", cls: "" },
-    },
-  ];
 
   const testimonials = [
     { quote: "Best job search tool I've ever used. Went from 0 callbacks to 3 in a week.", name: "Raphael", role: "Fullstack Engineer", img: "/testimonials/raphael.png" },
@@ -1123,13 +1073,24 @@ export default function Home() {
           {/* Section head */}
           <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
             <div aria-hidden />
-            <h2 style={{
-              fontFamily: "var(--font-sans)", fontWeight: 500,
-              fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05,
-              letterSpacing: "-0.025em", margin: 0, maxWidth: 800,
-            }}>
-              {t.landing.s02.h2Part1} <em style={IT}>{t.landing.s02.h2Italic}</em> {t.landing.s02.h2Part2}
-            </h2>
+            <div>
+              <h2 style={{
+                fontFamily: "var(--font-sans)", fontWeight: 500,
+                fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05,
+                letterSpacing: "-0.025em", margin: 0, maxWidth: 800,
+              }}>
+                {t.landing.s02.h2Part1} <em style={IT}>{t.landing.s02.h2Italic}</em> {t.landing.s02.h2Part2}
+              </h2>
+              {/* The anti-ATS-score stance, stated at the top of the method
+                  instead of buried in item 06. Converts the skeptics who think
+                  every CV tool is selling a vanity match percentage. */}
+              <p style={{
+                fontFamily: "var(--font-mono)", fontSize: 13, lineHeight: 1.6,
+                color: "var(--rc-hint)", margin: "20px 0 0", maxWidth: 620,
+              }}>
+                {t.landing.s02.subtitle}
+              </p>
+            </div>
           </div>
 
           {/* 2-col grid */}
@@ -1260,41 +1221,45 @@ export default function Home() {
             </h2>
           </div>
 
-          {/* Comparison table — scrolls horizontally on narrow screens */}
-          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <table style={{ width: "100%", minWidth: 620, borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={{ padding: "18px 16px", textAlign: "left", verticalAlign: "top", borderBottom: "1px solid var(--rc-text)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}></th>
-                <th style={{ padding: "18px 16px", textAlign: "left", verticalAlign: "top", borderBottom: "1px solid var(--rc-text)", background: "var(--rc-surface)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700 }}>RejectCheck</th>
-                <th style={{ padding: "18px 16px", textAlign: "left", verticalAlign: "top", borderBottom: "1px solid var(--rc-text)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>Jobscan</th>
-                <th style={{ padding: "18px 16px", textAlign: "left", verticalAlign: "top", borderBottom: "1px solid var(--rc-text)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>ResumeWorded</th>
-                <th style={{ padding: "18px 16px", textAlign: "left", verticalAlign: "top", borderBottom: "1px solid var(--rc-text)", fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-hint)", fontWeight: 700 }}>Rezi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {compRows.map((row) => (
-                <tr key={row.feat}>
-                  <td style={{ padding: "18px 16px", borderTop: "1px solid var(--rc-border)" }}>
-                    <span style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 500, color: "var(--rc-text)", display: "block" }}>{row.feat}</span>
-                    <small style={{ display: "block", color: "var(--rc-hint)", fontWeight: 400, marginTop: 3, fontSize: 12 }}>{row.sub}</small>
-                  </td>
-                  <td style={{ padding: "18px 16px", borderTop: "1px solid var(--rc-border)", background: "var(--rc-surface)" }}>
-                    <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: row.rc.cls === "y" ? "var(--rc-green, #16a34a)" : row.rc.cls === "brand" ? "var(--rc-red)" : "var(--rc-red)" }}>{row.rc.mark}</span>
-                  </td>
-                  <td style={{ padding: "18px 16px", borderTop: "1px solid var(--rc-border)" }}>
-                    <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: row.jobscan.cls === "y" ? "var(--rc-green, #16a34a)" : row.jobscan.cls === "n" ? "var(--rc-red)" : row.jobscan.cls === "m" ? "#d97706" : "var(--rc-text)" }}>{row.jobscan.mark}</span>
-                  </td>
-                  <td style={{ padding: "18px 16px", borderTop: "1px solid var(--rc-border)" }}>
-                    <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: row.rw.cls === "y" ? "var(--rc-green, #16a34a)" : row.rw.cls === "n" ? "var(--rc-red)" : row.rw.cls === "m" ? "#d97706" : "var(--rc-text)" }}>{row.rw.mark}</span>
-                  </td>
-                  <td style={{ padding: "18px 16px", borderTop: "1px solid var(--rc-border)" }}>
-                    <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: row.rezi.cls === "y" ? "var(--rc-green, #16a34a)" : row.rezi.cls === "n" ? "var(--rc-red)" : row.rezi.cls === "m" ? "#d97706" : "var(--rc-text)" }}>{row.rezi.mark}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* How the product behaves, four claims about character rather than
+              capability. Two earlier rows ("GitHub scan", "multi-source
+              cross-check") were cut because s02 already sells those dimensions in
+              more depth, and repeating them made this read as a second spec
+              sheet. Deliberately a single wide column, not s02's numbered 2-col
+              grid: it closes the argument instead of listing features. The old
+              RejectCheck vs Jobscan vs Rezi table lived here and was dropped, it
+              invited scoring us on the keyword-scanner category's own checklist.
+              Head-to-head belongs on /alternatives, where comparison is the
+              visitor's actual intent. */}
+          <div>
+            {t.landing.s04.compRows.map((row) => (
+              <div
+                key={row.feat}
+                className="rc-mstack"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 5fr) minmax(0, 6fr)",
+                  gap: "10px 56px",
+                  alignItems: "start",
+                  padding: "34px 0",
+                  borderTop: "1px solid var(--rc-border)",
+                }}
+              >
+                <h3 style={{
+                  fontFamily: "var(--font-sans)", fontWeight: 600,
+                  fontSize: "clamp(20px, 1.9vw, 25px)", lineHeight: 1.22,
+                  letterSpacing: "-0.02em", color: "var(--rc-text)", margin: 0,
+                }}>
+                  {row.feat}
+                </h3>
+                <p style={{
+                  fontFamily: "var(--font-sans)", fontSize: 15.5, lineHeight: 1.65,
+                  color: "var(--rc-muted)", margin: 0, paddingTop: 3,
+                }}>
+                  {row.sub}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
