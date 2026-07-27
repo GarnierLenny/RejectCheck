@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 import { ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
 import type { AnalysisResult } from "../types";
 import type { KeywordMatchEntry } from "./types";
@@ -9,7 +9,11 @@ import {
   projectRisk,
   type ProjectionKeywordRow,
 } from "../../lib/score-projection";
-import { isBulletResolved as isResolved } from "../../lib/cv-draft";
+import {
+  isBulletResolved as isResolved,
+  isBulletPendingFill,
+} from "../../lib/cv-draft";
+import { placeholderCount, firstPlaceholderRange } from "../../lib/placeholders";
 
 type Props = {
   result: AnalysisResult;
@@ -122,6 +126,17 @@ export function InlineOptimize({
   const dirty = added.size > 0 || Object.keys(edits).some((k) => isBulletResolved(k));
   const improved = projectedRisk < current;
 
+  // B2: bullets the user edited but left holding an [X]/[N] placeholder. They
+  // never count as resolved (the guard in cv-draft keeps them out of the
+  // projected score and the draft), and they block the commit until filled.
+  const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+  const pendingFill = weakBullets.filter((b) => isBulletPendingFill(b.original, edits));
+  const pendingCount = pendingFill.length;
+  const jumpToFirstPending = () => {
+    const first = pendingFill[0]?.original;
+    if (first) textareaRefs.current[first]?.focus();
+  };
+
   // Publish the live projection so the sticky score header can show the same
   // "current -> projected" the strip below shows. Effect (not render-phase) so
   // the parent setState never happens while this component is rendering.
@@ -227,14 +242,19 @@ export function InlineOptimize({
               // prefilled, which would show a fix that the score ignores.
               const value = edits[b.original] ?? "";
               const canApply = !!b.rewrite && b.rewrite.trim() !== b.original.trim() && value.trim() !== b.rewrite.trim();
+              // B2: rewrite (or current text) still holds a placeholder → the
+              // suggestion is a template to fill, not a finished fix.
+              const rewriteHasPlaceholder = !!b.rewrite && placeholderCount(b.rewrite) > 0;
+              const pendingThis = isBulletPendingFill(b.original, edits);
+              const nToFill = placeholderCount(value);
               return (
                 <div
                   key={`${b.original.slice(0, 24)}-${i}`}
                   style={{
-                    border: `1px solid ${resolved ? "var(--rc-green-border)" : "var(--rc-border)"}`,
+                    border: `1px solid ${resolved ? "var(--rc-green-border)" : pendingThis ? "var(--rc-amber-border)" : "var(--rc-border)"}`,
                     borderRadius: 7,
                     padding: "10px 12px",
-                    background: resolved ? "var(--rc-green-bg)" : "var(--rc-surface)",
+                    background: resolved ? "var(--rc-green-bg)" : pendingThis ? "var(--rc-amber-bg)" : "var(--rc-surface)",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -271,7 +291,21 @@ export function InlineOptimize({
                   </div>
                   {canApply && (
                     <button
-                      onClick={() => onEditBullet(b.original, b.rewrite!.trim())}
+                      onClick={() => {
+                        const applied = b.rewrite!.trim();
+                        onEditBullet(b.original, applied);
+                        // If the applied template still has a placeholder, drop
+                        // the cursor on the first one so the number is next.
+                        const range = firstPlaceholderRange(applied);
+                        if (range) {
+                          requestAnimationFrame(() => {
+                            const el = textareaRefs.current[b.original];
+                            if (!el) return;
+                            el.focus();
+                            el.setSelectionRange(range[0], range[1]);
+                          });
+                        }
+                      }}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
@@ -289,10 +323,13 @@ export function InlineOptimize({
                         color: "var(--rc-green)",
                       }}
                     >
-                      <Sparkles size={11} /> {ro.applySuggestion}
+                      <Sparkles size={11} /> {rewriteHasPlaceholder ? ro.useAndFill : ro.applySuggestion}
                     </button>
                   )}
                   <textarea
+                    ref={(el) => {
+                      textareaRefs.current[b.original] = el;
+                    }}
                     value={value}
                     onChange={(e) => onEditBullet(b.original, e.target.value)}
                     rows={2}
@@ -305,11 +342,21 @@ export function InlineOptimize({
                       lineHeight: 1.5,
                       color: "var(--rc-text)",
                       background: "var(--rc-bg)",
-                      border: "1px solid var(--rc-border)",
+                      border: `1px solid ${pendingThis ? "var(--rc-amber-border)" : "var(--rc-border)"}`,
                       borderRadius: 5,
                       padding: "7px 9px",
                     }}
                   />
+                  {pendingThis && (
+                    <div style={{ marginTop: 6, lineHeight: 1.45 }}>
+                      <span style={{ fontFamily: "var(--font-mono)", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--rc-amber)" }}>
+                        {nToFill} {ro.toFill}
+                      </span>
+                      <span style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--rc-hint)", marginLeft: 8 }}>
+                        {ro.fillHint}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -319,39 +366,73 @@ export function InlineOptimize({
 
       {/* Commit */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16, flexWrap: "wrap" }}>
-        <button
-          onClick={() => onCommit(draft)}
-          disabled={busy || !dirty}
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            padding: "9px 16px",
-            border: "1px solid var(--rc-text)",
-            borderRadius: 5,
-            background: busy || !dirty ? "var(--rc-surface)" : "var(--rc-text)",
-            color: busy || !dirty ? "var(--rc-hint)" : "#fff",
-            cursor: busy || !dirty ? "not-allowed" : "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-          }}
-        >
-          {busy ? (
-            <>
-              <Loader2 size={12} className="rc-spin" /> {ro.validating}
-            </>
-          ) : (
-            <>
-              {ro.validate} <span style={{ opacity: 0.75, fontWeight: 600 }}>{ro.creditNote}</span>
-            </>
-          )}
-        </button>
-        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--rc-hint)", letterSpacing: "0.02em" }}>
-          {ro.paidNote}
-        </span>
+        {(() => {
+          // Block the paid re-scan while any accepted bullet still holds a
+          // placeholder: committing would ship "[X]" or silently drop the edit.
+          const blocked = busy || !dirty || pendingCount > 0;
+          return (
+            <button
+              onClick={() => onCommit(draft)}
+              disabled={blocked}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                padding: "9px 16px",
+                border: "1px solid var(--rc-text)",
+                borderRadius: 5,
+                background: blocked ? "var(--rc-surface)" : "var(--rc-text)",
+                color: blocked ? "var(--rc-hint)" : "#fff",
+                cursor: blocked ? "not-allowed" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+              }}
+            >
+              {busy ? (
+                <>
+                  <Loader2 size={12} className="rc-spin" /> {ro.validating}
+                </>
+              ) : (
+                <>
+                  {ro.validate} <span style={{ opacity: 0.75, fontWeight: 600 }}>{ro.creditNote}</span>
+                </>
+              )}
+            </button>
+          );
+        })()}
+        {pendingCount > 0 && !busy ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10.5, fontWeight: 700, color: "var(--rc-amber)", letterSpacing: "0.03em" }}>
+              {pendingCount} {ro.toFill}
+            </span>
+            <button
+              type="button"
+              onClick={jumpToFirstPending}
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 9.5,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                color: "var(--rc-amber)",
+                background: "transparent",
+                border: "1px solid var(--rc-amber-border)",
+                borderRadius: 5,
+                padding: "3px 8px",
+                cursor: "pointer",
+              }}
+            >
+              {ro.jumpToFix} →
+            </button>
+          </span>
+        ) : (
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--rc-hint)", letterSpacing: "0.02em" }}>
+            {ro.paidNote}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ import type {
   RescansResponse,
   RescanTimelinePoint,
 } from "./types";
+import { AnimatedScore } from "./AnimatedScore";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 
@@ -50,6 +51,12 @@ type Props = {
     onEditBullet: (original: string, text: string) => void;
     onProjectedRiskChange?: (risk: number) => void;
   } | null;
+  /**
+   * Fired on a positive full re-scan to share the before→after glow-up. When
+   * absent, the share prompt falls back to opening the updated analysis. The
+   * dedicated before/after OG card is P1.2. (Move B / B4.)
+   */
+  onShareGlowUp?: (payload: { before: number; after: number }) => void;
 };
 
 type FullPayload = {
@@ -64,7 +71,7 @@ type FullPayload = {
   code?: string;
 };
 
-export function RescanPanel({ analysisId, accessToken, result = null, cvText = null, draft = null }: Props) {
+export function RescanPanel({ analysisId, accessToken, result = null, cvText = null, draft = null, onShareGlowUp }: Props) {
   const { t, localePath } = useLanguage();
   const rt = t.analysisLayout.rescan;
 
@@ -442,7 +449,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
         </div>
       )}
 
-      {fullDeltas && <FullRescanResult deltas={fullDeltas} onOpen={openUpdated} canOpen={fullNewId != null} rt={rt} />}
+      {fullDeltas && <FullRescanResult deltas={fullDeltas} onOpen={openUpdated} canOpen={fullNewId != null} rt={rt} onShareGlowUp={onShareGlowUp} />}
 
       {match && match.keywords.length > 0 && (
         <div style={{ marginTop: 16 }}>
@@ -627,14 +634,20 @@ function FullRescanResult({
   onOpen,
   canOpen,
   rt,
+  onShareGlowUp,
 }: {
   deltas: RescanDeltas;
   onOpen: () => void;
   canOpen: boolean;
   rt: RescanRt;
+  onShareGlowUp?: (payload: { before: number; after: number }) => void;
 }) {
   const scoreDelta = deltas.score.delta;
   const atsFlipUp = !deltas.ats.wouldPassBefore && deltas.ats.wouldPassAfter;
+  // Competitiveness = 100 − rejection risk, so it climbs when the risk drops.
+  const compBefore = deltas.score.before == null ? null : 100 - deltas.score.before;
+  const compAfter = deltas.score.after == null ? null : 100 - deltas.score.after;
+  const improved = compBefore != null && compAfter != null && compAfter > compBefore;
   return (
     <div
       style={{
@@ -649,8 +662,9 @@ function FullRescanResult({
         {/* Displayed as competitiveness (100 − stored rejection risk): higher = better, so a rise is the win. */}
         <BeforeAfter
           label={rt.competitiveness}
-          before={deltas.score.before == null ? null : 100 - deltas.score.before}
-          after={deltas.score.after == null ? null : 100 - deltas.score.after}
+          before={compBefore}
+          after={compAfter}
+          animate
         />
         <BeforeAfter label={rt.coverage} before={deltas.keywordCoverage.before} after={deltas.keywordCoverage.after} suffix="%" />
         <div
@@ -683,7 +697,51 @@ function FullRescanResult({
           )}
         </div>
       )}
-      {canOpen && (
+      {/* Celebratory share prompt — positive re-scan only. A before→after is a
+          flex, not a confession, so this is the one shareable peak worth a
+          prompt. Falls back to opening the updated analysis until the P1.2
+          before/after OG card exists. */}
+      {improved && compBefore != null && compAfter != null && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            marginTop: 14,
+            paddingTop: 14,
+            borderTop: "1px solid color-mix(in srgb, var(--rc-green) 25%, transparent)",
+          }}
+        >
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--rc-text)" }}>
+            {compBefore} → {compAfter}. <strong>{rt.shareProgress}.</strong>
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              onShareGlowUp ? onShareGlowUp({ before: compBefore, after: compAfter }) : onOpen()
+            }
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              padding: "8px 14px",
+              border: "none",
+              borderRadius: 4,
+              background: "var(--rc-green)",
+              color: "#fff",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            {rt.shareProgress} →
+          </button>
+        </div>
+      )}
+      {canOpen && !improved && (
         <button
           onClick={onOpen}
           style={{
@@ -714,6 +772,7 @@ function BeforeAfter({
   after,
   suffix = "",
   lowerIsBetter = false,
+  animate = false,
 }: {
   label: string;
   before: number | null;
@@ -721,6 +780,8 @@ function BeforeAfter({
   suffix?: string;
   /** For rejection-risk, a DROP is the improvement. */
   lowerIsBetter?: boolean;
+  /** Roll the "after" number up from "before" on reveal (headline metric only). */
+  animate?: boolean;
 }) {
   const b = before ?? 0;
   const a = after ?? 0;
@@ -741,7 +802,7 @@ function BeforeAfter({
         {suffix}
         <span style={{ color: "var(--rc-hint)", margin: "0 5px" }}>→</span>
         <span style={{ color: afterColor }}>
-          {after ?? "?"}
+          {after == null ? "?" : animate ? <AnimatedScore from={b} to={a} /> : after}
           {suffix}
         </span>
       </span>

@@ -12,6 +12,8 @@
  * Pure: no I/O, no dates, no randomness. Same input always yields the same draft.
  */
 
+import { hasUnfilledPlaceholder } from "./placeholders";
+
 /** Structurally compatible with BulletReviewItem (nullable optional fields). */
 export type DraftBullet = {
   original: string;
@@ -22,15 +24,41 @@ export type DraftBullet = {
 
 /**
  * A bullet counts as fixed only when the user has actually written something
- * DIFFERENT from the original. An empty box, or the original text pasted back,
- * is not a fix and must not move the projected score.
+ * DIFFERENT from the original AND free of unfilled [X]/[N] placeholders. An
+ * empty box, the original pasted back, or a template still holding "[X]%" is not
+ * a fix and must not move the projected score, enter the draft, or commit. The
+ * placeholder guard is what keeps a number-shaped template from inflating the
+ * live projection here the same way it does on the CV-audit side. (Move B / B2.)
  */
 export function isBulletResolved(
   original: string,
   edits: Record<string, string>,
 ): boolean {
   const e = edits[original];
-  return e != null && e.trim().length > 0 && e.trim() !== original.trim();
+  return (
+    e != null &&
+    e.trim().length > 0 &&
+    e.trim() !== original.trim() &&
+    !hasUnfilledPlaceholder(e)
+  );
+}
+
+/**
+ * A bullet the user has edited (differs from the original) but which still
+ * carries an unfilled placeholder: it counts as "needs a number", not a fix.
+ * Used to show the fill state and to block the commit until it is resolved.
+ */
+export function isBulletPendingFill(
+  original: string,
+  edits: Record<string, string>,
+): boolean {
+  const e = edits[original];
+  return (
+    e != null &&
+    e.trim().length > 0 &&
+    e.trim() !== original.trim() &&
+    hasUnfilledPlaceholder(e)
+  );
 }
 
 /** The bullets the optimizer offers to fix: everything the model did not call strong. */

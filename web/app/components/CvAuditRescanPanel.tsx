@@ -6,6 +6,8 @@ import { consumeSSE } from "../../lib/sse";
 import { scrollIntoViewMotionSafe } from "../lib/scroll";
 import { useLanguage } from "../../context/language";
 import { SectionBand } from "./SectionBand";
+import { AnimatedScore } from "./rescan/AnimatedScore";
+import { placeholderCount, firstPlaceholderRange } from "../lib/placeholders";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 
@@ -59,6 +61,12 @@ type Props = {
    * reach the draft. Null when there is nothing to reflect. (Move B / B1.)
    */
   onDraftChange?: (draft: { text: string; changedLines: string[] } | null) => void;
+  /**
+   * Fired on a positive re-audit to share the before→after glow-up. When absent,
+   * the share prompt falls back to opening the updated audit. The dedicated
+   * before/after OG card is P1.2; this just wires the entry point. (Move B / B4.)
+   */
+  onShareGlowUp?: (payload: { before: number; after: number }) => void;
 };
 
 const COPY = {
@@ -95,6 +103,8 @@ const COPY = {
     toFill: "to fill",
     fillHint: "Replace each [X] with your real number, or reword to drop the claim.",
     jumpToFix: "Jump to first",
+    strengthened: "strengthened",
+    shareProgress: "Share your progress",
   },
   fr: {
     kicker: "09 · Boucle de re-audit",
@@ -129,6 +139,8 @@ const COPY = {
     toFill: "à chiffrer",
     fillHint: "Remplace chaque [X] par ton vrai chiffre, ou reformule pour retirer la revendication.",
     jumpToFix: "Aller au premier",
+    strengthened: "renforcés",
+    shareProgress: "Partage ta progression",
   },
 };
 
@@ -192,27 +204,6 @@ function applyBulletEdit(
   return { text, applied: false };
 }
 
-/**
- * Placeholder tokens the model leaves in a rewrite for the user to fill with a
- * real figure: [X], [N], [X]%, [number]... We never ship or score these. A
- * bracketed token up to 20 chars, no newline inside. Used for both counting and
- * locating the first one to focus.
- */
-const PLACEHOLDER_RE = /\[[^\]\n]{1,20}\]/;
-
-/** How many unfilled placeholder tokens remain in a rewrite. */
-function placeholderCount(text: string): number {
-  const m = text.match(/\[[^\]\n]{1,20}\]/g);
-  return m ? m.length : 0;
-}
-
-/** Start/end offsets of the first placeholder, for select-on-accept. Null if none. */
-function firstPlaceholderRange(text: string): [number, number] | null {
-  const m = PLACEHOLDER_RE.exec(text);
-  if (!m) return null;
-  return [m.index, m.index + m[0].length];
-}
-
 /** The sub-score that gained the most on this re-audit (for the "what moved" line). */
 function biggestMover(
   deltas: CvReviewRescanDeltas,
@@ -250,6 +241,7 @@ export function CvAuditRescanPanel({
   focusedOriginal = null,
   focusNonce = 0,
   onDraftChange,
+  onShareGlowUp,
 }: Props) {
   const { locale, localePath } = useLanguage();
   const L = locale === "fr" ? COPY.fr : COPY.en;
@@ -482,6 +474,34 @@ export function CvAuditRescanPanel({
             <p style={{ ...SANS, fontSize: 12.5, color: "var(--rc-hint)", margin: "0 0 14px", lineHeight: 1.5 }}>
               {L.hint}
             </p>
+
+            {/* B3: honest progress. Real facts (bullets strengthened / left to
+                fill), never a projected score — for weak bullets the deterministic
+                gain is 0, so a live number would be fiction. The score only moves
+                on the actual re-audit below. */}
+            {improvable.length > 0 && (dirtyCount > 0 || pendingFillCount > 0) && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ ...MONO, fontSize: 11, color: "var(--rc-muted)", display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+                  <strong style={{ color: "var(--rc-green)", fontSize: 13 }}>{dirtyCount}</strong>
+                  <span>/ {improvable.length} {L.strengthened}</span>
+                  {pendingFillCount > 0 && (
+                    <span style={{ color: "var(--rc-amber)" }}>· {pendingFillCount} {L.toFill}</span>
+                  )}
+                </div>
+                <div style={{ height: 4, background: "var(--rc-border)", borderRadius: 99, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.round((dirtyCount / improvable.length) * 100)}%`,
+                      background: "var(--rc-green)",
+                      borderRadius: 99,
+                      transition: "width 0.4s ease",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {improvable.map((b, i) => {
                 const o = b.original ?? "";
@@ -738,9 +758,12 @@ export function CvAuditRescanPanel({
           .rc-rescan-track{height:4px;background:var(--rc-border);border-radius:99px;overflow:hidden}
           .rc-rescan-fill{height:100%;width:40%;border-radius:99px;background:var(--rc-red);animation:rcRescanSlide 1.3s ease-in-out infinite}
           @keyframes rcRescanSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+          .rc-reveal-pop{display:inline-block;animation:rcRevealPop 1.1s ease-out 1}
+          @keyframes rcRevealPop{0%{transform:scale(1)}22%{transform:scale(1.35)}100%{transform:scale(1)}}
           @media (prefers-reduced-motion: reduce){
             .rc-rescan-spin{animation:none}
             .rc-rescan-fill{animation:none;width:100%;opacity:.5}
+            .rc-reveal-pop{animation:none}
           }
         `}</style>
 
@@ -780,16 +803,83 @@ export function CvAuditRescanPanel({
               </div>
             )}
 
-            {/* Overall headline movement */}
-            <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
-              <span style={{ ...SANS, fontSize: 13, color: "var(--rc-hint)" }}>{L.overall}</span>
-              <span style={{ ...MONO, fontSize: 22, fontWeight: 700, color: "var(--rc-text)" }}>
-                {deltas.overall.before ?? currentOverall} → {deltas.overall.after ?? "?"}
-              </span>
-              <span style={{ ...MONO, fontSize: 16, fontWeight: 700, color: deltaColor(deltas.overall.delta) }}>
-                {fmtDelta(deltas.overall.delta)}
-              </span>
-            </div>
+            {/* Overall headline movement — the reveal. The "after" rolls up from
+                the "before" so the score lands as a movement (Move B / B4). */}
+            {(() => {
+              const before = deltas.overall.before ?? currentOverall;
+              const after = deltas.overall.after;
+              const positive = (deltas.overall.delta ?? 0) > 0;
+              return (
+                <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 20 }}>
+                  <span style={{ ...SANS, fontSize: 13, color: "var(--rc-hint)" }}>{L.overall}</span>
+                  <span style={{ ...MONO, fontSize: 22, fontWeight: 700, color: "var(--rc-text)" }}>
+                    {before} →{" "}
+                    <span style={{ color: positive ? "var(--rc-green)" : "var(--rc-text)" }}>
+                      {after == null ? "?" : <AnimatedScore from={before} to={after} />}
+                    </span>
+                  </span>
+                  <span
+                    className={positive ? "rc-reveal-pop" : undefined}
+                    style={{ ...MONO, fontSize: 16, fontWeight: 700, color: deltaColor(deltas.overall.delta) }}
+                  >
+                    {fmtDelta(deltas.overall.delta)}
+                  </span>
+                </div>
+              );
+            })()}
+
+            {/* Celebratory share prompt — positive re-audit only. A before→after
+                is a flex, not a confession, so this is the one shareable moment
+                worth prompting. The dedicated glow-up OG card is P1.2; here the
+                CTA falls back to opening the updated audit. */}
+            {(deltas.overall.delta ?? 0) > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  flexWrap: "wrap",
+                  background: "var(--rc-green-bg)",
+                  border: "1px solid var(--rc-green-border)",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  marginBottom: 20,
+                }}
+              >
+                <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)" }}>
+                  {(deltas.overall.before ?? currentOverall)} → {deltas.overall.after}.{" "}
+                  <strong>{L.shareProgress}.</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const after = deltas.overall.after;
+                    if (onShareGlowUp && after != null) {
+                      onShareGlowUp({ before: deltas.overall.before ?? currentOverall, after });
+                    } else {
+                      openUpdated();
+                    }
+                  }}
+                  style={{
+                    ...MONO,
+                    fontSize: 11,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                    color: "#fff",
+                    background: "var(--rc-green)",
+                    border: "none",
+                    borderRadius: 6,
+                    padding: "9px 16px",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  {L.shareProgress} →
+                </button>
+              </div>
+            )}
 
             {/* What moved / why it held (item 2: honest score explanation) */}
             {(() => {
