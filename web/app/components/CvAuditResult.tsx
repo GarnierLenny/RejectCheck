@@ -21,6 +21,7 @@ import { CvChecksScorecard } from "./CvChecksScorecard";
 import { CvBenchmarkPanel } from "./CvBenchmarkPanel";
 import { CorpusFactCard } from "./CorpusFactCard";
 import { CvNextLever } from "./CvNextLever";
+import { nextLever } from "../lib/next-lever";
 import { CvGlanceStrip } from "./CvGlanceStrip";
 import { BenchmarkClaimLine } from "./BenchmarkClaimLine";
 import { CvRecruiterRadar } from "./CvRecruiterRadar";
@@ -436,6 +437,15 @@ export function CvAuditResult({
         .join(", ")
     : "";
 
+  // Move A: the verdict-moment trigger. The re-audit loop lives far down in §09
+  // and has never been used; this names the single highest-leverage dimension
+  // (deterministic, same weights as the score) and jumps straight to the loop,
+  // so the score reads as fixable, not final. Null once the CV is already Strong.
+  const heroLever = q ? nextLever(q, result.cv_quality_notes) : null;
+  const heroLeverLabel = heroLever
+    ? qualityDims.find((d) => d.key === heroLever.dimension)?.label ?? heroLever.dimension
+    : null;
+
   // 03 seniority
   const detectedIdx = seniorityIndex(result.seniority_analysis.detected);
   const expectedIdx = seniorityIndex(result.seniority_analysis.expected);
@@ -694,6 +704,58 @@ export function CvAuditResult({
                 ]}
               />
               <CvGlanceStrip mergedCounts={sevCounts} checksPassed={checksPassed} timelineFlags={timelineFlags} overall={q.overall} />
+
+              {/* Move A — verdict-moment trigger. Makes the buried §09 re-audit
+                  loop discoverable at the peak of attention: the moment the user
+                  reads their score. Frames it as fixable (verdict → proof), not
+                  final. Owned analyses only (the loop is gated the same way). */}
+              {rescanAvailable && (
+                <div
+                  style={{
+                    marginTop: 22,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    flexWrap: "wrap",
+                    border: "1px solid var(--rc-red-border)",
+                    background: "var(--rc-red-bg)",
+                    borderRadius: 10,
+                    padding: "14px 16px",
+                  }}
+                >
+                  <div style={{ maxWidth: 560 }}>
+                    <div style={{ ...MONO, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--rc-red)", marginBottom: 4 }}>
+                      This score isn&rsquo;t fixed
+                    </div>
+                    <p style={{ ...SANS, fontSize: 13.5, lineHeight: 1.5, color: "var(--rc-text)", margin: 0 }}>
+                      {heroLever && heroLeverLabel
+                        ? <>Your biggest lever is <strong>{heroLeverLabel}</strong> ({heroLever.current} → aim {heroLever.target}). Rewrite your weak bullets and re-audit to watch the score move.</>
+                        : <>Rewrite your weak bullets and re-audit to watch the score move, no re-upload, your six dimensions get re-judged.</>}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => scrollTo("s9")}
+                    style={{
+                      ...MONO,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      color: "#fff",
+                      background: "var(--rc-red)",
+                      border: "none",
+                      borderRadius: 6,
+                      padding: "11px 18px",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Fix &amp; re-audit →
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
