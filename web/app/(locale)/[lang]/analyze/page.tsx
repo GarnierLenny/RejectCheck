@@ -951,6 +951,24 @@ function AnalyzeContent() {
     }
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Arrived from the re-scan "Share your progress" CTA (?share=1). The improved
+  // analysis is now the one loaded, so mint its public token and open the share
+  // modal straight away. The card renders as a before/after glow-up rather than a
+  // bare score because THIS row carries the parentAnalysisId the backend needs to
+  // derive `improvedFromScore` — which is why the CTA navigates here first
+  // instead of sharing the pre-rescan analysis the user was looking at. (P1.2.)
+  const autoShareRef = useRef(false);
+  useEffect(() => {
+    if (autoShareRef.current) return;
+    if (searchParams.get("share") !== "1") return;
+    if (!analysisId || !session?.access_token) return;
+    autoShareRef.current = true;
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.delete("share");
+    router.replace(`${localePath("/analyze")}?${params.toString()}`, { scroll: false });
+    void shareAnalysis();
+  }, [searchParams, analysisId, session]); // eslint-disable-line react-hooks/exhaustive-deps
+
   async function handleRewrite() {
     const emailVal = user?.email;
     if (!analysisId || !emailVal || !session?.access_token) return;

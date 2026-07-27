@@ -62,12 +62,6 @@ type Props = {
    * reach the draft. Null when there is nothing to reflect. (Move B / B1.)
    */
   onDraftChange?: (draft: { text: string; changedLines: string[] } | null) => void;
-  /**
-   * Fired on a positive re-audit to share the before→after glow-up. When absent,
-   * the share prompt falls back to opening the updated audit. The dedicated
-   * before/after OG card is P1.2; this just wires the entry point. (Move B / B4.)
-   */
-  onShareGlowUp?: (payload: { before: number; after: number }) => void;
 };
 
 const COPY = {
@@ -105,7 +99,7 @@ const COPY = {
     fillHint: "Replace each [X] with your real number, or reword to drop the claim.",
     jumpToFix: "Jump to first",
     strengthened: "strengthened",
-    shareProgress: "Share your progress",
+    improved: "Your CV got stronger."
   },
   fr: {
     kicker: "09 · Boucle de re-audit",
@@ -141,7 +135,7 @@ const COPY = {
     fillHint: "Remplace chaque [X] par ton vrai chiffre, ou reformule pour retirer la revendication.",
     jumpToFix: "Aller au premier",
     strengthened: "renforcés",
-    shareProgress: "Partage ta progression",
+    improved: "Votre CV s'est renforcé."
   },
 };
 
@@ -242,7 +236,6 @@ export function CvAuditRescanPanel({
   focusedOriginal = null,
   focusNonce = 0,
   onDraftChange,
-  onShareGlowUp,
 }: Props) {
   const { locale, localePath } = useLanguage();
   const L = locale === "fr" ? COPY.fr : COPY.en;
@@ -840,10 +833,14 @@ export function CvAuditRescanPanel({
               );
             })()}
 
-            {/* Celebratory share prompt — positive re-audit only. A before→after
-                is a flex, not a confession, so this is the one shareable moment
-                worth prompting. The dedicated glow-up OG card is P1.2; here the
-                CTA falls back to opening the updated audit. */}
+            {/* Celebration on a positive re-audit only. Deliberately NOT a share
+                prompt: the before/after OG card is derived from
+                `deriveRescanImprovement`, whose anchoring check excludes CV
+                audits ("a CV audit has no vs-JD composite"), so a "share your
+                progress" CTA here would mint a plain score card and quietly
+                break the promise. The vs-JD flow, which the backend does support,
+                gets the real glow-up share. Revisit when the backend can anchor a
+                cv_quality before/after. */}
             {(deltas.overall.delta ?? 0) > 0 && (
               <div
                 style={{
@@ -861,19 +858,18 @@ export function CvAuditRescanPanel({
               >
                 <span style={{ ...SANS, fontSize: 13, color: "var(--rc-text)" }}>
                   {(deltas.overall.before ?? currentOverall)} → {deltas.overall.after}.{" "}
-                  <strong>{L.shareProgress}.</strong>
+                  <strong>{L.improved}</strong>
                 </span>
                 <button
                   type="button"
                   onClick={() => {
-                    const after = deltas.overall.after;
-                    const before = deltas.overall.before ?? currentOverall;
-                    posthog.capture("rescan_share_clicked", { analysisId, flow: "cv_review", before, after });
-                    if (onShareGlowUp && after != null) {
-                      onShareGlowUp({ before, after });
-                    } else {
-                      openUpdated();
-                    }
+                    posthog.capture("rescan_open_updated_clicked", {
+                      analysisId,
+                      flow: "cv_review",
+                      before: deltas.overall.before ?? currentOverall,
+                      after: deltas.overall.after,
+                    });
+                    openUpdated();
                   }}
                   style={{
                     ...MONO,
@@ -890,7 +886,7 @@ export function CvAuditRescanPanel({
                     flexShrink: 0,
                   }}
                 >
-                  {L.shareProgress} →
+                  {L.open} →
                 </button>
               </div>
             )}

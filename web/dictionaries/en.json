@@ -1262,8 +1262,8 @@
     "badge": "Pricing Plans",
     "title": "Stop guessing why you got",
     "titleHighlight": "rejected.",
-    "subtitle": "From first rejection to your dream offer.",
-    "subtitleLine2": "Get the edge you deserve.",
+    "subtitle": "See the real reason you'd be cut, for free.",
+    "subtitleLine2": "Pay only when you want the fixes that move the score.",
     "recommended": "Recommended",
     "safetyNote": "Cancel anytime, no commitment",
     "includedInHired": "Everything here is included in Hired",
@@ -1284,7 +1284,7 @@
         "period": "/forever",
         "description": "Perfect for a first reality check.",
         "features": [
-          "3 analyses / month, diagnosis only",
+          "3 analyses / month, the verdict in full",
           "Cross-source check: CV, LinkedIn, GitHub",
           "Score breakdown",
           "Hidden red flags",
@@ -1317,7 +1317,7 @@
         "features": [
           "Everything in Free, unredacted",
           "30 analyses / month",
-          "Every fix, not just the diagnosis",
+          "Every fix, not just the verdict",
           "Cover letter generator",
           "Negotiation playbook: counter-offer email + leverage points",
           "Salary positioning against the market band",
@@ -1368,8 +1368,8 @@
           "answer": "Yes. You can move up to Hired or go back to Free at any time from your account. Changes take effect at the end of the current billing period, and nothing is lost from your past analyses."
         },
         {
-          "question": "How does RejectCheck compare to Jobscan, Rezi, and other alternatives?",
-          "answer": "Hired is €39.99/month, and founding members lock it at €19.99 for life. That puts the entry price alongside tools like Rezi ($29/month), Jobscan, and Enhancv. What sets RejectCheck apart isn't the price tag: it's the depth. You get a multi-pass Claude pipeline (Sonnet + Haiku) with a full GitHub/LinkedIn cross-check, the kind of analysis the others don't run at any tier. Pay for the analysis, not the brand."
+          "question": "How does RejectCheck compare to other CV tools?",
+          "answer": "Most CV tools score your résumé against a job's keywords and stop there. RejectCheck reads your CV, LinkedIn and GitHub against one specific job, tells you whether you'd be cut and names the reason, then lets you rewrite what it flagged and re-run the audit to see the score actually move. The verdict, the missing keywords and the red flags are free, permanently: you pay for the fixes. Hired is €39.99/month and founding members lock it at €19.99 for life. For a feature-by-feature look at the other tools, we keep honest write-ups on our comparisons page."
         }
       ]
     }

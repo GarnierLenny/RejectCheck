@@ -1262,8 +1262,8 @@
     "badge": "Nos Offres",
     "title": "Arrêtez de deviner pourquoi vous êtes",
     "titleHighlight": "rejeté.",
-    "subtitle": "Du premier rejet à l'offre de vos rêves.",
-    "subtitleLine2": "Prenez l'avantage que vous méritez.",
+    "subtitle": "Voyez la vraie raison qui vous ferait écarter, gratuitement.",
+    "subtitleLine2": "Vous ne payez que pour les corrections qui font bouger le score.",
     "recommended": "Recommandé",
     "safetyNote": "Annulable à tout moment, sans engagement",
     "includedInHired": "Tout ceci est inclus dans Hired",
@@ -1284,7 +1284,7 @@
         "period": "/à vie",
         "description": "Parfait pour un premier bilan de réalité.",
         "features": [
-          "3 analyses / mois, diagnostic seul",
+          "3 analyses / mois, le verdict en entier",
           "Recoupement CV, LinkedIn, GitHub",
           "Détail du score",
           "Signaux d'alerte cachés",
@@ -1317,7 +1317,7 @@
         "features": [
           "Tout le plan Gratuit, en version complète",
           "30 analyses / mois",
-          "Toutes les corrections, pas seulement le diagnostic",
+          "Toutes les corrections, pas seulement le verdict",
           "Générateur de lettre de motivation",
           "Playbook de négociation : email de contre-proposition + leviers",
           "Positionnement salarial face à la fourchette du marché",
@@ -1368,8 +1368,8 @@
           "answer": "Oui. Tu peux passer à Hired ou revenir au plan Gratuit à tout moment depuis ton compte. Le changement prend effet à la fin de la période en cours, et rien n'est perdu de tes analyses passées."
         },
         {
-          "question": "Comment RejectCheck se compare à Jobscan, Rezi, et les autres ?",
-          "answer": "Hired est à 39,99 €/mois, et les membres fondateurs le verrouillent à 19,99 € à vie. Le prix d'entrée se situe donc au niveau d'outils comme Rezi (29 $/mois), Jobscan ou Enhancv. Ce qui distingue RejectCheck, ce n'est pas le prix : c'est la profondeur. Vous obtenez un pipeline Claude multi-passe (Sonnet + Haiku) avec un croisement GitHub/LinkedIn complet, le type d'analyse que les autres ne font à aucun palier. Vous payez l'analyse, pas la marque."
+          "question": "Comment RejectCheck se compare aux autres outils CV ?",
+          "answer": "La plupart des outils CV notent votre CV face aux mots-clés d'une offre, et s'arrêtent là. RejectCheck lit votre CV, votre LinkedIn et votre GitHub face à une offre précise, vous dit si vous seriez écarté et en nomme la raison, puis vous laisse réécrire ce qu'il a signalé et relancer l'audit pour voir le score bouger vraiment. Le verdict, les mots-clés manquants et les red flags sont gratuits, définitivement : vous payez les corrections. Hired est à 39,99 €/mois, et les membres fondateurs le verrouillent à 19,99 € à vie. Pour une comparaison détaillée avec les autres outils, nous publions des analyses honnêtes sur notre page de comparaisons."
         }
       ]
     }

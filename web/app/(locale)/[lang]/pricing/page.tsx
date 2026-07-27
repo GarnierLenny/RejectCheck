@@ -177,6 +177,15 @@ function PricingContent() {
           <h1 className="text-[30px] md:text-[40px] font-bold leading-[1.15] tracking-tight text-rc-text">
             {t.pricing.title} <span className="text-rc-red">{t.pricing.titleHighlight}</span>
           </h1>
+          {/* The header was a bare title, so the page opened on price with no
+              statement of what is actually free vs paid. These two lines carry
+              the same frame as the landing hero (the verdict is free, the fixes
+              are what you buy) so the story does not change between the two. */}
+          <p className="mt-4 mx-auto max-w-[46ch] text-[15px] md:text-base leading-relaxed text-rc-muted">
+            {t.pricing.subtitle}
+            <br className="hidden sm:block" />{" "}
+            {t.pricing.subtitleLine2}
+          </p>
         </div>
 
         {/* The founder deal used to be repeated here as a banner above the

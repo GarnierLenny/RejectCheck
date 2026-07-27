@@ -52,12 +52,6 @@ type Props = {
     onEditBullet: (original: string, text: string) => void;
     onProjectedRiskChange?: (risk: number) => void;
   } | null;
-  /**
-   * Fired on a positive full re-scan to share the before→after glow-up. When
-   * absent, the share prompt falls back to opening the updated analysis. The
-   * dedicated before/after OG card is P1.2. (Move B / B4.)
-   */
-  onShareGlowUp?: (payload: { before: number; after: number }) => void;
 };
 
 type FullPayload = {
@@ -72,7 +66,7 @@ type FullPayload = {
   code?: string;
 };
 
-export function RescanPanel({ analysisId, accessToken, result = null, cvText = null, draft = null, onShareGlowUp }: Props) {
+export function RescanPanel({ analysisId, accessToken, result = null, cvText = null, draft = null }: Props) {
   const { t, localePath } = useLanguage();
   const rt = t.analysisLayout.rescan;
 
@@ -303,6 +297,18 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
     window.location.assign(`${localePath("/analyze")}?id=${fullNewId}`);
   };
 
+  /**
+   * Share the glow-up. The before/after card is rendered from the SHARED
+   * analysis, and only the re-scanned row carries the parentAnalysisId the
+   * backend needs to derive `improvedFromScore` — so we share the NEW analysis,
+   * not the one still on screen. `share=1` makes the analyze page mint the token
+   * and open the share modal on arrival. (Move B / B4, P1.2.)
+   */
+  const openUpdatedAndShare = () => {
+    if (fullNewId == null) return;
+    window.location.assign(`${localePath("/analyze")}?id=${fullNewId}&share=1`);
+  };
+
   return (
     <Frame rt={rt}>
       {match && match.totalCount > 0 && (
@@ -481,7 +487,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
         </div>
       )}
 
-      {fullDeltas && <FullRescanResult deltas={fullDeltas} onOpen={openUpdated} canOpen={fullNewId != null} rt={rt} onShareGlowUp={onShareGlowUp} />}
+      {fullDeltas && <FullRescanResult deltas={fullDeltas} onOpen={openUpdated} onShare={openUpdatedAndShare} canOpen={fullNewId != null} rt={rt} />}
 
       {match && match.keywords.length > 0 && (
         <div style={{ marginTop: 16 }}>
@@ -664,15 +670,16 @@ function DeltaPill({ delta }: { delta: number }) {
 function FullRescanResult({
   deltas,
   onOpen,
+  onShare,
   canOpen,
   rt,
-  onShareGlowUp,
 }: {
   deltas: RescanDeltas;
   onOpen: () => void;
+  /** Opens the improved analysis with the share modal primed (glow-up card). */
+  onShare: () => void;
   canOpen: boolean;
   rt: RescanRt;
-  onShareGlowUp?: (payload: { before: number; after: number }) => void;
 }) {
   const scoreDelta = deltas.score.delta;
   const atsFlipUp = !deltas.ats.wouldPassBefore && deltas.ats.wouldPassAfter;
@@ -753,8 +760,7 @@ function FullRescanResult({
             type="button"
             onClick={() => {
               posthog.capture("rescan_share_clicked", { flow: "vs_jd", before: compBefore, after: compAfter });
-              if (onShareGlowUp) onShareGlowUp({ before: compBefore, after: compAfter });
-              else onOpen();
+              onShare();
             }}
             style={{
               fontFamily: "var(--font-mono)",
