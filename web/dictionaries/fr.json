@@ -26,7 +26,6 @@
     "dashboard": "Tableau de bord"
   },
   "landing": {
-    "badge": "Optimisé pour les devs. Fonctionne pour tous les métiers.",
     "hero": {
       "title": "Découvrez pourquoi votre candidature a été rejetée",
       "titleItalic": "avant qu'elle ne le soit.",
@@ -76,131 +75,6 @@
       "cancelAnytime": "Résiliation possible à tout moment",
       "hiredRefund": "Embauché ? On rembourse ton mois en cours. Sans formulaire. Dis-le nous."
     },
-    "mockContent": {
-      "radar": {
-        "title": "Radar de compétences techniques",
-        "subtitle": "Cartographié par rapport aux exigences de l'offre",
-        "yourProfile": "Votre profil",
-        "jobRequirements": "Exigences du poste",
-        "gapDetected": "Écart détecté",
-        "gapDetail": "DevOps à 28%, le poste exige 65%",
-        "atsLabel": "Score ATS",
-        "atsWouldNotPass": "✗ Ne passerait pas le filtre ATS",
-        "missingKeywords": "Mots-clés critiques manquants",
-        "redFlagsLabel": "Signaux d'alerte",
-        "redFlagItems": [
-          "Gap de 3 ans dans l'emploi non expliqué",
-          "Aucun impact quantifié dans les bullets",
-          "Langage de séniorité absent"
-        ]
-      },
-      "github": {
-        "badges": [
-          "Contributeur actif",
-          "Projets OSS"
-        ],
-        "issues": [
-          {
-            "severity": "critical",
-            "label": "Les repos épinglés n'ont pas de README",
-            "detail": "3 dépôts épinglés manquent de documentation. Signal négatif fort pour les postes seniors."
-          },
-          {
-            "severity": "major",
-            "label": "Aucune configuration CI/CD détectée",
-            "detail": "Aucun de vos dépôts n'inclut GitHub Actions ou des pipelines similaires."
-          },
-          {
-            "severity": "major",
-            "label": "Gaps dans l'historique de commits > 6 mois",
-            "detail": "3 gaps visibles suggèrent une activité irrégulière sur les 2 dernières années."
-          }
-        ]
-      },
-      "linkedin": {
-        "badges": [
-          "500+ connexions"
-        ],
-        "issues": [
-          {
-            "severity": "major",
-            "label": "Aucune recommandation reçue",
-            "detail": "Pas de recommandations de collègues ou managers. Au niveau senior, la preuve sociale compte."
-          },
-          {
-            "severity": "major",
-            "label": "Intitulé du poste actuel trop vague",
-            "detail": "\"Développeur\" sans signal de séniorité ou de domaine. Les recruteurs ne peuvent pas évaluer le fit en un coup d'œil."
-          },
-          {
-            "severity": "major",
-            "label": "Section résumé absente",
-            "detail": "Le profil n'a pas de section À propos. Vous perdez la surface de matching de mots-clés la plus visible."
-          }
-        ]
-      },
-      "atsCard": {
-        "label": "Filtre ATS",
-        "title": "Simulez le filtre avant le recruteur",
-        "desc": "Nous faisons passer votre CV dans une simulation ATS calée sur la fiche de poste. Chaque mot-clé manquant a une valeur en points - vous savez exactement quoi ajouter.",
-        "scoreLabel": "Score"
-      },
-      "rewriteCard": {
-        "label": "Améliorer le CV",
-        "title": "Votre CV, réécrit chirurgicalement",
-        "desc": "Un clic réécrit l'intégralité du CV : mots-clés injectés, ton passif converti, signaux de séniorité ajoutés. Exportez un PDF propre.",
-        "before": "Avant",
-        "after": "Après",
-        "beforeText": "\"Responsable du développement backend et travaillé sur les fonctionnalités API de la plateforme.\"",
-        "afterText": "Piloté l'architecture backend livrant 4 APIs REST core, réduisant la latence P95 de 40% sur 200K requêtes quotidiennes."
-      },
-      "interviewCard": {
-        "label": "Entretien IA",
-        "title": "Simulation d'entretien vocal de 10 minutes",
-        "desc": "Un intervieweur IA en temps réel, vocal et adapté au poste. Se termine par un débriefing noté sur la communication, la profondeur technique et les signaux de leadership.",
-        "aiLabel": "IA",
-        "youLabel": "Vous",
-        "aiQuestion": "\"Décrivez un système que vous avez conçu de zéro. Quels compromis avez-vous faits ?\"",
-        "youAnswer": "\"J'ai construit un service de notification temps réel gérant 50K events/sec...\"",
-        "axes": [
-          "Profondeur technique",
-          "Communication",
-          "Signaux de leadership"
-        ]
-      },
-      "bridge": {
-        "headerLabel": "Combler l'écart · Recommandation de projet",
-        "level": "Avancé",
-        "projectTitle": "Plateforme Microservices Event-Driven Distribuée",
-        "projectDesc": "Construisez un système microservices prêt pour la production avec Docker, Kubernetes et une architecture event-driven via Kafka. Expose une expérience CI/CD concrète et comble le gap DevOps identifié dans votre radar.",
-        "architectureLabel": "Architecture",
-        "architectureText": "API Gateway → Service Auth → Service Order → Kafka → Service Notification + Service Inventaire. Chaque service conteneurisé avec Docker, orchestré via Kubernetes, déployé via GitHub Actions.",
-        "whatToBuildLabel": "Quoi construire",
-        "whatToBuild": [
-          "API Gateway avec auth JWT, rate limiting et routage des requêtes",
-          "Kafka producer/consumer pour la communication inter-services asynchrone",
-          "Pipeline CI/CD avec builds Docker automatisés et déploiements K8s",
-          "Tracing distribué avec OpenTelemetry et métriques Prometheus",
-          "Stratégie de déploiement rolling sans interruption avec health checks"
-        ],
-        "coreStackLabel": "Stack principale",
-        "advancedLabel": "Concepts avancés",
-        "successLabel": "Critères de succès",
-        "success": [
-          "Le système gère 10K req/s sous charge",
-          "Stack d'observabilité complète déployée",
-          "Déploiements sans interruption documentés"
-        ]
-      },
-      "coverLetter": {
-        "headerLabel": "Lettre de motivation · Senior Backend Engineer @ Stripe",
-        "date": "17 avril 2026",
-        "greeting": "Chère équipe de recrutement de Stripe,",
-        "p1": "Je postule au poste de Senior Backend Engineer spécialisé en systèmes distribués, un domaine dans lequel j'ai passé les quatre dernières années à construire des infrastructures haute disponibilité et event-driven. Dans mon entreprise actuelle, j'ai piloté la refonte de notre pipeline de paiement, réduisant la latence P99 de 340ms à 62ms sur 800K transactions quotidiennes.",
-        "p2": "Ce qui m'attire chez Stripe, c'est la culture engineering autour de la fiabilité et du design d'API. Votre récent article sur les clés d'idempotence a résonné avec un problème que j'ai résolu l'an dernier lors de notre migration monolithe vers microservices, garantissant une livraison exactly-once sur un système Kafka avec 15 consommateurs.",
-        "p3": "Je serais ravi d'échanger sur la façon dont mon expérience avec..."
-      }
-    },
     "quote": {
       "line1": "Candidatez comme un",
       "word": "sniper",
@@ -212,50 +86,6 @@
       "atsFiltered": "des CVs filtrés par l'ATS avant qu'un humain ne les lise",
       "passRate": "taux de succès à la première candidature",
       "offerFromDiagnosis": "atteignent le stade de l'offre après correction des problèmes détectés"
-    },
-    "features": {
-      "title": "Chaque onglet, un outil",
-      "ats": {
-        "label": "Contrôle de parsing",
-        "title": "ATS : la réalité",
-        "desc": "La plupart des ATS ne rejettent pas automatiquement sur un score de mots-clés. On vérifie que votre fichier se parse proprement et porte les termes que l'offre pondère vraiment, pour que vous sachiez ce qu'un recruteur verra."
-      },
-      "radar": {
-        "label": "Radar de compétences",
-        "title": "Écart de compétences",
-        "desc": "Correspondance de la stack technique vs. les exigences du poste. Visualisez ce que vous avez, ce qui manque, et l'écart."
-      },
-      "rewrite": {
-        "label": "Réécriture de CV",
-        "title": "Améliorer le CV",
-        "desc": "L'IA réécrit chirurgicalement votre CV - injecte les mots-clés manquants, corrige le ton passif, ajoute des signaux de séniorité. Téléchargez en PDF."
-      },
-      "interview": {
-        "label": "Entretien IA",
-        "title": "Entretien IA",
-        "desc": "Entretien vocal de 10 minutes adapté à ce poste et vos lacunes. Rapport de performance complet après."
-      }
-    },
-    "whatYouGet": {
-      "sectionLabel": "Ce que vous obtenez",
-      "title": "Au-delà du CV",
-      "subtitle": "La plupart des outils s'arrêtent aux mots-clés. RejectCheck lit les signaux de chaque couche de votre présence professionnelle.",
-      "github": {
-        "title": "Signal GitHub",
-        "desc": "Cadence de commits, diversité des langages, contributions open source - ce que votre CV ne dit pas sur votre profondeur technique réelle."
-      },
-      "linkedin": {
-        "title": "Signal LinkedIn",
-        "desc": "Recoupez votre CV avec votre profil LinkedIn. Incohérences, recommandations manquantes, complétude du profil."
-      },
-      "redFlags": {
-        "title": "Signaux d'alerte",
-        "desc": "Signaux comportementaux que les recruteurs expérimentés remarquent et mentionnent rarement : gaps inexpliqués, incohérences de ton."
-      },
-      "roadmap": {
-        "title": "Plan d'action",
-        "desc": "Chaque problème de chaque signal, priorisé par impact. Les éléments critiques en premier - ceux qui font rejeter les CVs avant d'être lus."
-      }
     },
     "cta": {
       "title": "Arrêtez de deviner. Commencez à corriger.",
@@ -299,7 +129,7 @@
         },
         {
           "label": "Bilingue par construction",
-          "claim": "Anglais et français sont tous deux first-class : UI, résultats d'analyse, détection de mots-clés, audit de ton et FAQ sont entièrement localisés, pas traduits automatiquement après coup. Jobscan, Rezi, Resume Worded, et Enhancv sont anglophones uniquement en mai 2026.",
+          "claim": "Anglais et français sont tous deux first-class : UI, résultats d'analyse, détection de mots-clés, audit de ton et FAQ sont entièrement localisés, pas traduits automatiquement après coup. La plupart des outils CV de cette catégorie n'existent qu'en anglais.",
           "source": "Compare /en/ et /fr/ côte à côte",
           "sourceLinks": [
             {
@@ -329,7 +159,7 @@
         },
         {
           "label": "Données invité supprimées sous 7 jours",
-          "claim": "Pour les analyses en mode invité, ton CV, l'offre et le résultat sont automatiquement supprimés de notre base sous 7 jours. Ensuite, seuls ton IP et un horodatage restent, pour faire respecter la limite d'1 analyse par invité. Les analyses des utilisateurs enregistrés sont conservées dans leur dashboard jusqu'à ce qu'ils choisissent de les supprimer, et aucune donnée n'est jamais utilisée pour entraîner des modèles IA.",
+          "claim": "Pour les analyses en mode invité, votre CV, l'offre et le résultat sont automatiquement supprimés de notre base sous 7 jours. Ensuite, seuls votre IP et un horodatage restent, pour faire respecter la limite d'une analyse par invité. Les analyses des utilisateurs enregistrés sont conservées dans leur dashboard jusqu'à ce qu'ils choisissent de les supprimer, et aucune donnée n'est jamais utilisée pour entraîner des modèles IA.",
           "source": "Politique de confidentialité, section traitement des données",
           "sourceLinks": [
             {
@@ -340,7 +170,7 @@
         },
         {
           "label": "La garantie Hired est réelle",
-          "claim": "Si tu souscris Hired (39,99 €/mois) et décroches un job pendant un mois facturé actif, on rembourse ce mois sur réception d'une lettre d'offre acceptée. C'est une clause contractuelle, pas du marketing.",
+          "claim": "Si vous souscrivez Hired (39,99 €/mois) et décrochez un poste pendant un mois facturé actif, nous remboursons ce mois sur réception d'une lettre d'offre acceptée. C'est une clause contractuelle, pas du marketing.",
           "source": "Politique de remboursement documentée dans la FAQ Tarifs",
           "sourceLinks": [
             {
@@ -352,7 +182,6 @@
       ]
     },
     "s01": {
-      "smallLabel": "La promesse",
       "h1Part1": "Votre",
       "h1Italic": "dernier refus.",
       "h1Part2": "",
@@ -391,7 +220,6 @@
       "verdict": "5 sources · une seule histoire"
     },
     "s02": {
-      "smallLabel": "La méthode",
       "h2Part1": "Six dimensions qu'un recruteur scanne en",
       "h2Italic": "six secondes.",
       "h2Part2": "On score chacune, en chiffres.",
@@ -436,7 +264,6 @@
       ]
     },
     "s03": {
-      "smallLabel": "Le rapport",
       "h2Part1": "Pas un score. Un",
       "h2Italic": "briefing.",
       "subtitle": "Le rapport que vous recevez n'est pas un pouce levé ou baissé. C'est un document actionnable, le genre pour lequel vous paieriez 300 € à un recruteur senior. Corrigez ce qu'il signale, relancez, et regardez le score bouger.",
@@ -456,7 +283,6 @@
       ]
     },
     "s04": {
-      "smallLabel": "Honnêtement",
       "h2Part1": "Ce que vous obtenez, et",
       "h2Italic": "ce qu'on ne fera pas.",
       "compRows": [
@@ -479,18 +305,15 @@
       ]
     },
     "s05": {
-      "smallLabel": "Les gens",
       "h2Part1": "Ce que les gens disent.",
       "h2Italic": "Sans filtre.",
       "founderQuote": "Pendant ma recherche d'emploi j'ai construit l'outil que j'aurais voulu avoir, ce même outil m'a valu 4x plus d'entretiens et un poste en 2 mois"
     },
     "s06": {
-      "smallLabel": "Tarifs",
       "recommendedSuffix": "· recommandé",
       "hiredPeriod": "/mois"
     },
     "s07": {
-      "smallLabel": "En guise de conclusion",
       "quotePart1": "Le refus arrive dans le silence. Ou il n'arrive pas du tout.",
       "quoteRed": "On a juste pensé que vous voudriez le savoir avant.",
       "attribution": "Fait à Paris · par",
@@ -498,31 +321,6 @@
     },
     "footerBrand": {
       "tagline": "Vous dit pourquoi vous seriez rejeté, avant de postuler. Conçu pour les devs, marche pour tous les métiers."
-    },
-    "whatsNew": {
-      "badge": "Plus dans RejectCheck",
-      "title": "Plus qu'une analyse ponctuelle de CV",
-      "subtitle": "Le diagnostic CV est le cœur, mais RejectCheck inclut maintenant des exercices de code review quotidiens, des licences en équipe pour coaches et bootcamps, et des comparaisons honnêtes face à tous les outils CV majeurs.",
-      "items": [
-        {
-          "label": "Daily code review challenge",
-          "description": "Un vrai snippet de code de production reviewé par IA chaque jour. Muscle ton œil d'ingénieur senior avec un drill de 5 minutes. Streaks, badges, débrief scoré.",
-          "ctaLabel": "Tester le challenge du jour",
-          "href": "/challenge"
-        },
-        {
-          "label": "RejectCheck pour les équipes",
-          "description": "Licences en volume pour career coaches, bootcamps, services carrière universitaires, et firmes d'outplacement. Prix à partir de 10 seats, contacte-nous pour un devis. Early-access, onboarding manuel sous 24h.",
-          "ctaLabel": "Voir les tarifs équipe",
-          "href": "/for-teams"
-        },
-        {
-          "label": "Compare RejectCheck vs la concurrence",
-          "description": "Comparaisons honnêtes hands-on face à Jobscan, Rezi, Resume Worded, Kickresume, et Enhancv. Prix publiés, faiblesses honnêtes, zéro blabla. Choisis l'outil qui colle à ta situation.",
-          "ctaLabel": "Parcourir les comparaisons",
-          "href": "/alternatives"
-        }
-      ]
     }
   },
   "uploadForm": {

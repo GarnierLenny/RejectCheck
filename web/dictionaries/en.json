@@ -26,7 +26,6 @@
     "dashboard": "Dashboard"
   },
   "landing": {
-    "badge": "Optimised for devs. Works for any role.",
     "hero": {
       "title": "Find out why your job application got rejected",
       "titleItalic": "before it does.",
@@ -76,131 +75,6 @@
       "cancelAnytime": "Cancel anytime",
       "hiredRefund": "Got the job? We refund your current month. No form. Just tell us."
     },
-    "mockContent": {
-      "radar": {
-        "title": "Technical Skills Radar",
-        "subtitle": "Mapped against the job description requirements",
-        "yourProfile": "Your profile",
-        "jobRequirements": "Job requirements",
-        "gapDetected": "Gap detected",
-        "gapDetail": "DevOps at 28%, job requires 65%",
-        "atsLabel": "ATS Score",
-        "atsWouldNotPass": "✗ Would not pass ATS filter",
-        "missingKeywords": "Critical missing keywords",
-        "redFlagsLabel": "Red flags",
-        "redFlagItems": [
-          "3-year employment gap unexplained",
-          "No quantified impact on any bullet",
-          "Seniority language absent"
-        ]
-      },
-      "github": {
-        "badges": [
-          "Active contributor",
-          "OSS projects"
-        ],
-        "issues": [
-          {
-            "severity": "critical",
-            "label": "Pinned repos have no README",
-            "detail": "3 pinned repositories lack documentation. Strong negative signal for senior roles."
-          },
-          {
-            "severity": "major",
-            "label": "No CI/CD configuration detected",
-            "detail": "None of your repos include GitHub Actions or similar pipelines."
-          },
-          {
-            "severity": "major",
-            "label": "Commit history gaps > 6 months",
-            "detail": "3 visible gaps suggest inconsistent activity over the last 2 years."
-          }
-        ]
-      },
-      "linkedin": {
-        "badges": [
-          "500+ connections"
-        ],
-        "issues": [
-          {
-            "severity": "major",
-            "label": "Zero recommendations received",
-            "detail": "No peer or manager recommendations. At senior level, social proof matters."
-          },
-          {
-            "severity": "major",
-            "label": "Current role title too vague",
-            "detail": "\"Developer\" without seniority or domain signals. Recruiters can't assess fit at a glance."
-          },
-          {
-            "severity": "major",
-            "label": "Summary section missing",
-            "detail": "Profile has no About section. You're losing the most prominent keyword-matching surface."
-          }
-        ]
-      },
-      "atsCard": {
-        "label": "ATS Filter",
-        "title": "Simulate the filter before the recruiter does",
-        "desc": "We run your CV through an ATS simulation matched to the job description. Each missing keyword gets a point value, so you know exactly what to add.",
-        "scoreLabel": "Score"
-      },
-      "rewriteCard": {
-        "label": "Improve CV",
-        "title": "Your CV, surgically rewritten",
-        "desc": "One click rewrites the entire CV: keywords injected, passive tone converted, seniority signals added. Export a clean PDF.",
-        "before": "Before",
-        "after": "After",
-        "beforeText": "\"Responsible for backend development and worked on API features for the platform.\"",
-        "afterText": "Led backend architecture delivering 4 core REST APIs, reducing P95 latency by 40% across 200K daily requests."
-      },
-      "interviewCard": {
-        "label": "AI Interview",
-        "title": "10-minute voice mock interview",
-        "desc": "A real-time AI interviewer, voice-based and role-specific. Ends with a scored debrief across communication, technical depth, and leadership signals.",
-        "aiLabel": "AI",
-        "youLabel": "You",
-        "aiQuestion": "\"Walk me through a system you designed from scratch. What trade-offs did you make?\"",
-        "youAnswer": "\"I built a real-time notification service handling 50K events/sec...\"",
-        "axes": [
-          "Technical depth",
-          "Communication",
-          "Leadership signals"
-        ]
-      },
-      "bridge": {
-        "headerLabel": "Bridge the Gap · Project Recommendation",
-        "level": "Advanced",
-        "projectTitle": "Distributed Event-Driven Microservices Platform",
-        "projectDesc": "Build a production-ready microservices system using Docker, Kubernetes, and an event-driven architecture via Kafka. Exposes real-world CI/CD pipeline experience and closes the DevOps gap identified in your radar.",
-        "architectureLabel": "Architecture Blueprint",
-        "architectureText": "API Gateway → Auth Service → Order Service → Kafka → Notification Service + Inventory Service. Each service containerised with Docker, orchestrated via Kubernetes, deployed via GitHub Actions.",
-        "whatToBuildLabel": "What to Build",
-        "whatToBuild": [
-          "API Gateway with JWT auth, rate limiting, and request routing",
-          "Kafka producer/consumer for async inter-service communication",
-          "CI/CD pipeline with automated Docker builds and K8s deployments",
-          "Distributed tracing with OpenTelemetry and Prometheus metrics",
-          "Zero-downtime rolling deploy strategy with health checks"
-        ],
-        "coreStackLabel": "Core Stack",
-        "advancedLabel": "Advanced Concepts",
-        "successLabel": "Success Criteria",
-        "success": [
-          "System handles 10K req/s under load",
-          "Full observability stack deployed",
-          "Zero-downtime deploys documented"
-        ]
-      },
-      "coverLetter": {
-        "headerLabel": "Cover Letter · Senior Backend Engineer @ Stripe",
-        "date": "April 17, 2026",
-        "greeting": "Dear Hiring Team at Stripe,",
-        "p1": "I'm applying for the Senior Backend Engineer role with a focus on distributed systems, an area where I've spent the last four years building high-throughput, event-driven infrastructure. At my current company, I led the redesign of our payments pipeline, reducing P99 latency from 340ms to 62ms across 800K daily transactions.",
-        "p2": "What draws me to Stripe is the engineering culture around reliability and API design. Your recent engineering blog post on idempotency keys resonated with a problem I solved last year when we migrated from a monolith to microservices, ensuring exactly-once delivery across a Kafka-backed system with 15 consumers.",
-        "p3": "I'd welcome the opportunity to discuss how my experience with..."
-      }
-    },
     "quote": {
       "line1": "Apply like a",
       "word": "sniper",
@@ -212,50 +86,6 @@
       "atsFiltered": "of CVs filtered by ATS before a human reads them",
       "passRate": "pass rate on first application",
       "offerFromDiagnosis": "reach offer stage after fixing flagged issues"
-    },
-    "features": {
-      "title": "Every tab, a tool",
-      "ats": {
-        "label": "Parsing check",
-        "title": "ATS reality check",
-        "desc": "Most ATS don't auto-reject on a keyword score. We check your file parses cleanly and carries the terms the job actually weights, so you know what a recruiter will see."
-      },
-      "radar": {
-        "label": "Skill gap radar",
-        "title": "Skill Gap",
-        "desc": "Technical stack match vs. position requirements. Instantly see what you have, what you're missing, and by how much."
-      },
-      "rewrite": {
-        "label": "CV rewrite",
-        "title": "Improve CV",
-        "desc": "AI rewrites your CV surgically - injecting missing keywords, fixing passive tone, adding seniority signals. Download as PDF."
-      },
-      "interview": {
-        "label": "AI mock interview",
-        "title": "AI Interview",
-        "desc": "10-minute voice interview tailored to this specific job and your gaps. Full performance report after."
-      }
-    },
-    "whatYouGet": {
-      "sectionLabel": "What you get",
-      "title": "Beyond the CV",
-      "subtitle": "Most tools stop at keywords. RejectCheck reads signals from every layer of your professional presence.",
-      "github": {
-        "title": "GitHub Signal",
-        "desc": "Commit cadence, language diversity, open source contributions - what your CV doesn't say about your real technical depth."
-      },
-      "linkedin": {
-        "title": "LinkedIn Signal",
-        "desc": "Cross-reference your CV against your LinkedIn profile. Consistency gaps, missing endorsements, and profile completeness."
-      },
-      "redFlags": {
-        "title": "Red Flags",
-        "desc": "Behavioral signals experienced recruiters notice and rarely mention: unexplained gaps, scope creep, tone inconsistencies."
-      },
-      "roadmap": {
-        "title": "Action Roadmap",
-        "desc": "Every issue from every signal, prioritized by impact. Critical items first - the ones that get CVs binned before they're read."
-      }
     },
     "cta": {
       "title": "Stop guessing. Start fixing.",
@@ -299,7 +129,7 @@
         },
         {
           "label": "Bilingual by design",
-          "claim": "English and French are both first-class: UI, analysis output, keyword detection, tone audit, and FAQ are fully localized, not machine-translated as an afterthought. Jobscan, Rezi, Resume Worded, and Enhancv are English-only as of May 2026.",
+          "claim": "English and French are both first-class: UI, analysis output, keyword detection, tone audit and FAQ are fully localized, not machine-translated as an afterthought. Most CV tools in this category ship English only.",
           "source": "Compare /en/ and /fr/ side by side",
           "sourceLinks": [
             {
@@ -329,7 +159,7 @@
         },
         {
           "label": "Guest data auto-deleted in 7 days",
-          "claim": "For guest scans, your CV, job description, and result are automatically deleted from our database within 7 days. After that, only your IP and a timestamp remain, to enforce the 1-analysis-per-guest limit. Registered users' analyses are kept in their dashboard until they choose to delete them, and no data is ever used to train AI models.",
+          "claim": "For guest scans, your CV, the job description and the result are automatically deleted from our database within 7 days. After that only your IP and a timestamp remain, to enforce the one-analysis-per-guest limit. Registered users' analyses stay in their dashboard until they delete them, and no data is ever used to train AI models.",
           "source": "Privacy policy, section on data handling",
           "sourceLinks": [
             {
@@ -340,7 +170,7 @@
         },
         {
           "label": "Hired plan refund is genuine",
-          "claim": "If you subscribe to Hired (€39.99/month) and land a job during an active billing month, we refund that month on receipt of an accepted offer letter. This is a contractual guarantee clause, not marketing language.",
+          "claim": "If you subscribe to Hired (39.99 EUR/month) and land a job during an active billing month, we refund that month on receipt of an accepted offer letter. This is a contractual guarantee clause, not marketing language.",
           "source": "Refund policy documented in the pricing FAQ",
           "sourceLinks": [
             {
@@ -352,7 +182,6 @@
       ]
     },
     "s01": {
-      "smallLabel": "The promise",
       "h1Part1": "Your",
       "h1Italic": "last rejection.",
       "h1Part2": "",
@@ -391,7 +220,6 @@
       "verdict": "5 sources · one story"
     },
     "s02": {
-      "smallLabel": "The method",
       "h2Part1": "Six dimensions a recruiter scans in",
       "h2Italic": "six seconds.",
       "h2Part2": "We score each one, in numbers.",
@@ -436,7 +264,6 @@
       ]
     },
     "s03": {
-      "smallLabel": "The report",
       "h2Part1": "Not a score. A",
       "h2Italic": "briefing.",
       "subtitle": "The report you get isn't a thumbs-up or down. It's an actionable document, the kind you'd pay a senior recruiter $300 to write for you. Fix what it flags, re-run it, and watch the score move.",
@@ -456,7 +283,6 @@
       ]
     },
     "s04": {
-      "smallLabel": "Honestly",
       "h2Part1": "What you get, and",
       "h2Italic": "what we won't do.",
       "compRows": [
@@ -479,18 +305,15 @@
       ]
     },
     "s05": {
-      "smallLabel": "People",
       "h2Part1": "What people say.",
       "h2Italic": "Unfiltered.",
       "founderQuote": "During my job search I built the tool I wish existed, this same tool got me 4x more interviews and a job in 2 months"
     },
     "s06": {
-      "smallLabel": "Pricing",
       "recommendedSuffix": "· recommended",
       "hiredPeriod": "/month"
     },
     "s07": {
-      "smallLabel": "In closing",
       "quotePart1": "The rejection arrives in silence. Or it doesn't arrive at all.",
       "quoteRed": "We just thought you'd want to know first.",
       "attribution": "Made in Paris · by",
@@ -498,31 +321,6 @@
     },
     "footerBrand": {
       "tagline": "Tells you why you'd be rejected, before you apply. Built for developers, works for any role."
-    },
-    "whatsNew": {
-      "badge": "More from RejectCheck",
-      "title": "Beyond one-shot CV analysis",
-      "subtitle": "The CV diagnosis is the core, but RejectCheck now includes daily code review drills, team licensing for coaches and bootcamps, and honest comparisons to every major CV tool.",
-      "items": [
-        {
-          "label": "Daily code review challenge",
-          "description": "One real production code snippet, AI-reviewed every day. Build your senior-engineer pattern-matching muscles with a 5-minute daily drill. Streaks, badges, scored debrief.",
-          "ctaLabel": "Try today's challenge",
-          "href": "/challenge"
-        },
-        {
-          "label": "RejectCheck for Teams",
-          "description": "Bulk licensing for career coaches, coding bootcamps, university career centers, and outplacement firms. Volume pricing from 10 seats, contact us for a quote. Early-access, manual onboarding under 24h.",
-          "ctaLabel": "See team pricing",
-          "href": "/for-teams"
-        },
-        {
-          "label": "Compare RejectCheck vs the competition",
-          "description": "Hands-on honest comparisons vs Jobscan, Rezi, Resume Worded, Kickresume, and Enhancv. Published pricing, honest weaknesses, no fluff. Pick the tool that fits your situation.",
-          "ctaLabel": "Browse comparisons",
-          "href": "/alternatives"
-        }
-      ]
     }
   },
   "uploadForm": {

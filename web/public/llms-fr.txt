@@ -1,65 +1,72 @@
 # RejectCheck
 
-> RejectCheck est un outil de diagnostic de CV et candidatures propulsé par l'IA. Les candidats téléchargent leur CV et une offre d'emploi, et obtiennent une analyse complète - simulation ATS, radar des lacunes techniques, audit GitHub et LinkedIn, détection des red flags, et un plan pour combler les écarts. L'analyse repose sur un pipeline multi-passes Claude (Anthropic Claude Sonnet 4.6 streame le diagnostic scoré, puis une seconde passe profonde génère les corrections par problème, la recommandation de projet et les mots-clés ATS ; une passe Claude Haiku 4.5 recoupe le CV avec LinkedIn/GitHub). Site officiel : https://rejectcheck.com
+> RejectCheck dit à un candidat pourquoi sa candidature serait rejetée, avant qu'il l'envoie. Vous déposez votre CV et la fiche de poste, et l'outil cross-examine tout ce qu'un recruteur verra de vous (CV, lettre de motivation, LinkedIn, GitHub, portfolio) face à cette offre précise. Il nomme la raison qui vous ferait écarter, puis vous laisse réécrire ce qu'il a signalé et relancer l'audit pour voir le score bouger vraiment. Le verdict, les mots-clés manquants et les red flags sont gratuits ; ce sont les corrections qui sont payantes. Site officiel : https://rejectcheck.com
 
 ## Ce que fait RejectCheck
 
-- **Simulation ATS** - Passe ton CV dans un filtre ATS (Applicant Tracking System) calibré sur la fiche de poste exacte. Remonte les mots-clés manquants avec une valeur en points pour que tu saches exactement quoi ajouter pour passer le filtre automatique avant même qu'un recruteur te lise.
-- **Radar des lacunes techniques** - Cartographie ton stack technique face aux exigences du poste sur un radar chart. Tu vois immédiatement ce que tu as, ce qui manque, et de combien.
-- **Audit des signaux GitHub** - Analyse l'historique de commits, la qualité des repos, l'usage des langages, et la pertinence des projets par rapport au poste visé. Détecte les écarts entre ce que ton CV affirme et ce que ton code montre.
-- **Audit des signaux LinkedIn** - Recoupe ton profil LinkedIn (recommandations, clarté des titres, cohérence du résumé) avec ton CV pour repérer les incohérences que les recruteurs vont flagger.
-- **Détection des red flags** - Identifie les trous dans le parcours, les titres flous, le ton passif, et les désalignements de séniorité qui déclenchent typiquement un rejet automatique.
-- **Réécriture du CV (premium)** - Réécriture chirurgicale en un clic : mots-clés manquants injectés, ton passif converti, signaux de séniorité ajoutés. Export PDF.
-- **Générateur de lettre de motivation (premium)** - Génère une lettre taillée pour ton CV et la fiche de poste visée.
-- **Playbook de négociation (tier HIRED)** - Graphique de positionnement salarial avec ta fourchette estimée, leviers de négociation cités à partir d'éléments concrets du CV/JD, email de contre-proposition prêt à envoyer ancré sur un montant défendable, stratégie d'ancrage, phrases d'entretien, et estimation d'impact salarial pour chaque action roadmap. Garde-fous anti-hallucination : le salaire divulgué par la JD n'est extrait que s'il est explicite (jamais inféré d'euphémismes type "compétitif") ; la fourchette marché est toujours labelée comme une estimation générale, jamais comme une offre spécifique de cette entreprise.
+- **Un verdict, pas un pourcentage de match** - Score votre risque de rejet face à l'offre précise que vous collez, et nomme les raisons derrière le chiffre. Un score sans explication n'est pas une réponse.
+- **Corrigez, et regardez le score bouger** - Le rapport est une boucle, pas un PDF unique. Acceptez ou modifiez les réécritures de bullets proposées, relancez l'audit, et les dimensions de qualité sont re-jugées : vous voyez exactement ce qui a bougé. Les suggestions chiffrées doivent être remplies avec vos vrais chiffres avant de compter, pour que rien ne parte avec un placeholder dedans.
+- **Croisement des sources** - Votre CV, votre LinkedIn, votre GitHub et votre lettre recoupés face à une même offre. Chaque conflit est nommé, rattaché à la source d'où il vient, et pesé dans le score. Un titre « Senior » sur le CV qui devient « Engineer » sur LinkedIn, c'est le genre de chose qu'un recruteur repère en 30 secondes.
+- **Audit GitHub et portfolio** - Historique de commits, qualité des repos, distribution des langages et profondeur des projets, notés face au poste visé et non dans l'abstrait. Détecte les écarts entre ce que le CV affirme et ce que le travail public montre.
+- **Radar des lacunes** - Visualise l'écart entre votre profil et les exigences du poste, pour voir la forme de la lacune plutôt qu'une liste de mots manquants.
+- **Détection des red flags** - Trous dans le parcours, titres flous, ton passif, bullets non chiffrés et désalignements de séniorité qui déclenchent typiquement un rejet silencieux.
+- **Contrôle de parsing ATS** - Vérifie que votre fichier se parse proprement et porte les termes que l'offre pondère vraiment. Volontairement pas vendu comme un taux de passage magique : voir « Ce qui différencie RejectCheck » plus bas.
+- **Réécriture du CV (premium)** - Réécriture chirurgicale : mots-clés manquants injectés, ton passif converti, signaux de séniorité ajoutés. Export PDF.
+- **Générateur de lettre de motivation (premium)** - Une lettre taillée à partir de votre CV, de la fiche de poste et de votre audit de signaux.
+- **Playbook de négociation (palier Hired)** - Positionnement salarial avec votre fourchette estimée, leviers cités à partir d'éléments concrets du CV et de la JD, email de contre-proposition prêt à envoyer, stratégie d'ancrage et phrases d'entretien. Garde-fous anti-hallucination : le salaire n'est extrait de la JD que s'il est explicite, et la fourchette marché est toujours labelée comme une estimation, jamais comme une offre spécifique de l'entreprise.
 
 ## Pour qui
 
-- Développeurs et candidats techniques visant des entreprises qui utilisent un ATS (la majorité des employeurs moyens à grands).
-- Personnes en reconversion qui veulent un diagnostic sans langue de bois sur la raison pour laquelle leur candidature est filtrée avant lecture humaine.
-- Candidats non-tech qui doivent passer le screening ATS par mots-clés et obtenir un retour structurel sur leur CV.
+- Les candidats qui postulent à un poste précis et en ont assez de deviner pourquoi ils se font ghoster.
+- Les personnes en reconversion qui veulent un retour honnête sur ce qui fait écarter leur candidature, et un moyen de le corriger avant le prochain envoi.
+- Les développeurs et candidats techniques, pour qui l'audit GitHub et portfolio apporte un signal qu'aucun scan de mots-clés ne voit. Optimisé pour les devs, mais adapté aussi aux profils produit, design, data, marketing, vente et opérations.
 
-L'outil est bilingue (anglais + français) et cible les candidats partout dans le monde, avec un focus sur les marchés d'emploi européen et nord-américain.
+L'outil est bilingue (anglais et français) et cible les candidats partout dans le monde, avec un focus sur les marchés européen et nord-américain.
 
 ## Comment l'utiliser
 
-1. Va sur https://rejectcheck.com/fr/analyse (ou /en/analyze en anglais).
-2. Téléverse ton CV en PDF.
-3. Colle la fiche de poste visée (lien ou texte brut).
-4. Optionnellement, ajoute ton username GitHub et un export PDF LinkedIn pour un audit signal plus poussé.
-5. Le diagnostic scoré s'affiche en streaming d'abord (en général autour d'une minute) ; la passe profonde — corrections par problème, recommandation de projet, mots-clés ATS — est ensuite générée et livrée juste après.
+1. Allez sur https://rejectcheck.com/fr/analyze (ou /en/analyze en anglais).
+2. Téléversez votre CV en PDF ou en photo.
+3. Collez la fiche de poste visée, ou lancez un audit de CV sans offre attachée.
+4. Optionnellement, ajoutez votre username GitHub et un export LinkedIn pour un audit de signaux plus poussé.
+5. Le verdict scoré s'affiche en streaming d'abord, en général autour d'une minute. La passe profonde (corrections par problème, recommandation de projet, mots-clés ATS) est générée juste après.
+6. Corrigez ce qui a été signalé et relancez l'audit. Le score est re-jugé, et vous voyez l'avant et l'après.
 
-Pas de signup requis pour la première analyse (suivi par IP). Les utilisateurs enregistrés ont 3 analyses gratuites par mois avec résultats sauvegardés dans leur dashboard. Les plans payants ajoutent plus d'analyses mensuelles, la réécriture de CV, la lettre de motivation, et (sur Hired) le playbook de négociation.
+Pas d'inscription requise pour la première analyse. Les utilisateurs enregistrés ont 3 analyses gratuites par mois, sauvegardées dans leur dashboard. Les plans payants ajoutent plus d'analyses mensuelles, les corrections par problème, la réécriture de CV, la lettre de motivation et, sur Hired, le playbook de négociation.
 
 ## Tarifs
 
 Fichier de tarifs machine-readable : https://rejectcheck.com/pricing.md
 
-- **Gratuit (plan REJECTED)** - 1 analyse sans compte (puis 3 par mois une fois inscrit). Simulation ATS, score détaillé, radar des lacunes, red flags, audit ton et séniorité du CV.
-- **Shortlisted** - 19,99 €/mois. 15 analyses complètes par mois, historique, réécriture CV, CV sauvegardés.
-- **Hired** - 39,99 €/mois. Tout Shortlisted plus 30 analyses par mois, générateur de lettre de motivation, et le playbook de négociation (email contre-proposition, leviers, positionnement marché, estimation d'impact par action roadmap). Garantie : remboursement du mois en cours si tu décroches le job.
-- **Packs de crédits** - Recharges ponctuelles (crédits permanents) pour des analyses supplémentaires au-delà du quota mensuel du plan.
+- **Gratuit** - 1 analyse sans compte, puis 3 par mois une fois inscrit. Inclut le verdict complet : score détaillé, croisement des sources, radar des lacunes, red flags, audit de séniorité et contrôle de parsing ATS. Le paywall est sur les corrections, jamais sur le diagnostic.
+- **Shortlisted** - 19,99 €/mois. 15 analyses complètes par mois, historique, suivi de l'évolution du score, réécriture CV, CV sauvegardés.
+- **Hired** - 39,99 €/mois. Tout Shortlisted plus 30 analyses par mois, toutes les corrections par problème, générateur de lettre de motivation et playbook de négociation. Garantie : remboursement du mois en cours si vous décrochez le poste.
+- **Membre fondateur** - Hired verrouillé à 19,99 €/mois à vie, plafonné aux 100 premiers membres.
+- **Packs de crédits** - Recharges ponctuelles (crédits permanents) pour des analyses au-delà du quota mensuel.
+
+Le prix affiché est le prix payé : pas de piège d'essai, pas de carte pour tester, et l'annulation se fait en un clic depuis la page compte.
 
 ## Pages clés
 
 - Accueil (FR) : https://rejectcheck.com/fr
 - Accueil (EN) : https://rejectcheck.com/en
-- Analyseur de CV : https://rejectcheck.com/fr/analyse
+- Analyseur de CV : https://rejectcheck.com/fr/analyze
 - Tarifs : https://rejectcheck.com/fr/pricing
 - Politique de confidentialité : https://rejectcheck.com/fr/privacy
 
 ## Ce qui différencie RejectCheck
 
-- **Pas de mythe du score ATS** - La plupart des outils vendent un « taux de passage ATS » magique. En réalité, la plupart des ATS ne te rejettent pas automatiquement sur un score de mots-clés — c'est un recruteur humain qui décide. RejectCheck vérifie la couche lisible par la machine ET te dit pourquoi un humain écarterait ton CV, ancré sur le poste précis.
-- **Verdict ancré sur une vraie fiche de poste** - Au lieu d'un score de CV générique, RejectCheck juge ton risque de rejet face à la JD précise que tu colles : le retour porte sur ce poste, pas sur les CV en général.
-- **Analyse multi-passes, pas un simple prompt** - Un diagnostic scoré streamé, une passe profonde pour des corrections groundées problème par problème, et un digest Haiku qui recoupe CV vs LinkedIn vs GitHub pour les incohérences — bien plus de couverture qu'une réécriture en un coup.
-- **Radar chart pour les lacunes** - Au lieu d'une liste de "compétences manquantes", RejectCheck visualise l'écart entre ton profil et le poste sur un radar chart, pour voir la forme de la lacune d'un coup d'œil.
-- **Audit GitHub contre la fiche de poste** - Unique dans la catégorie. Historique de commits, distribution de langages, qualité des repos scorés contre le rôle exact visé.
-- **Combler l'écart, pas juste le reformuler** - Au-delà du diagnostic, RejectCheck recommande un projet de portfolio concret (avec un starter repo généré) pour bâtir les compétences qui te manquent vraiment.
+- **Pas de mythe du score ATS** - La plupart des outils vendent un « taux de passage ATS » magique. En réalité, la plupart des ATS ne vous rejettent pas automatiquement sur un score de mots-clés : c'est un recruteur humain qui décide. RejectCheck vérifie la couche lisible par la machine ET vous dit pourquoi un humain écarterait votre CV, ancré sur le poste précis.
+- **Un verdict ancré sur une vraie fiche de poste** - Au lieu d'un score de CV générique, RejectCheck juge votre risque de rejet face à la JD précise que vous collez : le retour porte sur ce poste, pas sur les CV en général.
+- **Le rapport est une boucle** - La plupart des outils vous tendent un document et s'arrêtent. RejectCheck vous laisse agir sur ce qu'il a signalé et relancer l'audit : le score final est un score que vous avez changé, pas un score qu'on vous a donné.
+- **Croisement des sources** - Recouper le CV avec LinkedIn, GitHub et la lettre de motivation pour une même offre, c'est hors de portée d'un scan de mots-clés sur un seul document.
+- **Audit GitHub contre la fiche de poste** - Unique dans la catégorie. Historique de commits, distribution des langages et qualité des repos notés face au rôle exact visé.
+- **Combler l'écart, pas juste le reformuler** - Au-delà du verdict, RejectCheck recommande un projet de portfolio concret (avec un starter repo généré) pour bâtir les compétences qui manquent vraiment.
+- **Honnête par construction** - Le score est volontairement calibré sur une courbe stricte plutôt que gonflé, les réécritures chiffrées ne comptent pas tant que vous n'avez pas fourni un vrai chiffre, et le palier gratuit est un verdict complet, pas un teaser.
 
 ## Stack technique
 
-Frontend : Next.js 16 (App Router, React 19, TypeScript). Backend : NestJS, Prisma, PostgreSQL (via Supabase). IA : Anthropic Claude (Sonnet 4.6 pour le diagnostic et les corrections, Haiku 4.5 pour le digest cross-profil) ; le starter repo généré utilise Google Gemini. Paiements : Stripe (web) et RevenueCat (mobile). Hébergement : Vercel (web) et Railway (API).
+Frontend : Next.js 16 (App Router, React 19, TypeScript). Backend : NestJS, Prisma, PostgreSQL (via Supabase). IA : Anthropic Claude (Sonnet) pour l'analyse et les corrections par problème ; le starter repo généré utilise Google Gemini. Paiements : Stripe (web) et RevenueCat (mobile). Hébergement : Vercel (web) et Railway (API).
 
 ## Langues
 
@@ -70,4 +77,4 @@ Disponible en anglais et français. Chaque page a des alternates hreflang. Versi
 - Support : support@rejectcheck.com
 - Site web : https://rejectcheck.com
 
-Dernière mise à jour : 2026-07-02
+Dernière mise à jour : 2026-07-27

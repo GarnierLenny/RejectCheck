@@ -1,44 +1,50 @@
 # RejectCheck
 
-> RejectCheck is an AI-powered CV and job application diagnosis tool. Candidates upload their CV and a job description and get a full breakdown - ATS simulation, technical skill gap radar, GitHub and LinkedIn audit, red-flag detection, and a plan to close the gaps. The analysis runs a multi-pass Claude pipeline (Anthropic Claude Sonnet 4.6 streams the scored diagnosis, then a second deep pass generates per-issue fixes, project recommendations, and ATS keywords; a Claude Haiku 4.5 pass cross-checks the CV against LinkedIn/GitHub). Official site: https://rejectcheck.com
+> RejectCheck tells a candidate why their application would be rejected, before they send it. You upload your CV and the job description, and it cross-examines everything a recruiter will see of you (CV, cover letter, LinkedIn, GitHub, portfolio) against that one job. It names the reason you would be cut, then lets you rewrite what it flagged and re-run the audit to see the score actually move. The verdict, the missing keywords and the red flags are free; the fixes are the paid part. Official site: https://rejectcheck.com
 
 ## What it does
 
-- **ATS simulation** - Runs your CV through an Applicant Tracking System filter tuned to the exact job description. Surfaces missing keywords with point values so you know exactly what to add to pass the recruiter's automated filter.
-- **Technical skill gap radar** - Maps your technical stack against the job's requirements on a radar chart. Instantly shows what you have, what you're missing, and by how much.
-- **GitHub signal audit** - Analyzes commit history, repo quality, language usage, and project relevance against the target role. Detects gaps between what your CV claims and what your code shows.
-- **LinkedIn signal audit** - Cross-references your LinkedIn profile (recommendations, title clarity, summary consistency) with your CV to catch inconsistencies recruiters will flag.
-- **Red flag detection** - Identifies employment gaps, vague titles, passive tone, and seniority mismatches that typically trigger auto-rejection.
-- **CV rewrite (premium)** - One-click surgical rewrite: missing keywords injected, passive tone converted, seniority signals added. Exports as PDF.
-- **Cover letter generator (premium)** - Generates a tailored cover letter from your CV and the target job description.
-- **Negotiation playbook (HIRED tier)** - Market salary positioning chart with the candidate's likely range, leverage points cited from CV/JD evidence, a ready-to-send counter-offer email anchored to a defensible figure, anchoring strategy, interview talking points, and a salary impact estimate per roadmap action. Anti-hallucination guardrails: salary disclosed by the JD is extracted only when explicit (no euphemism inference); the broader market range is always labelled as a general estimate, never as a company-specific offer.
+- **A verdict, not a match percentage** - Scores your rejection risk against the specific job you paste and names the reasons behind the number. A score with no explanation is not an answer.
+- **Fix it and watch the score change** - The report is a loop, not a one-shot PDF. Accept or edit the suggested bullet rewrites, re-run the audit, and the quality dimensions are re-judged so you see exactly what moved. Quantified suggestions must be filled with your real figures before they count, so nothing ships with a placeholder in it.
+- **Cross-source contradiction check** - Your CV, LinkedIn, GitHub and cover letter reconciled against one job. Every conflict is named, traced back to the source it came from, and weighed in the score. A "Senior" title on the CV that reads "Engineer" on LinkedIn is the kind of thing a recruiter spots in 30 seconds.
+- **GitHub and portfolio audit** - Commit history, repo quality, language distribution and project depth scored against the target role, not in the abstract. Detects gaps between what your CV claims and what your public work shows.
+- **Skill gap radar** - Visualises the delta between your profile and the job's requirements, so you see the shape of the gap rather than a list of missing words.
+- **Red flag detection** - Employment gaps, vague titles, passive tone, unquantified bullets and seniority mismatches that typically trigger a quiet rejection.
+- **ATS parsing check** - Confirms your file parses cleanly and carries the terms the job actually weights. Deliberately not sold as a magic pass-rate: see "What makes RejectCheck different" below.
+- **CV rewrite (premium)** - Surgical rewrite: missing keywords injected, passive tone converted, seniority signals added. Exports as PDF.
+- **Cover letter generator (premium)** - A tailored letter generated from your CV, the job description and your signal audit.
+- **Negotiation playbook (Hired tier)** - Market salary positioning with the candidate's likely range, leverage points cited from CV/JD evidence, a ready-to-send counter-offer email, anchoring strategy and interview talking points. Anti-hallucination guardrails: salary is extracted from the JD only when stated explicitly, and the broader market range is always labelled an estimate, never a company-specific offer.
 
 ## Who it's for
 
-- Software engineers and technical candidates applying to companies that use ATS systems (which is the majority of medium-to-large employers).
-- Career switchers who want a brutally honest diagnosis of why their application is getting filtered before a human reads it.
-- Non-technical candidates who need to pass ATS keyword screening and get structural feedback on their CV.
+- Candidates applying to a specific role who are tired of guessing why they get ghosted.
+- Career switchers who want an honest read on why their application is being set aside, and a way to fix it before the next send.
+- Software engineers and technical candidates, where the GitHub and portfolio audit adds signal no keyword scan can see. Optimised for developers, but role-aware for product, design, data, marketing, sales and operations too.
 
-The tool is bilingual (English + French) and targets candidates worldwide, with a focus on EU and North American job markets.
+The tool is bilingual (English and French) and targets candidates worldwide, with a focus on the EU and North American job markets.
 
 ## How to use
 
 1. Visit https://rejectcheck.com/en/analyze (or /fr/analyze for French).
-2. Upload your CV as a PDF.
-3. Paste the target job description (link or raw text).
-4. Optionally add your GitHub username and LinkedIn PDF export for deeper signal analysis.
-5. The scored diagnosis streams in first (typically around a minute); the deep pass — per-issue fixes, project recommendation, and ATS keywords — is then generated and delivered right after.
+2. Upload your CV as a PDF or a photo.
+3. Paste the target job description, or run a CV audit with no job attached.
+4. Optionally add your GitHub username and LinkedIn export for deeper signal analysis.
+5. The scored verdict streams in first, typically around a minute. The deep pass (per-issue fixes, project recommendation, ATS keywords) is generated straight after.
+6. Fix what it flagged and re-run the audit. The score is re-judged, and you see the before and after.
 
-No signup is required for the first analysis (IP-tracked). Registered users get 3 free analyses per month with results saved to their dashboard. Paid plans add more monthly analyses, CV rewrite, cover letter generation, and (on Hired) the negotiation playbook.
+No signup is required for the first analysis. Registered users get 3 free analyses per month, saved to their dashboard. Paid plans add more monthly analyses, the per-issue fixes, CV rewrite, cover letter generation and, on Hired, the negotiation playbook.
 
 ## Pricing
 
 See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 
-- **Free (REJECTED plan)** - 1 analysis with no account (then 3 per month once registered). ATS simulation, score breakdown, skill gap radar, red flags, CV tone and seniority audit.
-- **Shortlisted** - €19.99/month. 15 full analyses per month, analysis history, CV rewrite, saved CVs.
-- **Hired** - €39.99/month. Everything in Shortlisted plus 30 analyses per month, cover letter generator, and the negotiation playbook (counter-offer email, leverage points, salary positioning, per-action impact estimates). Refund guarantee: refund of the current month if you get hired.
-- **Credit packs** - One-time top-ups (permanent credits) for extra analyses beyond the monthly plan allowance.
+- **Free** - 1 analysis with no account, then 3 per month once registered. Includes the full verdict: score breakdown, cross-source check, skill gap radar, red flags, seniority audit and ATS parsing check. The paywall is on the fixes, never the diagnosis.
+- **Shortlisted** - 19.99 EUR/month. 15 full analyses per month, analysis history, score evolution tracking, CV rewrite, saved CVs.
+- **Hired** - 39.99 EUR/month. Everything in Shortlisted plus 30 analyses per month, every per-issue fix, cover letter generator and the negotiation playbook. Refund guarantee: the current month is refunded if you land a job.
+- **Founding member** - Hired locked at 19.99 EUR/month for life, capped at the first 100 members.
+- **Credit packs** - One-time top-ups (permanent credits) for analyses beyond the monthly allowance.
+
+Price shown is price paid: no trial trap, no card required to test it, and cancellation is one click from the account page.
 
 ## Key pages
 
@@ -47,29 +53,30 @@ See the machine-readable pricing file: https://rejectcheck.com/pricing.md
 - CV Analyzer: https://rejectcheck.com/en/analyze
 - ATS Checker (free, for developers): https://rejectcheck.com/en/ats-checker
 - Resume Checker (AI, beyond ATS): https://rejectcheck.com/en/resume-checker
-- Software Engineer CV Guide: https://rejectcheck.com/en/software-engineer-cv — full structural guide for engineer CVs (5 sections, senior vs junior signaling, FAQ).
-- Deep CV Review: https://rejectcheck.com/en/cv-review — written critique with before/after rewrites, anchored to a specific role. Distinct from the score-based resume checker.
+- Software Engineer CV Guide: https://rejectcheck.com/en/software-engineer-cv - full structural guide for engineer CVs (5 sections, senior vs junior signaling, FAQ).
+- Deep CV Review: https://rejectcheck.com/en/cv-review - written critique with before/after rewrites, anchored to a specific role. Distinct from the score-based resume checker.
 - Pricing: https://rejectcheck.com/en/pricing
 - Privacy policy: https://rejectcheck.com/en/privacy
 
 ## Guides (long-form, citation-friendly)
 
-- How to Pass ATS in 2026 — A Developer's Guide: https://rejectcheck.com/en/guides/how-to-pass-ats — step-by-step on ATS parsing, format traps, exact-keyword matching, and verification.
-- Why Developers Get Rejected (And Never Find Out Why): https://rejectcheck.com/en/guides/why-developers-get-rejected — the three filters between "Submit" and an interview (ATS, 6-second HR scan, hiring manager review), 9 red flags, junior-vs-senior signals, 3-step iteration framework.
-- Software Engineer Resume Tips — 12 Rules: https://rejectcheck.com/en/guides/software-engineer-resume-tips — actionable tips ranked by impact, with before/after bullet rewrites for hiring manager review.
+- How to Pass ATS in 2026, A Developer's Guide: https://rejectcheck.com/en/guides/how-to-pass-ats - step-by-step on ATS parsing, format traps, exact-keyword matching, and verification.
+- Why Developers Get Rejected (And Never Find Out Why): https://rejectcheck.com/en/guides/why-developers-get-rejected - the three filters between "Submit" and an interview (ATS, 6-second HR scan, hiring manager review), 9 red flags, junior-vs-senior signals, 3-step iteration framework.
+- Software Engineer Resume Tips, 12 Rules: https://rejectcheck.com/en/guides/software-engineer-resume-tips - actionable tips ranked by impact, with before/after bullet rewrites for hiring manager review.
 
 ## What makes RejectCheck different
 
-- **No ATS-score myth** - Most tools sell a magic "ATS pass-rate". In reality most ATS don't auto-reject you on a keyword score — a human recruiter decides. RejectCheck checks the machine-readable layer AND tells you why a human would set your CV aside, anchored on the specific job.
-- **Verdict anchored on a real job description** - Instead of a generic resume score, RejectCheck judges your rejection risk against the specific JD you paste, so the feedback is about that role, not resumes in general.
-- **Multi-pass analysis, not a single prompt** - A streamed scored diagnosis, a deep pass for grounded per-issue fixes, and a Haiku digest that cross-checks CV vs LinkedIn vs GitHub for inconsistencies — more coverage than a one-shot rewrite.
-- **Radar chart for skill gaps** - Instead of a list of "missing skills", RejectCheck visualizes the delta between your profile and the job on a radar chart, so you see the shape of the gap at a glance.
-- **GitHub audit against the job description** - Unique in the category. Commit history, language distribution, and repo quality scored against the specific role you're applying to.
-- **Close the gap, not just reword it** - Beyond the diagnosis, RejectCheck recommends a concrete portfolio project (with a generated starter repo) to build the skills you're actually missing.
+- **No ATS-score myth** - Most tools sell a magic "ATS pass-rate". In reality most ATS do not auto-reject you on a keyword score; a human recruiter decides. RejectCheck checks the machine-readable layer AND tells you why a human would set your CV aside, anchored on the specific job.
+- **A verdict anchored on a real job description** - Instead of a generic resume score, RejectCheck judges your rejection risk against the specific JD you paste, so the feedback is about that role, not resumes in general.
+- **The report is a loop** - Most tools hand you a document and stop. RejectCheck lets you act on what it flagged and re-run the audit, so the score you end with is one you actually changed rather than one you were given.
+- **Cross-source contradiction check** - Reconciling CV against LinkedIn, GitHub and cover letter for one job is not something a single-document keyword scan can do.
+- **GitHub audit against the job description** - Unique in the category. Commit history, language distribution and repo quality scored against the specific role you are applying to.
+- **Close the gap, not just reword it** - Beyond the verdict, RejectCheck recommends a concrete portfolio project (with a generated starter repo) to build the skills you are actually missing.
+- **Honest by construction** - The score is deliberately calibrated on a strict curve rather than inflated, quantified rewrite suggestions will not count until you supply a real figure, and the free tier is a full verdict rather than a teaser.
 
 ## Tech stack
 
-Frontend: Next.js 16 (App Router, React 19, TypeScript). Backend: NestJS, Prisma, PostgreSQL (via Supabase). AI: Anthropic Claude (Sonnet 4.6 for diagnosis and fixes, Haiku 4.5 for the cross-profile digest); the generated starter repo uses Google Gemini. Payments: Stripe (web) and RevenueCat (mobile). Hosting: Vercel (web) and Railway (API).
+Frontend: Next.js 16 (App Router, React 19, TypeScript). Backend: NestJS, Prisma, PostgreSQL (via Supabase). AI: Anthropic Claude (Sonnet) for the analysis and the per-issue fixes; the generated starter repo uses Google Gemini. Payments: Stripe (web) and RevenueCat (mobile). Hosting: Vercel (web) and Railway (API).
 
 ## Languages
 
@@ -80,4 +87,4 @@ Available in English and French. Each page has hreflang alternates. French versi
 - Support: support@rejectcheck.com
 - Website: https://rejectcheck.com
 
-Last updated: 2026-07-02
+Last updated: 2026-07-27

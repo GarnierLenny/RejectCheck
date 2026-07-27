@@ -1264,6 +1264,67 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ 04.5 TRUST — VERIFIABLE FACTS ═════════════════════════════
+           Written long ago and never mounted, so the page made character
+           claims in 04 with no evidence behind them. Sits directly after 04 so
+           each claim is followed by its receipt, and before the testimonials so
+           proof escalates from checkable facts to what people say.
+           Layout is a 3-col grid with no rules, deliberately unlike 02's
+           numbered 2-col and 04's single-column split, so three consecutive
+           sections don't read as the same block. Hrefs in the dict are already
+           locale-prefixed, so they're used raw rather than through localePath.
+           ═══════════════════════════════════════════════════════════════ */}
+      <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
+        <div style={WRAP}>
+          <div className="rc-mstack" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 32, marginBottom: 56 }}>
+            <div aria-hidden />
+            <div>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--rc-red)", fontWeight: 700, marginBottom: 14 }}>
+                {t.landing.trust.badge}
+              </div>
+              <h2 style={{
+                fontFamily: "var(--font-sans)", fontWeight: 500,
+                fontSize: "clamp(36px, 4vw, 52px)", lineHeight: 1.05,
+                letterSpacing: "-0.025em", margin: 0, maxWidth: 800,
+              }}>
+                {t.landing.trust.title}
+              </h2>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: 13, lineHeight: 1.6, color: "var(--rc-hint)", margin: "20px 0 0", maxWidth: 640 }}>
+                {t.landing.trust.subtitle}
+              </p>
+            </div>
+          </div>
+
+          <div className="rc-mstack-lg" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "44px 56px" }}>
+            {t.landing.trust.items.map((item) => (
+              <div key={item.label} style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                <div style={{ display: "flex", gap: 9, alignItems: "baseline" }}>
+                  <span aria-hidden style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: "var(--rc-green)", flexShrink: 0 }}>✓</span>
+                  <h3 style={{ fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 15.5, letterSpacing: "-0.01em", color: "var(--rc-text)", margin: 0, lineHeight: 1.3 }}>
+                    {item.label}
+                  </h3>
+                </div>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 13.5, lineHeight: 1.6, color: "var(--rc-muted)", margin: 0 }}>
+                  {item.claim}
+                </p>
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, lineHeight: 1.55, color: "var(--rc-hint)", marginTop: 2 }}>
+                  {item.source}
+                  {item.sourceLinks?.length ? (
+                    <span style={{ display: "inline-flex", gap: 10, marginLeft: 8, flexWrap: "wrap" }}>
+                      {item.sourceLinks.map((l) => (
+                        <Link key={l.href} href={l.href} style={{ color: "var(--rc-red)", textDecoration: "underline", textUnderlineOffset: 2 }}>
+                          {l.label}
+                        </Link>
+                      ))}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ 05 WALL OF LOVE ═══════════════════════════════════════════ */}
       <section style={{ borderTop: "1px solid var(--rc-border)", padding: "120px 0 96px" }}>
         <div style={WRAP}>
@@ -1544,12 +1605,19 @@ export default function Home() {
               <Link href={localePath("/alternatives")} style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 13, color: "rgba(255,255,255,0.7)", padding: "4px 0", textDecoration: "none" }}>
                 {t.landing.footer.alternatives}
               </Link>
+              {/* Kept in sync with SeoFooter's seoLinks: the landing is the most
+                  authoritative page, so every SEO landing should be reachable
+                  from it. /methode and (FR) /cv-developpeur were missing here
+                  while present in SeoFooter, so they only got internal links
+                  from secondary pages. */}
               {(locale === "fr"
                 ? [
                     { href: "/cv-review", label: "Revue de CV" },
                     { href: "/ats-checker", label: "Checker ATS" },
                     { href: "/resume-checker", label: "Checker de CV" },
                     { href: "/software-engineer-cv", label: "CV ingénieur logiciel" },
+                    { href: "/cv-developpeur", label: "CV développeur" },
+                    { href: "/methode", label: "Méthode" },
                     { href: "/guides", label: "Guides" },
                   ]
                 : [
@@ -1557,6 +1625,7 @@ export default function Home() {
                     { href: "/ats-checker", label: "ATS Checker" },
                     { href: "/resume-checker", label: "Resume Checker" },
                     { href: "/software-engineer-cv", label: "Software Engineer CV" },
+                    { href: "/methode", label: "Method" },
                     { href: "/guides", label: "Guides" },
                   ]
               ).map((l) => (
