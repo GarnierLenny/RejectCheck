@@ -52,6 +52,13 @@ type Props = {
   focusedOriginal?: string | null;
   /** Bumped on each left-panel click so re-clicking the same bullet re-focuses. */
   focusNonce?: number;
+  /**
+   * Publishes the live draft (base CV with resolved-and-filled bullets applied)
+   * plus the rewritten lines, so the left source-document panel can reflect the
+   * edits in place. Placeholder-bearing bullets are never resolved, so they never
+   * reach the draft. Null when there is nothing to reflect. (Move B / B1.)
+   */
+  onDraftChange?: (draft: { text: string; changedLines: string[] } | null) => void;
 };
 
 const COPY = {
@@ -84,6 +91,10 @@ const COPY = {
     open: "Open the updated audit",
     tooShort: "Keep your full CV text, not just the edits.",
     error: "Re-audit failed. Try again.",
+    useAndFill: "Use & add number",
+    toFill: "to fill",
+    fillHint: "Replace each [X] with your real number, or reword to drop the claim.",
+    jumpToFix: "Jump to first",
   },
   fr: {
     kicker: "09 · Boucle de re-audit",
@@ -114,6 +125,10 @@ const COPY = {
     open: "Ouvrir l'audit mis à jour",
     tooShort: "Garde tout le texte de ton CV, pas seulement les corrections.",
     error: "Le re-audit a échoué. Réessaie.",
+    useAndFill: "Ajouter un chiffre",
+    toFill: "à chiffrer",
+    fillHint: "Remplace chaque [X] par ton vrai chiffre, ou reformule pour retirer la revendication.",
+    jumpToFix: "Aller au premier",
   },
 };
 
@@ -177,6 +192,27 @@ function applyBulletEdit(
   return { text, applied: false };
 }
 
+/**
+ * Placeholder tokens the model leaves in a rewrite for the user to fill with a
+ * real figure: [X], [N], [X]%, [number]... We never ship or score these. A
+ * bracketed token up to 20 chars, no newline inside. Used for both counting and
+ * locating the first one to focus.
+ */
+const PLACEHOLDER_RE = /\[[^\]\n]{1,20}\]/;
+
+/** How many unfilled placeholder tokens remain in a rewrite. */
+function placeholderCount(text: string): number {
+  const m = text.match(/\[[^\]\n]{1,20}\]/g);
+  return m ? m.length : 0;
+}
+
+/** Start/end offsets of the first placeholder, for select-on-accept. Null if none. */
+function firstPlaceholderRange(text: string): [number, number] | null {
+  const m = PLACEHOLDER_RE.exec(text);
+  if (!m) return null;
+  return [m.index, m.index + m[0].length];
+}
+
 /** The sub-score that gained the most on this re-audit (for the "what moved" line). */
 function biggestMover(
   deltas: CvReviewRescanDeltas,
@@ -213,6 +249,7 @@ export function CvAuditRescanPanel({
   bulletReviews,
   focusedOriginal = null,
   focusNonce = 0,
+  onDraftChange,
 }: Props) {
   const { locale, localePath } = useLanguage();
   const L = locale === "fr" ? COPY.fr : COPY.en;
@@ -247,18 +284,34 @@ export function CvAuditRescanPanel({
   const [unappliedCount, setUnappliedCount] = useState(0);
 
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
   const [pulse, setPulse] = useState<string | null>(null);
 
   const valueOf = (b: BulletReview): string => {
     const o = b.original ?? "";
     return edits[o] ?? b.rewrite ?? o;
   };
+  // Resolved = accepted, actually changed from the original, AND carries no
+  // unfilled [X]/[N] placeholder. The placeholder guard is what keeps a
+  // number-shaped template from counting as a real fix, inflating the draft, or
+  // committing to a re-audit that would then disagree. (Move B / B2.)
   const isResolved = (b: BulletReview): boolean => {
     const o = (b.original ?? "").trim();
     const v = valueOf(b).trim();
-    return accepted.has(b.original ?? "") && v.length > 0 && v !== o;
+    return (
+      accepted.has(b.original ?? "") &&
+      v.length > 0 &&
+      v !== o &&
+      placeholderCount(v) === 0
+    );
   };
+  // Accepted but still holding a placeholder: counts as "needs a number", not as
+  // a fix. Blocks the re-audit until filled or reworded.
+  const isPendingFill = (b: BulletReview): boolean =>
+    accepted.has(b.original ?? "") && placeholderCount(valueOf(b)) > 0;
   const dirtyCount = improvable.filter(isResolved).length;
+  const pendingFill = improvable.filter(isPendingFill);
+  const pendingFillCount = pendingFill.length;
 
   const buildEditedCv = (): { text: string; unapplied: number } => {
     let out = base;
@@ -279,15 +332,42 @@ export function CvAuditRescanPanel({
     !!accessToken &&
     !busy &&
     assembledCv.trim().length >= MIN_CHARS &&
+    // Never re-audit while an accepted bullet still shows a placeholder: it
+    // would either ship "[X]" or silently drop the edit. Block at this boundary.
+    pendingFillCount === 0 &&
     (editorMode ? dirtyCount > 0 : true);
 
   const toggleAccept = (original: string) => {
+    const wasAccepted = accepted.has(original);
     setAccepted((prev) => {
       const next = new Set(prev);
       if (next.has(original)) next.delete(original);
       else next.add(original);
       return next;
     });
+    // On accept, if the applied rewrite still has a placeholder, drop the cursor
+    // onto the first one so the number is the next thing the user types.
+    if (!wasAccepted) {
+      const current = edits[original] ?? improvable.find((b) => (b.original ?? "") === original)?.rewrite ?? "";
+      const range = firstPlaceholderRange(current);
+      if (range) {
+        requestAnimationFrame(() => {
+          const el = textareaRefs.current[original];
+          if (!el) return;
+          el.focus();
+          el.setSelectionRange(range[0], range[1]);
+        });
+      }
+    }
+  };
+
+  const jumpToFirstPending = () => {
+    const first = pendingFill[0]?.original;
+    if (!first) return;
+    const el = cardRefs.current[first];
+    if (el) scrollIntoViewMotionSafe(el, { block: "center" });
+    setPulse(first);
+    setTimeout(() => setPulse(null), 1600);
   };
 
   // Left-panel bullet click: scroll its editor card into view and pulse it.
@@ -300,6 +380,25 @@ export function CvAuditRescanPanel({
     const t = setTimeout(() => setPulse(null), 1600);
     return () => clearTimeout(t);
   }, [focusNonce, focusedOriginal]);
+
+  // B1: publish the live draft so the left source-document panel reflects the
+  // accepted-and-filled edits in place. Only resolved bullets (no placeholder)
+  // reach the draft, so the left CV never renders an unfilled "[X]". Keyed on
+  // the assembled text so it republishes only when the applied CV changes.
+  useEffect(() => {
+    if (!onDraftChange) return;
+    if (!editorMode || dirtyCount === 0) {
+      onDraftChange(null);
+      return;
+    }
+    const changedLines = improvable
+      .filter(isResolved)
+      .map((b) => valueOf(b).trim());
+    onDraftChange({ text: assembledCv, changedLines });
+    // isResolved/valueOf/improvable are recomputed each render but are pure
+    // functions of edits/accepted/bulletReviews, captured via assembledCv+dirtyCount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorMode, assembledCv, dirtyCount, onDraftChange]);
 
   const run = async () => {
     if (!analysisId || !accessToken || busy) return;
@@ -389,6 +488,13 @@ export function CvAuditRescanPanel({
                 const resolved = isResolved(b);
                 const isPulse = pulse === o;
                 const value = valueOf(b);
+                const pendingFillThis = isPendingFill(b);
+                const nToFill = placeholderCount(value);
+                const acceptLabel = resolved
+                  ? L.accepted
+                  : nToFill > 0
+                    ? L.useAndFill
+                    : L.accept;
                 return (
                   <div
                     key={`${o.slice(0, 30)}-${i}`}
@@ -396,10 +502,10 @@ export function CvAuditRescanPanel({
                       cardRefs.current[o] = el;
                     }}
                     style={{
-                      border: `1px solid ${resolved ? "var(--rc-green-border)" : isPulse ? "var(--rc-red)" : "var(--rc-border)"}`,
+                      border: `1px solid ${resolved ? "var(--rc-green-border)" : pendingFillThis ? "var(--rc-amber-border)" : isPulse ? "var(--rc-red)" : "var(--rc-border)"}`,
                       borderRadius: 8,
                       padding: "12px 14px",
-                      background: resolved ? "var(--rc-green-bg)" : "var(--rc-bg, transparent)",
+                      background: resolved ? "var(--rc-green-bg)" : pendingFillThis ? "var(--rc-amber-bg)" : "var(--rc-bg, transparent)",
                       boxShadow: isPulse ? "0 0 0 3px color-mix(in srgb, var(--rc-red) 18%, transparent)" : "none",
                       transition: "box-shadow 0.3s, border-color 0.3s",
                     }}
@@ -446,8 +552,8 @@ export function CvAuditRescanPanel({
                           flexShrink: 0,
                         }}
                       >
-                        <Check size={12} strokeWidth={3} />
-                        {resolved ? L.accepted : L.accept}
+                        {resolved && <Check size={12} strokeWidth={3} />}
+                        {acceptLabel}
                       </button>
                     </div>
                     <div
@@ -463,6 +569,9 @@ export function CvAuditRescanPanel({
                       {o}
                     </div>
                     <textarea
+                      ref={(el) => {
+                        textareaRefs.current[o] = el;
+                      }}
                       value={value}
                       onChange={(e) => setEdits((prev) => ({ ...prev, [o]: e.target.value }))}
                       rows={2}
@@ -475,13 +584,23 @@ export function CvAuditRescanPanel({
                         lineHeight: 1.5,
                         color: "var(--rc-text)",
                         background: "var(--rc-surface)",
-                        border: "1px solid var(--rc-border)",
+                        border: `1px solid ${pendingFillThis ? "var(--rc-amber-border)" : "var(--rc-border)"}`,
                         borderRadius: 5,
                         padding: "8px 10px",
                         resize: "vertical",
                         boxSizing: "border-box",
                       }}
                     />
+                    {pendingFillThis && (
+                      <div style={{ marginTop: 6, lineHeight: 1.45 }}>
+                        <span style={{ ...MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--rc-amber)" }}>
+                          {nToFill} {L.toFill}
+                        </span>
+                        <span style={{ ...SANS, fontSize: 11.5, color: "var(--rc-hint)", marginLeft: 8 }}>
+                          {L.fillHint}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -563,8 +682,34 @@ export function CvAuditRescanPanel({
               {dirtyCount} {L.accepted.toLowerCase()}
             </span>
           )}
-          {editorMode && dirtyCount === 0 && !error && (
+          {editorMode && dirtyCount === 0 && pendingFillCount === 0 && !error && (
             <span style={{ ...SANS, fontSize: 13, color: "var(--rc-hint)" }}>{L.noneAccepted}</span>
+          )}
+          {editorMode && pendingFillCount > 0 && !busy && (
+            <span style={{ ...SANS, fontSize: 13, color: "var(--rc-amber)", display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              {langKey === "fr"
+                ? `${pendingFillCount} réécriture${pendingFillCount > 1 ? "s" : ""} en attente d'un chiffre`
+                : `${pendingFillCount} accepted rewrite${pendingFillCount > 1 ? "s" : ""} waiting on a number`}
+              <button
+                type="button"
+                onClick={jumpToFirstPending}
+                style={{
+                  ...MONO,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "var(--rc-amber)",
+                  background: "transparent",
+                  border: "1px solid var(--rc-amber-border)",
+                  borderRadius: 5,
+                  padding: "3px 8px",
+                  cursor: "pointer",
+                }}
+              >
+                {L.jumpToFix} →
+              </button>
+            </span>
           )}
           {error && (
             <span style={{ ...SANS, fontSize: 13, color: "var(--rc-red)" }}>{error}</span>

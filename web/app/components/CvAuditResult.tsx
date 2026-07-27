@@ -369,6 +369,10 @@ export function CvAuditResult({
   // Mirrors the §09 render condition below.
   const rescanAvailable = !!(result.cv_quality && !readOnly && _analysisId && accessToken);
   const [focusBullet, setFocusBullet] = useState<{ term: string; n: number } | null>(null);
+  // B1: the live re-audit draft, published by CvAuditRescanPanel as the user
+  // accepts and fills bullet rewrites, so the left source-document panel reflects
+  // the edits in place (and marks the changed lines). Null = show the original.
+  const [rescanDraft, setRescanDraft] = useState<{ text: string; changedLines: string[] } | null>(null);
   const highlightsByDoc = useMemo((): Partial<Record<"cv", HighlightMap>> => {
     const seen = new Set<string>();
     const weak = (result.bullet_reviews?.bullets ?? [])
@@ -601,7 +605,8 @@ export function CvAuditResult({
         cvBlobUrl={cvBlobUrl}
         liBlobUrl={liBlobUrl}
         mlBlobUrl={mlBlobUrl}
-        reconstructedCv={reconstructedCv}
+        reconstructedCv={rescanDraft?.text ?? reconstructedCv}
+        changedLines={rescanDraft?.changedLines}
         liText={liText}
         highlightsByDoc={highlightsByDoc}
         onHighlightTermClick={
@@ -1269,6 +1274,7 @@ export function CvAuditResult({
                 bulletReviews={result.bullet_reviews?.bullets}
                 focusedOriginal={focusBullet?.term ?? null}
                 focusNonce={focusBullet?.n ?? 0}
+                onDraftChange={setRescanDraft}
               />
             </section>
           )}
