@@ -29,6 +29,7 @@ import type {
   RescanTimelinePoint,
 } from "./types";
 import { AnimatedScore } from "./AnimatedScore";
+import posthog from "posthog-js";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 
@@ -123,11 +124,31 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
     };
   }, [analysisId, accessToken, canRescan]);
 
+  // P0.5: the re-scan loop had no analytics, so its (currently zero) usage was
+  // invisible. Report competitiveness (100 − risk) so "improved" reads the way
+  // the user sees it.
+  const captureRescanCompleted = useCallback(
+    (source: string, d: RescanDeltas) => {
+      const before = d.score.before == null ? null : 100 - d.score.before;
+      const after = d.score.after == null ? null : 100 - d.score.after;
+      posthog.capture("rescan_completed", {
+        analysisId,
+        source,
+        competitivenessBefore: before,
+        competitivenessAfter: after,
+        improved: before != null && after != null && after > before,
+        resolvedIssues: d.resolvedIssueCount,
+      });
+    },
+    [analysisId],
+  );
+
   const runQuickRescan = useCallback(
     async (file: File) => {
       if (!canRescan || quickBusy) return;
       setError(null);
       setQuickBusy(true);
+      posthog.capture("rescan_started", { analysisId, source: "quick" });
       try {
         const fd = new FormData();
         fd.append("cv", file);
@@ -158,6 +179,13 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
             ? data.timeline[data.timeline.length - 2].coverageScore
             : data.coverageBefore;
         const step = data.coverageAfter - prev;
+        posthog.capture("rescan_completed", {
+          analysisId,
+          source: "quick",
+          coverageBefore: data.coverageBefore,
+          coverageAfter: data.coverageAfter,
+          improved: step > 0,
+        });
         if (step > 0) {
           toast.success(`${rt.coverage} +${step}`);
         } else if (step < 0) {
@@ -181,6 +209,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
       setFullBusy(true);
       setFullDeltas(null);
       setFullNewId(null);
+      posthog.capture("rescan_started", { analysisId, source: "full" });
       try {
         const fd = new FormData();
         fd.append("cv", file);
@@ -196,6 +225,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
         await consumeSSE<FullPayload>(res, (p) => {
           if (p.step === "rescan_deltas" && p.deltas) {
             setFullDeltas(p.deltas);
+            captureRescanCompleted("full", p.deltas);
           } else if (p.step === "done") {
             if (typeof p.analysisId === "number") setFullNewId(p.analysisId);
           } else if (p.step === "error") {
@@ -208,7 +238,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
         setFullBusy(false);
       }
     },
-    [analysisId, accessToken, canRescan, fullBusy, rt],
+    [analysisId, accessToken, canRescan, fullBusy, rt, captureRescanCompleted],
   );
 
   // Inline commit (move 4): the user edited keywords/bullets in-app; send the
@@ -221,6 +251,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
       setFullBusy(true);
       setFullDeltas(null);
       setFullNewId(null);
+      posthog.capture("rescan_started", { analysisId, source: "inline" });
       try {
         const res = await fetch(
           `${apiUrl}/api/analyze/${analysisId}/rescan-inline`,
@@ -240,6 +271,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
         await consumeSSE<FullPayload>(res, (p) => {
           if (p.step === "rescan_deltas" && p.deltas) {
             setFullDeltas(p.deltas);
+            captureRescanCompleted("inline", p.deltas);
           } else if (p.step === "done") {
             if (typeof p.analysisId === "number") setFullNewId(p.analysisId);
           } else if (p.step === "error") {
@@ -252,7 +284,7 @@ export function RescanPanel({ analysisId, accessToken, result = null, cvText = n
         setFullBusy(false);
       }
     },
-    [analysisId, accessToken, canRescan, fullBusy, rt],
+    [analysisId, accessToken, canRescan, fullBusy, rt, captureRescanCompleted],
   );
 
   // Anonymous / unsaved analysis: re-scan needs an owned, persisted row.
@@ -719,9 +751,11 @@ function FullRescanResult({
           </span>
           <button
             type="button"
-            onClick={() =>
-              onShareGlowUp ? onShareGlowUp({ before: compBefore, after: compAfter }) : onOpen()
-            }
+            onClick={() => {
+              posthog.capture("rescan_share_clicked", { flow: "vs_jd", before: compBefore, after: compAfter });
+              if (onShareGlowUp) onShareGlowUp({ before: compBefore, after: compAfter });
+              else onOpen();
+            }}
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: 11,

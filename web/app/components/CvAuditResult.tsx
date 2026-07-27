@@ -22,6 +22,7 @@ import { CvBenchmarkPanel } from "./CvBenchmarkPanel";
 import { CorpusFactCard } from "./CorpusFactCard";
 import { CvNextLever } from "./CvNextLever";
 import { nextLever } from "../lib/next-lever";
+import posthog from "posthog-js";
 import { CvGlanceStrip } from "./CvGlanceStrip";
 import { BenchmarkClaimLine } from "./BenchmarkClaimLine";
 import { CvRecruiterRadar } from "./CvRecruiterRadar";
@@ -736,7 +737,13 @@ export function CvAuditResult({
                   </div>
                   <button
                     type="button"
-                    onClick={() => scrollTo("s9")}
+                    onClick={() => {
+                      posthog.capture("rescan_trigger_clicked", {
+                        flow: "cv_review",
+                        lever: heroLever?.dimension ?? null,
+                      });
+                      scrollTo("s9");
+                    }}
                     style={{
                       ...MONO,
                       fontSize: 11,

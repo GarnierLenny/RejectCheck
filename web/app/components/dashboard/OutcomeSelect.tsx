@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import { useSetOutcome } from "../../../lib/mutations";
 import { useLanguage } from "../../../context/language";
 import type { AnalysisOutcome } from "../../../lib/queries";
@@ -47,9 +48,11 @@ export function OutcomeSelect({
       value={value}
       disabled={setOutcome.isPending}
       onClick={(e) => e.stopPropagation()}
-      onChange={(e) =>
-        setOutcome.mutate({ id, outcome: e.target.value as AnalysisOutcome })
-      }
+      onChange={(e) => {
+        const outcome = e.target.value as AnalysisOutcome;
+        posthog.capture("outcome_reported", { analysisId: id, outcome });
+        setOutcome.mutate({ id, outcome });
+      }}
       className={`bg-transparent border-0 font-mono text-[10px] font-bold cursor-pointer outline-none disabled:opacity-50 ${COLOR[value]}`}
     >
       {OUTCOMES.map((o) => (

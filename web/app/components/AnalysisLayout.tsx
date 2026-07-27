@@ -1253,7 +1253,10 @@ export function AnalysisLayout({
               currentRisk={result.score}
               projectedRisk={projectedRisk}
               changes={draftChanges}
-              onJump={() => scrollIntoViewMotionSafe(document.getElementById("sec-match"), { block: "start" })}
+              onJump={() => {
+                posthog.capture("rescan_trigger_clicked", { flow: "vs_jd" });
+                scrollIntoViewMotionSafe(document.getElementById("sec-match"), { block: "start" });
+              }}
               labels={{
                 eyebrow: t.analysisLayout.rescan.optimize.stickyEyebrow,
                 change: t.analysisLayout.rescan.optimize.change,

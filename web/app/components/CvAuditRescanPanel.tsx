@@ -8,6 +8,7 @@ import { useLanguage } from "../../context/language";
 import { SectionBand } from "./SectionBand";
 import { AnimatedScore } from "./rescan/AnimatedScore";
 import { placeholderCount, firstPlaceholderRange } from "../lib/placeholders";
+import posthog from "posthog-js";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.rejectcheck.com";
 
@@ -405,6 +406,7 @@ export function CvAuditRescanPanel({
     setDeltas(null);
     setNewId(null);
     setUnappliedCount(built.unapplied);
+    posthog.capture("rescan_started", { analysisId, source: "cv_review" });
     try {
       const res = await fetch(
         `${apiUrl}/api/analyze/${analysisId}/rescan-cv-review`,
@@ -424,7 +426,17 @@ export function CvAuditRescanPanel({
       await consumeSSE<SsePayload>(res, (p) => {
         if (p.step === "cv_review_rescan_deltas") {
           const d = (p as { deltas?: CvReviewRescanDeltas }).deltas;
-          if (d) setDeltas(d);
+          if (d) {
+            setDeltas(d);
+            posthog.capture("rescan_completed", {
+              analysisId,
+              source: "cv_review",
+              overallBefore: d.overall.before,
+              overallAfter: d.overall.after,
+              improved: (d.overall.delta ?? 0) > 0,
+              resolvedIssues: d.resolvedIssueCount,
+            });
+          }
         } else if (p.step === "done") {
           const aid = (p as { analysisId?: number | null }).analysisId;
           if (typeof aid === "number") setNewId(aid);
@@ -855,8 +867,10 @@ export function CvAuditRescanPanel({
                   type="button"
                   onClick={() => {
                     const after = deltas.overall.after;
+                    const before = deltas.overall.before ?? currentOverall;
+                    posthog.capture("rescan_share_clicked", { analysisId, flow: "cv_review", before, after });
                     if (onShareGlowUp && after != null) {
-                      onShareGlowUp({ before: deltas.overall.before ?? currentOverall, after });
+                      onShareGlowUp({ before, after });
                     } else {
                       openUpdated();
                     }
