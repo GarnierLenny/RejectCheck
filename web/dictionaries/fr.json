@@ -375,7 +375,13 @@
     "linkedin": {
       "hint": "export PDF du profil",
       "dropPrompt": "Déposez votre export PDF LinkedIn",
-      "exportHint": "Paramètres → Données → Obtenir une copie",
+      "exportHint": "Profil → Plus → Enregistrer au format PDF",
+      "howToExport": "Comment l'exporter ?",
+      "howSteps": [
+        "Ouvrez votre profil LinkedIn",
+        "Cliquez sur « Plus » sous votre nom",
+        "Sélectionnez « Enregistrer au format PDF », puis déposez le fichier ici"
+      ],
       "precision": "+précision"
     },
     "portfolio": {

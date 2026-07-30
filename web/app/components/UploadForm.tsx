@@ -131,6 +131,7 @@ export function UploadForm({
   const [cvFileError, setCvFileError] = useState<CvFileError | null>(null);
   const [pingStatus, setPingStatus] = useState<"idle" | "checking" | "ok" | "error" | "invalid">("idle");
   const [openSignal, setOpenSignal] = useState<"github" | "linkedin" | "portfolio" | "cover" | null>(null);
+  const [liHelp, setLiHelp] = useState(false);
   const [mlMode, setMlMode] = useState<"file" | "text">("file");
   const [previewPdf, setPreviewPdf] = useState<{ url: string; name: string } | null>(null);
   const [previewLi, setPreviewLi] = useState(false);
@@ -585,6 +586,20 @@ export function UploadForm({
                       )}
                       <input type="file" ref={liRef} accept=".pdf" className="hidden"
                         onChange={(e) => { setLiFile(e.target.files?.[0] || null); setOpenSignal(null); }} />
+                      <div className="mt-2">
+                        <button type="button" onClick={() => setLiHelp((v) => !v)}
+                          className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-rc-hint hover:text-rc-text transition-colors">
+                          {t.uploadForm.linkedin.howToExport}
+                          <span className={`transition-transform ${liHelp ? "rotate-90" : ""}`}>›</span>
+                        </button>
+                        {liHelp && (
+                          <ol className="mt-1.5 flex flex-col gap-1 pl-4 list-decimal marker:text-rc-hint/60 text-[10px] leading-relaxed text-rc-hint">
+                            {t.uploadForm.linkedin.howSteps.map((s, idx) => (
+                              <li key={idx}>{s}</li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
                     </div>
                   )}
                   {openSignal === "portfolio" && (

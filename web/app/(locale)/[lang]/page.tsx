@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import posthog from "posthog-js";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -892,7 +893,15 @@ export default function Home() {
                 <span>{t.landing.s01.subtitleLine4}<span style={EMPH}>{t.landing.s01.subtitleEmphasis}</span>.</span>
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 34 }}>
-                <Link href={localePath("/analyze")} className="rc-hero-cta">
+                {/* Top-of-funnel instrumentation. The hero CTAs had no events, so
+                    the subreddit link (the only distribution channel with a real
+                    audience) was unmeasurable: no way to tell whether the "free
+                    full audit" offer draws anyone. Pairs with the rescan_* funnel. */}
+                <Link
+                  href={localePath("/analyze")}
+                  className="rc-hero-cta"
+                  onClick={() => posthog.capture("hero_cta_clicked", { locale, target: "analyze" })}
+                >
                   {t.landing.s01.dropCta}
                 </Link>
                 <a
@@ -900,6 +909,7 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rc-hero-cta--ghost rc-hero-cta--reddit"
+                  onClick={() => posthog.capture("reddit_cta_clicked", { locale, placement: "hero" })}
                 >
                   <span>{t.landing.s01.redditCtaLabel}</span>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: "#FF4500", letterSpacing: "-0.01em" }}>r/rejectcheck</span>
