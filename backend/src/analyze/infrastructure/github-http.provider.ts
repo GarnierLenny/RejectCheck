@@ -21,7 +21,15 @@ export class GithubHttpProvider implements GithubProvider {
 
   async fetchProfile(username: string): Promise<GithubSnapshot | null> {
     try {
-      const headers = { 'User-Agent': 'RejectCheck-App' };
+      // Unauthenticated GitHub API = 60 req/h per IP; each audit spends 2, so
+      // ~30 audits/h before 403s silently drop the GitHub section. A token
+      // (no scopes needed for public data) lifts this to 5,000 req/h.
+      const token = process.env.GITHUB_TOKEN;
+      const headers: Record<string, string> = {
+        'User-Agent': 'RejectCheck-App',
+        Accept: 'application/vnd.github+json',
+      };
+      if (token) headers.Authorization = `Bearer ${token}`;
       const encoded = encodeURIComponent(username);
       const init = { headers, signal: AbortSignal.timeout(2500) };
 
