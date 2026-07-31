@@ -295,6 +295,14 @@
           "sub": "Rewrite what it flags, re-run the audit, and see the score move. Not a one-shot report you read once and close."
         },
         {
+          "feat": "Measured against real resumes",
+          "sub": "Your structure is benchmarked against hundreds of real resumes in your field. Strong means the top quartile, measured, not a feeling."
+        },
+        {
+          "feat": "It never invents your numbers",
+          "sub": "Suggested rewrites arrive with placeholders. Until you put a real figure in, they don't count toward your score."
+        },
+        {
           "feat": "No upsell on the essentials",
           "sub": "Your score, your missing keywords and your red flags are free, permanently. The paywall is on the fixes, never the diagnosis."
         },

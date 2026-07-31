@@ -295,6 +295,14 @@
           "sub": "Réécrivez ce qu'il signale, relancez l'audit, et voyez le score évoluer. Pas un rapport unique qu'on lit puis qu'on ferme."
         },
         {
+          "feat": "Mesuré face à de vrais CV",
+          "sub": "Votre structure est comparée à des centaines de vrais CV de votre domaine. Fort veut dire le quartile supérieur, mesuré, pas une impression."
+        },
+        {
+          "feat": "Il n'invente jamais vos chiffres",
+          "sub": "Les réécritures proposées arrivent avec des champs à remplir. Tant que vous n'y mettez pas un vrai chiffre, elles ne comptent pas dans votre score."
+        },
+        {
           "feat": "Aucun upsell sur l'essentiel",
           "sub": "Votre score, vos mots-clés manquants et vos red flags sont gratuits, définitivement. Le paywall est sur les corrections, jamais sur le diagnostic."
         },

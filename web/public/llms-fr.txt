@@ -62,6 +62,7 @@ Le prix affiché est le prix payé : pas de piège d'essai, pas de carte pour te
 - **Croisement des sources** - Recouper le CV avec LinkedIn, GitHub et la lettre de motivation pour une même offre, c'est hors de portée d'un scan de mots-clés sur un seul document.
 - **Audit GitHub contre la fiche de poste** - Unique dans la catégorie. Historique de commits, distribution des langages et qualité des repos notés face au rôle exact visé.
 - **Combler l'écart, pas juste le reformuler** - Au-delà du verdict, RejectCheck recommande un projet de portfolio concret (avec un starter repo généré) pour bâtir les compétences qui manquent vraiment.
+- **Comparé à de vrais CV** - La structure de votre CV (bullets chiffrés, verbes d'action, densité de métriques) est comparée aux bandes agrégées de centaines de vrais CV de votre famille de métier. « Fort » signifie le quartile supérieur. Les données de référence sont des CV typiques, pas étiquetés par résultat d'embauche, et le rapport le précise explicitement.
 - **Honnête par construction** - Le score est volontairement calibré sur une courbe stricte plutôt que gonflé, les réécritures chiffrées ne comptent pas tant que vous n'avez pas fourni un vrai chiffre, et le palier gratuit est un verdict complet, pas un teaser.
 
 ## Stack technique
@@ -77,4 +78,4 @@ Disponible en anglais et français. Chaque page a des alternates hreflang. Versi
 - Support : support@rejectcheck.com
 - Site web : https://rejectcheck.com
 
-Dernière mise à jour : 2026-07-27
+Dernière mise à jour : 2026-07-30

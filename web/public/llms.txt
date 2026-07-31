@@ -72,6 +72,7 @@ Price shown is price paid: no trial trap, no card required to test it, and cance
 - **Cross-source contradiction check** - Reconciling CV against LinkedIn, GitHub and cover letter for one job is not something a single-document keyword scan can do.
 - **GitHub audit against the job description** - Unique in the category. Commit history, language distribution and repo quality scored against the specific role you are applying to.
 - **Close the gap, not just reword it** - Beyond the verdict, RejectCheck recommends a concrete portfolio project (with a generated starter repo) to build the skills you are actually missing.
+- **Benchmarked against real resumes** - Your CV's structure (quantified bullets, action verbs, metric density) is compared to aggregate bands from hundreds of real resumes in your role family. "Strong" means the top quartile. The reference data is typical resumes, not outcome-labelled, and the report says so explicitly.
 - **Honest by construction** - The score is deliberately calibrated on a strict curve rather than inflated, quantified rewrite suggestions will not count until you supply a real figure, and the free tier is a full verdict rather than a teaser.
 
 ## Tech stack
@@ -87,4 +88,4 @@ Available in English and French. Each page has hreflang alternates. French versi
 - Support: support@rejectcheck.com
 - Website: https://rejectcheck.com
 
-Last updated: 2026-07-27
+Last updated: 2026-07-30
