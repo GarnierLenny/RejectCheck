@@ -46,14 +46,39 @@ export async function GET(request: Request) {
     await supabase.auth.updateUser({ data: { username: generated } });
   }
 
+  // Serverless: fire-and-forget capture() dies with the lambda before the HTTP
+  // request leaves (the redirect below returns immediately), so these events
+  // never reached PostHog. captureImmediate() awaits the send. Analytics must
+  // never block auth, hence the swallowed failure.
   const posthog = getPostHogClient();
   const provider = user.app_metadata?.provider ?? 'unknown';
-  posthog.identify({ distinctId: user.id, properties: { email: user.email } });
-  posthog.capture({
-    distinctId: user.id,
-    event: 'oauth_login_completed',
-    properties: { provider, is_new_user: isNewUser },
-  });
+  try {
+    const sends: Promise<unknown>[] = [
+      posthog.captureImmediate({
+        distinctId: user.id,
+        event: 'oauth_login_completed',
+        properties: {
+          provider,
+          is_new_user: isNewUser,
+          $set: { email: user.email },
+        },
+      }),
+    ];
+    if (isNewUser) {
+      // Mirrors the email-path event (login/page.tsx) so the signup funnel
+      // counts OAuth accounts too — previously only email signups were counted.
+      sends.push(
+        posthog.captureImmediate({
+          distinctId: user.id,
+          event: 'user_signed_up',
+          properties: { method: provider },
+        }),
+      );
+    }
+    await Promise.all(sends);
+  } catch {
+    // ignore: losing one analytics event is better than failing the login
+  }
 
   const redirectPath = next.startsWith('/') ? next : `/${next}`;
   return NextResponse.redirect(`${origin}/${lang}${redirectPath}`);
